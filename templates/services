@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# services #
+
+# dependencies #
+
+source ./console
+
+# configuration #
+
+services_enable_list=(
+	service_name.service
+	service_name.service
+	service_name.service
+)
+
+services_disable_list=(
+	service_name.service
+	service_name.service
+	service_name.service
+)
+
+# enable #
+
+if (( ${#services_enable_list[@]} ))
+then
+	console.warning "Enabling services..."
+
+	for service in ${services_list[@]}
+	do
+		systemctl start "$service"
+		systemctl enable "$service"
+	done
+fi
+
+# disable #
+
+if (( ${#services_disable_list[@]} ))
+then
+	console.warning "Disabling services..."
+
+	for service in ${services_list[@]}
+	do
+		systemctl stop "$service"
+		systemctl disable "$service"
+	done
+fi

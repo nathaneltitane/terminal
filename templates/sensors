@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# sensors #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+# Enable quiet package install
+
+export DEBIAN_FRONTEND=noninteractive
+
+# install #
+
+install_list=(
+	lm-sensors
+)
+
+for package in ${install_list[@]}
+do
+	console.info "Installing ${package} and applicable dependencies..."
+
+	echo yes | apt install ${package}
+done
+
+# sensors setup #
+
+console.info "Writing configuration (${install_list[0]})..."
+
+sensors-detect --auto

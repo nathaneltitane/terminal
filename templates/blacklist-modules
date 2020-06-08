@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# blacklist modules #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+modules_directory="/etc/modprobe.d"
+
+console.warning "Blacklisting specified modules (modprobe)..."
+
+if [[ "$HOSTNAME" == [hH]ostname || "$HOSTNAME" == [hH]ostname ]]
+then
+	module="module_name"
+
+elif [[ "$HOSTNAME" == [hH]ostname ]]
+then
+	module="module_name"
+fi
+
+cat << FILE >> "$modules_directory"/blacklist-"$module".conf
+blacklist "$module"
+FILE

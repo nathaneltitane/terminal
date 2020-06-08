@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# blacklist hosts #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+hosts_file="/etc/hosts"
+
+console.info "Adding address resolution to hosts file ($hosts_file)..."
+
+cat > "$hosts_file" << FILE
+# localhosts #
+
+::1			localhost6
+::1			localhost6.localdomain6
+127.0.0.1	localhost
+127.0.0.1	localhost.localdomain
+127.0.0.1	$HOSTNAME
+
+# blacklist #
+
+FILE
+
+# configuration #
+
+console.info "Blacklisting unwanted host addresses ($hosts_file)..."
+
+url_list=(
+	al-fann.net
+	beemp3.tv
+	bombmp3.me
+	dzmusic.info
+	freemp3in.com
+	freemp3q.com
+	freemp3song.org
+	freemp3video.net
+	fr.getalyric.com
+	general-files.pw
+	gosong.net
+	link2dwn.com
+	mazmoum.com
+	mp3cropp.com
+	mp3-find.com
+	mp3hulk.com
+	mp3men.com
+	mp3-on.info
+	mp3qs.com
+	mp3sk.net
+	mp3sv.com
+	mp3take.org
+	mp3tx.com
+	mp3.zicmama.com
+	musicbiatch.net
+	myfreemp3.eu
+	ningmp3.com
+	norbladi.com
+	searchzik.com
+	searchzik.com
+	www.ahlamp3.com
+	www.algeriemusique.free.fr
+	www.bargamzik.com
+	www.bladi8.ma
+	www.citedelamusiquelive.tv
+	www.douniamusic.com
+	www.dzzik.com
+	www.fan-nancy.com
+	www.maghrebspace.net
+	www.mazazikoou.com
+	www.mp3cak.com
+	www.mp3crux.com
+	www.mp3crux.com
+	www.mp3crux.com
+	www.mp3mine.com
+	www.mp3round.com
+	www.mp3sheriff.org
+	www.mp3yeah.net
+	www.music-clips.net
+	www.musiquesgratuites.fr
+	www.okbob.net
+	www.ournia.com
+	www.toprai.com
+	www.torrentv.org
+	www.yala.fm
+	www.youtubemp3pro.com
+	www.zdoooh.com
+	www.zeezik.com
+	www.zeezik.com
+	www.zikdalgerie.com
+	youtump3.com
+)
+
+for address in "${!url_list[@]}"
+do
+	cat <<- FILE >> "$hosts_file"
+	127.0.0.1	${url_list[address]}
+	FILE
+done

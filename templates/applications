@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2016
+
+# applications #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+local_applications_directory="$home/.local/share/applications"
+system_applications_directory="/usr/share/applications"
+
+# launcher #
+
+if [ -e "$system_applications_directory"/launcher.desktop ]
+then
+	console.info "Creating applcition launcher (launcher_name)..."
+
+	cat <<- FILE >> "$system_applications_directory"/launcher.desktop
+	[Desktop Entry]
+	Name=Name
+	Comment=Description
+	Exec=/usr/bin/commmand
+	Terminal=false
+	Type=Application
+	Icon=icon
+	Categories=Application;Settings;System;
+	Actions=Action_Name;Action_Name;Action_Name;
+
+	[Desktop Action Action_Name]
+	Name=Name
+	Exec=command
+
+	[Desktop Action Action_Name]
+	Name=Name
+	Exec=command
+
+	[Desktop Action Action_Name]
+	Name=Name
+	Exec=command
+else
+	console.error "Launcher not present or application not installed..."
+	console.error "Skipping."
+fi

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# files #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+
+local_applications_directory="$home/.local/share/applications"
+system_applications_directory="/usr/share/applications"
+
+local_icons_directory="$home/.icons"
+system_icons_directory="/usr/share/icons"
+
+system_backgrounds_directory=""
+system_backgrounds_directory="/usr/share/backgrounds"
+
+local_icons_directory="$home/.themes"
+system_themes_directory="/usr/share/themes"
+
+# configuration #
+
+console.info "Removing unwanted files and folders..."
+
+# home #
+
+cd "$home" || exit
+
+removal_list=(
+	file
+	file
+	file
+)
+
+for item in ${removal_list[@]}
+do
+	rm -rf "$item"
+done
+
+# applications directory #
+
+cd "$system_applications_directory" || exit
+
+removal_list=(
+	file
+	file
+	file
+)
+
+for item in ${removal_list[@]}
+do
+	rm -rf "$item"
+done
+
+# backgrounds directory #
+
+cd "system_$backgrounds_directory" || exit
+
+# themes directory #
+
+cd "$system_themes_directory" || exit

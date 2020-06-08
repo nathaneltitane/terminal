@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# ddclient #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+configuration_directory="/etc/ddclient.conf"
+
+# configuration #
+
+console.info "Writing configuration (ddclient)..."
+
+cat << FILE > "$configuration_directory"
+# ddclient #
+
+daemon=600										# check every 10 minutes
+syslog=yes										# log update msgs to syslog
+mail-failure=root								# mail failed updates to user
+pid=/var/run/ddclient.pid						# record PID in file.
+ssl=yes											# use ssl support
+cache=/var/cache/ddclient/ddclient.cache		# cache file
+
+use=web, web=dynamicdns.park-your-domain.com/getip
+
+protocol=protocol_name
+server=protocol_server_address
+wildcard=no
+login=login
+password=epassword								# protocol dynamic dns password
+$HOSTNAME
+FILE
+
+console.warning "Stopping service (ddclient)..."
+
+service ddclient stop
+
+console.info "Reconfiguring process handlers (ddclient)..."
+
+sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
+
+if [ -d /var/cache/ddclient ]
+then
+	console.warning "Purging service cache (/var/cache/ddclient)..."
+
+	rm -rf /var/cache/ddclient/ddclient.cache
+fi
+
+console.warning "Restarting service (ddclient)..."
+
+service ddclient start
+
+console.warning "Reloading service units (systemctl)..."
+
+systemctl daemon-reload

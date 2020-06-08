@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# qt5 style #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+environment_file="/etc/environment"
+
+# install #
+
+console.info "Installing required packages and utilities..."
+
+install_list=(
+	qt5-style-plugins
+)
+
+for package in ${install_list[@]}
+do
+	console.info "Installing ${package} and applicable dependencies..."
+
+	echo yes | apt install ${package}
+done
+
+# create configuration #
+
+console.info "Adding style configuration parameter (Qt5)..."
+
+cat << 'FILE' >> "$environment_file"
+
+# fix themeing compliance for qt5 applications #
+
+QT_QPA_PLATFORMTHEME=gtk2
+FILE

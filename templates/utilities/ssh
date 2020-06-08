@@ -1,0 +1,239 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# ssh #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+user="${SUDO_USER:-$USER}"
+home="/home/${SUDO_USER:-$USER}"
+cloud="/media/MEGA/"
+
+local_ssh_directory="$home/.ssh"
+local_keys_directory="$local_ssh_directory/.keys"
+
+cloud_ssh_directory="$cloud/.ssh"
+cloud_keys_directory="$cloud_ssh_directory/.keys"
+
+ssh_configuration_directory="/etc/ssh"
+
+password="$(cat '$cloud/.password' | base64 -d)"
+
+# Convert hostname to lowercase to match hostnames array content
+
+hostname=${HOSTNAME,,}
+
+hostnames=(
+	hostname
+	hostname
+	hostname
+)
+
+# configuration #
+
+console.info "Writing configuration (ssh)..."
+
+cat <<- 'FILE' > "$ssh_configuration_directory/sshd_config"
+# Configuration #
+
+Port 22
+
+#	ListenAddress ::
+#	ListenAddress 0.0.0.0
+
+	Protocol 2
+
+	HostKey /etc/ssh/ssh_host_rsa_key
+	HostKey /etc/ssh/ssh_host_dsa_key
+	HostKey /etc/ssh/ssh_host_ecdsa_key
+	UsePrivilegeSeparation yes
+
+	KeyRegenerationInterval 3600
+	ServerKeyBits 768
+
+	SyslogFacility AUTH
+	LogLevel INFO
+
+	LoginGraceTime 120
+	PermitRootLogin yes
+	StrictModes yes
+
+	RSAAuthentication yes
+	PubkeyAuthentication yes
+#	AuthorizedKeysFile%h/.ssh/authorized_keys
+
+	IgnoreRhosts yes
+	RhostsRSAAuthentication no
+	HostbasedAuthentication no
+#	IgnoreUserKnownHosts yes
+
+	PermitEmptyPasswords no
+
+	ChallengeResponseAuthentication no
+
+	PasswordAuthentication yes
+
+#	KerberosAuthentication no
+#	KerberosGetAFSToken no
+#	KerberosOrLocalPasswd yes
+#	KerberosTicketCleanup yes
+
+#	GSSAPI options
+#	GSSAPIAuthentication no
+#	GSSAPICleanupCredentials yes
+
+	X11Forwarding yes
+	X11DisplayOffset 10
+	PrintMotd no
+	PrintLastLog yes
+	TCPKeepAlive yes
+#	UseLogin no
+
+#	MaxStartups 10:30:60
+#	Banner /etc/issue.net
+
+	AcceptEnv LANG LC_*
+
+	Subsystem sftp /usr/lib/openssh/sftp-server
+
+	UsePAM yes
+FILE
+
+cat <<- 'FILE' > "$ssh_configuration_directory/ssh_config"
+# Configuration #
+
+Host *
+#	AddressFamily any
+#	BatchMode no
+#	CheckHostIP yes
+#	Cipher 3des
+#	Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc
+#	ConnectTimeout 0
+#	EscapeChar ~
+#	ForwardAgent no
+	ForwardX11Trusted yes
+	ForwardAgent yes
+	ForwardX11 yes
+#	GSSAPIAuthentication no
+	GSSAPIAuthentication yes
+#	GSSAPIDelegateCredentials no
+	GSSAPIDelegateCredentials no
+#	GSSAPIKeyExchange no
+#	GSSAPITrustDNS no
+	HashKnownHosts yes
+#	HostbasedAuthentication no
+#	IdentityFile ~/.ssh/id_dsa
+#	IdentityFile ~/.ssh/identity
+#	IdentityFile ~/.ssh/id_rsa
+#	MACs hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160
+	PasswordAuthentication yes
+#	PermitLocalCommand no
+	Port 22
+#	Protocol 2,1
+#	ProxyCommand ssh -q -W %h:%p gateway.example.com
+#	RhostsRSAAuthentication no
+#	RSAAuthentication yes
+	SendEnv LANG LC_*
+#	StrictHostKeyChecking ask
+#	TunnelDevice any:any
+#	Tunnel no
+#	VisualHostKey no
+FILE
+
+console.warning "Restarting service (sshd)..."
+
+sudo service sshd restart > /dev/null
+
+wait
+
+console.warning "Generating access configuration file..."
+
+cat <<- 'FILE' > "$cloud_ssh_directory/config"
+# --------------------------------------------------
+# hostname
+# --------------------------------------------------
+
+Host fenrir
+	HostName hostname.domain.com
+	User webmaster
+	IdentityFile ~/.ssh/.keys/hostname.key
+	IdentitiesOnly yes
+	ProxyCommand ssh main nc %h %p
+	Port 22
+
+# --------------------------------------------------
+# hostname
+# --------------------------------------------------
+
+Host fenrir
+	HostName hostname.domain.com
+	User webmaster
+	IdentityFile ~/.ssh/.keys/hostname.key
+	IdentitiesOnly yes
+	ProxyCommand ssh main nc %h %p
+	Port 22
+
+# --------------------------------------------------
+# hostname
+# --------------------------------------------------
+
+Host fenrir
+	HostName hostname.domain.com
+	User webmaster
+	IdentityFile ~/.ssh/.keys/hostname.key
+	IdentitiesOnly yes
+	ProxyCommand ssh main nc %h %p
+	Port 22
+FILE
+
+# Authorized keys file check
+
+if [[ ! -f "$cloud_ssh_directory/authorized_keys" ]]
+then
+	touch "$cloud_ssh_directory/authorized_keys"
+else
+	continue
+fi
+
+# local #
+
+if [[ -d "$local_ssh_directory" ]]
+then
+	rm -rf "$local_ssh_directory"
+	cp -rf "$cloud_ssh_directory" "$local_ssh_directory"
+else
+	if [[ ! -d "$local_ssh_directory" ]]
+	then
+		cp -rf "$cloud_ssh_directory" "$local_ssh_directory"
+	fi
+fi
+
+console.info "Securing directories, files, keys and access content..."
+
+directories=(
+	"$cloud_ssh_directory"
+	"$local_ssh_directory"
+	)
+
+for directory in ${directories[@]}
+do
+	# Change ownership
+
+	sudo chown "$user" "$directory"
+	sudo chown "$user" "$directory"/*
+	sudo chown "$user" "$directory"/.keys/
+	sudo chown "$user" "$directory"/.keys/*
+
+	# Change permissions
+
+	sudo chmod 755 "$directory"
+	sudo chmod 755 "$directory"/known_hosts
+	sudo chmod 400 "$directory"/.keys/*
+	sudo chmod 600 "$directory"/config
+	sudo chmod 600 "$directory"/authorized_keys
+done

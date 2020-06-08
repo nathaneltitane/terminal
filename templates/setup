@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# setup #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+# configuration #
+
+console.info "Configuring system..."
+
+scripts_list=(
+
+)
+
+for script in ${scripts_list[@]}
+do
+	bash ${script}
+done
+
+console.success "Setup complete."
+echo

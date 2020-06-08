@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2016
+
+# touch toggle #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+directory="/usr/bin"
+
+home="/home/${SUDO_USER:-$USER}"
+local_applications_directory="$home/.local/share/applications"
+system_applications_directory="/usr/share/applications"
+
+# binary #
+
+console.info "Adding touch input toggle binaries (/usr/bin) ..."
+
+devices=(
+	display
+	tablet
+	)
+
+types=(
+	[dD]igitizer
+	[fF]inger
+	)
+
+for i in ${!devices[@]}
+do
+	cat <<- FILE > "$directory"/${devices[i]}-touch-toggle
+	#!/bin/bash
+
+	# \${devices[i]} touch toggle #
+
+	device_name=\$(xinput list --name-only | grep ${types[i]})
+	device_id=\$(xinput list --id-only "\$device_name")
+	device_enabled_status=\$(xinput list-props  "\$device_id" | grep  "Device Enabled")
+	device_status=\${device_enabled_status: -1}
+
+	if [[ "\$device_status" == "0" ]]
+	then
+		status="on"
+			xinput set-prop "\$device_id" "Device Enabled" 1
+
+	elif [[ "\$device_status" == "1" ]]
+	then
+		status="off"
+		xinput set-prop "\$device_id" "Device Enabled" 0
+	else
+		notify-send -i input-tablet "Device not detected or connected."
+
+		exit
+	fi
+
+	notify-send -i input-tablet "${devices[i]^} touch input is turned \$status"
+	FILE
+
+	# permissions #
+
+	chmod +x "$directory"/${devices[i]}-touch-toggle
+done
+
+# launcher #
+
+for device in ${devices[@]}
+do
+	cat <<- FILE > "$system_applications_directory"/${device}-touch-toggle.desktop
+	[Desktop Entry]
+	Name=Touch Toggle
+	Comment=Touch input toggle
+	Exec=/usr/bin/$device-touch-toggle
+	Terminal=false
+	Type=Application
+	Icon=input-tablet
+	Categories=Application;Settings;System;
+	FILE
+done

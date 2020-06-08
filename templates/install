@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# install #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+# Enable quiet package install
+
+export DEBIAN_FRONTEND=noninteractive
+
+# configuration #
+
+console.info "Installing required packages and utilities..."
+
+install_list=(
+	package
+	package
+	package
+)
+
+# install #
+
+for package in ${install_list[@]}
+do
+	[[ $(command -v ${package}) = "" ]]
+	then
+		console.warning "Required package '${package}' not present."
+		echo
+		console.fwd "Installing..."
+		echo
+
+		echo yes | apt install ${package}
+		echo
+	else
+		console.success "Required package '${package}' already installed."
+		echo
+		console.fwd "Continuing..."
+		echo
+
+		:
+	fi
+done

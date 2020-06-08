@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# dialog #
+
+dialog() {
+
+	# dialog window title
+
+	title="${script%.sh} - ${1}"
+
+	# gtk dialog - zenity
+
+	g_dialog() {
+		zenity \
+			--file-selection \
+			--multiple\
+			--directory \
+			--separator=$'\n' \
+			--title="$title" "$@"
+	}
+
+	# kde dialog - kdialog
+
+	k_dialog() {
+		kdialog \
+			--getopenfilename \
+			--multiple \
+			--separate-output \
+			--title "$title" "$@"
+	}
+
+	# define dialog usage
+
+	if [[ $(command -v zenity) = "" ]]
+	then
+		dialog=$(k_dialog)
+	elif
+	[[ $(command -v kdialog) = "" ]]
+	then
+		dialog=$(g_dialog)
+	else
+		console.error "No dialog binary present on system."
+		console.info "This utility must be run using the 'directory' option."
+		console.fwd "Exiting."
+		echo
+
+		exit 1
+	fi
+}

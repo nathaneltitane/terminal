@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# upgrade #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+# Enable quiet package install
+
+export DEBIAN_FRONTEND=noninteractive
+
+# Enable all repositories
+
+console.info "Editing sources list..."
+
+sed -i -e '/#.*/d' /etc/apt/sources.list
+
+# upgrade #
+
+console.info "Updating package list..."
+
+apt update
+
+console.info "Upgrading installed packages..."
+
+echo yes | apt upgrade

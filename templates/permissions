@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# permissions #
+
+# dependencies #
+
+source ./console
+
+# configuration #
+
+directory_list=(
+
+)
+
+for directory in ${directory_list[@]}
+do
+	console.info "Setting permissions ($directory)..."
+
+	cd "$directory" || exit
+
+	chmod -R 777 *
+done

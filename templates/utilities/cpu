@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# cpu #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+binary_directory="/usr/bin"
+shell_file="/etc/bash.bashrc"
+
+cpu_mode=(
+	conservative
+	ondemand
+	powersave
+	performance
+)
+
+# aliases #
+
+console.info "Adding ${cpu_mode[i]} processor governor alias ($shell_file)..."
+
+for i in "${!cpu_mode[@]}"
+do
+cat << FILE >> $shell_file
+
+# cpu ${cpu_mode[i]} #
+
+${cpu_mode[i]}() {
+	for ((n=0; n<$(grep -c processor /proc/cpuinfo); n++))
+do
+		sudo cpufreq-set -c "\$n" -g ${cpu_mode[i]}
+	done
+}
+FILE
+done
+
+# update #
+
+source "$shell_file"
+
+# binary #
+
+console.info "Adding ${cpu_mode[i]} processor governor binary ($binary_directory) ..."
+
+for i in "${!cpu_mode[@]}"
+do
+	cat <<- FILE > "$binary_directory/${cpu_mode[i]}"
+	#!/bin/bash
+
+	# cpu governor (${cpu_mode[i]}) #
+
+	cpu="$(grep -c processor /proc/cpuinfo)"
+
+	for ((n=0; n<cpu; n++))
+	do
+		sudo cpufreq-set -c "\$n" -g ${cpu_mode[i]}
+	done
+
+	notify-send -i gnome-system-monitor "CPU governor set to ${cpu_mode[i]}"
+	FILE
+done
+
+for i in "${!cpu_mode[@]}"
+do
+	sudo chmod +x "$binary_directory"/"$cpu_mode"
+done
+
+# switch #
+
+console.info "Adding cpu governor switch to system (/usr/bin)..."
+
+cat << 'FILE' > "$binary_directory"/cpu-switch
+#!/bin/bash
+
+# cpu-switch #
+
+cpu="$(grep -c processor /proc/cpuinfo)"
+
+status="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
+
+case "$status" in
+	powersave)
+	status="conservative";;
+	conservative)
+	status="ondemand";;
+	ondemand)
+	status="performance";;
+	performance)
+	status="powersave";;
+esac
+
+for ((n=0; n<cpu; n++))
+do
+	sudo cpufreq-set -c "$n" -g "$status";
+done
+
+notify-send -i gnome-system-monitor "CPU governor set to $status"
+FILE
+
+# permissions #
+
+sudo chmod +x "$binary_directory"/cpu-switch
+
+# launcher #
+
+cat <<- FILE > "$system_applications_directory"/cpu-switch.desktop
+[Desktop Entry]
+Name=Background Cycler
+Comment=Enable timed background cycling
+Exec=/usr/bin/cpu-switch
+Icon=background
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

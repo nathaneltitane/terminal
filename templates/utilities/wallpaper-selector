@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# wallpaper selector #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+binary_directory="/usr/bin"
+
+home="/home/${SUDO_USER:-$USER}"
+local_applications_directory="$home/.local/share/applications"
+system_applications_directory="/usr/share/applications"
+
+# binary #
+
+console.info "Adding wallpaper selector to system (/usr/bin)..."
+
+cat << 'FILE' > "$binary_directory"/wallpaper-selector
+#!/bin/bash
+
+# wallpaper selector #
+
+rgb_to_hex () {
+	IFS='(,)'
+	read _ r g b <<< "$1"
+	printf '%02x%02x%02x\n' $r $g $b
+}
+
+default_color="333333"
+
+color_input="$(zenity --color-selection --color="#333333" --show-palette)"
+color_selection=$(rgb_to_hex "$color_input")
+
+if [[ "$color_input" != "" ]]
+then
+	color="#$color_selection"
+else
+	color="#$default_color"
+fi
+
+# desktop #
+
+gsettings set org.gnome.desktop.background primary-color "$color"
+gsettings set org.gnome.desktop.background secondary-color "$color"
+gsettings set org.gnome.desktop.background picture-uri "''"
+
+# lockscreen #
+
+gsettings set org.gnome.desktop.screensaver primary-color "$color"
+gsettings set org.gnome.desktop.screensaver secondary-color "$color"
+gsettings set org.gnome.desktop.screensaver picture-uri "''"
+
+# login screen #
+
+gsettings set org.gnome.desktop.background primary-color "$color"
+gsettings set org.gnome.desktop.background secondary-color "$color"
+gsettings set org.gnome.desktop.background picture-uri "''"
+
+picture_option=$(zenity --list --title "Select a picture option" --width="300" --height="250" --text="Specify an image layout option" --radiolist --column="Selection" --column="Option" \
+TRUE "wallpaper" \
+FALSE "center" \
+FALSE "scaled" \
+FALSE "stretched" \
+FALSE "zoom" \
+FALSE "spanned") 2> /dev/null || exit # Specify image layout option or exit on 'Cancel'
+
+picture_uri=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null || exit # Specify source image location or exit on 'Cancel'
+
+# desktop #
+
+gsettings set org.gnome.desktop.background picture-options "$picture_option"
+gsettings set org.gnome.desktop.background picture-uri "file:///$picture_uri"
+
+
+# lockscreen #
+
+gsettings set org.gnome.desktop.screensaver picture-options "$picture_option"
+gsettings set org.gnome.desktop.screensaver picture-uri "file:///$picture_uri"
+
+
+# login screen #
+
+sudo su gdm -s /bin/bash << FILE
+gsettings set org.gnome.desktop.background picture-options "$picture_option"
+gsettings set org.gnome.desktop.background picture-uri "file:///$picture_uri"
+
+FILE
+
+sudo chmod +x "$binary_directory"/wallpaper-selector
+
+# launcher #
+
+cat <<- 'FILE' > "$system_applications_directory"/wallpaper-selector.desktop
+[Desktop Entry]
+Name=Wallpaper Selector
+Comment=Select and configure desktop and lock screen background wallpapers
+Exec=/usr/bin/wallpaper-selector
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

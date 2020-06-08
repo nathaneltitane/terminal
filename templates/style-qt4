@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# style qt4 #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="$home/.config"
+gtk_configuration_directory="$configuration_directory/gtk-3.0"
+
+# configuration #
+
+if [ ! -e "$configuration_directory" ]
+then
+	mkdir "$configuration_directory"
+fi
+
+# configuration #
+
+console.info "Adding styles configuration parameters (Qt)..."
+
+cat << 'FILE' > "$configuration_directory"/Trolltech.conf
+[Qt]
+
+style=GTK+
+FILE
+
+# Link configuration file for GTK 3+ setup
+
+ln -s -f "$configuration_directory"/Trolltech.conf "$gtk_configuration_directory"/Trolltech.conf

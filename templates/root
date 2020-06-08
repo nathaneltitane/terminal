@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# root #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+user_id=$(id -u)
+user_name=$(id -u -n)
+
+# identify #
+
+console.info "Verifying superuser access rights..."
+
+if [[ "${user_id}" != 0 ]]
+then
+	console.info "Please enter ${user_name} password..."
+
+	sudo -s
+else
+	console.info "Already ${user_name} on "$HOSTNAME". Proceeding..."
+
+	exit
+fi

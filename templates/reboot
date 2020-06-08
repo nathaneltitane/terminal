@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# reboot #
+
+# dependencies #
+
+source ./console
+
+# configuration #
+
+console.question "Would you like to reboot the system to finalize the setup?"
+
+read reply
+
+if [[ "$reply" = [yY] || "$reply" = [yY][eE][sS] ]]
+then
+	reboot
+fi

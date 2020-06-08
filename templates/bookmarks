@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# bookmarks #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="$home/.config"
+
+# configuration #
+
+bookmarks_directory_list=(
+	"$home/"
+	"$configuration_directory/gtk-3.0/"
+)
+
+for bookmarks_directory in ${bookmarks_directory_list[@]}
+do
+	console.info "Adding bookmarks ($bookmarks_directory)..."
+
+	cat <<- 'FILE' > "$bookmarks_directory"/bookmarks
+	file:///path/to/directory Directory_Alias
+	file:///path/to/directory Directory_Alias
+	file:///path/to/directory Directory_Alias
+	FILE
+done
+
+mv "$home/boomarks" "$home/.gtk-boomarks"
