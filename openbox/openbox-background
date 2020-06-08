@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# openbox background #
+
+image=$(zenity --file-selection --title="Select an Image") || exit
+
+feh --bg-fill "$image"

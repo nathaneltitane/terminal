@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+
+# openbox volume #
+
+black= red= green= yellow= blue= magenta= cyan= white= reset=
+
+if [[ -t 1 ]]
+then
+	black=$(tput setaf 0)
+	red=$(tput setaf 1)
+	green=$(tput setaf 2)
+	yellow=$(tput setaf 3)
+	blue=$(tput setaf 4)
+	magenta=$(tput setaf 5)
+	cyan=$(tput setaf 6)
+	white=$(tput setaf 7)
+	reset=
+$(tput sgr0);
+fi
+
+version="22"
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="$home/.config/openbox"
+
+echo "${cyan}Generating Openbox volume configuration file (volumeicon)...${reset}"
+
+if [ ! -d $configuration_directory/volumeicon ]
+then
+	mkdir -p $configuration_directory/volumeicon
+fi
+
+cd $configuration_directory/volumeicon || exit
+
+cat > $configuration_directory/volumeicon/volumeicon << 'FILE'
+[StatusIcon]
+stepsize=5
+lmb_slider=true
+mmb_mute=false
+use_horizontal_slider=false
+show_sound_level=false
+onclick=gnome-control-center sound
+theme=Default
+
+[Hotkeys]
+up_enabled=true
+down_enabled=true
+mute_enabled=true
+up=XF86AudioRaiseVolume
+down=XF86AudioLowerVolume
+mute=XF86AudioMute
+
+[Alsa]
+card=default
+FILE

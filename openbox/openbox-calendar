@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# openbox calendar #
+
+function row() {
+	cal | gawk -v row=$1 '{ if (NR==row) { print $0 } }'
+}
+
+cat << MENU
+<openbox_pipe_menu>
+<separator label="`date +%A\ %I\:%M\ %p`" />
+<item label="[ `date +%B\ %d,\ %Y` ]" />
+<separator />
+<item label="`row 2`" />
+<item label="`row 3`" />
+<item label="`row 4`" />
+<item label="`row 5`" />
+<item label="`row 6`" />
+<item label="`row 7`" />
+<item label="`row 8`" />
+</openbox_pipe_menu>
+MENU

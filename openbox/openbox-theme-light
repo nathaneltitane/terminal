@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+
+# openbox theme light #
+
+black= red= green= yellow= blue= magenta= cyan= white= reset=
+
+if [[ -t 1 ]]
+then
+	black=$(tput setaf 0)
+	red=$(tput setaf 1)
+	green=$(tput setaf 2)
+	yellow=$(tput setaf 3)
+	blue=$(tput setaf 4)
+	magenta=$(tput setaf 5)
+	cyan=$(tput setaf 6)
+	white=$(tput setaf 7)
+	reset=
+$(tput sgr0);
+fi
+
+version="22"
+
+directory="/usr/share/themes"
+
+echo "${cyan}Generating 'Light' window theme (/usr/share/themes)...${reset}"
+
+if [ ! -d "$directory"/Light/openbox-3 ]; then
+mkdir -p "$directory"/Light/openbox-3
+fi
+
+cd "$directory/Light/openbox-3" || exit
+
+# bullet #
+
+cat > "$directory/Light/openbox-3"/bullet.xbm << FILE
+#define bullet_width 14
+#define bullet_height 14
+static unsigned char bullet_bits[] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x38, 0x07, 0x38, 0x07, 0x18, 0x06,
+0x00, 0x00, 0x00, 0x00, 0x18, 0x06, 0x38, 0x07, 0x38, 0x07, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00 };
+FILE
+
+# close #
+
+cat > "$directory/Light/openbox-3"/close.xbm << FILE
+#define close_width 14
+#define close_height 14
+static unsigned char close_bits[] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x02, 0x38, 0x07, 0xf0, 0x03,
+0xe0, 0x01, 0xe0, 0x01, 0xf0, 0x03, 0x38, 0x07, 0x10, 0x02, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00 };
+FILE
+
+# iconify #
+
+cat > "$directory/Light/openbox-3"/iconify.xbm << FILE
+#define iconify_width 14
+#define iconify_height 14
+static unsigned char iconify_bits[] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0xf8, 0x07, 0xf8, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00 };
+FILE
+
+# maximize #
+
+cat > "$directory/Light/openbox-3"/max.xbm << FILE
+#define max_width 14
+#define max_height 14
+static unsigned char max_bits[] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0xc0, 0x00, 0xc0, 0x00,
+0xf8, 0x07, 0xf8, 0x07, 0xc0, 0x00, 0xc0, 0x00, 0xc0, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00 };
+FILE
+
+# shade #
+
+cat > "$directory/Light/openbox-3"/shade.xbm << FILE
+#define shade_width 13
+#define shade_height 13
+static unsigned char shade_bits[] = {
+0x00, 0x00, 0xf8, 0x01, 0xf8, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00 };
+FILE
+
+# theme #
+
+cat > "$directory/Light/openbox-3"/themerc << FILE
+# general #
+
+border.width: 0
+padding.width: 4
+padding.height: 4
+window.handle.width: 0
+window.client.padding.width: 0
+*.justify: center
+
+# menu #
+
+menu.overlap: 1
+menu.border.width: 0
+menu.border.color: #A7ABA7
+menu.title.bg: Flat Solid
+menu.title.bg.color: #FFFFFF
+menu.title.text.color: #2E3436
+menu.items.bg: Flat Solid
+menu.items.bg.color: #FFFFFF
+menu.items.text.color: #2E3436
+menu.items.disabled.text.color: #A7ABA7
+menu.items.active.bg: Flat Solid
+menu.items.active.bg.color: #4A90D9
+menu.items.active.text.color: #FFFFFF
+menu.separator.width: 1
+menu.separator.padding.width: 0
+menu.separator.padding.height: 3
+menu.separator.color: #EDEDED
+
+# border #
+
+window.*.handle.bg: Flat Solid
+window.*.handle.bg.color: #A7ABA7
+window.*.grip.bg: Flat Solid
+window.*.grip.bg.color: #A7ABA7
+
+# active window #
+
+window.active.title.separator.color: #EDEDED
+window.active.label.bg: Parentrelative
+window.active.label.text.color: #2E3436
+window.active.title.bg: Flat Solid
+window.active.title.bg.color: #EDEDED
+window.active.button.*.bg: Flat Solid
+window.active.button.*.image.color: #2E3436
+window.active.button.*.bg.color: #EDEDED
+window.active.border.color: #A7ABA7
+
+# inactive window #
+
+window.inactive.title.separator.color: #EDEDED
+window.inactive.label.bg: Parentrelative
+window.inactive.label.text.color: #A7ABA7
+window.inactive.title.bg: Flat Solid
+window.inactive.title.bg.color: #EDEDED
+window.inactive.button.*.image.color: #A7ABA7
+window.inactive.button.*.bg: Flat Solid
+window.inactive.button.*.bg.color: #EDEDED
+window.inactive.border.color: #C7CCC1
+FILE

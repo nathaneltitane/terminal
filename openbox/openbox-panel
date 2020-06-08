@@ -1,0 +1,173 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+
+# openbox panel#
+
+black= red= green= yellow= blue= magenta= cyan= white= reset=
+
+if [[ -t 1 ]]
+then
+	black=$(tput setaf 0)
+	red=$(tput setaf 1)
+	green=$(tput setaf 2)
+	yellow=$(tput setaf 3)
+	blue=$(tput setaf 4)
+	magenta=$(tput setaf 5)
+	cyan=$(tput setaf 6)
+	white=$(tput setaf 7)
+	reset=
+$(tput sgr0);
+fi
+
+version="22"
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="$home/.config/openbox"
+
+echo "${cyan}Generating Openbox panel configuration file (tint2)...${reset}"
+
+if [ ! -d "$configuration_directory"/tint2 ]
+then
+	mkdir -p "$configuration_directory"/tint2
+fi
+
+cd "$configuration_directory"/tint2 || exit
+
+cat > "$directory"/tint2/tint2rc << 'FILE'
+# background #
+
+# id 1 #
+rounded = 0
+border_width = 0
+background_color = #000000 100
+border_color = #000000 100
+
+# id 2 #
+rounded = 0
+border_width = 0
+background_color = #FFFFFF 25
+border_color = #FFFFFF 25
+
+# id 3 #
+rounded = 0
+border_width = 0
+background_color = #FFFFFF 50
+border_color = #FFFFFF 50
+
+# id 4 #
+rounded = 0
+border_width = 0
+background_color = #FFFFFF 75
+border_color = #FFFFFF 75
+
+# id 5 #
+rounded = 5
+border_width = 0
+background_color = #000000 80
+border_color = #000000 90
+
+# battery #
+battery = 1
+battery_low_status = 10
+battery_low_cmd = notify-send "Low battery"
+battery_hide = never
+bat1_font = Liberation Sans 8
+bat2_font = Liberation Sans 8
+battery_font_color = #FFFFFF 100
+battery_padding = 2 2
+battery_background_id = 0
+
+# clock #
+time1_format = %I:%M:%S
+time1_font = Liberation Sans 8
+time2_format = %B %d %Y
+time2_font = Liberation Sans 8
+clock_font_color = #FFFFFF 100
+clock_padding = 2 2
+clock_tooltip = %A %B %d %Y
+clock_tooltip_timezone = :UTC
+clock_background_id = 0
+clock_lclick_command = 
+clock_rclick_command = 
+
+# fonts #
+task_font = Liberation Sans 8
+task_font_color = #FFFFFF 68
+task_active_font_color = #FFFFFF 83
+task_urgent_font_color = #FFFFFF 83
+task_iconified_font_color = #FFFFFF 68
+font_shadow = 0
+
+# mouse #
+mouse_middle = shade
+mouse_right = close
+mouse_scroll_up = toggle
+mouse_scroll_down = iconify
+
+# panel #
+panel_monitor = all
+panel_position = top center horizontal
+panel_size = 100% 36
+panel_items = LTSBC
+panel_margin = 0 0
+panel_padding = 0 0 0
+panel_dock = 0
+wm_menu = 1
+panel_layer = top
+panel_background_id = 1
+
+# panel autohide #
+autohide = 1
+autohide_show_timeout = 0.5
+autohide_hide_timeout = 1
+autohide_height = 0
+strut_policy = minimum
+
+# system tray #
+systray = 1
+systray_padding = 2 2 2
+systray_sort = ascending
+systray_background_id = 0
+systray_icon_size = 24
+systray_icon_asb = 100 0 0
+
+# taskbar #
+taskbar_mode = multi_desktop
+taskbar_padding = 2 2 2
+taskbar_background_id = 0
+taskbar_active_background_id = 2
+taskbar_name = 1
+taskbar_name_padding = 2 2
+taskbar_name_background_id = 0
+taskbar_name_font = Liberation Sans 8
+taskbar_name_font_color = #FFFFFF 25
+taskbar_name_active_font_color = #FFFFFF 100
+
+# tasks #
+urgent_nb_of_blink = 10
+task_icon = 1
+task_text = 0
+task_centered = 1
+task_maximum_size = 36 36
+task_padding = 2 2
+task_background_id = 0
+task_active_background_id = 3
+task_urgent_background_id = 4
+task_iconified_background_id = 2
+task_tooltip = 1
+
+# task icons #
+task_icon_asb = 100 0 0
+task_active_icon_asb = 100 0 0
+task_urgent_icon_asb = 100 0 0
+task_iconified_icon_asb = 100 0 0
+
+# tooltip #
+tooltip_padding = 10 10
+tooltip_show_timeout = 0.5
+tooltip_hide_timeout = 0.5
+tooltip_background_id = 5
+tooltip_font = Liberation Sans 8
+tooltip_font_color = #FFFFFF 100
+FILE

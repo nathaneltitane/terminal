@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# openbox theme #
+
+directories="$HOME/.local/share/themes $HOME/.themes /usr/share/themes"
+configuration="$HOME/.config/openbox/rc.xml"
+openbox_theme="$HOME/.config/openbox/pipe/openbox-theme"
+
+temporary_directory=$(mktemp -d);
+trap 'rm -rf "$temporary_directory"' EXIT
+
+if [ "$1" ];
+then
+	cp "$configuration" "$configuration.bak"
+
+	layout=$(grep '<titleLayout>.*</titleLayout>' "$configuration.bak") || "0"
+	name=$(grep -m 1 '<name>.*</name>' "$configuration.bak") || "0"
+
+	if [ "${#layout}" -eq 0 ];
+	then
+	layout='    <titleLayout>CMILSD</titleLayout>'
+	fi
+
+	sed -i \
+	-e '/<theme>/{N;s/\(<name>\).*\(<\/name\>\)/\1'"$1"'\2/}' \
+	-e '/\<titleLayout\>.*\<titleLayout\>/c\'"$layout"'' "$configuration"
+
+	pkill --signal SIGUSR2 -u "${SUDO_USER:-$USER}" openbox
+	else
+		cd "$temporary_directory" || exit
+
+		echo "<openbox_pipe_menu>"
+
+		for subdirectory in $directories;
+		do
+			if [ -d "$subdirectory" ];
+			then
+				for theme in "$subdirectory"/*;
+				do
+					menu_theme_name="${theme##*/}"
+					current_theme_name=$(sed -n '/<theme>/{N;s/.*<name>\(.*\)<\/name>.*/\1/p;q}' "$configuration")
+
+					if [ -e "$theme"/openbox-3/themerc ];
+					then
+						if [ "$current_theme_name" == "$menu_theme_name" ];
+						then
+							start="<item label=\"◼ $menu_theme_name\"><action name=\"Execute\">"
+						else
+							start="<item label=\"◻ $menu_theme_name\"><action name=\"Execute\">"
+						fi
+
+						middle="<execute>$openbox_theme $menu_theme_name</execute>"
+						end="</action></item>"
+
+						echo "$start$middle$end" >> "$temporary_directory"/temporary_menu
+					fi
+				done
+			fi
+		done
+
+	sort -f "$temporary_directory"/temporary_menu | uniq
+	echo "</openbox_pipe_menu>"
+fi

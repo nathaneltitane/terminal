@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+
+# openbox #
+
+black= red= green= yellow= blue= magenta= cyan= white= reset=
+
+if [[ -t 1 ]]
+then
+	black=$(tput setaf 0)
+	red=$(tput setaf 1)
+	green=$(tput setaf 2)
+	yellow=$(tput setaf 3)
+	blue=$(tput setaf 4)
+	magenta=$(tput setaf 5)
+	cyan=$(tput setaf 6)
+	white=$(tput setaf 7)
+	reset=
+$(tput sgr0);
+fi
+
+version="22"
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="$home/.config/openbox"
+
+echo "${cyan}Would you like to install the Openbox window manager (openbox)? [ Yes | No ]${reset}"
+
+read reply
+
+if [[ "$reply" = [yY] || "$reply" = [yY][eE][sS] ]]
+then
+	# openbox packages #
+
+	for package in \
+	feh \
+	obconf \
+	obmenu \
+	openbox \
+	synapse \
+	tint2 \
+	volumeicon \
+	xcompmgr
+	do
+		dnf -y install "$package"
+	done
+
+	# configuration #
+
+	'./openbox-configuration'
+	'./openbox-icons'
+	'./openbox-panel'
+	'./openbox-startup'
+	'./openbox-theme-dark'
+	'./openbox-theme-light'
+	'./openbox-volume'
+
+	# pipe menu #
+
+	echo "${cyan}Adding pipe menu entries...${reset}"
+
+	if [ ! -d "$configuration_directory"/pipe ]
+	then
+		mkdir -p "$configuration_directory"/pipe
+	fi
+
+	for file in \
+	openbox-background \
+	openbox-calendar \
+	openbox-theme
+	do
+		cp -r -f "$file" "$configuration_directory"/pipe
+
+		cd "$configuration_directory"/pipe || exit
+
+		sudo chmod +x "$file"
+	done
+
+	sudo chmod -x /usr/bin/gnome-shell
+else
+	continue
+fi
