@@ -1,0 +1,179 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# install #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+# enable quiet package install
+
+export DEBIAN_FRONTEND=noninteractive
+
+# usage #
+
+version="01-01-2020"
+script=$(basename -- "$0")
+
+while (($#))
+do
+	case "$1" in
+		-g|--gnome)
+			option=gnome
+			;;
+		-k|--kde)
+			option=kde
+			;;
+		-h|--help)
+			echo -e "Usage:"
+			echo -e "./$script [OPTION]"
+			echo -e "Utility options:"
+			echo -e "-g, --gnome \t Selects Gnome DE packages and libraries."
+			echo -e "-k, --kde \t Selects KDE packages and libraries."
+			echo -e ""
+			echo -e "-h, --help \t\t Show help options."
+			echo -e "-v, --version \t\t Print version."
+			exit
+			;;
+		-v|--version)
+			echo -e "$script $version"
+			exit
+			;;
+		*)
+			echo -e "$script: Unknown option $1"
+			echo -e "Try '$script --help' for options information."
+			echo -e ""
+			;;
+		esac
+	shift
+done
+
+# configuration #
+
+console.info "Installing required packages and utilities..."
+
+applications_install_list=(
+    blender
+	inkscape
+	puddletag
+)
+
+archives_install_list=(
+	p7zip
+	p7zip-plugins
+	rar
+	unrar
+	zip
+	unzip
+)
+
+binaries_install_list=(
+	android-tools-adb
+	android-tools-fastboot
+	cabextract
+	curl
+	ddclient
+	git
+	net-tools
+	nscd
+	openssh-server
+	pv
+	recordmydesktop
+	speedtest-cli
+	ssh
+	sshpass
+	tree
+	neofetch
+	wmctrl
+)
+
+media_install_list=(
+	gstreamer1.0-fluendo-mp3
+	gstreamer1.0-libav
+	gstreamer1.0-plugins-*
+	gstreamer1.0-plugins-bad
+	gstreamer1.0-plugins-base
+	gstreamer1.0-plugins-good
+	gstreamer1.0-plugins-ugly
+	ffmpeg
+	id3v2
+	lame
+	mplayer
+	youtube-dl
+)
+
+themes_install_list=(
+	arc-theme
+	numix-icon-theme-circle
+)
+
+gnome_install_list=(
+	gedit
+	gedit-plugins
+	gnome-tweak-tool
+	gnome-shell-extensions
+	chrome-gnome-shell
+	rhythmbox
+	shotwell
+	totem
+	transmission
+	soundconverter
+)
+
+kde_install_list=(
+	cantata
+	kazam
+	krename
+	mpv
+	plasma-browser-integration
+)
+
+install_list=(
+	${applications_install_list[@]}
+	${archives_install_list[@]}
+	${binaries_install_list[@]}
+	${media_install_list[@]}
+)
+
+# verify options #
+
+if [[ "$option" ==  "gnome" ]]
+then
+	install_list+=(
+	${gnome_install_list[@]}
+	)
+fi
+
+if [[ "$option" ==  "kde" ]]
+then
+	install_list+=(
+	${kde_install_list[@]}
+	)
+fi
+
+# install #
+
+for package in ${install_list[@]}
+do
+	[[ $(command -v ${package}) = "" ]]
+	then
+		console.warning "Required package '${package}' not present."
+		echo
+		console.fwd "Installing..."
+		echo
+
+		echo yes | apt install ${package}
+		echo
+	else
+		console.success "Required package '${package}' already installed."
+		echo
+		console.fwd "Continuing..."
+		echo
+
+		:
+	fi
+done

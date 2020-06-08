@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# storage link #
+
+# dependencies #
+
+source ./console
+
+# configuration #
+
+console.info "Linking storage devices..."
+
+ln -s -f /media/${SUDO_USER:-$USER}/SD/MEGA /media/MEGA

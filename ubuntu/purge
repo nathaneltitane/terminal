@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# purge #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+# enable quiet package install
+
+export DEBIAN_FRONTEND=noninteractive
+
+# purge #
+
+console.info "Purging unwanted packages from system..."
+
+purge_list=(
+	apport
+	firefox
+	hplip
+	memtest86+
+	vlc
+	)
+
+for package in ${purge_list[@]}
+do
+	console.info "Purging ${package} and applicable dependencies..."
+
+	echo yes | apt purge ${package}
+done
+
+# remove orphaned items #
+
+console.info "Purging orphaned package items from system..."
+
+echo yes | apt autoremove

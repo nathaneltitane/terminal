@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# ddclient #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+configuration_directory="/etc/ddclient.conf"
+
+if [[ "$HOSTNAME" == "[sS][uU][rR][fF][aA][cC][eE]" ]]
+then
+	hostname=gleipnir
+else
+	hostname=$HOSTNAME
+fi
+
+# configuration #
+
+console.info "Writing configuration (ddclient)..."
+
+cat << FILE > "$configuration_directory"
+# ddclient #
+
+daemon=600
+syslog=yes
+mail-failure=root
+pid=/var/run/ddclient.pid
+ssl=yes
+cache=/var/cache/ddclient/ddclient.cache
+
+use=web, web=dynamicdns.park-your-domain.com/getip
+
+protocol=namecheap
+server=dynamicdns.park-your-domain.com
+wildcard=no
+login=nathaneltitane.com
+password=1ee90c487c474362aadcf33cd3758ba9
+gleipnir
+FILE
+
+console.warning "Stopping service (ddclient)..."
+
+service ddclient stop
+
+console.info "Reconfiguring process handlers (ddclient)..."
+
+sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
+
+if [ -d /var/cache/ddclient ]
+then
+	console.warning "Purging service cache (/var/cache/ddclient)..."
+
+	rm -rf /var/cache/ddclient/ddclient.cache
+fi
+
+console.warning "Restarting service (ddclient)..."
+
+service ddclient start
+
+console.warning "Reloading service units (systemctl)..."
+
+systemctl daemon-reload

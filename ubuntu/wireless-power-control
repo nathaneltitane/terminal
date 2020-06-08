@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# wireless power control #
+
+# dependencies #
+
+source ./console
+
+# variables #
+
+binary_directory="/usr/bin"
+
+home="/home/${SUDO_USER:-$USER}"
+local_applications_directory="$home/.local/share/applications"
+system_applications_directory="/usr/share/applications"
+
+# configuration #
+
+# disable wifi powersave #
+
+cat << 'FILE' > "/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf"
+[connection]
+wifi.powersave = 2
+FILE
+
+# binary #
+
+cat << 'FILE' > "$binary_directory"/wireless-power-control
+#!/bin/bash
+wlan=$(netstat -in | awk '/^w[l][ap][0-9]/{print $1}')
+iwconfig "$wlan" power off
+notify-send -i preferences-system-power "Power control for wireless interface $wlan is turned off"
+FILE
+
+sudo chmod +x "$binary_directory"/wireless-power-control
+
+# launcher #
+
+cat << FILE > "$system_applications_directory"/wireless-power-control.desktop
+[Desktop Entry]
+Name=Wireless Power Control
+Comment=Disable wireless power management
+Exec=sh -c "sudo /usr/bin/wireless-power-control"
+Icon=preferences-system-power
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+NoDisplay=true
+FILE
