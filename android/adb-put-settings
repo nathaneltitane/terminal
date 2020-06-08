@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# adb put settings #
+
+sudo adb shell settings put system hw_hide_font_style false

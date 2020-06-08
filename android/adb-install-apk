@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# adb install apk #
+
+# dependencies #
+
+source ./console
+
+# install #
+
+if [ -e ./apk ]
+then
+	for package in ./apk/*.apk
+	do
+		adb install "${package}"
+	done
+else
+	console.error "No local packages to install."
+	echo
+	console.fwd "Continuing."
+	echo
+fi
