@@ -2,8 +2,12 @@
 
 # termux-system-info #
 
-termux-system-info () {
+termux-battery-info () {
 	echo $(termux-battery-status | tr [:upper:] [:lower:] | sed ':a;N;$!ba;s/\n//g ; s/{//g ; s/}//g ; s/"//g ; s/,//g ; s/plugged_//g ; s/unplugged/no/g')
 }
 
-PS1='\[\e[s\e[1;1H\e[42m\e[K $(termux-system-info)\e[0m\e[u\]\n \$ '
+termux-wifi-info () {
+	echo $(termux-wifi-connectioninfo | tr [:upper:] [:lower:] | sed ':a;N;$!ba;s/\n//g ; s/{//g ; s/}//g ; s/"//g ; s/,//g ; s/plugged_//g ; s/unplugged/no/g')
+}
+
+PS1='\[\e[s\e[1;1H\e[45m\e[K[\@] $(termux-battery-info) $(termux-wifi-info)\e[0m\e[u\]\n>_ $ '
