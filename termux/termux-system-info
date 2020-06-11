@@ -1,0 +1,9 @@
+#/bin/bash
+
+# termux-system-info #
+
+termux-system-info () {
+	echo $(termux-battery-status | tr [:upper:] [:lower:] | sed ':a;N;$!ba;s/\n//g ; s/{//g ; s/}//g ; s/"//g ; s/,//g ; s/plugged_//g ; s/unplugged/no/g')
+}
+
+PS1='\[\e[s\e[1;1H\e[42m\e[K $(termux-system-info)\e[0m\e[u\]\n \$ '
