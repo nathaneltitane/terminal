@@ -1,5 +1,7 @@
 #/bin/bash
 
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
 # termux-system-info #
 
 parse () {
