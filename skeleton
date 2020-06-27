@@ -14,7 +14,11 @@ version="MM-DD-YYYY"
 
 # variables ------------------------------------------------------------------ #
 
+# enable quiet package install
 
+export DEBIAN_FRONTEND=noninteractive
+
+# INSERT VARIABLES HERE
 
 # defaults ------------------------------------------------------------------- #
 
@@ -118,6 +122,7 @@ clear
 
 # configuration -------------------------------------------------------------- #
 
+# INSERT SCRIPT CONTENT HERE
 
 # complete ------------------------------------------------------------------- #
 
