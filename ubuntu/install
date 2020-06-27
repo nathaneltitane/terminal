@@ -4,20 +4,25 @@
 
 # install #
 
-# dependencies #
+# script --------------------------------------------------------------------- #
 
-source ./console
+script=$(basename -- "$0")
 
-# variables #
+# version -------------------------------------------------------------------- #
+
+version="01-01-2020"
+
+# variables ------------------------------------------------------------------ #
 
 # enable quiet package install
 
 export DEBIAN_FRONTEND=noninteractive
 
-# usage #
+# defaults ------------------------------------------------------------------- #
 
-version="01-01-2020"
-script=$(basename -- "$0")
+option=kde
+
+# usage ---------------------------------------------------------------------- #
 
 while (($#))
 do
@@ -52,9 +57,68 @@ do
 	shift
 done
 
-# configuration #
+# functions ------------------------------------------------------------------ #
 
-console.info "Installing required packages and utilities..."
+console.spinner () {
+	# catch PID of last command
+
+	PID=$!
+
+	# spinner string content
+
+	before="[ "
+	spinner="/—\|"
+	after="]"
+	message="$1"
+
+	i=1
+
+	echo
+
+	while [ -d /proc/$PID ]
+	do
+		echo -ne "\r${before} \b${spinner:i++%${#spinner}:1} ${after} ${message}\c "
+		sleep 0.125
+	done
+
+	echo
+}
+
+# dependencies --------------------------------------------------------------- #
+
+binaries_list=(
+	console
+)
+
+if [[ "$(which $binary)" == "" ]]
+then
+
+	for binary in ${binaries_list[@]}
+	do
+		binary_url=bin-dex.ntttn.me/"$binary"
+
+		# get binaries from repository
+
+		curl -sL ${binary_url} > "$binary_directory/$binary" &
+
+		console.spinner "Downloading binary [ $binary ]."
+		echo
+
+		# set execution mode for binary
+
+		chmod +x "$binary_directory/$binary"
+	done
+
+	source "$binary_directory/$binary"
+fi
+
+# initial prompt clear ------------------------------------------------------- #
+
+clear
+
+# install -------------------------------------------------------------------- #
+
+console.info "Installing required packages."
 
 applications_install_list=(
     blender
@@ -139,23 +203,23 @@ install_list=(
 	${media_install_list[@]}
 )
 
-# verify options #
+# verify options
 
 if [[ "$option" ==  "gnome" ]]
 then
 	install_list+=(
-	${gnome_install_list[@]}
+		${gnome_install_list[@]}
 	)
 fi
 
 if [[ "$option" ==  "kde" ]]
 then
 	install_list+=(
-	${kde_install_list[@]}
+		${kde_install_list[@]}
 	)
 fi
 
-# install #
+# install
 
 for package in ${install_list[@]}
 do
@@ -177,3 +241,8 @@ do
 		:
 	fi
 done
+
+# complete ------------------------------------------------------------------- #
+
+console.success "Done."
+echo
