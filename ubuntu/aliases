@@ -383,7 +383,7 @@ do
 
 	if [ $(echo $(cat /proc/version | grep -o microsoft)) = microsoft ]
 	then
-		cat <<- 'FILE' > "$path"/.bash_aliases
+		cat > "$path"/.bash_aliases <<- 'FILE'
 
 		# leocad --------------------------------------------------------------------- #
 
