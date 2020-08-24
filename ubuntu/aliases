@@ -380,4 +380,14 @@ do
 		fi
 	}
 	FILE
+
+	if [ $(echo $(cat /proc/version | grep -o microsoft)) = microsoft ]
+	then
+		cat <<- 'FILE' > "$path"/.bash_aliases
+
+		# leocad --------------------------------------------------------------------- #
+
+		alias 'leocad'='/mnt/c/Program\ Files\ \(x86\)/LeoCAD/LeoCAD.exe'
+		FILE
+	fi
 done
