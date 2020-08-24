@@ -12,4 +12,10 @@ source ./console
 
 console.info "Linking storage devices..."
 
-ln -s -f /media/${SUDO_USER:-$USER}/SD/MEGA /media/MEGA
+if [ $(echo $(cat /proc/version | grep -o microsoft)) = microsoft ]
+then
+  ln -s -f /mnt/d/MEGA /media/MEGA
+else
+  ln -s -f /media/${SUDO_USER:-$USER}/SD/MEGA /media/MEGA
+fi
+
