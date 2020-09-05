@@ -60,7 +60,7 @@ done
 
 # backgrounds directory #
 
-cd "system_$backgrounds_directory" || exit
+cd "$system_backgrounds_directory" || exit
 
 # themes directory #
 
