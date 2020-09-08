@@ -148,7 +148,7 @@ cat > "$configuration_directory"/menu.xml << 'FILE'
 </item>
 <item label="IRC">
 <action name="Execute">
-<execute>gnome-terminal --command 'irssi -c irc.freenode.net -n nathaneltitane -w Titn09018608'</execute>
+<execute>gnome-terminal --command 'irssi -c irc.freenode.net -n nathaneltitane -w PASSWORD'</execute>
 </action>
 </item>
 <menu id="root-menu-773347" label="Lego">
