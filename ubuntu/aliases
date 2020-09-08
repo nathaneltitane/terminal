@@ -381,7 +381,7 @@ do
 	}
 	FILE
 
-	if [ $(echo $(cat /proc/version | grep -o microsoft)) = microsoft ]
+	if [[ $(echo $(cat /proc/version | grep -o microsoft)) = microsoft ]]
 	then
 		cat <<- 'FILE' >> "$path"/.bash_aliases
 
