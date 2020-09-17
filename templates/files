@@ -21,7 +21,7 @@ system_icons_directory="/usr/share/icons"
 system_backgrounds_directory=""
 system_backgrounds_directory="/usr/share/backgrounds"
 
-local_icons_directory="$home/.themes"
+local_themes_directory="$home/.themes"
 system_themes_directory="/usr/share/themes"
 
 # configuration #
@@ -30,7 +30,7 @@ console.info "Removing unwanted files and folders..."
 
 # home #
 
-cd "$home" || exit
+cd "$home" || :
 
 removal_list=(
 	file
@@ -45,7 +45,7 @@ done
 
 # applications directory #
 
-cd "$system_applications_directory" || exit
+cd "$system_applications_directory" || :
 
 removal_list=(
 	file
@@ -60,8 +60,30 @@ done
 
 # backgrounds directory #
 
-cd "$system_backgrounds_directory" || exit
+cd "$system_backgrounds_directory" || :
+
+removal_list=(
+	file
+	file
+	file
+)
+
+for item in ${removal_list[@]}
+do
+	rm -rf "$item"
+done
 
 # themes directory #
 
-cd "$system_themes_directory" || exit
+cd "$system_themes_directory" || :
+
+removal_list=(
+	file
+	file
+	file
+)
+
+for item in ${removal_list[@]}
+do
+	rm -rf "$item"
+done
