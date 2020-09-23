@@ -17,10 +17,16 @@ git_configuration="$home/.gitconfig"
 
 console.info "Writing configuration (git)..."
 
-cat << FILE > "$git_configuration"
+cat <<- FILE > "$git_configuration"
 [user]
-email = nathanel.titane@gmail.com
-name = nathaneltitane
+        name = nathaneltitane
+        email = nathanel.titane@gmail.com
+[color]
+        ui = auto
+[core]
+        editor = /usr/bin/nano -c
+[hub]
+        protocol = https
 [credential]
-helper = store
+  helper = store
 FILE
