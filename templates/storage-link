@@ -12,4 +12,4 @@ source ./console
 
 console.info "Linking storage devices..."
 
-ln -s -f /media/${SUDO_USER:-$USER}/SD/MEGA /media/MEGA
+ln -s -f /media/${SUDO_USER:-$USER}/SD/MEGA /media/Internal/MEGA

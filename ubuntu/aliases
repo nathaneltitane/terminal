@@ -1,393 +1,183 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# aliases #
-
 # dependencies #
 
-source ./console
+source /data/data/com.termux/files/usr/bin/console
+source /data/data/com.termux/files/usr/bin/globals
+
+# usage #
 
 # variables #
 
-home=(
-	"/root"
-	"/home/${SUDO_USER:-$USER}"
-)
+script=$(basename -- "${BASH_SOURCE[0]}")
 
-# configuration #
+# aliases #
 
-for path in ${home[@]}
-do
-	cat <<- 'FILE' > "$path"/.bash_aliases
-	# aliases #
+cat <<- 'FILE' > "$PROOT_DIRECTORY"/home/"$user_name"/.bash_aliases
+# shell #
 
-	# colors ------------------------------------------------------------------ #
+[[ $(id -u) = 0 ]] && PS1="$(tput setaf 1)>_ # $(tput sgr 0)" || PS1=">_ $ "
 
-	if [ -z $(command -v tput) ]
+# sudo #
+
+alias sudo='sudo -p "$(tput setaf 3)>_ ? $(tput sgr 0)"'
+
+# directories #
+
+alias '..'='cd ..'
+alias '...'='cd ../../../'
+alias '....'='cd ../../../../'
+alias '.....'='cd ../../../../'
+
+# list #
+
+alias 'ls'='ls -al'
+
+# apt-get #
+
+alias 'autoclean'='sudo apt-get autoclean'
+alias 'autoremove'='sudo apt-get autoremove'
+alias 'check'='sudo apt-get check'
+alias 'clean'='sudo apt-get clean'
+alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
+alias 'download'='sudo apt-get download'
+alias 'install'='sudo apt-get install'
+alias 'purge'='sudo apt-get purge'
+alias 'reinstall'='sudo apt-get reinstall'
+alias 'repair'='sudo apt-get -f install'
+alias 'remove'='sudo apt-get remove'
+alias 'update'='sudo apt-get update'
+alias 'upgrade'='sudo apt-get upgrade'
+
+# apt-cache #
+
+alias 'dependencies'='apt-cache depends'
+alias 'search'='apt-cache search'
+
+# dd #
+
+alias 'dd'="dd if=$1 of=$2 bs=$3 status=progress"
+
+# dpkg #
+
+alias 'd-install'='sudo dpkg -i'
+alias 'd-force-install'='sudo dpkg -i --force-all'
+
+# nano #
+
+alias 'nano'='nano -c'
+
+# ping #
+
+alias 'ping'='ping -c 5'
+
+# services #
+
+alias 'kill'='sudo pkill -9'
+alias 'start'='sudo systemctl start'
+alias 'stop'='sudo systemctl stop'
+alias 'enable'='sudo systemctl enable'
+alias 'disable'='sudo systemctl disable'
+alias 'status'='sudo systemctl status'
+
+# ip #
+
+alias 'address'='curl ipinfo.io/ip'
+
+# speedtest #
+
+alias 'speedtest'='speedtest-cli --server 2406 --simple'
+
+# youtube-dl #
+
+youtube () {
+	youtube-dl							\
+		--ignore-errors					\
+		--format bestaudio				\
+		--extract-audio					\
+		--audio-format mp3				\
+		--audio-quality 160K			\
+		--output "%(title)s.%(ext)s"	\
+		--yes-playlist					\
+										$1
+}
+
+# recordmydesktop #
+
+record () {
+	stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+	window_id=$(xwininfo | grep "Window id" | cut -d ' ' -f 4)
+
+	wmctrl -i -R ${window_id}
+
+	sleep 1
+
+	recordmydesktop							\
+		--windowid ${window_id}				\
+		--no-cursor							\
+		--no-wm-check						\
+		--no-sound							\
+		--overwrite							\
+		-o "$HOME"/Videos/clip-${stamp}.ogv
+}
+
+# extract #
+
+extract () {
+	if [ -f "$1" ]
 	then
-		if [[ -t 1 ]]
-		then
-			black=$(echo -e \\e\[30m)
-			red=$(echo -e \\e\[31m)
-			green=$(echo -e \\e\[32m)
-			yellow=$(echo -e \\e\[33m)
-			blue=$(echo -e \\e\[34m)
-			magenta=$(echo -e \\e\[35m)
-			cyan=$(echo -e \\e\[36m)
-			white=$(echo -e \\e\[97m)
-			reset=$(echo -e \\e\[39m)
-		fi
+		case "$1" in
+		*.tar.bz2)
+			tar xjf "$1"
+		;;
+		*.tar.gz)
+			tar xzf "$1"
+		;;
+		*.bz2)
+			bunzip2 "$1"
+		;;
+		*.rar)
+			unrar e "$1"
+		;;
+		*.gz)
+			gunzip "$1"
+		;;
+		*.tar)
+			tar xf "$1"
+		;;
+		*.tbz2)
+			tar xjf "$1"
+		;;
+		*.tgz)
+			tar xzf "$1"
+		;;
+		*.zip)
+			unzip "$1"
+		;;
+		*.Z)
+			uncompress "$1"
+		;;
+		*.7z)
+			7z x "$1"
+		;;
+		*)
+			echo "'$1' cannot be extracted:"
+			echo "Unknown or unsupported archive type."
+		;;
+		esac
 	else
-		if [[ -t 1 ]]
-		then
-			black=$(tput setaf 0)
-			red=$(tput setaf 1)
-			green=$(tput setaf 2)
-			yellow=$(tput setaf 3)
-			blue=$(tput setaf 4)
-			magenta=$(tput setaf 5)
-			cyan=$(tput setaf 6)
-			white=$(tput setaf 7)
-			reset=$(tput sgr0)
-		fi
+		echo "'$1' is not a valid archive type."
 	fi
+}
 
-	# symbols -------------------------------------------------------------------- #
+# sprunge #
 
-	marker_batsu='[ ✕ ]'
-	marker_fwd='[ > ]'
-	marker_info='[ i ]'
-	marker_input='[ + ]'
-	marker_maru='[ ○ ]'
-	marker_bako='[ □ ]'
-	marker_no='[ ✕ ]'
-	marker_question='[ ? ]'
-	marker_rev='[ < ]'
-	marker_sankaku='[ △ ]'
-	marker_stp='[ - ]'
-	marker_warning='[ ! ]'
-	marker_yes='[ ✓ ]'
-	marker_yes_no='[ Y/N ]'
-
-	# highlights ----------------------------------------------------------------- #
-
-	console.red () {
-		echo "${red}"$@"${reset}"
-	}
-
-	console.green () {
-		echo "${green}"$@"${reset}"
-	}
-
-	console.yellow () {
-		echo "${yellow}"$@"${reset}"
-	}
-
-	console.blue () {
-		echo "${blue}"$@"${reset}"
-	}
-
-	console.magenta () {
-		echo "${magenta}"$@"${reset}"
-	}
-
-	console.cyan () {
-		echo "${cyan}"$@"${reset}"
-	}
-
-	# prompts -------------------------------------------------------------------- #
-
-	# marker_batsu
-
-	console.batsu () {
-		echo "${red}${marker_batsu}" $@"${reset}"
-	}
-
-	# marker_fwd
-
-	console.fwd () {
-		echo "${white}${marker_fwd}" $@"${reset}"
-	}
-
-	# marker_info
-
-	console.info () {
-		echo "${cyan}${marker_info}" $@"${reset}"
-	}
-
-	# marker_input
-
-	console.input () {
-		echo "${magenta}${marker_input}" $@"${reset}"
-	}
-
-	# marker_maru
-
-	console.maru () {
-		echo "${green}${marker_maru}" $@"${reset}"
-	}
-
-	# marker_no
-
-	console.error () {
-		echo "${red}${marker_no}" $@"${reset}"
-	}
-
-	# marker_question
-
-	console.question () {
-		echo "${magenta}${marker_question}" $@"${reset}"
-	}
-
-	# marker_rev
-
-	console.rev () {
-		echo "${white}${marker_rev}" $@"${reset}"
-	}
-
-	# marker_sankaku
-
-	console.sankaku () {
-		echo "${blue}${marker_sankaku}" $@"${reset}"
-	}
-
-	# marker_stp
-
-	console.stp () {
-		echo "${white}${marker_stp}" $@"${reset}"
-	}
-
-	# marker_warning
-
-	console.warning () {
-		echo "${yellow}${marker_warning}" $@"${reset}"
-	}
-
-	# marker_yes
-
-	console.success () {
-		echo "${green}${marker_yes}" $@"${reset}"
-	}
-
-	# marker_yes_no
-
-	console.choice () {
-		echo "${magenta}${marker_yes_no}" $@"${reset}"
-	}
-
-	# countdown ------------------------------------------------------------------ #
-
-	console.countdown () {
-		seconds=$1
-		shift
-
-		while [ $seconds -gt 0 ]
-		do
-			echo -e "\r${marker_warning} WAITING [ ${yellow}$((seconds--))${reset} ] SECONDS...\c"
-
-			sleep 1
-		done
-
-		# additional echo required because of carriage return clear
-
-		echo
-	}
-
-	# spinner -------------------------------------------------------------------- #
-
-	console.spinner () {
-		# catch PID of last command
-
-		PID=$!
-
-		# spinner string content
-
-		before="[ "
-		spinner="/—\|"
-		after="]"
-		message="$1"
-
-		i=1
-
-		echo
-
-		while [ -d /proc/$PID ]
-		do
-			echo -ne "\r${before} \b${spinner:i++%${#spinner}:1} ${after} ${message}\c "
-			sleep 0.125
-		done
-
-		echo
-	}
-
-	# shell ---------------------------------------------------------------------- #
-
-	if [[ $(id -u) = 0 ]]
+sprunge () {
+	if (($#))
 	then
-		PS1="$(tput setaf 1)>_ # $(tput sgr 0)"
+		curl -F 'sprunge=<-' http://sprunge.us < "$1"
 	else
-		PS1=">_ $ "
+		curl -F 'sprunge=<-' http://sprunge.us
 	fi
-
-	# administration ------------------------------------------------------------- #
-
-	alias sudo='sudo -p "$(tput setaf 3)>_ ? $(tput sgr 0)"'
-
-	# directories ---------------------------------------------------------------- #
-
-	alias '..'='cd ..'
-	alias '...'='cd ../../../'
-	alias '....'='cd ../../../../'
-	alias '.....'='cd ../../../../'
-
-	# list ----------------------------------------------------------------------- #
-
-	alias 'ls'='ls -al'
-
-	# apt ------------------------------------------------------------------------ #
-
-	alias 'autoclean'='sudo apt autoclean'
-	alias 'autoremove'='sudo apt autoremove'
-	alias 'check'='sudo apt check'
-	alias 'clean'='sudo apt clean'
-	alias 'distribution-upgrade'='sudo apt dist-upgrade'
-	alias 'download'='sudo apt download'
-	alias 'install'='sudo apt install'
-	alias 'purge'='sudo apt purge'
-	alias 'reinstall'='sudo apt install --reinstall'
-	alias 'repair'='sudo apt -f install'
-	alias 'remove'='sudo apt remove'
-	alias 'update'='sudo apt update'
-	alias 'upgrade'='sudo apt upgrade'
-
-	# apt-cache ------------------------------------------------------------------ #
-
-	alias 'dependencies'='apt-cache depends'
-	alias 'search'='apt-cache search'
-
-	# dd ------------------------------------------------------------------------- #
-
-	alias 'dd'="dd if=$1 of=$2 bs=$3 status=progress"
-
-	# dpkg ----------------------------------------------------------------------- #
-
-	alias 'd-install'='sudo dpkg -i'
-	alias 'd-force-install'='sudo dpkg -i --force-all'
-
-	# nano ----------------------------------------------------------------------- #
-
-	alias 'nano'='nano -c'
-
-	# ping ----------------------------------------------------------------------- #
-
-	alias 'ping'='ping -c 5'
-
-	# services ------------------------------------------------------------------- #
-
-	alias 'kill'='sudo pkill -9'
-	alias 'start'='sudo systemctl start'
-	alias 'stop'='sudo systemctl stop'
-	alias 'enable'='sudo systemctl enable'
-	alias 'disable'='sudo systemctl disable'
-	alias 'status'='sudo systemctl status'
-
-	# youtube-dl ----------------------------------------------------------------- #
-
-	youtube () {
-		youtube-dl \
-			--ignore-errors \
-			--format bestaudio \
-			--extract-audio \
-			--audio-format mp3 \
-			--audio-quality 160K \
-			--output "%(title)s.%(ext)s" \
-			--yes-playlist $1
-	}
-
-	# recordmydesktop ------------------------------------------------------------ #
-
-	record () {
-		stamp=$(date +"%m-%d-%Y-%H-%M-%S")
-		window_id=$(xwininfo | grep "Window id" | cut -d ' ' -f 4)
-
-		wmctrl -i -R ${window_id}
-
-		sleep 1
-
-		recordmydesktop \
-			--windowid ${window_id} \
-			--no-cursor \
-			--no-wm-check \
-			--no-sound \
-			--overwrite \
-			-o "$HOME"/Videos/clip-${stamp}.ogv
-	}
-
-	# extract -------------------------------------------------------------------- #
-
-	extract () {
-		if [ -f "$1" ]
-		then
-			case "$1" in
-			*.tar.bz2)	tar xjf "$1"
-			;;
-			*.tar.gz)	tar xzf "$1"
-			;;
-			*.bz2)		bunzip2 "$1"
-			;;
-			*.rar)		unrar e "$1"
-			;;
-			*.gz)		gunzip "$1"
-			;;
-			*.tar)		tar xf "$1"
-			;;
-			*.tbz2)		tar xjf "$1"
-			;;
-			*.tgz)		tar xzf "$1"
-			;;
-			*.zip)		unzip "$1"
-			;;
-			*.Z)		uncompress "$1"
-			;;
-			*.7z)		7z x "$1"
-			;;
-			*)			echo "'$1' cannot be extracted:"
-						echo "Unknown or unsupported archive type."
-			;;
-			esac
-		else
-			echo "'$1' is not a valid archive type."
-		fi
-	}
-
-	# ip - external -------------------------------------------------------------- #
-
-	alias 'ipe'='curl ipinfo.io/ip'
-
-	# speedtest ------------------------------------------------------------------ #
-
-	alias 'speedtest'='speedtest-cli --server 2406 --simple'
-
-	# sprunge -------------------------------------------------------------------- #
-
-	sprunge() {
-		if (($#))
-		then
-			curl -F 'sprunge=<-' http://sprunge.us < "$1"
-		else
-			curl -F 'sprunge=<-' http://sprunge.us
-		fi
-	}
-	FILE
-
-	if [[ $(echo $(cat /proc/version | grep -o microsoft)) = microsoft ]]
-	then
-		cat <<- 'FILE' >> "$path"/.bash_aliases
-
-		# leocad --------------------------------------------------------------------- #
-
-		alias 'leocad'='/mnt/c/Program\ Files\ \(x86\)/LeoCAD/LeoCAD.exe'
-		FILE
-	fi
-done
+}
+FILE

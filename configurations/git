@@ -19,14 +19,14 @@ console.info "Writing configuration (git)..."
 
 cat <<- FILE > "$git_configuration"
 [user]
-        name = nathaneltitane
-        email = nathanel.titane@gmail.com
+	name = nathaneltitane
+	email = nathanel.titane@gmail.com
 [color]
-        ui = auto
+	ui = auto
 [core]
-        editor = /usr/bin/nano -c
+	editor = /usr/bin/nano -c
 [hub]
-        protocol = https
+	protocol = https
 [credential]
-  helper = store
+	helper = store
 FILE

@@ -34,11 +34,11 @@ iwconfig "$wlan" power off
 notify-send -i preferences-system-power "Power control for wireless interface $wlan is turned off"
 FILE
 
-chmod +x "$binary_directory"/wireless-power-control
+sudo chmod +x "$binary_directory"/wireless-power-control
 
 # launcher #
 
-cat <<- FILE > "$system_applications_directory"/wireless-power-control.desktop
+cat << FILE > "$system_applications_directory"/wireless-power-control.desktop
 [Desktop Entry]
 Name=Wireless Power Control
 Comment=Disable wireless power management

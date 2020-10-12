@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# colors ------------------------------------------------------------------ #
+# colors
 
 if [ -z $(command -v tput) ]
 then
@@ -31,7 +31,7 @@ else
 	fi
 fi
 
-# symbols -------------------------------------------------------------------- #
+# symbols
 
 marker_batsu='[ ✕ ]'
 marker_fwd='[ > ]'
@@ -48,7 +48,7 @@ marker_warning='[ ! ]'
 marker_yes='[ ✓ ]'
 marker_yes_no='[ Y/N ]'
 
-# highlights ----------------------------------------------------------------- #
+# highlights
 
 console.red () {
 	echo "${red}"$@"${reset}"
@@ -74,7 +74,7 @@ console.cyan () {
 	echo "${cyan}"$@"${reset}"
 }
 
-# prompts -------------------------------------------------------------------- #
+# prompts
 
 # marker_batsu
 
@@ -154,7 +154,7 @@ console.choice () {
 	echo "${magenta}${marker_yes_no}" $@"${reset}"
 }
 
-# countdown ------------------------------------------------------------------ #
+# countdown
 
 console.countdown () {
 	seconds=$1
@@ -172,7 +172,7 @@ console.countdown () {
 	echo
 }
 
-# spinner -------------------------------------------------------------------- #
+# spinner
 
 console.spinner () {
 	# catch PID of last command
