@@ -47,11 +47,11 @@ then
 	else
 		if which esetroot >/dev/null
 		then
-		background=esetroot
+			background=esetroot
 		else
 			if which xsetroot >/dev/null
 			then
-			background=xsetroot
+				background=xsetroot
 			fi
 	fi
 fi
