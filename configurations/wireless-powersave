@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat << 'FILE' `> /etc/NetworkManager/conf.d/99-surface.conf
+cat << 'FILE' > /etc/NetworkManager/conf.d/99-surface.conf
 [connection]
 wifi.powersave = 2
 
