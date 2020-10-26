@@ -6,18 +6,13 @@
 
 # dependencies #
 
-source ./console
-
 # variables #
-
-home="/home/${SUDO_USER:-$USER}"
-git_configuration="$home/.gitconfig"
 
 # configuration #
 
-console.info "Writing configuration (git)..."
+console.inf "Writing configuration [ git ]."
 
-cat <<- FILE > "$git_configuration"
+cat <<- FILE >> "${HOME}"/.gitconfig
 [user]
 	name = nathaneltitane
 	email = nathanel.titane@gmail.com
