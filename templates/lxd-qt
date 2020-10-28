@@ -10,14 +10,11 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
-home="/home/${SUDO_USER:-$USER}"
-environment_directory="/etc/environment"
-
 # configuration #
 
-console.inf "Setting additional environment variables..."
+console.inf "Setting additional environment variables."
 
-cat << 'FILE' >> "$environment_directory"
+cat << 'FILE' >> /etc/environment
 
 # fix memory segment allocation in lxd containers for qt applications #
 

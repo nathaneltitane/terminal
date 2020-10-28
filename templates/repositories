@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# repositories #
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+# enable all repositories
+
+console.inf "Editing sources list."
+
+sed -i -e '/#.*/d' /etc/apt/sources.list
+
+# update #
+
+console.update
+
+# upgrade #
+
+console.upgrade

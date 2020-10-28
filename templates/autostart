@@ -6,15 +6,15 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+source ./console
 
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-local_autostart_directory="${HOME}"/.config/autostart"
+local_autostart_directory="$home/.config/autostart"
 system_autostart_directory="/etc/xdg/autostart"
-
-
+local_applications_directory="$home/.local/share/applications"
+system_applications_directory="/usr/share/applications"
 
 # autostart enable #
 
@@ -23,9 +23,9 @@ then
 	mkdir "$local_autostart_directory"
 fi
 
-console.inf "Generating startup items..."
+console.info "Generating startup items..."
 
-cd /usr/share/applications || exit
+cd "$system_applications_directory" || exit
 
 autostart_enable_list=(
 	launcher.desktop
@@ -56,7 +56,7 @@ chmod +x *.desktop
 
 # autostart disable #
 
-console.inf "Disabling startup items..."
+console.info "Disabling startup items..."
 
 cd "$system_autostart_directory" || exit
 

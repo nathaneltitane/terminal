@@ -10,19 +10,28 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
-modules_directory="/etc/modprobe.d"
-
-console.wrn "Blacklisting specified modules (modprobe)..."
+console.wrn "Blacklisting specified modules."
 
 if [[ "$HOSTNAME" == [hH]ostname || "$HOSTNAME" == [hH]ostname ]]
 then
-	module="module_name"
+	modules_list=(
+		"module_name"
+		"module_name"
+		"module_name"
+	)
 
 elif [[ "$HOSTNAME" == [hH]ostname ]]
 then
-	module="module_name"
+	modules_list=(
+		"module_name"
+		"module_name"
+		"module_name"
+	)
 fi
 
-cat << FILE >> "$modules_directory"/blacklist-"$module".conf
-blacklist "$module"
-FILE
+for module in ${modules_list[@]}
+do
+	cat << FILE >> /etc/modprobe.d/blacklist-"${module}".conf
+	blacklist "$module"
+	FILE
+done
