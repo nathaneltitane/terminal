@@ -15,7 +15,11 @@ mount_root="/media"
 
 # configuration #
 
-console.inf "Verifying attached devices and generating mount entires ("$mount_file")..."
+console.inf "Verifying attached devices."
+echo
+
+console.fwd "Generating mount entires."
+echo
 
 for device in /dev/sd[a-z][1-9]
 do
@@ -74,11 +78,14 @@ do
 	fi
 done >> "$mount_file"
 
-console.inf "Cleaning up ("$mount_file")..."
+# fix fstab entries formatting
 
-sed -i \
-	-e 's/  */ /g' \
-	-e '/#.*/d' "$mount_file"
+console.inf "Cleaning up."
+
+sed -i				\
+	-e 's/  */ /g'	\
+	-e '/#.*/d' 	\
+					"$mount_file"
 
 # mount partitions
 
