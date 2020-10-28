@@ -6,7 +6,7 @@ shopt -s extglob globstar nullglob
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -33,7 +33,7 @@ width="210"
 
 # configuration #
 
-console.info "Writing configuration header (conky)..."
+console.inf "Writing configuration header (conky)..."
 
 cat << FILE > "$configuration_directory"/conky/conkyrc
 # conky #
@@ -78,7 +78,7 @@ TEXT
 
 FILE
 
-console.info "Writing configuration generator (/usr/bin/write-conky)..."
+console.inf "Writing configuration generator (/usr/bin/write-conky)..."
 
 cat << 'MAIN' > "$binary_directory"/write-conky
 #!/bin/bash

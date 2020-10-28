@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -18,7 +18,7 @@ system_applications_directory="/usr/share/applications"
 
 # binary #
 
-console.info "Adding touch input toggle binaries (/usr/bin) ..."
+console.inf "Adding touch input toggle binaries (/usr/bin) ..."
 
 devices=(
 	display

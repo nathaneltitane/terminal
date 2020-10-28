@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -18,7 +18,7 @@ system_applications_directory="/usr/share/applications"
 
 if [ -e "$system_applications_directory"/launcher.desktop ]
 then
-	console.info "Creating applcition launcher (launcher_name)..."
+	console.inf "Creating applcition launcher (launcher_name)..."
 
 	cat <<- FILE >> "$system_applications_directory"/launcher.desktop
 	[Desktop Entry]

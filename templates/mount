@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -15,7 +15,7 @@ mount_root="/media"
 
 # configuration #
 
-console.info "Verifying attached devices and generating mount entires ("$mount_file")..."
+console.inf "Verifying attached devices and generating mount entires ("$mount_file")..."
 
 for device in /dev/sd[a-z][1-9]
 do
@@ -74,7 +74,7 @@ do
 	fi
 done >> "$mount_file"
 
-console.info "Cleaning up ("$mount_file")..."
+console.inf "Cleaning up ("$mount_file")..."
 
 sed -i \
 	-e 's/  */ /g' \

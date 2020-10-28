@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -15,15 +15,15 @@ user_name=$(id -u -n)
 
 # identify #
 
-console.info "Verifying superuser access rights..."
+console.inf "Verifying superuser access rights..."
 
 if [[ "${user_id}" != 0 ]]
 then
-	console.info "Please enter ${user_name} password..."
+	console.inf "Please enter ${user_name} password..."
 
 	sudo -s
 else
-	console.info "Already ${user_name} on "$HOSTNAME". Proceeding..."
+	console.inf "Already ${user_name} on "$HOSTNAME". Proceeding..."
 
 	exit
 fi

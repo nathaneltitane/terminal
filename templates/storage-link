@@ -6,10 +6,10 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # configuration #
 
-console.info "Linking storage devices..."
+console.inf "Linking storage devices..."
 
 ln -s -f /media/${SUDO_USER:-$USER}/SD/MEGA /media/Internal/MEGA

@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -24,7 +24,7 @@ fi
 
 cd "$android_directory" || exit
 
-console.info "Generating ADB USB Vendor ID list..."
+console.inf "Generating ADB USB Vendor ID list..."
 
 for i in {0..65535}
 do
@@ -35,7 +35,7 @@ chmod -R 777 "$android_directory"
 
 # udev #
 
-console.info "Generating rules for Android devices (udev)..."
+console.inf "Generating rules for Android devices (udev)..."
 
 while read -r vendor_id
 do

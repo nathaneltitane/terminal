@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -16,7 +16,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # purge #
 
-console.info "Purging unwanted packages from system..."
+console.inf "Purging unwanted packages from system..."
 
 purge_list=(
 
@@ -24,13 +24,13 @@ purge_list=(
 
 for package in ${purge_list[@]}
 do
-	console.info "Purging ${package} and applicable dependencies..."
+	console.inf "Purging ${package} and applicable dependencies..."
 
 	echo yes | apt purge ${package}
 done
 
 # remove orphaned items #
 
-console.info "Purging orphaned package items from system..."
+console.inf "Purging orphaned package items from system..."
 
 echo yes | apt autoremove

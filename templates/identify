@@ -6,10 +6,10 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # configuration #
 
-console.info "Current user name is: "${SUDO_USER:-$USER}"..."
+console.inf "Current user name is: "${SUDO_USER:-$USER}"..."
 
 sleep 3

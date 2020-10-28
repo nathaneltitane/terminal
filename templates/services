@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # configuration #
 
@@ -26,7 +26,7 @@ services_disable_list=(
 
 if (( ${#services_enable_list[@]} ))
 then
-	console.warning "Enabling services..."
+	console.wrn "Enabling services..."
 
 	for service in ${services_list[@]}
 	do
@@ -39,7 +39,7 @@ fi
 
 if (( ${#services_disable_list[@]} ))
 then
-	console.warning "Disabling services..."
+	console.wrn "Disabling services..."
 
 	for service in ${services_list[@]}
 	do

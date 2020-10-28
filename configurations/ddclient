@@ -6,24 +6,15 @@
 
 # dependencies #
 
-source ./console
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
-configuration_directory="/etc/ddclient.conf"
-
-if [[ "$HOSTNAME" == "[sS][uU][rR][fF][aA][cC][eE]" ]]
-then
-	hostname=gleipnir
-else
-	hostname=$HOSTNAME
-fi
-
 # configuration #
 
-console.info "Writing configuration (ddclient)..."
+console.inf "Writing configuration."
 
-cat << FILE > "$configuration_directory"
+cat << FILE > /etc/ddclient.conf
 # ddclient #
 
 daemon=600
@@ -39,29 +30,29 @@ protocol=namecheap
 server=dynamicdns.park-your-domain.com
 wildcard=no
 login=nathaneltitane.com
-password=1ee90c487c474362aadcf33cd3758ba9
-gleipnir
+password=PASSWORD
+HOSTNAME
 FILE
 
-console.warning "Stopping service (ddclient)..."
+console.wrn "Stopping service."
 
 service ddclient stop
 
-console.info "Reconfiguring process handlers (ddclient)..."
+console.inf "Reconfiguring process handlers."
 
 sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
 
 if [ -d /var/cache/ddclient ]
 then
-	console.warning "Purging service cache (/var/cache/ddclient)..."
+	console.wrn "Purging service cache."
 
 	rm -rf /var/cache/ddclient/ddclient.cache
 fi
 
-console.warning "Restarting service (ddclient)..."
+console.wrn "Restarting service."
 
 service ddclient start
 
-console.warning "Reloading service units (systemctl)..."
+console.wrn "Reloading service units."
 
 systemctl daemon-reload

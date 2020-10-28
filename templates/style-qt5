@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -14,7 +14,7 @@ environment_file="/etc/environment"
 
 # install #
 
-console.info "Installing required packages and utilities..."
+console.inf "Installing required packages and utilities..."
 
 install_list=(
 	qt5-style-plugins
@@ -22,14 +22,14 @@ install_list=(
 
 for package in ${install_list[@]}
 do
-	console.info "Installing ${package} and applicable dependencies..."
+	console.inf "Installing ${package} and applicable dependencies..."
 
 	echo yes | apt install ${package}
 done
 
 # create configuration #
 
-console.info "Adding style configuration parameter (Qt5)..."
+console.inf "Adding style configuration parameter (Qt5)..."
 
 cat << 'FILE' >> "$environment_file"
 

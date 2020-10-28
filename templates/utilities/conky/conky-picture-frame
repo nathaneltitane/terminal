@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -31,7 +31,7 @@ width="$size_x"
 
 # configuration #
 
-console.info "Writing configuration (conky-picture-frame)..."
+console.inf "Writing configuration (conky-picture-frame)..."
 
 cat << FILE > "$configuration_directory"/conky-picture-frame/conky-picture-framerc
 # conky picture frame #

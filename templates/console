@@ -90,7 +90,7 @@ console.fwd () {
 
 # marker_info
 
-console.info () {
+console.inf () {
 	echo "${cyan}${marker_info}" $@"${reset}"
 }
 
@@ -138,7 +138,7 @@ console.stp () {
 
 # marker_warning
 
-console.warning () {
+console.wrn () {
 	echo "${yellow}${marker_warning}" $@"${reset}"
 }
 

@@ -6,10 +6,10 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 #configuration #
 
-console.info "Granting administration privileges (/etc/sudoers)..."
+console.inf "Granting administration privileges (/etc/sudoers)..."
 
 echo "${SUDO_USER:-$USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers/"${SUDO_USER:-$USER}"

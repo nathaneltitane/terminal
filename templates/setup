@@ -6,13 +6,13 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
 # configuration #
 
-console.info "Configuring system..."
+console.inf "Configuring system..."
 
 scripts_list=(
 

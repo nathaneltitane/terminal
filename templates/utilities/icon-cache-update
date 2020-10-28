@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -25,7 +25,7 @@ for icons_directory in ${icons_directory_list[@]}
 do
 	cd "$icons_directory" || exit
 
-	console.info "Forcing icon cache update..."
+	console.inf "Forcing icon cache update..."
 
 	find "$icons_directory" -mindepth 1 -maxdepth 1 -type d | while read -r theme
 	do

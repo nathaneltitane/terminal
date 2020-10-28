@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -16,16 +16,16 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Enable all repositories
 
-console.info "Editing sources list..."
+console.inf "Editing sources list..."
 
 sed -i -e '/#.*/d' /etc/apt/sources.list
 
 # upgrade #
 
-console.info "Updating package list..."
+console.inf "Updating package list..."
 
 apt update
 
-console.info "Upgrading installed packages..."
+console.inf "Upgrading installed packages..."
 
 echo yes | apt upgrade

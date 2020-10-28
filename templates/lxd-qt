@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -15,7 +15,7 @@ environment_directory="/etc/environment"
 
 # configuration #
 
-console.info "Setting additional environment variables..."
+console.inf "Setting additional environment variables..."
 
 cat << 'FILE' >> "$environment_directory"
 

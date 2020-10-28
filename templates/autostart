@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -23,7 +23,7 @@ then
 	mkdir "$local_autostart_directory"
 fi
 
-console.info "Generating startup items..."
+console.inf "Generating startup items..."
 
 cd "$system_applications_directory" || exit
 
@@ -56,7 +56,7 @@ chmod +x *.desktop
 
 # autostart disable #
 
-console.info "Disabling startup items..."
+console.inf "Disabling startup items..."
 
 cd "$system_autostart_directory" || exit
 

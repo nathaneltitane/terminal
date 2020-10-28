@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -22,7 +22,7 @@ cpu_mode=(
 
 # aliases #
 
-console.info "Adding ${cpu_mode[i]} processor governor alias ($shell_file)..."
+console.inf "Adding ${cpu_mode[i]} processor governor alias ($shell_file)..."
 
 for i in "${!cpu_mode[@]}"
 do
@@ -45,7 +45,7 @@ source "$shell_file"
 
 # binary #
 
-console.info "Adding ${cpu_mode[i]} processor governor binary ($binary_directory) ..."
+console.inf "Adding ${cpu_mode[i]} processor governor binary ($binary_directory) ..."
 
 for i in "${!cpu_mode[@]}"
 do
@@ -72,7 +72,7 @@ done
 
 # switch #
 
-console.info "Adding cpu governor switch to system (/usr/bin)..."
+console.inf "Adding cpu governor switch to system (/usr/bin)..."
 
 cat << 'FILE' > "$binary_directory"/cpu-switch
 #!/bin/bash

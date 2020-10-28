@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -41,7 +41,7 @@ hostnames=(
 
 # configuration #
 
-console.info "Writing configuration (ssh)..."
+console.inf "Writing configuration (ssh)..."
 
 cat <<- 'FILE' > "$ssh_configuration_directory/sshd_config"
 # Configuration #
@@ -150,13 +150,13 @@ Host *
 #	VisualHostKey no
 FILE
 
-console.warning "Restarting service (sshd)..."
+console.wrn "Restarting service (sshd)..."
 
 sudo service sshd restart > /dev/null
 
 wait
 
-console.warning "Generating access configuration file..."
+console.wrn "Generating access configuration file..."
 
 cat <<- 'FILE' > "$cloud_ssh_directory/config"
 # --------------------------------------------------
@@ -216,7 +216,7 @@ else
 	fi
 fi
 
-console.info "Securing directories, files, keys and access content..."
+console.inf "Securing directories, files, keys and access content..."
 
 directories=(
 	"$cloud_ssh_directory"

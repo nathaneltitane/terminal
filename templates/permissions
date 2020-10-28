@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # configuration #
 
@@ -16,7 +16,7 @@ directory_list=(
 
 for directory in ${directory_list[@]}
 do
-	console.info "Setting permissions ($directory)..."
+	console.inf "Setting permissions ($directory)..."
 
 	cd "$directory" || exit
 

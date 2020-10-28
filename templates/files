@@ -6,7 +6,7 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
@@ -26,7 +26,7 @@ system_themes_directory="/usr/share/themes"
 
 # configuration #
 
-console.info "Removing unwanted files and folders..."
+console.inf "Removing unwanted files and folders..."
 
 # home #
 

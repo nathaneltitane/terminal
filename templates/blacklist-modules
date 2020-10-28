@@ -6,13 +6,13 @@
 
 # dependencies #
 
-source ./console
+# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
 modules_directory="/etc/modprobe.d"
 
-console.warning "Blacklisting specified modules (modprobe)..."
+console.wrn "Blacklisting specified modules (modprobe)..."
 
 if [[ "$HOSTNAME" == [hH]ostname || "$HOSTNAME" == [hH]ostname ]]
 then
