@@ -11,21 +11,21 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config"
+configuration_directory="${HOME}"/.config
 gtk_configuration_directory="$configuration_directory/gtk-3.0"
 
 # configuration #
 
-if [ ! -e "$configuration_directory" ]
+if [ ! -e "${HOME}"/.config ]
 then
-	mkdir "$configuration_directory"
+	mkdir "${HOME}"/.config
 fi
 
 # configuration #
 
 console.inf "Adding styles configuration parameters (Qt)..."
 
-cat << 'FILE' > "$configuration_directory"/Trolltech.conf
+cat << 'FILE' > "${HOME}"/.config/Trolltech.conf
 [Qt]
 
 style=GTK+
@@ -33,4 +33,4 @@ FILE
 
 # Link configuration file for GTK 3+ setup
 
-ln -s -f "$configuration_directory"/Trolltech.conf "$gtk_configuration_directory"/Trolltech.conf
+ln -s -f "${HOME}"/.config/Trolltech.conf "$gtk_configuration_directory"/Trolltech.conf

@@ -1,9 +1,0 @@
-#!/bin/bash
-
-cat << 'FILE' > /etc/NetworkManager/conf.d/99-surface.conf
-[connection]
-wifi.powersave = 2
-
-[device]
-wifi.scan-rand-mac-address=false
-FILE

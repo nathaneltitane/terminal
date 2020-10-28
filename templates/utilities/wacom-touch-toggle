@@ -10,17 +10,17 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
-binary_directory="/usr/bin"
+
 
 home="/home/${SUDO_USER:-$USER}"
-local_applications_directory="$home/.local/share/applications"
-system_applications_directory="/usr/share/applications"
+
+
 
 # binary #
 
 console.inf "Adding Wacom tablet touch toggle binary (/usr/bin) ..."
 
-cat << 'FILE' > "$binary_directory"/wacom-touch-toggle
+cat << 'FILE' > /usr/bin/wacom-touch-toggle
 #!/bin/bash
 
 # wacom-touch-toggle #
@@ -56,11 +56,11 @@ FILE
 
 # permissions #
 
-chmod +x "$binary_directory"/wacom-touch-toggle
+chmod +x /usr/bin/wacom-touch-toggle
 
 # launcher #
 
-cat <<- FILE > "$system_applications_directory"/wacom-touch-toggle.desktop
+cat <<- FILE > /usr/share/applications/wacom-touch-toggle.desktop
 [Desktop Entry]
 Name=Touch Toggle
 Comment=Touch input toggle

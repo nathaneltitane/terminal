@@ -13,8 +13,8 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 directory="/usr/bin"
 
 home="/home/${SUDO_USER:-$USER}"
-local_applications_directory="$home/.local/share/applications"
-system_applications_directory="/usr/share/applications"
+
+
 
 # binary #
 
@@ -69,7 +69,7 @@ done
 
 for device in ${devices[@]}
 do
-	cat <<- FILE > "$system_applications_directory"/${device}-touch-toggle.desktop
+	cat <<- FILE > /usr/share/applications/${device}-touch-toggle.desktop
 	[Desktop Entry]
 	Name=Touch Toggle
 	Comment=Touch input toggle

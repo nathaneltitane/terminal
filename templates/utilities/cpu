@@ -10,7 +10,7 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
-binary_directory="/usr/bin"
+
 shell_file="/etc/bash.bashrc"
 
 cpu_mode=(
@@ -67,14 +67,14 @@ done
 
 for i in "${!cpu_mode[@]}"
 do
-	sudo chmod +x "$binary_directory"/"$cpu_mode"
+	sudo chmod +x /usr/bin/"$cpu_mode"
 done
 
 # switch #
 
 console.inf "Adding cpu governor switch to system (/usr/bin)..."
 
-cat << 'FILE' > "$binary_directory"/cpu-switch
+cat << 'FILE' > /usr/bin/cpu-switch
 #!/bin/bash
 
 # cpu-switch #
@@ -104,11 +104,11 @@ FILE
 
 # permissions #
 
-sudo chmod +x "$binary_directory"/cpu-switch
+sudo chmod +x /usr/bin/cpu-switch
 
 # launcher #
 
-cat <<- FILE > "$system_applications_directory"/cpu-switch.desktop
+cat <<- FILE > /usr/share/applications/cpu-switch.desktop
 [Desktop Entry]
 Name=Background Cycler
 Comment=Enable timed background cycling

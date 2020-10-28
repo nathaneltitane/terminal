@@ -4,40 +4,20 @@
 
 # openbox startup #
 
-black= red= green= yellow= blue= magenta= cyan= white= reset=
-
-if [[ -t 1 ]]
-then
-	black=$(tput setaf 0)
-	red=$(tput setaf 1)
-	green=$(tput setaf 2)
-	yellow=$(tput setaf 3)
-	blue=$(tput setaf 4)
-	magenta=$(tput setaf 5)
-	cyan=$(tput setaf 6)
-	white=$(tput setaf 7)
-	reset=
-$(tput sgr0);
-fi
-
-version="22"
-
 home="/home/${SUDO_USER:-$USER}"
-local_autostart_directory="$home/.config/autostart"
-system_autostart_directory="/etc/xdg/autostart"
 
-if [ ! -d "$local_autostart_directory" ]
+if [ ! -d "${HOME}"/.config/autostart ]
 then
-	mkdir "$local_autostart_directory"
+	mkdir "${HOME}"/.config/autostart
 fi
 
 echo "${cyan}Adding Openbox startup items...${reset}"
 
-cd "$system_autostart_directory" || exit
+cd /etc/xdg/autostart || exit
 
 # background #
 
-cat > "$system_autostart_directory"/feh.desktop << 'FILE'
+cat > /etc/xdg/autostart/feh.desktop << 'FILE'
 [Desktop Entry]
 Type=Application
 Exec=bash -c "eval $(cat $HOME/.fehbg) &"
@@ -51,7 +31,7 @@ FILE
 
 # compositing #
 
-cat > "$system_autostart_directory"/xcompmgr.desktop << FILE
+cat > /etc/xdg/autostart/xcompmgr.desktop << FILE
 [Desktop Entry]
 Type=Application
 Exec=bash -c "sleep 5 && xcompmgr &"
@@ -64,7 +44,7 @@ FILE
 
 # openbox #
 
-cat > "$system_autostart_directory"/openbox.desktop << FILE
+cat > /etc/xdg/autostart/openbox.desktop << FILE
 [Desktop Entry]
 Type=Application
 Exec=openbox --replace
@@ -77,7 +57,7 @@ FILE
 
 # panel #
 
-cat > "$system_autostart_directory"/tint.desktop << FILE
+cat > /etc/xdg/autostart/tint.desktop << FILE
 [Desktop Entry]
 Type=Application
 Exec=tint2 -c /home/"${SUDO_USER:-$USER}"/.config/tint2/tint2rc
@@ -88,22 +68,9 @@ Name=Panel
 Comment=Openbox panel and notification area
 FILE
 
-## synapse #
-
-#cat > "$system_autostart_directory"/synapse.desktop << FILE
-#[Desktop Entry]
-#Type=Application
-#Exec=synapse --startup
-#Hidden=false
-#NoDisplay=false
-#X-GNOME-Autostart-enabled=true
-#Name=Synapse
-#Comment=Synapse semantic launcher
-#FILE
-
 # volume #
 
-cat > "$system_autostart_directory"/volumeicon.desktop << FILE
+cat > /etc/xdg/autostart/volumeicon.desktop << FILE
 [Desktop Entry]
 Type=Application
 Exec=volumeicon

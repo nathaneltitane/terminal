@@ -11,13 +11,12 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config"
 
 # configuration #
 
 bookmarks_directory_list=(
-	"$home/"
-	"$configuration_directory/gtk-3.0/"
+	"${HOME}"/"
+	"${HOME}"/.config/gtk-3.0/
 )
 
 for bookmarks_directory in ${bookmarks_directory_list[@]}
@@ -31,4 +30,4 @@ do
 	FILE
 done
 
-mv "$home/boomarks" "$home/.gtk-boomarks"
+mv "${HOME}"/boomark"${HOME}"/me/.gtk-boomarks"

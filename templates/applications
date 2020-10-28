@@ -11,16 +11,16 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-local_applications_directory="$home/.local/share/applications"
-system_applications_directory="/usr/share/applications"
+
+
 
 # launcher #
 
-if [ -e "$system_applications_directory"/launcher.desktop ]
+if [ -e /usr/share/applications/launcher.desktop ]
 then
 	console.inf "Creating applcition launcher (launcher_name)..."
 
-	cat <<- FILE >> "$system_applications_directory"/launcher.desktop
+	cat <<- FILE >> /usr/share/applications/launcher.desktop
 	[Desktop Entry]
 	Name=Name
 	Comment=Description
@@ -42,6 +42,7 @@ then
 	[Desktop Action Action_Name]
 	Name=Name
 	Exec=command
+	FILE
 else
 	console.error "Launcher not present or application not installed..."
 	console.error "Skipping."

@@ -4,26 +4,7 @@
 
 # openbox #
 
-black= red= green= yellow= blue= magenta= cyan= white= reset=
-
-if [[ -t 1 ]]
-then
-	black=$(tput setaf 0)
-	red=$(tput setaf 1)
-	green=$(tput setaf 2)
-	yellow=$(tput setaf 3)
-	blue=$(tput setaf 4)
-	magenta=$(tput setaf 5)
-	cyan=$(tput setaf 6)
-	white=$(tput setaf 7)
-	reset=
-$(tput sgr0);
-fi
-
-version="22"
-
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config/openbox"
 
 echo "${cyan}Would you like to install the Openbox window manager (openbox)? [ Yes | No ]${reset}"
 
@@ -60,9 +41,9 @@ then
 
 	echo "${cyan}Adding pipe menu entries...${reset}"
 
-	if [ ! -d "$configuration_directory"/pipe ]
+	if [ ! -d "${HOME}"/.config/pipe ]
 	then
-		mkdir -p "$configuration_directory"/pipe
+		mkdir -p "${HOME}"/.config/pipe
 	fi
 
 	for file in \
@@ -70,9 +51,9 @@ then
 	openbox-calendar \
 	openbox-theme
 	do
-		cp -r -f "$file" "$configuration_directory"/pipe
+		cp -r -f "$file" "${HOME}"/.config/pipe
 
-		cd "$configuration_directory"/pipe || exit
+		cd "${HOME}"/.config/pipe || exit
 
 		sudo chmod +x "$file"
 	done

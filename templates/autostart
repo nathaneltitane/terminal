@@ -11,10 +11,10 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-local_autostart_directory="$home/.config/autostart"
+local_autostart_directory="${HOME}"/.config/autostart"
 system_autostart_directory="/etc/xdg/autostart"
-local_applications_directory="$home/.local/share/applications"
-system_applications_directory="/usr/share/applications"
+
+
 
 # autostart enable #
 
@@ -25,7 +25,7 @@ fi
 
 console.inf "Generating startup items..."
 
-cd "$system_applications_directory" || exit
+cd /usr/share/applications || exit
 
 autostart_enable_list=(
 	launcher.desktop

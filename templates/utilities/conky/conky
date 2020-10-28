@@ -11,15 +11,15 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config"
-binary_directory="/usr/bin"
+configuration_directory="${HOME}"/.config
 
-if [ ! -d "$configuration_directory"/conky ]
+
+if [ ! -d "${HOME}"/.config/conky ]
 then
-	mkdir -p "$configuration_directory"/conky
+	mkdir -p "${HOME}"/.config/conky
 fi
 
-cd "$configuration_directory"/conky || exit
+cd "${HOME}"/.config/conky || exit
 
 alignment="top_right"
 font_size="8"
@@ -35,7 +35,7 @@ width="210"
 
 console.inf "Writing configuration header (conky)..."
 
-cat << FILE > "$configuration_directory"/conky/conkyrc
+cat << FILE > "${HOME}"/.config/conky/conkyrc
 # conky #
 
 alignment $alignment
@@ -80,18 +80,18 @@ FILE
 
 console.inf "Writing configuration generator (/usr/bin/write-conky)..."
 
-cat << 'MAIN' > "$binary_directory"/write-conky
+cat << 'MAIN' > /usr/bin/write-conky
 #!/bin/bash
 
 # write conky #
 
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config"
+configuration_directory="${HOME}"/.config
 
 unavailable="[ × ]"
 
-sed -i -e '/^TEXT$/q' "$configuration_directory"/conky/conkyrc
-sed -i -e '$G' "$configuration_directory"/conky/conkyrc
+sed -i -e '/^TEXT$/q' "${HOME}"/.config/conky/conkyrc
+sed -i -e '$G' "${HOME}"/.config/conky/conkyrc
 
 kernel=$(uname -s)
 machine=$(uname -m)
@@ -101,7 +101,7 @@ processor=$(uname -p)
 os_name=$(cat /etc/os-release | awk -F '=' '{if (NR==1) print $2}')
 os_number=$(cat /etc/os-release | awk -F '=' '{if (NR==4) print $2}')
 
-cat << FILE >> "$configuration_directory"/conky/conkyrc
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
 SYSTEM\${alignr}[ $kernel ][ $node ]
 OS\${alignr}[ $os_name $os_number ][ $machine ]
 \${voffset -2}\${hr 1}
@@ -113,7 +113,7 @@ FILE
 
 for supply in /sys/class/power_supply/BAT[0-9]*
 do
-	cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${if_existing $supply/present 1}\\
 	BATTERY\${alignr}[ TECH ][ STATUS ][ % ]
 	\${voffset -2}\${hr 1}
@@ -124,7 +124,7 @@ do
 	FILE
 done
 
-cat << FILE >> "$configuration_directory"/conky/conkyrc
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
 CPU\${alignr}[ CORE ][ FREQ ][ MODE ][ % ]
 \${voffset -2}\${hr 1}
 FILE
@@ -135,7 +135,7 @@ for ((n=0; n<$cpu_count; n++))
 do
 	let "z = $n +1"
 
-	cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	CORE $n \${freq_g $z} \\
 	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor powersave}◼◼◻◻◻◻◻◻◻◻\${endif}\\
 	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor conservative}◼◼◼◼◻◻◻◻◻◻\${endif}\\
@@ -156,7 +156,7 @@ memory_free="free -h | awk 'NR==2{print \$4}'"
 memory_used="free -h | awk 'NR==2{print \$3}'"
 memory_total="free -h | awk 'NR==2{print \$2}'"
 
-cat << FILE >> "$configuration_directory"/conky/conkyrc
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
 MEMORY\${alignr}[ % ]
 \${voffset -2}\${hr 1}
 CAPACITY\${alignr}\${memperc}
@@ -173,14 +173,14 @@ FILE
 
 for ((n=1;n<=4;n++))
 do
-	cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${top name $n}\${goto 120}\${top cpu $n}\${alignr}\${top mem $n}
 	FILE
 done
 
 if file=(/sys/class/hwmon/hwmon[0-9]*/temp*) && [[ -e "$file" ]]
 then
-	cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${voffset -2}\${hr 1}
 	TEMPERATURE\${alignr}[ T° ][ MAX ][ °C ]
 	\${voffset -2}\${hr 1}
@@ -222,7 +222,7 @@ then
 		node_name=$(echo "$node" | sed 's/.$/ &/')
 		probe_name=$(echo "$probe" | sed 's/_.*//' | sed 's/.$/ &/')
 
-		cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 		\${if_existing ${node_path}}\\
 		\${if_existing $probe_path}\${exec cat $label_path | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${goto 140}\${$node_name $probe_name}\${alignr}\${if_existing $max_path}\${exec cat $max_path | sed 's/...$//'}\${else}$unavailable\${endif}\${endif}
 		FILE
@@ -231,7 +231,7 @@ fi
 
 if file=(/sys/class/hwmon/hwmon[0-9]*/fan*) && [[ -e "$file" ]]
 then
-	cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${voffset -2}\${hr 1}
 	FAN\${alignr}[ RPM ]
 	\${voffset -2}\${hr 1}
@@ -262,14 +262,14 @@ then
 		node_name=$(echo "$node" | sed 's/.$/ &/')
 		probe_name=$(echo "$probe" | sed 's/_.*//' | sed 's/.$/ &/')
 
-		cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 		\${if_existing ${node_path}}\\
 		\${if_existing $probe_path}\${exec cat $label_path | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${alignr}\${$node_name $probe_name}\${alignr}\${else}$unavailable\${endif}
 		FILE
 	done
 fi
 
-cat << FILE >> "$configuration_directory"/conky/conkyrc
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
 \${voffset -2}\${hr 1}
 DRIVES\${alignr}[ USED ][ TOTAL ][ G ]
 \${voffset -2}\${hr 1}
@@ -290,7 +290,7 @@ do
 	then
 		: # pass
 	else
-		cat <<- FILE >> "$configuration_directory"/conky/conkyrc
+		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 		\${if_mounted $mount}\\
 		[ $block ] $label\${goto 135}\${exec $used}\${alignr}\${exec $size}
 		\${fs_bar 2 $mount}\${endif}
@@ -326,7 +326,7 @@ else
 	elan="$vlan"
 fi
 
-cat << FILE >> "$configuration_directory"/conky/conkyrc
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
 NETWORK\${alignr}[ IP ][ IFACE ]\\
 \${if_up $wlan}\\
 \${alignr}[ $wlan ]\${endif}\\
@@ -366,15 +366,15 @@ THROUGHPUT\${alignr}[ M ][ G ][ kbps ]
 FILE
 MAIN
 
-sudo chmod +x "$binary_directory"/write-conky
+sudo chmod +x /usr/bin/write-conky
 
-sudo chmod -R 777 "$configuration_directory"/conky
+sudo chmod -R 777 "${HOME}"/.config/conky
 
 write-conky
 
 # launcher #
 
-cat <<- 'FILE' > "$system_applications_directory"/conky.desktop
+cat <<- 'FILE' > /usr/share/applications/conky.desktop
 [Desktop Entry]
 Name=Conky
 Comment=Highly configurable system monitor

@@ -11,18 +11,18 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config"
-binary_directory="/usr/bin"
+configuration_directory="${HOME}"/.config
+
 
 # configuration #
 
 console.inf "Adding conky picture switch to system (/usr/bin)..."
 
-cat << "FILE" > "$binary_directory"/conky-picture-selector
+cat << "FILE" > /usr/bin/conky-picture-selector
 #!/bin/bash
 
 home="/home/${SUDO_USER:-$USER}"
-directory="$home/.config"
+directory="${HOME}"/.config
 process="$directory/conky-picture-frame/conky-picture-framerc"
 
 # specify source image
@@ -81,11 +81,11 @@ wait
 conky -c "$process"&
 FILE
 
-chmod +x "$binary_directory"/conky-picture-selector
+chmod +x /usr/bin/conky-picture-selector
 
 # launcher #
 
-cat <<- 'FILE' > "$system_applications_directory"/conky-picture-selector.desktop
+cat <<- 'FILE' > /usr/share/applications/conky-picture-selector.desktop
 [Desktop Entry]
 Name=Conky Picture Selector
 Comment=Highly configurable system monitor

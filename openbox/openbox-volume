@@ -4,37 +4,16 @@
 
 # openbox volume #
 
-black= red= green= yellow= blue= magenta= cyan= white= reset=
-
-if [[ -t 1 ]]
-then
-	black=$(tput setaf 0)
-	red=$(tput setaf 1)
-	green=$(tput setaf 2)
-	yellow=$(tput setaf 3)
-	blue=$(tput setaf 4)
-	magenta=$(tput setaf 5)
-	cyan=$(tput setaf 6)
-	white=$(tput setaf 7)
-	reset=
-$(tput sgr0);
-fi
-
-version="22"
-
-home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config/openbox"
-
 echo "${cyan}Generating Openbox volume configuration file (volumeicon)...${reset}"
 
-if [ ! -d $configuration_directory/volumeicon ]
+if [ ! -d "${HOME}"/.config/openbox/volumeicon ]
 then
-	mkdir -p $configuration_directory/volumeicon
+	mkdir -p "${HOME}"/.config/openbox/volumeicon
 fi
 
-cd $configuration_directory/volumeicon || exit
+cd "${HOME}"/.config/openbox/volumeicon || exit
 
-cat > $configuration_directory/volumeicon/volumeicon << 'FILE'
+cat > "${HOME}"/.config/openbox/volumeicon/volumeicon << 'FILE'
 [StatusIcon]
 stepsize=5
 lmb_slider=true

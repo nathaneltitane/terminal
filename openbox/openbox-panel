@@ -4,37 +4,18 @@
 
 # openbox panel#
 
-black= red= green= yellow= blue= magenta= cyan= white= reset=
-
-if [[ -t 1 ]]
-then
-	black=$(tput setaf 0)
-	red=$(tput setaf 1)
-	green=$(tput setaf 2)
-	yellow=$(tput setaf 3)
-	blue=$(tput setaf 4)
-	magenta=$(tput setaf 5)
-	cyan=$(tput setaf 6)
-	white=$(tput setaf 7)
-	reset=
-$(tput sgr0);
-fi
-
-version="22"
-
 home="/home/${SUDO_USER:-$USER}"
-configuration_directory="$home/.config/openbox"
 
 echo "${cyan}Generating Openbox panel configuration file (tint2)...${reset}"
 
-if [ ! -d "$configuration_directory"/tint2 ]
+if [ ! -d "${HOME}"/.config/tint2 ]
 then
-	mkdir -p "$configuration_directory"/tint2
+	mkdir -p "${HOME}"/.config/tint2
 fi
 
-cd "$configuration_directory"/tint2 || exit
+cd "${HOME}"/.config/tint2 || exit
 
-cat > "$directory"/tint2/tint2rc << 'FILE'
+cat << 'FILE' > "$directory"/tint2/tint2rc
 # background #
 
 # id 1 #
