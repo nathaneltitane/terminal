@@ -6,7 +6,7 @@ shopt -s extglob globstar nullglob
 
 # dependencies #
 
-# dependencies #  curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
