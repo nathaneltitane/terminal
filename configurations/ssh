@@ -6,7 +6,7 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+source ./console
 
 # variables #
 
@@ -14,7 +14,7 @@ user="${SUDO_USER:-$USER}"
 home="/home/${SUDO_USER:-$USER}"
 cloud="/media/Internal/MEGA/"
 
-local_ssh_directory="${HOME}"/.ssh"
+local_ssh_directory="$home/.ssh"
 local_keys_directory="$local_ssh_directory/.keys"
 
 cloud_ssh_directory="$cloud/.ssh"
@@ -41,7 +41,7 @@ hostnames=(
 
 # configuration #
 
-console.inf "Writing configuration (ssh)..."
+console.info "Writing configuration (ssh)..."
 
 cat <<- 'FILE' > "$ssh_configuration_directory/sshd_config"
 # Configuration #
@@ -150,13 +150,13 @@ Host *
 #	VisualHostKey no
 FILE
 
-console.wrn "Restarting service (sshd)..."
+console.warning "Restarting service (sshd)..."
 
 sudo service sshd restart > /dev/null
 
 wait
 
-console.wrn "Generating access configuration file..."
+console.warning "Generating access configuration file..."
 
 cat <<- 'FILE' > "$cloud_ssh_directory/config"
 # --------------------------------------------------
@@ -216,7 +216,7 @@ else
 	fi
 fi
 
-console.inf "Securing directories, files, keys and access content..."
+console.info "Securing directories, files, keys and access content..."
 
 directories=(
 	"$cloud_ssh_directory"
