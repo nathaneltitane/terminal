@@ -14,9 +14,4 @@ then
 	do
 		adb install "${package}"
 	done
-else
-	console.error "No local packages to install."
-	echo
-	console.fwd "Continuing."
-	echo
 fi

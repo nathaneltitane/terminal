@@ -20,7 +20,7 @@ fi
 hostname=$(adb ${device} shell getprop net.hostname)
 
 keycode () {
-	adb ${device} shell input keyevent $1
+	adb "${device}" shell input keyevent "${1}"
 
 	# https://developer.android.com/reference/android/view/KeyEvent.html
 
@@ -78,7 +78,7 @@ keycode () {
 write () {
 	cmd="$@"
 
-	echo ${cmd@Q} | sed "s/ /%s/g" | xargs -0 adb ${device} shell input text
+	echo ${cmd@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
 
 	# enter
 
@@ -90,19 +90,20 @@ write () {
 }
 
 wait () {
-	echo "[${hostname}] Waiting... Press any key to continue."
+	console.msg "[ ${hostname} ] Waiting - Press any key to continue..."
+	
 	read _ # placeholder
 }
 
 adb ${device} settings put global policy_control immersive.navigation=com.sec.android.app.desktoplauncher
 
-app="com.termux"
+application="com.package.name"
 
-echo -n "[${hostname}] Clearing storage for ${app}... "
+echo -n "[${hostname}] Clearing storage for ${application}."
 adb ${device} shell pm clear $app
 
-echo -n "[${hostname}] Launching app. "
-adb ${device} shell am start --user 0 -n $app/$app.app.TermuxActivity
+echo -n "[${hostname}] Launching application."
+adb ${device} shell am start --user 0 -n $app/$app.app.PackageActivity
 
 # wait for app to initialize
 
@@ -110,33 +111,13 @@ sleep 2
 
 # write command
 
-#write 'curl -sL dex.ntttn.me > setup && bash -x setup'
-
-write 'curl -sL https://raw.githubusercontent.com/nathaneltitane/linux-dextop/master/setup > setup && bash -x setup'
-
-
-
 wait
 
-# input first name
+# input COMMAND
 
-write "Nathanel"
+write "COMMAND"
 
-# input last name
-
-write "Titane"
-
-# input email
-
-write "nathanel.titane@gmail.com"
-
-# input email password
-
-write "0123456789"
-
-sleep 1
-
-# automatic allow
+# input keycode
 
 keycode 61
 
