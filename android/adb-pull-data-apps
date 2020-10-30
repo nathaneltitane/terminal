@@ -16,6 +16,6 @@ fi
 
 for package in $(adb shell pm list packages | sed -n 's/^package://p')
 do
-	adb pull "$(adb shell pm path $package | grep /data/app | sed -n "s/^package://p")"
+	adb pull "$(adb shell pm path "${package}" | grep /data/app | sed -n "s/^package://p")"
 	mv base.apk "${package}".apk
 done

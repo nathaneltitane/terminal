@@ -63,5 +63,5 @@ apk_list=(
 
 for package in ${apk_list[@]}
 do
-	sudo adb uninstall --user 0 ${package}
+	sudo adb uninstall --user 0 "${package}"
 done

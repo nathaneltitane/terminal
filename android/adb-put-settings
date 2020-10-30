@@ -3,3 +3,4 @@
 # adb put settings #
 
 sudo adb shell settings put system hw_hide_font_style false
+sudo adb shell settings put global policy_control immersive.navigation=com.sec.android.app.desktoplauncher

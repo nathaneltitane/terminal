@@ -1,12 +1,22 @@
 #!/bin/bash
 
-# adb app reset #
-
 # dependencies #
 
 curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+hostname=$(adb ${device} shell getprop net.hostname)
+
+application="com.package.name"
+
 device=""
+
+# defaults #
 
 if [ $# -gt 1 ]
 then
@@ -17,7 +27,7 @@ then
 	sleep 2
 fi
 
-hostname=$(adb ${device} shell getprop net.hostname)
+# functions #
 
 keycode () {
 	adb "${device}" shell input keyevent "${1}"
@@ -95,15 +105,19 @@ wait () {
 	read _ # placeholder
 }
 
-adb ${device} settings put global policy_control immersive.navigation=com.sec.android.app.desktoplauncher
+# clear storage
 
-application="com.package.name"
+console.inf "[${hostname}] Clearing storage."
 
-echo -n "[${hostname}] Clearing storage for ${application}."
-adb ${device} shell pm clear $app
+adb ${device} shell pm clear "${application}"
 
-echo -n "[${hostname}] Launching application."
-adb ${device} shell am start --user 0 -n $app/$app.app.PackageActivity
+# launch application
+
+console.inf "[ ${hostname} ] Launching application."
+
+adb ${device} shell am start --user 0 -n "${application}"/"${application}".app.PackageActivity
+
+# automate input
 
 # wait for app to initialize
 
