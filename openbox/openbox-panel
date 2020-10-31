@@ -2,11 +2,13 @@
 
 # Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# openbox panel#
+# dependencies #
 
-home="/home/${SUDO_USER:-$USER}"
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
-console.inf "Generating Openbox panel configuration file (tint2)."
+# variables #
+
+console.inf "Generating Openbox panel configuration file."
 
 if [ ! -d "${HOME}"/.config/tint2 ]
 then
@@ -15,7 +17,7 @@ fi
 
 cd "${HOME}"/.config/tint2 || exit
 
-cat << 'FILE' > "$directory"/tint2/tint2rc
+cat << 'FILE' > "${HOME}"/.config/tint2/tint2rc
 # background #
 
 # id 1 #

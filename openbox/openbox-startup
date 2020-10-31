@@ -2,9 +2,11 @@
 
 # Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# openbox startup #
+# dependencies #
 
-home="/home/${SUDO_USER:-$USER}"
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
 
 if [ ! -d "${HOME}"/.config/autostart ]
 then
@@ -17,7 +19,7 @@ cd /etc/xdg/autostart || exit
 
 # background #
 
-cat > /etc/xdg/autostart/feh.desktop << 'FILE'
+cat << 'FILE' > /etc/xdg/autostart/feh.desktop
 [Desktop Entry]
 Type=Application
 Exec=bash -c "eval $(cat $HOME/.fehbg) &"
@@ -31,7 +33,7 @@ FILE
 
 # compositing #
 
-cat > /etc/xdg/autostart/xcompmgr.desktop << FILE
+cat << FILE > /etc/xdg/autostart/xcompmgr.desktop
 [Desktop Entry]
 Type=Application
 Exec=bash -c "sleep 5 && xcompmgr &"
@@ -44,7 +46,7 @@ FILE
 
 # openbox #
 
-cat > /etc/xdg/autostart/openbox.desktop << FILE
+cat << FILE > /etc/xdg/autostart/openbox.desktop
 [Desktop Entry]
 Type=Application
 Exec=openbox --replace
@@ -57,7 +59,7 @@ FILE
 
 # panel #
 
-cat > /etc/xdg/autostart/tint.desktop << FILE
+cat << FILE > /etc/xdg/autostart/tint.desktop
 [Desktop Entry]
 Type=Application
 Exec=tint2 -c /home/"${SUDO_USER:-$USER}"/.config/tint2/tint2rc
@@ -70,7 +72,7 @@ FILE
 
 # volume #
 
-cat > /etc/xdg/autostart/volumeicon.desktop << FILE
+cat << FILE > /etc/xdg/autostart/volumeicon.desktop
 [Desktop Entry]
 Type=Application
 Exec=volumeicon

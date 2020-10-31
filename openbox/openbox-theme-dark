@@ -2,9 +2,13 @@
 
 # Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# openbox theme dark #
+# dependencies #
 
-console.inf "Generating 'Dark'window theme (/usr/share/themes)."
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+console.inf "Generating 'Dark' window theme."
 
 if [ ! -d /usr/share/themes/Dark/openbox-3 }
 then

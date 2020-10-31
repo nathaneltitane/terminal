@@ -4,7 +4,7 @@
 
 # openbox theme light #
 
-console.inf "Generating 'Light' window theme (/usr/share/themes)."
+console.inf "Generating 'Light' window theme."
 
 if [ ! -d /usr/share/themes/Light/openbox-3 ]
 then

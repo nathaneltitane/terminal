@@ -2,9 +2,13 @@
 
 # Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# openbox volume #
+# dependencies #
 
-console.inf "Generating Openbox volume configuration file (volumeicon)."
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+console.inf "Generating Openbox volume configuration file."
 
 if [ ! -d "${HOME}"/.config/openbox/volumeicon ]
 then
@@ -13,7 +17,7 @@ fi
 
 cd "${HOME}"/.config/openbox/volumeicon || exit
 
-cat > "${HOME}"/.config/openbox/volumeicon/volumeicon << 'FILE'
+cat << 'FILE' > "${HOME}"/.config/openbox/volumeicon/volumeicon
 [StatusIcon]
 stepsize=5
 lmb_slider=true
