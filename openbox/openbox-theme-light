@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+# Author: Nathanel Titane - nathanel.titane@gmail.com
 
 # openbox theme light #
 
-echo "${cyan}Generating 'Light' window theme (/usr/share/themes)...${reset}"
+console.inf "Generating 'Light' window theme (/usr/share/themes)."
 
 if [ ! -d /usr/share/themes/Light/openbox-3 ]
 then

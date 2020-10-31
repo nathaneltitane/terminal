@@ -1,10 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 
-# openbox calendar #
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+# functions #
 
 function row() {
 	cal | gawk -v row=$1 '{ if (NR==row) { print $0 } }'
 }
+
+# show calendar
 
 cat << MENU
 <openbox_pipe_menu>

@@ -1,37 +1,23 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+# Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# openbox configuration #
+# dependencies #
 
-black= red= green= yellow= blue= magenta= cyan= white= reset=
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
-if [[ -t 1 ]]
-then
-	black=$(tput setaf 0)
-	red=$(tput setaf 1)
-	green=$(tput setaf 2)
-	yellow=$(tput setaf 3)
-	blue=$(tput setaf 4)
-	magenta=$(tput setaf 5)
-	cyan=$(tput setaf 6)
-	white=$(tput setaf 7)
-	reset=
-$(tput sgr0);
-fi
-
-version="22"
+# variables #
 
 home="/home/${SUDO_USER:-$USER}"
 
-if [ ! -d ""${HOME}"/.config/openbox" ]
+if [ ! -d "${HOME}"/.config/openbox ]
 then
 	mkdir -p "${HOME}"/.config/openbox
 fi
 
 cd "${HOME}"/.config/openbox || exit
 
-echo "${cyan}Generating Openbox 'autostart' file...${reset}"
+console.inf "Generating Openbox 'autostart' file."
 
 cat << 'FILE' > "${HOME}"/.config/openbox/autostart
 # autostart #
@@ -40,18 +26,18 @@ cat << 'FILE' > "${HOME}"/.config/openbox/autostart
 
 background=""
 
-if which hsetroot >/dev/null
+if which hsetroot > /dev/null
 then
 	background=hsetroot
+else
+	if which esetroot >/dev/null
+	then
+		background=esetroot
 	else
-		if which esetroot >/dev/null
+		if which xsetroot >/dev/null
 		then
-			background=esetroot
-		else
-			if which xsetroot >/dev/null
-			then
-				background=xsetroot
-			fi
+			background=xsetroot
+		fi
 	fi
 fi
 
@@ -59,7 +45,7 @@ test -z "$background" || "$background" -solid "#202020"
 
 # gnome settings daemon #
 
-if test -x /usr/libexec/gnome-settings-daemon >/dev/null
+if test -x /usr/libexec/gnome-settings-daemon > /dev/null
 then
 	/usr/libexec/gnome-settings-daemon &
 
@@ -71,7 +57,7 @@ FILE
 
 # menu #
 
-echo "${cyan}Generating Openbox 'menu' file...${reset}"
+console.inf "Generating Openbox 'menu' file."
 
 catl << 'FILE' > "${HOME}"/.config/openbox/menu.xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -333,7 +319,7 @@ FILE
 
 # configuration #
 
-echo "${cyan}Generating Openbox 'rc' file...${reset}"
+console.inf "Generating Openbox configuration 'rc' file."
 
 cat << 'FILE' > "${HOME}"/.config/openbox/rc.xml
 <?xml version="1.0" encoding="UTF-8"?>

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+# Author: Nathanel Titane - nathanel.titane@gmail.com
 
 # openbox panel#
 
 home="/home/${SUDO_USER:-$USER}"
 
-echo "${cyan}Generating Openbox panel configuration file (tint2)...${reset}"
+console.inf "Generating Openbox panel configuration file (tint2)."
 
 if [ ! -d "${HOME}"/.config/tint2 ]
 then

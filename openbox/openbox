@@ -1,64 +1,65 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+# Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# openbox #
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
 
 home="/home/${SUDO_USER:-$USER}"
 
-echo "${cyan}Would you like to install the Openbox window manager (openbox)? [ Yes | No ]${reset}"
+console.info "Setting up openbox window manager."
 
-read reply
-
-if [[ "$reply" = [yY] || "$reply" = [yY][eE][sS] ]]
-then
-	# openbox packages #
-
-	for package in \
-	feh \
-	obconf \
-	obmenu \
-	openbox \
-	synapse \
-	tint2 \
-	volumeicon \
+install_list=(
+	feh
+	obconf
+	obmenu
+	openbox
+	synapse
+	tint2
+	volumeicon
 	xcompmgr
-	do
-		dnf -y install "$package"
-	done
+)
 
-	# configuration #
+console.install ${install_list[@]}
 
-	'./openbox-configuration'
-	'./openbox-icons'
-	'./openbox-panel'
-	'./openbox-startup'
-	'./openbox-theme-dark'
-	'./openbox-theme-light'
-	'./openbox-volume'
+# configuration #
 
-	# pipe menu #
+'./openbox-configuration'
+'./openbox-icons'
+'./openbox-panel'
+'./openbox-startup'
+'./openbox-theme-dark'
+'./openbox-theme-light'
+'./openbox-volume'
 
-	echo "${cyan}Adding pipe menu entries...${reset}"
+# pipe menu #
 
-	if [ ! -d "${HOME}"/.config/pipe ]
-	then
-		mkdir -p "${HOME}"/.config/pipe
-	fi
+console.info "Adding pipe menu entries."
 
-	for file in \
-	openbox-background \
-	openbox-calendar \
-	openbox-theme
-	do
-		cp -r -f "$file" "${HOME}"/.config/pipe
-
-		cd "${HOME}"/.config/pipe || exit
-
-		sudo chmod +x "$file"
-	done
-
-	sudo chmod -x /usr/bin/gnome-shell
-else
-	continue
+if [ ! -d "${HOME}"/.config/pipe ]
+then
+	mkdir -p "${HOME}"/.config/pipe
 fi
+
+pipes_list=(
+	openbox-background
+	openbox-calendar
+	openbox-theme
+)
+
+for pipe in ${pipes_list[@]}
+do
+	cp -r -f "$pipe" "${HOME}"/.config/pipe
+
+	cd "${HOME}"/.config/pipe || exit
+
+	sudo chmod +x "$pipe"
+done
+
+# disable gnome shell execution rights
+
+sudo chmod -x /usr/bin/gnome-shell
+

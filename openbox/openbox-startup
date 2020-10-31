@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com - Copyright 2014
+# Author: Nathanel Titane - nathanel.titane@gmail.com
 
 # openbox startup #
 
@@ -11,7 +11,7 @@ then
 	mkdir "${HOME}"/.config/autostart
 fi
 
-echo "${cyan}Adding Openbox startup items...${reset}"
+console.inf "Adding Openbox startup items."
 
 cd /etc/xdg/autostart || exit
 
