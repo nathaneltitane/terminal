@@ -2,8 +2,6 @@
 
 # Author: Nathanel Titane - nathanel.titane@gmail.com
 
-# ssh #
-
 # dependencies #
 
 curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
@@ -12,17 +10,6 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 user="${SUDO_USER:-$USER}"
 home="/home/${SUDO_USER:-$USER}"
-cloud="/media/Internal/MEGA/"
-
-local_ssh_directory="$home/.ssh"
-local_keys_directory="$local_ssh_directory/.keys"
-
-cloud_ssh_directory="$cloud/.ssh"
-cloud_keys_directory="$cloud_ssh_directory/.keys"
-
-ssh_configuration_directory="/etc/ssh"
-
-password="$(cat '$cloud/.password' | base64 -d)"
 
 # convert hostname to lowercase to match hostnames array content
 
@@ -41,9 +28,9 @@ hostnames=(
 
 # configuration #
 
-console.info "Writing configuration (ssh)..."
+console.info "Writing configuration."
 
-cat <<- 'FILE' > "$ssh_configuration_directory/sshd_config"
+cat <<- 'FILE' > /etc/ssh/sshd_config
 # Configuration #
 
 Port 22
@@ -109,7 +96,7 @@ Port 22
 	UsePAM yes
 FILE
 
-cat <<- 'FILE' > "$ssh_configuration_directory/ssh_config"
+cat <<- 'FILE' > /etc/ssh/ssh_config
 # Configuration #
 
 Host *
@@ -150,18 +137,16 @@ Host *
 #	VisualHostKey no
 FILE
 
-console.warning "Restarting service (sshd)..."
+console.warning "Restarting service."
 
 sudo service sshd restart > /dev/null
 
 wait
 
-console.warning "Generating access configuration file..."
+console.warning "Generating access configuration file."
 
-cat <<- 'FILE' > "$cloud_ssh_directory/config"
-# --------------------------------------------------
+cat <<- 'FILE' > /media/Internal/MEGA/.ssh/config
 # skirnir
-# --------------------------------------------------
 
 Host skirnir
 	HostName skirnir.blendercluster.com
@@ -171,9 +156,7 @@ Host skirnir
 	ProxyCommand ssh gungnir nc %h %p
 	Port 22
 
-# --------------------------------------------------
 # mjolnir
-# --------------------------------------------------
 
 Host mjolnir
 	HostName blendercluster.com
@@ -182,9 +165,7 @@ Host mjolnir
 	IdentitiesOnly yes
 	Port 22
 
-# --------------------------------------------------
 # gungnir
-# --------------------------------------------------
 
 Host gungnir
 	HostName blendercluster.com
@@ -196,31 +177,26 @@ FILE
 
 # authorized keys file check
 
-if [[ ! -f "$cloud_ssh_directory/authorized_keys" ]]
-then
-	touch "$cloud_ssh_directory/authorized_keys"
-else
-	continue
-fi
+[ ! -f /media/Internal/MEGA/.ssh/authorized_keys ] && touch /media/Internal/MEGA/.ssh/authorized_keys ||:
 
 # local #
 
-if [[ -d "$local_ssh_directory" ]]
+if [ -d "${HOME}"/.ssh ]
 then
-	rm -rf "$local_ssh_directory"
-	cp -rf "$cloud_ssh_directory" "$local_ssh_directory"
+	rm -rf "${HOME}"/.ssh
+	cp -rf /media/Internal/MEGA/.ssh "${HOME}"/.ssh
 else
-	if [[ ! -d "$local_ssh_directory" ]]
+	if [ ! -d "${HOME}"/.ssh ]
 	then
-		cp -rf "$cloud_ssh_directory" "$local_ssh_directory"
+		cp -rf /media/Internal/MEGA/.ssh "${HOME}"/.ssh
 	fi
 fi
 
-console.info "Securing directories, files, keys and access content..."
+console.info "Securing directories, files, keys and access."
 
 directories=(
-	"$cloud_ssh_directory"
-	"$local_ssh_directory"
+	"${HOME}"/.ssh
+	/media/Internal/MEGA/.ssh
 	)
 
 for directory in ${directories[@]}
