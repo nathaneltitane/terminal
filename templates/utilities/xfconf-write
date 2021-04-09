@@ -55,10 +55,6 @@ do
         shift
 done
 
-refresh () {
-	xfwm4 --replace &
-}
-
 # variables #
 
 user="$(whoami)"
@@ -115,4 +111,6 @@ do
 	#		-s ${value}"
 done
 
-refresh
+# refresh
+
+xfwm4 --replace &
