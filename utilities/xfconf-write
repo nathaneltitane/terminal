@@ -46,21 +46,15 @@ do
 
 	# parse data types
 
-	# set default
+	if [[ "${value}" = "true" ]] || [[ "${value}" = "false" ]]
+    then
+		type=bool
 
-	type=string
-
-	# specify by value filter
-
-	case "${value}" in
-		true|false)
-			type=bool
-		;;
-	esac
-
-	if [[ "${value}" -lt 2147438647 ]] || [[ "${value}" -gt -2147438647 ]]
-        then
+	elif [[ "${value}" -lt 2147438647 ]] || [[ "${value}" -gt -2147438647 ]]
+	then
 		type=int
+	else
+		type=string
 	fi
 
 	# specify by property filter
@@ -77,20 +71,20 @@ do
 	# write settings
 
 	xfconf-query				\
-		--create			\
+		--create				\
 			-t "${type}"		\
 			-c "${channel}"		\
 			-p "${property}"	\
 			-s "${value}"
 
-	# sudo su - "${user}"						\
-	#	-c "DISPLAY=${DISPLAY}					\
+	# sudo su - "${user}"										\
+	#	-c "DISPLAY=${DISPLAY}									\
 	#	DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}	\
-	# xfconf-query							\
-	#	--create						\
-	#		-t ${type}					\
-	#		-c ${channel}					\
-	#		-p ${property}					\
+	# xfconf-query												\
+	#	--create												\
+	#		-t ${type}											\
+	#		-c ${channel}										\
+	#		-p ${property}										\
 	#		-s ${value}"
 done
 
