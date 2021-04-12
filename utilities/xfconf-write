@@ -47,7 +47,7 @@ do
 	# parse data types
 
 	if [[ "${value}" = "true" ]] || [[ "${value}" = "false" ]]
-    then
+	then
 		type=bool
 
 	elif [[ "${value}" -lt "2147438647" ]] || [[ "${value}" -gt "-2147438647" ]]
@@ -61,6 +61,7 @@ do
 	elif [[ "${value}" -lt "9223372036854775807" ]] || [[ "${value}" -gt "-9223372036854775807" ]]
 	then
 		type=int64
+		
 	elif [[ "${value}" -lt "18446744073709551615" ]] || [[ "${value}" -gt "0" ]]
 	then
 		type=uint64
