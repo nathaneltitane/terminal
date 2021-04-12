@@ -23,38 +23,6 @@ then
 	exit 1
 fi
 
-while (($#))
-do
-        case "${2}" in
-                -h|--help)
-                        echo
-                        echo -e "Usage: ${script} [SETTINGS FILE] | [OPTION]"
-                        echo
-                        echo -e "Options:"
-                        echo
-                        echo -e "-h, --help \t Show help and usage information."
-                        echo
-                        echo -e "'${script}' [ Version ${version} ]"
-                        echo
-
-                        exit
-                ;;
-
-                *)
-                        echo
-                       	echo -e "Usage: ${script} [SETTINGS FILE] | [OPTION]"
-                        echo
-                        echo -e "${script}: Unknown option '${1}'"
-                        echo -e "Type './${script} --help' for help and usage information."
-                        echo
-
-                        exit 1
-                ;;
-        esac
-
-        shift
-done
-
 # variables #
 
 user="$(whoami)"
@@ -78,11 +46,28 @@ do
 
 	# parse data types
 
+	# set default
+
 	type=string
+
+	# specify by value filter
+
+	case "${value}" in
+		true|false)
+			type=bool
+		;;
+	esac
+
+	if [[ "${value}" -lt 2147438647 ]] || [[ "${value}" -gt -2147438647 ]]
+        then
+		type=int
+	fi
+
+	# specify by property filter
 
 	case "${property}" in
 		*last-separator-position)
-			type=integer
+			type=int
 		;;
 		*last-show-hidden|*misc-single-click)
 			type=bool
@@ -92,22 +77,20 @@ do
 	# write settings
 
 	xfconf-query				\
-		--create				\
+		--create			\
 			-t "${type}"		\
 			-c "${channel}"		\
 			-p "${property}"	\
 			-s "${value}"
 
-	refresh
-
-	# sudo su - "${user}"										\
-	#	-c "DISPLAY=${DISPLAY}									\
+	# sudo su - "${user}"						\
+	#	-c "DISPLAY=${DISPLAY}					\
 	#	DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}	\
-	# xfconf-query												\
-	#	--create												\
-	#		-t ${type}											\
-	#		-c ${channel}										\
-	#		-p ${property}										\
+	# xfconf-query							\
+	#	--create						\
+	#		-t ${type}					\
+	#		-c ${channel}					\
+	#		-p ${property}					\
 	#		-s ${value}"
 done
 

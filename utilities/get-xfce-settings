@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# get xfce settings #
-
-xfconf-query -l | sed -r -e '/Channels:/d' | while read channel
-do
-	xfconf-query -lv -c "${channel}" | sed -r -e '/UNSUPPORTED/d' | sed -r -e "s/  .* / -s /;s/^/xfconf-query -c ${channel} -p /"
-done > xfce-settings
