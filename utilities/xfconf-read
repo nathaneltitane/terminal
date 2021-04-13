@@ -37,3 +37,7 @@ do
 	xfconf-query -lv -c "${channel}" | sed -r -e "s/^/${channel} /"
 
 done > "${settings_file}"
+
+# strip unsupported data lines
+
+sed -i -e '/UNSUPPORTED/d' "${settings_file}"
