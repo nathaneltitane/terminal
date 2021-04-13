@@ -34,7 +34,12 @@ echo
 
 xfconf-query -l | sed -r -e '/Channels:/d' | while read channel
 do
-	xfconf-query -lv -c "${channel}" | sed -r -e "s/^/${channel} /"
+	if [ "$channel" = "xfce4-session" ]
+	then
+		:
+	else
+		xfconf-query -lv -c "${channel}" | sed -r -e "s/^/${channel} /"
+	fi
 
 done > "${settings_file}"
 
