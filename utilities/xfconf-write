@@ -53,15 +53,15 @@ do
 	elif [[ "${value}" -lt "2147438647" ]] || [[ "${value}" -gt "-2147438647" ]]
 	then
 		type=int
-	
+
 	elif [[ "${value}" -lt "4294967295" ]] || [[ "${value}" -gt "0" ]]
 	then
 		type=uint
-		
+
 	elif [[ "${value}" -lt "9223372036854775807" ]] || [[ "${value}" -gt "-9223372036854775807" ]]
 	then
 		type=int64
-		
+
 	elif [[ "${value}" -lt "18446744073709551615" ]] || [[ "${value}" -gt "0" ]]
 	then
 		type=uint64
