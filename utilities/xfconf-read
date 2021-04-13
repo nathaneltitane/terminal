@@ -5,17 +5,25 @@
 source /data/data/com.termux/files/usr/bin/console
 source /data/data/com.termux/files/usr/bin/globals
 
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+version="04-13-2021"
+
 # usage #
+
+settings_file="${1}"
 
 if [[ $# -lt 1 ]]
 then
-	echo "Usage: ${0} <settings file>"
-	exit 1
+        echo "Usage: ${script} [SEtTINGS FILE] | [OPTION]"
+        exit 1
 fi
 
 # variables #
-
-script=$(basename -- "${BASH_SOURCE[0]}")
 
 settings_file="${1}"
 
