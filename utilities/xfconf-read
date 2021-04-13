@@ -36,6 +36,9 @@ xfconf-query -l | sed -r -e '/Channels:/d' | while read channel
 do
 	if [ "$channel" = "xfce4-session" ]
 	then
+		# skip xfce4-session channel:
+		# problems with failsafe state reload from settings file
+
 		:
 	else
 		xfconf-query -lv -c "${channel}" | sed -r -e "s/^/${channel} /"
