@@ -66,24 +66,13 @@ do
 	then
 		type=uint64
 
-	elif [[ "${value}" =  *\."[0-9][0-9][0-9][0-9][0-9][0-9]" ]]
+	elif [[ "${value}" -eq '^[-+]?[0-9]+\.[0-9]+*$' ]]
 	then
 		type=double
 
 	else
 		type=string
 	fi
-
-	# specify by property filter
-
-	case "${property}" in
-		*last-separator-position)
-			type=int
-		;;
-		*last-show-hidden|*misc-single-click)
-			type=bool
-		;;
-	esac
 
 	# write settings
 
