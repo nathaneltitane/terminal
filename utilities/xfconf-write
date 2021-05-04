@@ -78,8 +78,8 @@ do
 
 	xfconf-query				\
 		--create				\
-			-t ${type}			\
-			-c ${channel}		\
+			-t "${type}"		\
+			-c "${channel}"		\
 			-p "${property}"	\
 			-s "${value}"
 
