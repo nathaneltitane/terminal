@@ -80,7 +80,7 @@ do
 		--create				\
 			-t ${type}			\
 			-c ${channel}		\
-			-p ${property}		\
+			-p "${property}"	\
 			-s "${value}"
 
 	# sudo su - "${user}"										\
