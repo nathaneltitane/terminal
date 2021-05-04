@@ -50,6 +50,14 @@ do
 	then
 		type=bool
 
+	elif [[ ${value} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
+	then
+		type=double
+
+	elif [[ ${value} =~ [aA0-zZ9] ]]
+	then
+		type=string
+
 	elif [[ ${value} -lt 2147438647 ]] || [[ ${value} -gt -2147438647 ]]
 	then
 		type=int
@@ -65,13 +73,6 @@ do
 	elif [[ ${value} -lt 18446744073709551615 ]] || [[ ${value} -gt 0 ]]
 	then
 		type=uint64
-
-	elif [[ ${value} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
-	then
-		type=double
-
-	else
-		type=string
 	fi
 
 	# write settings
