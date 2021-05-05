@@ -54,10 +54,6 @@ do
 	then
 		type=double
 
-	elif [[ ${value} =~ [aA0-zZ9] ]]
-	then
-		type=string
-
 	elif [[ ${value} -lt 2147438647 ]] || [[ ${value} -gt -2147438647 ]]
 	then
 		type=int
@@ -73,15 +69,20 @@ do
 	elif [[ ${value} -lt 18446744073709551615 ]] || [[ ${value} -gt 0 ]]
 	then
 		type=uint64
+
+	else
+		type=string
+
+
 	fi
 
 	# write settings
 
 	xfconf-query				\
 		--create				\
-			-t "${type}"		\
 			-c "${channel}"		\
 			-p "${property}"	\
+			-t "${type}"		\
 			-s "${value}"
 
 	# sudo su - "${user}"										\
