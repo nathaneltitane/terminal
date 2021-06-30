@@ -1,0 +1,10 @@
+# sprunge #
+
+sprunge () {
+	if (($#))
+	then
+		curl -F 'sprunge=<-' http://sprunge.us < "${1}"
+	else
+		curl -F 'sprunge=<-' http://sprunge.us
+	fi
+}
