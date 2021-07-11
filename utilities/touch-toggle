@@ -14,8 +14,6 @@ directory="/usr/bin"
 
 home="/home/${SUDO_USER:-$USER}"
 
-
-
 # binary #
 
 console.inf "Adding touch input toggle binaries (/usr/bin) ..."
