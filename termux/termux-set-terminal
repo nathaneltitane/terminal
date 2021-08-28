@@ -1,1 +1,22 @@
-PS1='\[\e[s\e[1;1H\e[07m\e[K( HOSTNAME: \h ) ( USER: \u ) ( TIME: \T ) ( BATT. %: $(bash PATH/TO/SCRIPT OPT) ) ( INTERNET: $(getprop wifi.interface) )\e[0m\e[u\][ T ] >_ $ '
+# ansi #
+
+PS1='\[\e[s\e[1;1H\e[07m\e[K( HOSTNAME: \h ) ( USER: \u ) ( TIME: \T ) ( BATT. %: $(bash PATH/TO/SCRIPT OPT) ) ( NET: $(getprop wifi.interface) )\e[0m\e[u\][ T ] >_ $ '
+
+# tput #
+
+command="PS1="
+command+="tput sc"
+command+="tput cup 1 1"
+command+="tput setaf 0"
+command+="tput setab 7"
+command+="tput el"
+command+="( HOSTNAME: \h ) "
+command+="( USER: \u ) "
+command+="( TIME: \T ) "
+command+="( BATT. %: $(bash $HOME/showstuff percentage) ) "
+command+="( NET: $(getprop wifi.interface) ) "
+command+="tput sgr 0"
+command+="tput rc"
+command+="[ T ] >_ $ "
+
+${command}
