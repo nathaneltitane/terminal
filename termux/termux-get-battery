@@ -1,0 +1,14 @@
+#!/bin/bash
+
+query="${1}"
+
+# query types:
+
+# health
+# percentage
+# plugged
+# status
+# temperature
+# current
+
+termux-battery-status | jq -r | grep "${query}" | cut -d ':' -f 2 | sed 's/[^aA0-zZ9]//g ; s/_/ /g'
