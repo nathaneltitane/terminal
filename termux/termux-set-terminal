@@ -1,1 +1,1 @@
-PS1='\[\e[s\e[1;1H\e[07m\e[K( HOSTNAME: \h ) ( USER: \u ) ( TIME: \T ) (BATT. %: $(bash PATH/TO/SCRIPT) ) ( )\e[0m\e[u\][ T ] >_ $ '
+PS1='\[\e[s\e[1;1H\e[07m\e[K( HOSTNAME: \h ) ( USER: \u ) ( TIME: \T ) ( BATT. %: $(bash PATH/TO/SCRIPT OPT) ) ( INTERNET: $(getprop wifi.interface) )\e[0m\e[u\][ T ] >_ $ '
