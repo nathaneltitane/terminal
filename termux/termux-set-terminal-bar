@@ -1,7 +1,1 @@
-# ansi #
-
-PS1='\[\e[s\e[1;1H\e[07m\e[K( HOSTNAME: \h ) ( USER: \u ) ( TIME: \T ) ( BATT. %: $(bash PATH/TO/SCRIPT OPTION) ) ( NET: $(getprop wifi.interface) )\e[0m\e[u\][ T ] >_ $ '
-
-# tput #
-
-PS1='\[$(tput sc) $(tput cup 1 0) $(tput setaf 0) $(tput setab 7) $(tput el) ( HOSTNAME: \h ) ( USER: \u ) ( TIME: \T ) ( BATT. %: $(bash PATH/TO/SCRIPT OPTION) ) ( NET: $(getprop wifi.interface) ) $(tput sgr 0)$(tput rc)\][ T ] >_ $ '
+PS1='\[$(tput sc)$(tput ed)$(tput cup 0 0)$(tput setaf 0)$(tput setab 7)$(tput el) ( HOSTNAME: )( USER: \u )( TIME: )( BATT. % )( NET: $(getprop wifi.interface) ) $(tput sgr 0)$(tput rc)\][ T ] >_ $ '
