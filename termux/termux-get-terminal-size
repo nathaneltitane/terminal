@@ -1,0 +1,13 @@
+redraw () {
+	clear
+	echo "W: $(tput cols) x H: $(tput lines)"
+}
+
+trap redraw WINCH
+
+redraw
+
+while true
+do
+	:
+done
