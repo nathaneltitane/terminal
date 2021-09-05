@@ -65,3 +65,35 @@ BorderSizeAuto=false
 ShowToolTips=false
 library=org.kde.breeze
 theme=Breeze
+
+
+############################
+
+
+# CREATE /usr/share/qt5/qtlogging.ini
+
+[Rules]
+*.debug=false
+qt.qpa.xcb.xcberror.warning=false
+qt.qpa.xcb.xcberror.error=false
+qt.qpa.xcb.warning=false
+qt.qpa.xcb.error=false
+qt.qpa.xcb=false
+
+
+# $HOME/.KDE/SHARE/CONFIG/BREEZERC
+
+[Common]
+OutlineCloseButton=false
+ShadowSize=ShadowNone
+
+[Style]
+SliderDrawTickMarks=false
+SplitterProxyEnabled=false
+ToolBarDrawItemSeparator=false
+ViewDrawFocusIndicator=false
+
+[Windeco]
+AnimationsEnabled=false
+DrawBackgroundGradient=false
+DrawSizeGrip=true
