@@ -2,5 +2,6 @@
 
 weather () {
 	curl -s wttr.in | head -n -2
+	
 	echo
 }
