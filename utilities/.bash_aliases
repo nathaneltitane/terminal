@@ -8,10 +8,6 @@
 [ -d "/media/Internal" ] && alias 'id'='cd /media/Internal'
 [ -d "/media/External" ] && alias 'ed'='cd /media/External'
 
-[ -x $(which sudo) ] && alias sudo='sudo -p "$(tput setaf 3)[ D ] >_ ? $(tput sgr 0)"'
-
-[ -x $(which rsync) ] && alias 'cp'='rsync -a -r --progress -h'
-
 [ -x $(which git) ] && alias 'gc'='git clone'
 [ -x $(which git) ] && alias 'gi'='git init'
 [ -x $(which git) ] && alias 'gp'='git pull'
@@ -21,6 +17,10 @@
 [ -x $(which git) ] && alias 'gu'='ga && gm "Code & Features Update" && gs'
 
 [ -x $(which nano) ] && alias 'nano'='nano -c -g -i -l -m -D -F -J80 -T4'
+
+[ -x $(which sudo) ] && alias sudo='sudo -p "$(tput setaf 3)[ D ] >_ ? $(tput sgr 0)"'
+
+[ -x $(which rsync) ] && alias 'cp'='rsync -a -r --progress -h'
 
 # aliases #
 
