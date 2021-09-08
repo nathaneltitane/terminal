@@ -69,4 +69,18 @@ alias 'duplicate'="dd if=${1} of=${2} bs=${3} status=progress"
 
 alias 'usage'='du -a -d 1 -h -S --time 2> /dev/null | sort -n -r'
 
+# standard  aliases #
+
 alias 'ping'='ping -c 5'
+
+alias grep='grep --color=auto'
+
+alias egrep='egrep --color=auto'
+
+alias fgrep='fgrep --color=auto'
+
+alias dir='dir --color=auto'
+
+alias vdir='vdir --color=auto'
+
+
