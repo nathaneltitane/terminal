@@ -1,0 +1,3 @@
+# usage #
+
+alias 'usage'='du -a -d 1 -h -S --time 2> /dev/null | sort -n -r'

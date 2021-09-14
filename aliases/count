@@ -1,0 +1,3 @@
+# count #
+
+alias 'count'='find . -type f | wc -l'

@@ -1,0 +1,3 @@
+# kill #
+
+alias 'kill'="sudo pkill -9"

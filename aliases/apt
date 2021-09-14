@@ -1,0 +1,21 @@
+# apt #
+
+alias 'autoclean'='sudo apt-get autoclean'
+alias 'autoremove'='sudo apt-get autoremove'
+alias 'check'='sudo apt-get check'
+alias 'clean'='sudo apt-get clean'
+alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
+alias 'download'='sudo apt-get download'
+alias 'install'='sudo apt-get install --no-install-recommends --no-upgrade'
+alias 'purge'='sudo apt-get purge'
+alias 'reinstall'='sudo apt-get reinstall'
+alias 'repair'='sudo apt-get -f install'
+alias 'remove'='sudo apt-get remove'
+alias 'source'='sudo apt-get source'
+alias 'update'='sudo apt-get update'
+alias 'upgrade'='sudo apt-get upgrade'
+
+alias 'depend'='sudo apt-cache depends'
+alias 'reverse'='sudo apt-cache rdepends'
+alias 'search'='sudo apt-cache search'
+alias 'status'='sudo apt-cache stats'

@@ -1,0 +1,20 @@
+# directory #
+
+[ -d "/" ] && alias 'rd'='cd /'
+[ -d "${HOME}" ] && alias 'hd'='cd "${HOME}"'
+[ -d "${HOME}"/Git ] && alias 'gd'='cd "${HOME}"/Git'
+[ -d "${HOME}"/.vnc ] && alias 'vd'='cd "${HOME}"/.vnc'
+[ -d "/media" ] && alias 'md'='cd /media'
+[ -d "/media/Internal" ] && alias 'id'='cd /media/Internal'
+[ -d "/media/External" ] && alias 'ed'='cd /media/External'
+
+alias '..'='cd ..'
+alias '...'='cd ../../../'
+alias '....'='cd ../../../../'
+alias '.....'='cd ../../../../'
+
+alias 'directory'='mkdir -p'
+
+alias dir='dir --color=auto'
+
+alias vdir='vdir --color=auto'

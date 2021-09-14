@@ -1,0 +1,3 @@
+# list #
+
+alias 'list'='ls -a -c -h -l --color=auto --group-directories-first'

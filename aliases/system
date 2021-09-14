@@ -1,0 +1,7 @@
+# system #
+
+alias 'start'='sudo systemctl start'
+alias 'stop'='sudo systemctl stop'
+alias 'enable'='sudo systemctl enable'
+alias 'disable'='sudo systemctl disable'
+alias 'status'='sudo systemctl status'
