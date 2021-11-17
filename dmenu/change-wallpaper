@@ -2,4 +2,4 @@
 
 # change wallpaper #
 
-ln -sf "$(find ~/Pictures -type f | sort -n | xargs -r0 | dmenu -l 15 -p 'Change Wallpaper')" ~/Pictures/Wallpaper.jpg && feh --bg-fill ~/Pictures/Wallpaper.jpg
+ln -sf "$(find /media/Internal/Pictures/ -type f | xargs -r0 | dmenu -l 15 -p 'Change Wallpaper')" ~/Pictures/Wallpaper.png && feh --bg-fill ~/Pictures/Wallpaper.png
