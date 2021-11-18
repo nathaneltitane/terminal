@@ -32,7 +32,7 @@ Modifier											Show bar
 
 [ Cheat Sheet ]
 
-Modifier + Shift + ~								Show cheat sheet 
+Modifier + Shift + I								Show cheat sheet 
 
 [ Background ]
 
@@ -48,7 +48,7 @@ Modifier + T										Open [t]erminal
 
 [ Kill Switch ]
 
-Modifier + Shift+ K										Kill application instance 
+Modifier + Shift + K								Kill application instance 
 
 [ Window Focus ]
 
