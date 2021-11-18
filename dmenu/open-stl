@@ -1,3 +1,0 @@
-#!/bin/bash
-
-find /media/Internal/ -type f -iname "*.stl" | dmenu -l 15 'Open STL' | xargs -r fstl
