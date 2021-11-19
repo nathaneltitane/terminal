@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ln -sf "$(find /media/Internal/Pictures/ -type f | xargs -r0 | dmenu -i -l 15 -p 'CHANGE BACKGROUND')" ~/Pictures/Wallpaper.png && feh --bg-fill ~/Pictures/Wallpaper.png
+ln -sf "$(find /media/Internal/Pictures/ -type f | xargs -r0 | dmenu -i -l 15 -p 'CHANGE BACKGROUND')" ~/Pictures/.background.png && feh --bg-fill ~/Pictures/.background.png
