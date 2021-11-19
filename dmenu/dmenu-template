@@ -1,6 +1,7 @@
 #!/bin/bash
 
 line_count=15
+
 prompt="SELECTION"
 
 selections="1\n2\n\3\n4"

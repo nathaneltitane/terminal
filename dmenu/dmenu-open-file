@@ -1,3 +1,6 @@
 #!/bin/bash
 
-find / \( ! -regex '.*/\..*' \) -type f | sed 's/ /\\ /g' | sort -f | dmenu -i -l 45 -p "OPEN FILE" | xargs -r xdg-open
+line_count=15
+prompt="OPEN FILE"
+
+find / \( ! -regex '.*/\..*' \) -type f | sed 's/ /\\ /g' | sort -f | dmenu -i -l "${line_count}" -p "${prompt}" | xargs -r xdg-open

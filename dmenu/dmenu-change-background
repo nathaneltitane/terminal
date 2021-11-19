@@ -1,3 +1,9 @@
 #!/bin/bash
 
-ln -sf "$(find "${HOME}"/Pictures/ -type f | xargs -r0 | dmenu -i -l 15 -p 'CHANGE BACKGROUND')" "${HOME}"/Pictures/.background.png && feh --bg-fill "${HOME}"/Pictures/.background.png
+line_count=15
+prompt="CHANGE BACKGROUND"
+
+background_directory="${HOME}/Pictures"
+background_file="${background_directory}/.background.png"
+
+ln -sf "$(find "${background_directory}" -type f | xargs -r0 | dmenu -i -l "${line_count}" -p "${prompt}")" "${background_file}" && feh --bg-fill "${background_file}"
