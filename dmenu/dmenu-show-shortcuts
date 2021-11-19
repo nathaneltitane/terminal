@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cat /usr/bin/i3-cheat-sheet | dmenu -i -l 99 -p 'Shortcuts' | xargs -r fstl
+cat /usr/bin/dmenu-i3-shortcuts | dmenu -i -l 99 -p 'Shortcuts' | xargs -r fstl
