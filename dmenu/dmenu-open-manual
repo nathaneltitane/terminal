@@ -1,0 +1,3 @@
+#!/bin/bash
+
+man -k . | dmenu -i -l 15 -p "MANUALS" | awk '{print $1}' | xargs -r st -e man
