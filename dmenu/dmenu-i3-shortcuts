@@ -1,7 +1,5 @@
 [ Modifiers ]        Modifier                                                   Alt-Left Key
 
-[ Bindings ]
-
 [ Bar ]              Show bar                                                   Modifier
 
 [ Shortcuts ]        Show shortcuts                                             Modifier + Shift + I
@@ -26,17 +24,16 @@
 
 [ Window Layout ]    Move floating window                                       Modifier + Mouse
 
-                     Split [h]orizontal - vertical layout                       Modifier + H
-                     Split [v]ertical   - horizontal layout                     Modifier + V
-
-                     Toggle floating windows                                    Modifier + W
                      Toggle [f]ullscreen windows                                Modifier + F
+                     Toggle floating windows                                    Modifier + W
+                     Change [w]indow focus - tiling / floating                  Modifier + Shift + W
 
 [ Container Layout ] Change container layout  - [s]plit                         Modifier + S
                      Change container layout  - stac[k]                         Modifier + K
                      Change container layout  - ta[b]                           Modifier + B
 
-                     Change [w]indow focus - tiling / floating                  Modifier + Shift + W
+                     Split [h]orizontal - vertical layout                       Modifier + H
+                     Split [v]ertical   - horizontal layout                     Modifier + V
 
                      Focus [p]arent container                                   Modifier + P
                      Focus [c]hild container                                    Modifier + C
@@ -73,5 +70,4 @@
 
 [ Session ]         [R]eload i3 configuration                                   Modifier + R
                     [R]estart i3                                                Modifier + Shift + R
-
                     [E]xit i3                                                   Modifier + Shift + E
