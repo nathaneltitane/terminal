@@ -1,0 +1,27 @@
+#!/bin/bash
+
+line_count=15
+prompt="SELECTION"
+
+selections="1\n2\n\3\n4"
+
+selection_menu=$(echo -e ${selections} | dmenu -i -l "${line_count} -p "${prompt})
+
+case "${selection_menu}" in
+	1)
+	
+	;;
+	2)
+	
+	;;
+	3)
+	
+	;;
+	4)
+	
+	;;
+	
+	*)
+		exit
+	;;
+esac

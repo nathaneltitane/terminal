@@ -4,8 +4,8 @@ while [ "$selection" != "CANCEL" -a "$selection" != "LOGOUT" -a "$selection" != 
 do
 	selection=$(echo -e 'CANCEL\nLOGOUT\nPOWEROFF\nREBOOT' | dmenu -i -l 15 -p "Exit session?")
 
-	[ -z "$selection" ] && exit 0
+	[ -z "$selection" ] && exit
 done
 
-[ "$selection" = "CANCEL" ] && exit 0
+[ "$selection" = "CANCEL" ] && exit
 [ "$selection" = "LOGOUT" ] && i3-msg exit
