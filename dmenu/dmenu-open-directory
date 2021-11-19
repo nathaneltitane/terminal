@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ls $HOME | dmenu -i -l 15 -p "OPEN DIRECTORY" | xargs -r st -e ranger
