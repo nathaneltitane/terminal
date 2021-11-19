@@ -1,11 +1,11 @@
 #!/bin/bash
 
-while [ "$select" != "CANCEL" -a "$select" != "LOGOUT" -a "$select" != "POWEROFF" -a "$select" != "REBOOT" ]
+while [ "$selection" != "CANCEL" -a "$selection" != "LOGOUT" -a "$selection" != "POWEROFF" -a "$selection" != "REBOOT" ]
 do
-	select=$(echo -e 'CANCEL\nLOGOUT\nPOWEROFF\nREBOOT' | dmenu -i -l 15 -p "Shortcut binding activated: Exit session?")
+	selection=$(echo -e 'CANCEL\nLOGOUT\nPOWEROFF\nREBOOT' | dmenu -i -l 15 -p "Exit session?")
 
-	[ -z "$select" ] && exit 0
+	[ -z "$selection" ] && exit 0
 done
 
-[ "$select" = "CANCEL" ] && exit 0
-[ "$select" = "LOGOUT" ] && i3-msg exit
+[ "$selection" = "CANCEL" ] && exit 0
+[ "$selection" = "LOGOUT" ] && i3-msg exit
