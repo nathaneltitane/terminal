@@ -34,8 +34,8 @@
                      Change container layout  - stac[k]                         Modifier + K
                      Change container layout  - ta[b]                           Modifier + B
 
-                     Split [h]orizontal - vertical layout                       Modifier + H
-                     Split [v]ertical   - horizontal layout                     Modifier + V
+                     Split container - [h]orizontal layout                      Modifier + H
+                     Split container - [v]ertical layout                        Modifier + V
 
                      Focus [p]arent container                                   Modifier + P
                      Focus [c]hild container                                    Modifier + C
