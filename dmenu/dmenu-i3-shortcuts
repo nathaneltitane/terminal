@@ -12,7 +12,7 @@
 
 [ Terminal ]         Open [t]erminal                                            Modifier + T
 
-[ Kill Switch ]      Kill application instance                                  Modifier + X
+[ Kill Application ] Kill application instance                                  Modifier + X
 
 [ Window Focus ]     Change focus [up]                                          Modifier + Up
                      Change focus [left]                                        Modifier + Left
