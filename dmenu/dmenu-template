@@ -5,7 +5,7 @@ prompt="SELECTION"
 
 selections="1\n2\n\3\n4"
 
-selection_menu=$(echo -e ${selections} | dmenu -i -l "${line_count} -p "${prompt})
+selection_menu=$(echo -e ${selections} | dmenu -i -l "${line_count} -p "${prompt}  -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
 
 case "${selection_menu}" in
 	1)
