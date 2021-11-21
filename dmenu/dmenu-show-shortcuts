@@ -1,3 +1,6 @@
 #!/bin/bash
 
-cat /usr/bin/dmenu-i3-shortcuts | dmenu -i -l 99 -p 'SHORTCUTS'
+line_count=99
+prompt="SHORTCUTS"
+
+cat /usr/bin/dmenu-i3-shortcuts | dmenu -i -l "${line_count}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'

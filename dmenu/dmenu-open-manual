@@ -3,4 +3,4 @@
 line_count=15
 prompt="MANUALS"
 
-man -k . | dmenu -i -l "${line_count}" -p "${prompt}" | awk '{print $1}' | xargs -r st -e man
+man -k . | dmenu -i -l "${line_count}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1}' | xargs -r st -e man

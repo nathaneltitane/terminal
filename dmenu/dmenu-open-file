@@ -3,4 +3,4 @@
 line_count=15
 prompt="OPEN FILE"
 
-find / \( ! -regex '.*/\..*' \) -type f | sed 's/ /\\ /g' | sort -f | dmenu -i -l "${line_count}" -p "${prompt}" | xargs -r xdg-open
+find / \( ! -regex '.*/\..*' \) -type f | sed 's/ /\\ /g' | sort -f | dmenu -i -l "${line_count}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r xdg-open
