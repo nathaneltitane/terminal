@@ -1,6 +1,0 @@
-#!/bin/bash
-
-line_count=15
-prompt="OPEN STL"
-
-find /media/Internal/ -type f -iname "*.stl" | dmenu -i -l "${line_count}" -p "${prompt}" | xargs -r fstl
