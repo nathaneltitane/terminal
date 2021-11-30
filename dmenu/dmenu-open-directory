@@ -1,6 +1,6 @@
 #!/bin/bash
 
-line_count=15
+lines=15
 prompt="OPEN DIRECTORY"
 
-ls "${HOME}" | dmenu -i -l "${line_count}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e ranger
+ls "${HOME}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e ranger

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+lines="-l 20"
+prompt="TYPE AND SEARCH PROCESS TO KILL // "
+
+selection_menu=$(ps -a -u "${USER}" | dmenu -i -p "${prompt}" -l "${lines}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')
+
+if [[ ! -z "${selection_menu}" ]]
+then
+	unset prompt
+	
+	prompt="PROCEED?"
+
+	answer=$(echo -e "YES\nNO" | dmenu -i -p "${prompt}" -l "${lines}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+
+	if [[ "${answer}" == "YES" ]]
+	then
+		process=$(awk '{print $1}' <<< "${selection_menu}")
+		
+		kill -9 "${process}"
+	fi
+fi
