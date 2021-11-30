@@ -6,7 +6,7 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
 
 # variables #
 
@@ -15,11 +15,7 @@ mount_root="/media"
 
 # configuration #
 
-console.inf "Verifying attached devices."
-echo
-
-console.fwd "Generating mount entires."
-echo
+# verify attached devices and generate mount entries
 
 for device in /dev/sd[a-z][1-9]
 do
@@ -79,8 +75,6 @@ do
 done >> "$mount_file"
 
 # fix fstab entries formatting
-
-console.inf "Cleaning up."
 
 sed -i				\
 	-e 's/  */ /g'	\

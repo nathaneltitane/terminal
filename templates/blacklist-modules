@@ -6,11 +6,11 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
 
 # variables #
 
-console.wrn "Blacklisting specified modules."
+# blacklist modules
 
 if [[ "$HOSTNAME" == [hH]ostname || "$HOSTNAME" == [hH]ostname ]]
 then

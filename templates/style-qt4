@@ -6,20 +6,18 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
 
 # variables #
 
-# configuration #
+# create directory
 
 if [ ! -e "${HOME}"/.config ]
 then
 	mkdir "${HOME}"/.config
 fi
 
-# configuration #
-
-console.inf "Adding style configuration parameters."
+# write configuration
 
 cat << 'FILE' > "${HOME}"/.config/Trolltech.conf
 [Qt]

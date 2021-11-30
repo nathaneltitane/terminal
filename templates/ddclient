@@ -6,13 +6,11 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
 
 # variables #
 
-# configuration #
-
-console.inf "Writing configuration (ddclient)..."
+# write configuration
 
 cat << FILE > /etc/ddclient.conf
 # ddclient #
@@ -34,25 +32,25 @@ password=password								# protocol dynamic dns password
 $HOSTNAME
 FILE
 
-console.wrn "Stopping service."
+# stop service
 
 service ddclient stop
 
-console.inf "Reconfiguring process handlers."
+# reconfigure prccess handlers
 
 sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
 
 if [ -d /var/cache/ddclient ]
 then
-	console.wrn "Purging service cache."
-
+	# purge service cache file
+	
 	rm -rf /var/cache/ddclient/ddclient.cache
 fi
 
-console.wrn "Restarting service."
+# restart service
 
 service ddclient start
 
-console.wrn "Reloading service units."
+# reload service units
 
 systemctl daemon-reload
