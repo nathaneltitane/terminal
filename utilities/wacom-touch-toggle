@@ -12,9 +12,7 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 home="/home/${SUDO_USER:-$USER}"
 
-# binary #
-
-console.inf "Adding Wacom tablet touch toggle binary (/usr/bin) ..."
+# write binary
 
 cat << 'FILE' > /usr/bin/wacom-touch-toggle
 #!/bin/bash
@@ -50,11 +48,11 @@ fi
 notify-send -i input-tablet "$device_input_type touch is $status"
 FILE
 
-# permissions #
+# set permissions
 
 chmod +x /usr/bin/wacom-touch-toggle
 
-# launcher #
+# write launcher
 
 cat <<- FILE > /usr/share/applications/wacom-touch-toggle.desktop
 [Desktop Entry]

@@ -14,7 +14,7 @@ user="${SUDO_USER:-$USER}"
 home="/home/${SUDO_USER:-$USER}"
 cloud="/media/Internal/MEGA/"
 
-local_ssh_directory="${HOME}"/.ssh"
+local_ssh_directory="${HOME}"/.ssh
 local_keys_directory="$local_ssh_directory/.keys"
 
 cloud_ssh_directory="$cloud/.ssh"
@@ -35,8 +35,6 @@ hostnames=(
 )
 
 # configuration #
-
-console.inf "Writing configuration (ssh)..."
 
 cat <<- 'FILE' > "$ssh_configuration_directory/sshd_config"
 # Configuration #
@@ -104,7 +102,7 @@ Port 22
 	UsePAM yes
 FILE
 
-cat <<- 'FILE' > "$ssh_configuration_directory/ssh_config"
+cat <<- 'FILE' > "$ssh_configuration_directory"/ssh_config
 # Configuration #
 
 Host *
@@ -145,20 +143,20 @@ Host *
 #	VisualHostKey no
 FILE
 
-console.wrn "Restarting service (sshd)..."
+# ssh service restart
 
 sudo service sshd restart > /dev/null
 
 wait
 
-console.wrn "Generating access configuration file..."
+# configuration
 
 cat <<- 'FILE' > "$cloud_ssh_directory/config"
 # --------------------------------------------------
 # hostname
 # --------------------------------------------------
 
-Host fenrir
+Host hostname
 	HostName hostname.domain.com
 	User webmaster
 	IdentityFile ~/.ssh/.keys/hostname.key
@@ -170,7 +168,7 @@ Host fenrir
 # hostname
 # --------------------------------------------------
 
-Host fenrir
+Host hostname
 	HostName hostname.domain.com
 	User webmaster
 	IdentityFile ~/.ssh/.keys/hostname.key
@@ -182,7 +180,7 @@ Host fenrir
 # hostname
 # --------------------------------------------------
 
-Host fenrir
+Host hostname
 	HostName hostname.domain.com
 	User webmaster
 	IdentityFile ~/.ssh/.keys/hostname.key
@@ -191,13 +189,13 @@ Host fenrir
 	Port 22
 FILE
 
-# Authorized keys file check
+# authorized keys check
 
 if [[ ! -f "$cloud_ssh_directory/authorized_keys" ]]
 then
 	touch "$cloud_ssh_directory/authorized_keys"
 else
-	continue
+	:
 fi
 
 # local #
@@ -213,8 +211,6 @@ else
 	fi
 fi
 
-console.inf "Securing directories, files, keys and access content..."
-
 directories=(
 	"$cloud_ssh_directory"
 	"$local_ssh_directory"
@@ -222,14 +218,14 @@ directories=(
 
 for directory in ${directories[@]}
 do
-	# Change ownership
+	# change ownership
 
 	sudo chown "$user" "$directory"
 	sudo chown "$user" "$directory"/*
 	sudo chown "$user" "$directory"/.keys/
 	sudo chown "$user" "$directory"/.keys/*
 
-	# Change permissions
+	# change permissions
 
 	sudo chmod 755 "$directory"
 	sudo chmod 755 "$directory"/known_hosts

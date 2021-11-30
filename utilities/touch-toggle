@@ -14,9 +14,7 @@ directory="/usr/bin"
 
 home="/home/${SUDO_USER:-$USER}"
 
-# binary #
-
-console.inf "Adding touch input toggle binaries (/usr/bin) ..."
+# write binary
 
 devices=(
 	display
@@ -58,12 +56,12 @@ do
 	notify-send -i input-tablet "${devices[i]^} touch input is turned \$status"
 	FILE
 
-	# permissions #
+	# set permissions
 
 	chmod +x "$directory"/${devices[i]}-touch-toggle
 done
 
-# launcher #
+# write launcher
 
 for device in ${devices[@]}
 do

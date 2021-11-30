@@ -10,8 +10,8 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 # variables #
 
-home="/home/${SUDO_USER:-$USER}"
-local_icons_directory="${HOME}"/.icons"
+home=/home/"${SUDO_USER:-$USER}"
+local_icons_directory="${HOME}"/.icons
 system_icons_directory="/usr/share/icons"
 
 icons_directory_list=(
@@ -19,13 +19,11 @@ icons_directory_list=(
 	"$system_icons_directory"
 )
 
-# configuration #
+# update icon cache
 
 for icons_directory in ${icons_directory_list[@]}
 do
 	cd "$icons_directory" || exit
-
-	console.inf "Forcing icon cache update..."
 
 	find "$icons_directory" -mindepth 1 -maxdepth 1 -type d | while read -r theme
 	do
@@ -33,11 +31,7 @@ do
 		then
 			theme_name="${theme##*/}"
 
-			echo "Refreshing (${theme_name})..."
-			echo
-
-			gtk-update-icon-cache -f "$theme" || echo "${red}$theme_name"
-			echo ""
+			gtk-update-icon-cache -f "$theme" || echo "$theme_name"
 		fi
 	done
 done

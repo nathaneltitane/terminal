@@ -12,7 +12,7 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 home="/home/${SUDO_USER:-$USER}"
 
-# binary #
+# write binary
 
 cat << 'FILE' > /usr/bin/background-cycler
 #!/bin/bash
@@ -32,11 +32,11 @@ do
 done
 FILE
 
-# permissions #
+# set permissions
 
 sudo chmod +x /usr/bin/background-cycler
 
-# launcher #
+# write launcher
 
 cat <<- FILE > /usr/share/applications/background-cycler.desktop
 [Desktop Entry]

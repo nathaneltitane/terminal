@@ -31,9 +31,9 @@ then
 	sudo_gid=27
 fi
 
-# create user #
+# create user
 
-# equivalent - useradd -m -s "$SHELL" -p ${password} ${user_name}
+# equivalent - useradd -m -s "${SHELL}" -p ${password} ${user_name}
 
 echo "${user_name}:x:${uid}:${gid}:${full_name},,,:/home/${user_name}:$SHELL" >> /etc/passwd
 echo "${user_name}:x:${uid}:" >> /etc/group

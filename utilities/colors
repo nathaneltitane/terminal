@@ -4,7 +4,7 @@
 
 if [[ $# -gt 2 ]]
 then
-	echo "Usage: ${0} print <color number (0-255)>"
+	echo "Usage: ${0} print <color number [0..255]>"
 	exit 1
 fi
 
@@ -21,8 +21,8 @@ fi
 
 # variables #
 
-color_option=$1
-color_number=$2
+color_option=$"{1}"
+color_number=$"{2}"
 
 print_color(){
 	for color_number

@@ -12,7 +12,7 @@ curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
 
 hosts_file="/etc/hosts"
 
-console.inf "Adding address resolution to hosts file ($hosts_file)..."
+# address resolution
 
 cat > "$hosts_file" << FILE
 # localhosts #
@@ -28,8 +28,6 @@ cat > "$hosts_file" << FILE
 FILE
 
 # configuration #
-
-console.inf "Blacklisting unwanted host addresses ($hosts_file)..."
 
 url_list=(
 	al-fann.net
