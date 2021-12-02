@@ -6,8 +6,6 @@
 
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
-
 # variables #
 
 mount_file="/etc/fstab"

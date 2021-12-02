@@ -6,13 +6,11 @@
 
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
-
 # variables #
 
 # write configuration
 
-cat << FILE > /etc/ddclient.conf
+cat << FILE -> /etc/ddclient.conf
 # ddclient #
 
 daemon=600										# check every 10 minutes

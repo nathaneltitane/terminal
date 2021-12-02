@@ -6,8 +6,6 @@
 
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
-
 # variables #
 
 # install required packages
@@ -16,7 +14,10 @@ install_list=(
 	qt5-style-plugins
 )
 
-console.install ${install_list[@]}
+for package in  ${install_list[@]}
+do
+	yes | apt-get install --no-install-recommends "${package}"
+done
 
 # write configuration
 

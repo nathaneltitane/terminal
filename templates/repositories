@@ -6,8 +6,6 @@
 
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
-
 # variables #
 
 # enable all repositories
@@ -16,8 +14,8 @@ sed -i -e '/#.*/d' /etc/apt/sources.list
 
 # update #
 
-apt update
+apt-get update
 
 # upgrade #
 
-apt upgrade
+apt-get upgrade
