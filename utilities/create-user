@@ -6,8 +6,6 @@
 
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
-
 if [[ -z "$#" ]]
 then
 	echo "Usage: ${0} <first last [name]> <uid> <gid>"

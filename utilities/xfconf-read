@@ -19,7 +19,7 @@ settings_file="${1}"
 
 if [[ $# -lt 1 ]]
 then
-	echo "Usage: ${script} [SEtTINGS FILE] | [OPTION]"
+	echo "Usage: ${script} [SETTINGS FILE] | [OPTION]"
 	exit 1
 fi
 
