@@ -5,9 +5,9 @@ extension="${1}"
 
 if [ "${extension}" = "flac" ]
 then
-	codec_option="-acodec copy"
-else
 	codec_option="-ab 320k"
+else
+	codec_option="-acodec copy"
 fi
 
 for file in $(find "${directory}" -type f -iname "*.${extension}")
