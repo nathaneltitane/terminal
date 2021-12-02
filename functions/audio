@@ -5,7 +5,7 @@ extension="${1}"
 
 if [ "${extension}" = "flac" ]
 then
-	codec_option="-ab 320k"
+	codec_option="-b:a 320k"
 else
 	codec_option="-acodec copy"
 fi
@@ -16,6 +16,5 @@ do
 		-i "${file}"				\
 		"${codec_option}"			\
 		-map_metadata 0				\
-		-id3v2_version 3			\
-		-o "${file%.*}.mp3"
+		-id3v2_version 3			"${file%.*}.mp3"
 done
