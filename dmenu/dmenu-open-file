@@ -1,6 +1,6 @@
 #!/bin/bash
 
 lines=15
-prompt="OPEN FILE"
+prompt="OPEN DIRECTORY"
 
-find / \( ! -regex '.*/\..*' \) -type f | sed 's/ /\\ /g' | sort -f | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r xdg-open
+find $HOME -type f -maxdepth 1 -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e ranger --selectfile

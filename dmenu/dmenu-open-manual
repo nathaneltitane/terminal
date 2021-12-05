@@ -3,4 +3,4 @@
 lines=15
 prompt="MANUALS"
 
-man -k . | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1}' | xargs -r st -e man
+man -k . | sed 's/[(0-9)]//g' | sed 's/  .*- /:/g' | sed 's/ .*- /:/g'  | awk -F ":" '{printf "%-40s%s\n", $1,$2}' | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e man
