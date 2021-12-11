@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
+# defaults #
+
 for foreground_color in {0..7}
 do
 	set_foreground=$(tput setaf $foreground_color)

@@ -1,6 +1,22 @@
 #!/bin/bash
 
+# dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
 query="${1}"
+
+# defaults #
 
 # query types:
 

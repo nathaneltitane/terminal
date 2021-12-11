@@ -1,1 +1,19 @@
+#!/bin/bash
+
+# dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
+# defaults #
+
 PS1='\[$(tput sc)$(tput ed)$(tput cup 0 0)$(tput setaf 0)$(tput setab 7)$(tput el) ( HOSTNAME: )( USER: \u )( TIME: )( BATT. % )( NET: $(getprop wifi.interface) ) $(tput sgr 0)$(tput rc)\][ T ] >_ $ '
