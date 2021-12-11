@@ -14,22 +14,31 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
+separator=" // "
+
+battery_capacity=$(cat /sys/class/power_supply/battery/uevent | grep -i capacity= | cut -d '=' -f 2)
+battery_health=$(cat /sys/class/power_supply/battery/uevent | grep -i health= | cut -d '=' -f 2)
+battery_status=$(cat /sys/class/power_supply/battery/uevent | grep -i status= | cut -d '=' -f 2)
+battery_temperature=$(cat /sys/class/power_supply/battery/uevent | grep -i temp= | cut -d '=' -f 2)
+
+date=$(date +"%F")
+
 # defaults #
 
+[ "$HOSTNAME" = "localhost" ] && HOSTANME="Android"
 [ -z "${USER}" ] && USER="termux"
 
 unset PS1
 
-PS1+='\[$(tput sc)'
-PS1+='$(tput ed)'
-PS1+='$(tput cup 0 0)'
-PS1+='$(tput setaf 0)'
-PS1+='$(tput setab 7)'
-PS1+='$(tput el)'
-PS1+=' ( HOSTNAME: )'
-PS1+=' ( USER: \u )'
-PS1+=' ( TIME: )'
-PS1+=' ( BATT. % )'
-PS1+=' ( NET: $(getprop wifi.interface) )'
-PS1+="$(tput sgr 0)$(tput rc)\]"
-PS1+="[ ${USER} ] >_ $ '
+PS1='\[$(tput sc)$(tput ed)$(tput cup 0 0)$(tput setaf 0)$(tput setab 7)$(tput el)'
+PS1+=" HOSTNAME: ${HOSTNAME}"
+PS1+="${separator}"
+PS1+=" USER: ${USER}"
+PS1+="${separator}"
+PS1+=" DATE: ${date}"
+PS1+="${separator}"
+PS1+=" BATT. % ${battery_capacity} [ ${battery_status} ]"
+PS1+="${separator}"
+PS1+=" NET: $(getprop wifi.interface)"
+PS1+=' $(tput sgr 0)$(tput rc)\]'
+PS1+="[ ${USER} ] >_ $ "
