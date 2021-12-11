@@ -8,6 +8,8 @@
 
 # variables #
 
+# defaults #
+
 # install required packages
 
 install_list=(

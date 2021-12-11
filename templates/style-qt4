@@ -8,6 +8,8 @@
 
 # variables #
 
+# defaults #
+
 # create directory
 
 if [ ! -e "${HOME}"/.config ]

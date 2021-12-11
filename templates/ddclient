@@ -8,6 +8,8 @@
 
 # variables #
 
+# defaults #
+
 # write configuration
 
 cat << FILE -> /etc/ddclient.conf

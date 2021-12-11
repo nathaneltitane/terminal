@@ -11,6 +11,8 @@
 mount_file="/etc/fstab"
 mount_root="/media"
 
+# defaults #
+
 # configuration #
 
 # verify attached devices and generate mount entries
