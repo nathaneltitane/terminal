@@ -1,10 +1,25 @@
 #!/bin/bash
 
+# dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
 lines=15
 prompt="CHANGE BACKGROUND"
 
 background_directory="${HOME}/Pictures"
 background_file="${background_directory}/.background.png"
 
-ln -sf "$(find "${background_directory}" -type f | xargs -r0 | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')" "${background_file}" && feh --bg-fill "${background_file}"
+# defaults #
 
+ln -sf "$(find "${background_directory}" -type f | xargs -r0 | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')" "${background_file}" && feh --bg-fill "${background_file}"

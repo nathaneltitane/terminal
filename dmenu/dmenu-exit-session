@@ -1,7 +1,23 @@
 #!/bin/bash
 
+# dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
 lines=15
 prompt="EXIT SESSION?"
+
+# defaults #
 
 while [ "$selection" != "CANCEL" -a "$selection" != "LOGOUT" -a "$selection" != "POWEROFF" -a "$selection" != "REBOOT" ]
 do
