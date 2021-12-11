@@ -1,4 +1,6 @@
-# youtube-dl #
+#!/bin/bash
+
+# youtube #
 
 youtube () {
 	[ -z "$(command -v youtube-dl)" ] && console.install youtube-dl || :

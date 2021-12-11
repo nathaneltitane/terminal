@@ -1,4 +1,6 @@
-# speedtest #
+#!/bin/bash
+
+# speed #
 
 speed () {
 	[ -z "$(command -v speedtest-cli)" ] && console.install speedtest-cli || :

@@ -1,4 +1,6 @@
-# recordmydesktop #
+#!/bin/bash
+
+# record #
 
 record () {
 	[ -z "$(command -v recordmydesktop)" ] && console.install recordmydesktop || :
