@@ -22,6 +22,7 @@ battery_status=$(cat /sys/class/power_supply/battery/uevent | grep -i status= | 
 battery_temperature=$(cat /sys/class/power_supply/battery/uevent | grep -i temp= | cut -d '=' -f 2)
 
 date=$(date +"%F")
+time=$(date +"%r")
 
 # defaults #
 
@@ -40,5 +41,7 @@ PS1+="${separator}"
 PS1+=" BATT. % ${battery_capacity} [ ${battery_status} ]"
 PS1+="${separator}"
 PS1+=" NET: $(getprop wifi.interface)"
+PS1+="${separator}"
+PS1+="TERMUX: ${TERMUX_VERSION}"
 PS1+=' $(tput sgr 0)$(tput rc)\]'
 PS1+="[ ${USER} ] >_ $ "
