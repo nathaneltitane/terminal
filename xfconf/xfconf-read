@@ -27,6 +27,8 @@ fi
 
 settings_file="${1}"
 
+# defaults #
+
 # read settings
 
 console.inf "Reading settings file."

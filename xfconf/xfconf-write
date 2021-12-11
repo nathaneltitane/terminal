@@ -27,6 +27,8 @@ fi
 
 user="$(whoami)"
 
+# defaults #
+
 # write settings
 
 console.inf "Writing settings."
