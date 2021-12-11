@@ -16,4 +16,20 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
-PS1='\[$(tput sc)$(tput ed)$(tput cup 0 0)$(tput setaf 0)$(tput setab 7)$(tput el) ( HOSTNAME: )( USER: \u )( TIME: )( BATT. % )( NET: $(getprop wifi.interface) ) $(tput sgr 0)$(tput rc)\][ T ] >_ $ '
+[ -z "${USER}" ] && USER="termux"
+
+unset PS1
+
+PS1+='\[$(tput sc)'
+PS1+='$(tput ed)'
+PS1+='$(tput cup 0 0)'
+PS1+='$(tput setaf 0)'
+PS1+='$(tput setab 7)'
+PS1+='$(tput el)'
+PS1+=' ( HOSTNAME: )'
+PS1+=' ( USER: \u )'
+PS1+=' ( TIME: )'
+PS1+=' ( BATT. % )'
+PS1+=' ( NET: $(getprop wifi.interface) )'
+PS1+="$(tput sgr 0)$(tput rc)\]"
+PS1+="[ ${USER} ] >_ $ '
