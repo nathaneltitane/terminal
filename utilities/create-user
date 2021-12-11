@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# create-user #
-
 # dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
 
 if [[ -z "$#" ]]
 then
 	echo "Usage: ${0} <first last [name]> <uid> <gid>"
 	exit 1
 fi
+
+# prompt #
 
 # variables #
 
@@ -23,6 +29,8 @@ user_name=${first_name,,}
 full_name="$first_name $last_name"
 
 sudo_gid=$(getent group sudo | cut -d : -f 3)
+
+# defaults
 
 if [ -z "$sudo_gid" ]
 then

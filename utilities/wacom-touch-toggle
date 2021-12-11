@@ -1,16 +1,24 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# wacom touch toggle #
-
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
+curl -sL get.cnsl.app/console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
 home="/home/${SUDO_USER:-$USER}"
+
+# defaults #
 
 # write binary
 

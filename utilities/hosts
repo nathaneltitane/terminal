@@ -1,14 +1,22 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# blacklist hosts #
-
 # dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
 hosts_file="/etc/hosts"
+
+# defaults #
 
 # address resolution
 

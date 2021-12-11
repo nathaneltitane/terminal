@@ -1,12 +1,18 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# ssh #
-
 # dependencies #
 
-curl -sL get.cnsl.app/console> /usr/bin/console && . /usr/bin/console
+curl -sL get.cnsl.app/console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
@@ -33,6 +39,8 @@ hostnames=(
 	hostname
 	hostname
 )
+
+# defaults #
 
 # configuration #
 

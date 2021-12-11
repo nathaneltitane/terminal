@@ -1,10 +1,16 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# icon cache update #
-
 # dependencies #
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
@@ -16,6 +22,8 @@ icons_directory_list=(
 	"$local_icons_directory"
 	"$system_icons_directory"
 )
+
+# defaults 
 
 # update icon cache
 

@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# cpu #
-
 # dependencies #
 
-# variables #
+# script #
 
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
 
 shell_file="/etc/bash.bashrc"
 
@@ -17,6 +22,8 @@ cpu_mode=(
 	powersave
 	performance
 )
+
+# defaults #
 
 # governor aliases #
 
