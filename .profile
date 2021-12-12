@@ -25,6 +25,56 @@ fi
 . /data/data/com.termux/files/usr/bin/console
 . /data/data/com.termux/files/usr/bin/dextop
 
+# proot startup #
+
+if [ ! -f "${BINARIES_DIRECTORY}"/proot-startup-complete ]
+then
+	# continue proot setup
+	
+	"${BINARIES_DIRECTORY}"/proot-setup
+
+	# confirm uninterrupted setup
+	
+	echo "yes" > "${BINARIES_DIRECTORY}"/proot-startup-complete
+	
+	# clear #
+	
+	console.clear
+	
+	# exit proot after successful setup
+	
+	console.fwd "Logging out..."
+	echo
+	
+	exit
+fi
+
+# user startup #
+
+if [ ! -f "${BINARIES_DIRECTORY}"/user-startup-complete ]
+then
+	# continue user setup
+	
+	"${BINARIES_DIRECTORY}"/user-setup
+
+	# confirm uninterrupted setup
+	
+	echo "yes" > "${BINARIES_DIRECTORY}"/user-startup-complete
+	
+	# clear #
+	
+	console.clear
+	
+	# exit proot after successful setup
+	
+	console.fwd "Logging out..."
+	echo
+	
+	exit
+fi
+
+# dextop welcome
+
 if [[ $(ps -A | grep -i proot) ]]
 then
 	console.fwd "Welcome to Dextop" "[ ${DISTRIBUTION_NAME} ]"
@@ -48,3 +98,18 @@ else
 fi
 
 echo
+
+# automatic vnc session start
+
+if [ -f "${HOME}"/.vnc/selection ]
+then
+	echo $(cat "${HOME}"/.vnc/selection) | vnc-session -o
+else
+	vnc-session -o
+fi
+
+# dextop container configuration
+
+proot-keyboard
+proot-locales
+proot-timezones
