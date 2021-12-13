@@ -87,7 +87,7 @@ then
 		echo
 	else
 		console.wrn "This is your first login:"
-		console.wrn "Run 'vnc-session -o' to launch session [ ${SESSION_NAME} ]."
+		console.wrn "Run 'container-vnc -o' to launch session [ ${SESSION_NAME} ]."
 		echo
 	fi
 else
@@ -103,9 +103,9 @@ echo
 
 if [ -f "${HOME}"/.vnc/selection ]
 then
-	echo $(cat "${HOME}"/.vnc/selection) | vnc-session -o
+	echo $(cat "${HOME}"/.vnc/selection) | container-vnc -o
 else
-	vnc-session -o
+	container-vnc -o
 fi
 
 # dextop container configuration

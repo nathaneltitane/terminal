@@ -1,3 +1,3 @@
 # automatic vnc session stop
 
-vnc-session -x
+container-vnc -x
