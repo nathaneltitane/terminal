@@ -27,15 +27,15 @@ fi
 
 # proot startup #
 
-if [ ! -f "${BINARIES_DIRECTORY}"/proot-startup-complete ]
+if [ ! -f "${BINARIES_DIRECTORY}"/container-startup-complete ]
 then
 	# continue proot setup
 	
-	"${BINARIES_DIRECTORY}"/proot-setup
+	"${BINARIES_DIRECTORY}"/container-setup
 
 	# confirm uninterrupted setup
 	
-	echo "yes" > "${BINARIES_DIRECTORY}"/proot-startup-complete
+	echo "yes" > "${BINARIES_DIRECTORY}"/container-startup-complete
 	
 	# clear #
 	
@@ -94,7 +94,7 @@ else
 	console.fwd "Welcome to Dextop" "[ Termux ]"
 	echo
 	
-	console.inf "Launch session or application: 'proot-session -u <username> | -a <application>'"
+	console.inf "Launch session or application: 'container-session -u <username> | -a <application>'"
 fi
 
 echo
@@ -110,6 +110,6 @@ fi
 
 # dextop container configuration
 
-proot-keyboard
-proot-locales
-proot-timezones
+container-keyboard
+container-locales
+container-timezones
