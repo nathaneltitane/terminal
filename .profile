@@ -30,22 +30,22 @@ fi
 if [ ! -f "${BINARIES_DIRECTORY}"/container-startup-complete ]
 then
 	# continue proot setup
-	
+
 	"${BINARIES_DIRECTORY}"/container-setup
 
 	# confirm uninterrupted setup
-	
+
 	echo "yes" > "${BINARIES_DIRECTORY}"/container-startup-complete
-	
+
 	# clear #
-	
+
 	console.clear
-	
+
 	# exit proot after successful setup
-	
+
 	console.fwd "Logging out..."
 	echo
-	
+
 	exit
 fi
 
@@ -54,22 +54,22 @@ fi
 if [ ! -f "${BINARIES_DIRECTORY}"/user-startup-complete ]
 then
 	# continue user setup
-	
+
 	"${BINARIES_DIRECTORY}"/user-setup
 
 	# confirm uninterrupted setup
-	
+
 	echo "yes" > "${BINARIES_DIRECTORY}"/user-startup-complete
-	
+
 	# clear #
-	
+
 	console.clear
-	
+
 	# exit proot after successful setup
-	
+
 	console.fwd "Logging out..."
 	echo
-	
+
 	exit
 fi
 
@@ -79,7 +79,7 @@ if [[ $(ps -A | grep -i proot) ]]
 then
 	console.fwd "Welcome to Dextop" "[ ${DISTRIBUTION_NAME} ]"
 	echo
-	
+
 	if [ -f "${HOME}"/.vnc/selection ]
 	then
 		console.inf "You have already logged in - vnc selection has been saved."
@@ -93,7 +93,7 @@ then
 else
 	console.fwd "Welcome to Dextop" "[ Termux ]"
 	echo
-	
+
 	console.inf "Launch session or application: 'container-session -u <username> | -a <application>'"
 fi
 
@@ -108,7 +108,7 @@ else
 	container-vnc -o
 fi
 
-# dextop container configuration
+# container configuration
 
 container-keyboard
 container-locales
