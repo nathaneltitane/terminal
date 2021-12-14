@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# conky picture frame #
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="${HOME}"/.config
+
+
+if [ ! -d "${HOME}"/.config/conky-picture-frame ]
+then
+	mkdir -p "${HOME}"/.config/conky-picture-frame
+fi
+
+cd "${HOME}"/.config/conky-picture-frame || exit
+
+alignment="top_left"
+font_size="8"
+gap_x="10"
+gap_y="10"
+size_x="512"
+size_y="512"
+width="$size_x"
+
+# configuration #
+
+console.inf "Writing configuration (conky-picture-frame)..."
+
+cat << FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
+# conky picture frame #
+
+alignment $alignment
+background yes
+default_color CCCCCC
+double_buffer yes
+gap_x $gap_x
+gap_y $gap_y
+imlib_cache_size 0
+maximum_width 0
+minimum_size $size_x $size_y
+no_buffers no
+override_utf8_locale yes
+own_window yes
+own_window_argb_value 255
+own_window_argb_visual no
+own_window_colour grey
+own_window_hints below,skip_pager,skip_taskbar,sticky,undecorated
+own_window_transparent no
+own_window_type normal
+total_run_times 0
+uppercase no
+use_xft yes
+xftalpha 1.0
+xftfont Sans:size=$font_size:normal
+
+TEXT
+\${image .picture.png}
+FILE
+
+chmod -R 777 "${HOME}"/.config/conky-picture-frame
+
+# launcher #
+
+cat <<- 'FILE' > /usr/share/applications/conky-picture-frame.desktop
+[Desktop Entry]
+Name=Conky Picture Frame
+Comment=Highly configurable system monitor
+Exec=sh -c "conky -c /home/${SUDO_USER:-$USER}/.config/conky-picture-frame/conky-picture-framerc"
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

@@ -1,0 +1,387 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+shopt -s extglob globstar nullglob
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="${HOME}"/.config
+
+
+if [ ! -d "${HOME}"/.config/conky ]
+then
+	mkdir -p "${HOME}"/.config/conky
+fi
+
+cd "${HOME}"/.config/conky || exit
+
+alignment="top_right"
+font_size="8"
+
+gap_x="10"
+gap_y="10"
+offset="10"
+size_x="0"
+size_y="0"
+width="210"
+
+# configuration #
+
+console.inf "Writing configuration header (conky)..."
+
+cat << FILE > "${HOME}"/.config/conky/conkyrc
+# conky #
+
+alignment $alignment
+background yes
+border_inner_margin 0
+border_outer_margin 0
+cpu_avg_samples 2
+default_color F9F9F9
+default_shade_color CCCCCC
+double_buffer yes
+draw_borders no
+draw_graph_borders yes
+draw_outline no
+draw_shades no
+gap_x $gap_x
+gap_y $gap_y
+if_up_strictness address
+maximum_width $size_x
+minimum_size $size_x $size_y
+net_avg_samples 2
+no_buffers no
+override_utf8_locale yes
+own_window yes
+own_window_argb_value 255
+own_window_argb_visual yes
+own_window_hints below,skip_pager,skip_taskbar,sticky,undecorated
+own_window_transparent yes
+own_window_type desktop
+short_units yes
+temperature_unit celsius
+text_buffer_size 2048
+total_run_times 0
+update_interval 2
+uppercase no
+use_xft yes
+xftalpha 1.0
+xftfont Sans:size=$font_size:normal
+
+TEXT
+
+FILE
+
+console.inf "Writing configuration generator (/usr/bin/write-conky)..."
+
+cat << 'MAIN' > /usr/bin/write-conky
+#!/bin/bash
+
+# write conky #
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="${HOME}"/.config
+
+unavailable="[ × ]"
+
+sed -i -e '/^TEXT$/q' "${HOME}"/.config/conky/conkyrc
+sed -i -e '$G' "${HOME}"/.config/conky/conkyrc
+
+kernel=$(uname -s)
+machine=$(uname -m)
+node=$(uname -n)
+processor=$(uname -p)
+
+os_name=$(cat /etc/os-release | awk -F '=' '{if (NR==1) print $2}')
+os_number=$(cat /etc/os-release | awk -F '=' '{if (NR==4) print $2}')
+
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
+SYSTEM\${alignr}[ $kernel ][ $node ]
+OS\${alignr}[ $os_name $os_number ][ $machine ]
+\${voffset -2}\${hr 1}
+UPTIME\${alignr}[ D ][ H ][ M ][ S ]
+\${voffset -2}\${hr 1}
+TIME\${alignr}\${uptime}
+\${voffset -2}\${hr 1}
+FILE
+
+for supply in /sys/class/power_supply/BAT[0-9]*
+do
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+	\${if_existing $supply/present 1}\\
+	BATTERY\${alignr}[ TECH ][ STATUS ][ % ]
+	\${voffset -2}\${hr 1}
+	[ \${exec cat $supply/technology} ][ \${exec cat $supply/status} ]\${alignr}\${battery_percent}
+	\${battery_bar 2}\\
+	\${else}\\
+	\${voffset -2}\${hr 1}\${endif}
+	FILE
+done
+
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
+CPU\${alignr}[ CORE ][ FREQ ][ MODE ][ % ]
+\${voffset -2}\${hr 1}
+FILE
+
+cpu_count=$(grep -c processor /proc/cpuinfo)
+
+for ((n=0; n<$cpu_count; n++))
+do
+	let "z = $n +1"
+
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+	CORE $n \${freq_g $z} \\
+	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor powersave}◼◼◻◻◻◻◻◻◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor conservative}◼◼◼◼◻◻◻◻◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor ondemand}◼◼◼◼◼◼◻◻◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor performance}◼◼◼◼◼◼◼◼◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor userspace}◻◻◻◻◻◻◻◻◼◼\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor ""}$unavailable\${endif}\\
+	\${alignr} \${cpu cpu$z}
+	\${cpubar cpu$z 2}
+	\${cpugraph cpu$z 10}
+	FILE
+done
+
+memory_available="free -h | awk 'NR==2{print \$7}'"
+memory_cache="free -h | awk 'NR==2{print \$6}'"
+memory_shared="free -h | awk 'NR==2{print \$5}'"
+memory_free="free -h | awk 'NR==2{print \$4}'"
+memory_used="free -h | awk 'NR==2{print \$3}'"
+memory_total="free -h | awk 'NR==2{print \$2}'"
+
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
+MEMORY\${alignr}[ % ]
+\${voffset -2}\${hr 1}
+CAPACITY\${alignr}\${memperc}
+\${membar 2}
+USAGE\${alignr}[ M ][ G ]
+\${voffset -2}\${hr 1}
+[ Used ][ Free ]\${goto 125}\${exec $memory_used}\${alignr}\${exec $memory_free}
+[ Shared ][ Cache ]\${goto 125}\${exec $memory_shared}\${alignr}\${exec $memory_cache}
+[ Available ][ Total ]\${goto 125}\${exec $memory_available}\${alignr}\${exec $memory_total}
+\${voffset -2}\${hr 1}
+PROCESS\${alignr}[ CPU ][RAM ][ % ]
+\${voffset -2}\${hr 1}
+FILE
+
+for ((n=1;n<=4;n++))
+do
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+	\${top name $n}\${goto 120}\${top cpu $n}\${alignr}\${top mem $n}
+	FILE
+done
+
+if file=(/sys/class/hwmon/hwmon[0-9]*/temp*) && [[ -e "$file" ]]
+then
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+	\${voffset -2}\${hr 1}
+	TEMPERATURE\${alignr}[ T° ][ MAX ][ °C ]
+	\${voffset -2}\${hr 1}
+	FILE
+
+	for path in /sys/class/hwmon/hwmon[0-9]*/*_input
+	do
+		IFS='/' read -r _ _ _ _ node probe <<< "$path"
+
+		if [[ "$path" = *fan* ]]
+		then
+			continue
+		fi
+
+		node_path="${path%/*}"
+		probe_path="$path"
+		probe="${path##*/}"
+
+		if [[ -e ${path%_input}_label ]]
+		then
+			label_path="${path%_input}_label"
+		else
+			label_path="$node_path"/name
+		fi
+
+		if [[ -e ${path%_input}_max ]]
+		then
+			max_path="${path%_input}_max"
+		elif [[ -e ${path%_input}_crit ]]
+		then
+			max_path="${path%_input}_crit"
+		else
+			max_path="$unavailable"
+		fi
+
+		label="${label_path##*/}"
+		max="${max_path##*/}"
+
+		node_name=$(echo "$node" | sed 's/.$/ &/')
+		probe_name=$(echo "$probe" | sed 's/_.*//' | sed 's/.$/ &/')
+
+		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+		\${if_existing ${node_path}}\\
+		\${if_existing $probe_path}\${exec cat $label_path | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${goto 140}\${$node_name $probe_name}\${alignr}\${if_existing $max_path}\${exec cat $max_path | sed 's/...$//'}\${else}$unavailable\${endif}\${endif}
+		FILE
+	done
+fi
+
+if file=(/sys/class/hwmon/hwmon[0-9]*/fan*) && [[ -e "$file" ]]
+then
+	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+	\${voffset -2}\${hr 1}
+	FAN\${alignr}[ RPM ]
+	\${voffset -2}\${hr 1}
+	FILE
+
+	for path in /sys/class/hwmon/hwmon[0-9]*/*_input
+	do
+		IFS='/' read -r _ _ _ _ node probe <<< "$path"
+
+		if [[ "$path" = *temp* ]]
+		then
+			continue
+		fi
+
+		node_path="${path%/*}"
+		probe_path="$path"
+		probe="${path##*/}"
+
+		if [[ -e ${path%_input}_label ]]
+		then
+			label_path="${path%_input}_label"
+		else
+			label_path="$node_path"/name
+		fi
+
+		label="${label_path##*/}"
+
+		node_name=$(echo "$node" | sed 's/.$/ &/')
+		probe_name=$(echo "$probe" | sed 's/_.*//' | sed 's/.$/ &/')
+
+		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+		\${if_existing ${node_path}}\\
+		\${if_existing $probe_path}\${exec cat $label_path | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${alignr}\${$node_name $probe_name}\${alignr}\${else}$unavailable\${endif}
+		FILE
+	done
+fi
+
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
+\${voffset -2}\${hr 1}
+DRIVES\${alignr}[ USED ][ TOTAL ][ G ]
+\${voffset -2}\${hr 1}
+FILE
+
+for device in /dev/sd[a-z][1-9]*
+do
+	block=$(df -H "$device" | awk 'END{print $1}')
+	free="df -H "$device" | awk 'END{print \$4}'"
+	label=$(blkid -s LABEL -o value "$device")
+	mount=$(df -H "$device" | awk 'END{print $6}')
+	percent="df -H "$device" | awk 'END{print \$5}'"
+	size="df -H "$device" | awk 'END{print \$2}'"
+	type=$(blkid -s TYPE -o value "$device")
+	used="df -H "$device" | awk 'END{print \$3}'"
+
+	if [[ "$block" = "devtmpfs" ]] || [[ "$block" = "udev" ]] || [[ "$type" = "vfat" ]]
+	then
+		: # pass
+	else
+		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
+		\${if_mounted $mount}\\
+		[ $block ] $label\${goto 135}\${exec $used}\${alignr}\${exec $size}
+		\${fs_bar 2 $mount}\${endif}
+		FILE
+	fi
+done
+
+wlan=$(netstat -in | awk '/^w[l][ap][0-9]/{print $1}') # Main
+elan=$(netstat -in | awk '/^e/{print $1}') # Secondary
+vlan=$(netstat -in | awk '/^v[i][r][b][r][0-9]/{print $1}') # Fallback
+loop=$(netstat -in | awk '/^lo/{print $1}') # Local
+
+url="https://api.ipify.org"
+
+if [[ ! -z "$vlan" ]]
+then
+	vlan="$vlan"
+else
+	vlan="$loop"
+fi
+
+if [[ ! -z "$wlan" ]]
+then
+	wlan="$wlan"
+else
+	wlan="$vlan"
+fi
+
+if [[ ! -z "$elan" ]]
+then
+	elan="$elan"
+else
+	elan="$vlan"
+fi
+
+cat << FILE >> "${HOME}"/.config/conky/conkyrc
+NETWORK\${alignr}[ IP ][ IFACE ]\\
+\${if_up $wlan}\\
+\${alignr}[ $wlan ]\${endif}\\
+\${if_up $elan}\\
+\${alignr}[ $elan ]\${endif}
+\${voffset -2}\${hr 1}
+\${if_up $wlan}\\
+Gateway    \${alignr}\${gw_ip} [ $wlan ]\${endif}\\
+\${if_up $elan}\\
+Gateway    \${alignr}\${gw_ip} [ $elan ]\${endif}
+\${if_up $wlan}\\
+External    \${alignr}\${exec curl $url} [ $wlan ]\${endif}\${if_up $elan}
+External    \${alignr}\${exec curl $url} [ $elan ]\${endif}
+\${if_up $wlan}\\
+Local    \${alignr}\${addr $wlan} [ $wlan ]\${endif}\${if_up $elan}
+Local    \${alignr}\${addr $elan} [ $elan ]\${endif}
+\${if_up $wlan}\\
+\${voffset -2}\${hr 1}
+LINK\${alignr}[ % ]
+\${voffset -2}\${hr 1}
+Signal\${alignr}\${wireless_link_qual_perc $wlan}
+\${wireless_link_bar 2 $wlan}\\
+\${else}\\
+\${voffset -2}\${hr 1}\${endif}
+THROUGHPUT\${alignr}[ M ][ G ][ kbps ]
+\${voffset -2}\${hr 1}
+\${if_up $wlan}\\
+[ ▼ ] \${totaldown $wlan}\${alignr}\${downspeedf $wlan}
+\${voffset 4}\${downspeedgraph $wlan 10}
+[ ▲ ] \${totalup $wlan}\${alignr}\${upspeedf $wlan}
+\${voffset 4}\${upspeedgraph $wlan 10}\${endif}
+\${if_up $elan}\\
+[ ▼ ] \${totaldown $elan}\${alignr}\${downspeedf $elan}
+\${voffset 4}\${downspeedgraph $elan 10}
+[ ▲ ] \${totalup $elan}\${alignr}\${upspeedf $elan}
+\${voffset 4}\${upspeedgraph $elan 10}\${endif}
+FILE
+MAIN
+
+sudo chmod +x /usr/bin/write-conky
+
+sudo chmod -R 777 "${HOME}"/.config/conky
+
+write-conky
+
+# launcher #
+
+cat <<- 'FILE' > /usr/share/applications/conky.desktop
+[Desktop Entry]
+Name=Conky
+Comment=Highly configurable system monitor
+Exec=sh -c "write-conky && conky -c /home/${SUDO_USER:-$USER}/.config/conky/conkyrc"
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

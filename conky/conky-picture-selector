@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# conky picture selector #
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+configuration_directory="${HOME}"/.config
+
+
+# configuration #
+
+console.inf "Adding conky picture switch to system (/usr/bin)..."
+
+cat << "FILE" > /usr/bin/conky-picture-selector
+#!/bin/bash
+
+home="/home/${SUDO_USER:-$USER}"
+directory="${HOME}"/.config
+process="$directory/conky-picture-frame/conky-picture-framerc"
+
+# specify source image
+
+source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null || exit  location or exit on 'Cancel'
+dimension="full" # small | medium | large | full / 25% | 50% | 75% | 100%
+
+# Set dimension flags
+
+if [ "$dimension" == "small" ]
+then
+	ratio="128x" # canvas at 25%
+elif [ "$dimension" == "medium" ]
+then
+	ratio="256x" # canvas at 50%
+elif [ "$dimension" == "large" ]
+then
+	ratio="384x" # canvas at 75%
+elif [ "$dimension" == "full" ]
+then
+	ratio="512x" # canvas at 100%
+fi
+
+# Cleanup files
+
+if [[ -e .picture.png ]]
+then
+	rm -rf .picture.png
+fi
+
+# Picture frame compositor
+
+convert "$source" -resize "$ratio" .picture.png
+
+# Get dimensions
+
+dimensions=$(identify .picture.png | awk '{print $3}')
+
+IFS='x'
+read width height <<< "$dimensions"
+
+# Send result to conky
+
+sed -i -e "s/^minimum_size\ .*/minimum_size $width $height/g" "$directory"/conky-picture-frame/conky-picture-framerc
+
+wait
+
+echo "${image .picture.png}"
+
+wait
+
+sudo kill -SIGTERM $(pgrep -f "$process")
+
+wait
+
+conky -c "$process"&
+FILE
+
+chmod +x /usr/bin/conky-picture-selector
+
+# launcher #
+
+cat <<- 'FILE' > /usr/share/applications/conky-picture-selector.desktop
+[Desktop Entry]
+Name=Conky Picture Selector
+Comment=Highly configurable system monitor
+Exec=/usr/bin/conky-picture-selector/usr/bin/conky-picture-selector/usr/bin/conky-picture-selector
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

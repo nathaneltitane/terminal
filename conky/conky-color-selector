@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# conky color selector #
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+configuration_directory="${HOME}"/.config
+
+
+# configuration #
+
+console.inf "Adding conky color switch to system (/usr/bin)..."
+
+cat << 'FILE' > /usr/bin/conky-color-selector
+#!/bin/bash
+
+rgb_to_hex () {
+	IFS='(,)'
+	read _ r g b <<< "$1"
+	printf '%02x%02x%02x\n' $r $g $b
+}
+
+default_color="cccccc"
+color_input="$(zenity --color-selection --color="#cccccc" --show-palette)"
+color_selection=$(rgb_to_hex "$color_input")
+
+home="/home/${SUDO_USER:-$USER}"
+
+cd "$home" || exit
+
+if [[ "$color_input" != "" ]]
+then
+	color="$color_selection"
+else
+	color="$default_color"
+fi
+
+find . -type f -name *conkyrc -exec \
+	sed -i \
+	-e "s|default_color.*|default_color $color|g" \
+	-e "s|default_shade_color.*|default_shade_color $color|g" {} +
+FILE
+
+sudo chmod +x /usr/bin/conky-color-selector
+
+# launcher #
+
+cat <<- 'FILE' > /usr/share/applications/conky-color-selector.desktop
+[Desktop Entry]
+Name=Conky Color Selector
+Comment=Color selector for Conky
+Exec=/usr/bin/conky-color-selector
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE
