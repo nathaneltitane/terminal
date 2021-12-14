@@ -1,2 +1,1 @@
-# bash
-BASH scripts and utilities
+# terminal
