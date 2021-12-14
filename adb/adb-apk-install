@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# adb install apk #
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# install #
+
+if [ -e ./apk ]
+then
+	for package in ./apk/*.apk
+	do
+		adb install "${package}"
+	done
+fi

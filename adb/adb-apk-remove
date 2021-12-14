@@ -1,0 +1,65 @@
+#!/bin/bash
+
+	# com.android.calculator2
+	# com.android.calendar
+	# com.android.contacts
+	# com.android.deskclock
+	# com.android.documentsui
+	# com.android.egg
+	# com.android.email
+	# com.android.hwmirror
+	# com.android.mediacenter
+	# com.android.providers.downloads.ui
+	# com.android.stk
+	# com.android.wallpaper.livepicker
+	# com.hicloud.android.clone
+	# com.huawei.android.chr
+	# com.huawei.android.projectmenu
+	# com.huawei.android.remotecontroller
+	# com.huawei.android.tips
+	# com.huawei.android.totemweather
+	# com.huawei.android.totemweatherapp
+	# com.huawei.android.totemweatherwidget
+	# com.huawei.compass
+	# com.huawei.contactscamcard
+	# com.huawei.gameassistant
+	# com.huawei.health
+	# com.huawei.himovie.overseas
+	# com.huawei.hitouch
+	# com.huawei.hwasm
+	# com.huawei.hwusbearphoneupdate
+	# com.huawei.imedia.sws
+	# com.huawei.KoBackup
+	# com.huawei.languagedownloader
+	# com.huawei.livewallpaper.paradise
+	# com.huawei.mirrorlink
+	# com.huawei.mmitest
+	# com.huawei.scanner
+	# com.huawei.tips
+	# com.huawei.vassistant
+	# com.huawei.videoeditor
+	# com.huawei.vision.server
+	# com.huawei.watch.sync
+
+apk_list=(
+	com.amazon.mShop.android.shopping
+	com.android.contacts
+	com.android.wallpaper.livepicker
+	com.huawei.fido.uafclient
+	com.huawei.himovie.overseas
+	com.google.android.calendar
+	com.google.android.apps.fireball
+	com.google.android.apps.messaging
+	com.google.android.apps.tachyon
+	com.microsoft.translator
+	com.stupeflix.replay
+	com.swiftkey.swiftkeyconfigurator
+	com.telus.checkup
+	com.telus.myaccount
+	com.touchtype.swiftkey
+)
+
+for package in ${apk_list[@]}
+do
+	sudo adb uninstall --user 0 "${package}"
+done

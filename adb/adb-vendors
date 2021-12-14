@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Author: Nathanel Titane - nathanel.titane@gmail.com
+
+# android #
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# variables #
+
+home="/home/${SUDO_USER:-$USER}"
+android_directory="${HOME}"/.android"
+udev_directory="/etc/udev/rules.d"
+file=$(cat "$directory"/adb_usb.ini)
+
+# configuration #
+
+if [ ! -d "$android_directory" ]
+then
+	mkdir "$android_directory"
+fi
+
+cd "$android_directory" || exit
+
+console.inf "Generating ADB USB Vendor ID list..."
+
+for i in {0..65535}
+do
+	printf '0x%04x\n' "$i"
+done >> "$android_directory/adb_usb.ini"
+
+chmod -R 777 "$android_directory"
+
+# udev #
+
+console.inf "Generating rules for Android devices (udev)..."
+
+while read -r vendor_id
+do
+	echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
+done <<< "$file" >> "$udev_directory/51-android.rules"

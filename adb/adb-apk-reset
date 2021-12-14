@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# dependencies #
+
+curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+hostname=$(adb ${device} shell getprop net.hostname)
+
+application="com.package.name"
+
+device=""
+
+# defaults #
+
+if [ $# -gt 1 ]
+then
+	device="-s ${@:2}"
+
+	adb connect ${@:2}
+
+	sleep 2
+fi
+
+# functions #
+
+keycode () {
+	adb "${device}" shell input keyevent "${1}"
+
+	# https://developer.android.com/reference/android/view/KeyEvent.html
+
+	#  0 - KEYCODE_0                           # 49 - KEYCODE_U
+	#  1 - KEYCODE_SOFT_LEFT                   # 50 - KEYCODE_V
+	#  2 - KEYCODE_SOFT_RIGHT                  # 51 - KEYCODE_W
+	#  3 - KEYCODE_HOME                        # 52 - KEYCODE_X
+	#  4 - KEYCODE_BACK                        # 53 - KEYCODE_Y
+	#  5 - KEYCODE_CALL                        # 54 - KEYCODE_Z
+	#  6 - KEYCODE_ENDCALL                     # 55 - KEYCODE_COMMA
+	#  7 - KEYCODE_0                           # 56 - KEYCODE_PERIOD
+	#  8 - KEYCODE_1                           # 57 - KEYCODE_ALT_LEFT
+	#  9 - KEYCODE_2                           # 58 - KEYCODE_ALT_RIGHT
+	# 10 - KEYCODE_3                           # 59 - KEYCODE_SHIFT_LEFT
+	# 11 - KEYCODE_4                           # 60 - KEYCODE_SHIFT_RIGHT
+	# 12 - KEYCODE_5                           # 61 - KEYCODE_TAB
+	# 13 - KEYCODE_6                           # 62 - KEYCODE_SPACE
+	# 14 - KEYCODE_7                           # 63 - KEYCODE_SYM
+	# 15 - KEYCODE_8                           # 64 - KEYCODE_EXPLORER
+	# 16 - KEYCODE_9                           # 65 - KEYCODE_ENVELOPE
+	# 17 - KEYCODE_STAR                        # 66 - KEYCODE_ENTER
+	# 18 - KEYCODE_POUND                       # 67 - KEYCODE_DEL
+	# 19 - KEYCODE_DPAD_UP                     # 68 - KEYCODE_GRAVE
+	# 20 - KEYCODE_DPAD_DOWN                   # 69 - KEYCODE_MINUS
+	# 21 - KEYCODE_DPAD_LEFT                   # 70 - KEYCODE_EQUALS
+	# 22 - KEYCODE_DPAD_RIGHT                  # 71 - KEYCODE_LEFT_BRACKET
+	# 23 - KEYCODE_DPAD_CENTER                 # 72 - KEYCODE_RIGHT_BRACKET
+	# 24 - KEYCODE_VOLUME_UP                   # 73 - KEYCODE_BACKSLASH
+	# 25 - KEYCODE_VOLUME_DOWN                 # 74 - KEYCODE_SEMICOLON
+	# 26 - KEYCODE_POWER                       # 75 - KEYCODE_APOSTROPHE
+	# 27 - KEYCODE_CAMERA                      # 76 - KEYCODE_SLASH
+	# 28 - KEYCODE_CLEAR                       # 77 - KEYCODE_AT
+	# 29 - KEYCODE_A                           # 78 - KEYCODE_NUM
+	# 30 - KEYCODE_B                           # 79 - KEYCODE_HEADSETHOOK
+	# 31 - KEYCODE_C                           # 80 - KEYCODE_FOCUS
+	# 32 - KEYCODE_D                           # 81 - KEYCODE_PLUS
+	# 33 - KEYCODE_E                           # 82 - KEYCODE_MENU
+	# 34 - KEYCODE_F                           # 83 - KEYCODE_NOTIFICATION
+	# 35 - KEYCODE_G                           # 84 - KEYCODE_SEARCH
+	# 36 - KEYCODE_H                           # 85 - KEYCODE_MEDIA_PLAY_PAUSE
+	# 37 - KEYCODE_I                           # 86 - KEYCODE_MEDIA_STOP
+	# 38 - KEYCODE_J                           # 87 - KEYCODE_MEDIA_NEXT
+	# 39 - KEYCODE_K                           # 88 - KEYCODE_MEDIA_PREVIOUS
+	# 40 - KEYCODE_L                           # 89 - KEYCODE_MEDIA_REWIND
+	# 41 - KEYCODE_M                           # 90 - KEYCODE_MEDIA_FAST_FORWARD
+	# 42 - KEYCODE_N                           # 91 - KEYCODE_MUTE
+	# 43 - KEYCODE_O                           # 92 - KEYCODE_PAGE_UP
+	# 44 - KEYCODE_P                           # 93 - KEYCODE_PAGE_DOWN
+	# 45 - KEYCODE_Q                           # 94 - KEYCODE_PICTSYMBOLS
+	# 46 - KEYCODE_R                           # ...
+	# 47 - KEYCODE_S                           # 122  KEYCODE_MOVE_HOME
+	# 48 - KEYCODE_T                           # 123  KEYCODE_MOVE_END
+}
+
+write () {
+	cmd="$@"
+
+	echo ${cmd@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
+
+	# enter
+
+	keycode 66
+
+	# sleep for consecutive writes
+
+	sleep 0.125
+}
+
+wait () {
+	console.msg "[ ${hostname} ] Waiting - Press any key to continue..."
+	
+	read _ # placeholder
+}
+
+# clear storage
+
+console.inf "[${hostname}] Clearing storage."
+
+adb ${device} shell pm clear "${application}"
+
+# launch application
+
+console.inf "[ ${hostname} ] Launching application."
+
+adb ${device} shell am start --user 0 -n "${application}"/"${application}".app.PackageActivity
+
+# automate input
+
+# wait for app to initialize
+
+sleep 2
+
+# write command
+
+wait
+
+# input COMMAND
+
+write "COMMAND"
+
+# input keycode
+
+keycode 61
+
+sleep 0.5
+
+keycode 66
+
+wait
