@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# dependencies #
+
+source /data/data/com.termux/files/usr/bin/console
+source /data/data/com.termux/files/usr/bin/dextop
+
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+scripts_list=(
+	leocad-build
+)
+
+# run scripts
+
+for script in ${scripts_list[@]}
+do
+	bash ${script}
+done
+
+# update binary
+
+cp /usr/bin/leocad ./leocad
+
+# upload changes
+
+git add *
+
+git commit -a -m "Build update"
+
+git push

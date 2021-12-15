@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# dependencies #
+
+source /data/data/com.termux/files/usr/bin/console
+source /data/data/com.termux/files/usr/bin/dextop
+
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# set position using wmctrl
+
+wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
+wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350
+wmctrl -r "Preview — LeoCAD"       -e 0,1660,0000,0450,0350
+wmctrl -r "Properties — LeoCAD"    -e 0,1660,0350,0450,0370
+wmctrl -r "Parts — LeoCAD"         -e 0,1660,0720,0900,0360
+wmctrl -r "Timeline — LeoCAD"      -e 0,2110,0000,0450,0720

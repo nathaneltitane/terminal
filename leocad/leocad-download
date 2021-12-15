@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# dependencies #
+
+source /data/data/com.termux/files/usr/bin/console
+source /data/data/com.termux/files/usr/bin/dextop
+
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+application="leocad"
+architecture="arm64"
+
+archive=$(curl -sL https://api.github.com/repos/leozide/leocad/releases/latest | grep -o [aA0-zZ9-]*${architecture}.zip | head -n 1)
+
+archive_url="https://github.com/leozide/leocad/releases/download/continuous/${archive}"
+
+extract_command=$(unzip -qq -d /usr/bin -o ./*.zip)
+
+# clean #
+
+rm -rf "${TMPDIR}"/${archive}
+
+# get #
+
+cd "${TMPDIR}" || exit 1
+
+console.dwl "Downloading ${application}..."
+echo
+
+curl						\
+	--silent				\
+	--location				\
+	--remote-header-name	\
+	--remote-name			\
+							"${archive_url}"
+
+# extract #
+
+console.fwd "Extracting..."
+echo
+
+console.silence "${extract_command}"

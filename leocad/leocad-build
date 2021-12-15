@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# dependencies #
+
+source /data/data/com.termux/files/usr/bin/console
+source /data/data/com.termux/files/usr/bin/dextop
+
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+home="/home/${SUDO_USER:-$USER}"
+
+build_directory="/tmp/build"
+
+application="leocad"
+source="https://github.com/leozide/leocad.git"
+
+# packages #
+
+install_list=(
+	git
+	hub
+	g++
+	make
+	zip
+	zlib1g-dev
+	libqt5concurrent5
+	libqt5opengl5
+	libqt5opengl5-dev
+	libqt5printsupport5
+	libqt5xml5
+	qt5-default
+	qtbase5-dev
+	qttools5-dev
+	qttools5-dev-tools
+)
+
+# install #
+
+console.install ${install_list[@]}
+
+# clean #
+
+# remove previous instance of build directory
+
+rm -rf "${build_directory}"
+
+# build #
+
+mkdir -p "${build_directory}"
+
+git clone "${source}" "${build_directory}"
+
+cd "${build_directory}" || exit 1
+
+# compile project
+
+qmake "${application}".pro
+
+# compile binary
+
+make -j$(nproc)
+
+# update #
+
+cp "${build_directory}"/build/release/"${application}" /usr/bin/"${application}"

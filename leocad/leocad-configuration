@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# dependencies #
+
+source /data/data/com.termux/files/usr/bin/console
+source /data/data/com.termux/files/usr/bin/dextop
+
+# usage #
+
+# variables #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# configuration #
+
+# link configuration
+
+console.inf "Linking configuration."
+echo
+
+[ -f /media/internal/Lego/leocad/leocad.conf ] && \
+	mkdir -p "$PROOT_DIRECTORY"/home/"${USER}"/.config/"LeoCAD Software" || :
+		
+[ -d "$PROOT_DIRECTORY"/home/"${USER}"/.config/"LeoCAD Software" ] && \
+	ln -s -f /media/internal/Lego/leocad/leocad.conf "$PROOT_DIRECTORY"/home/"${USER}"/.config/"LeoCAD Software"/LeoCAD.conf || :
