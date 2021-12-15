@@ -24,10 +24,6 @@ order += "ethernet eth0"
 order += "wireless wlan0"
 order += "battery 0"
 
-load {
-	format = "%5min Load"
-}
-
 battery 0 {
 	format = "[ %status ]"
 	path = "/sys/class/power_supply/battery/uevent"

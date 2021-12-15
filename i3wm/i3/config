@@ -272,7 +272,7 @@ bindsym $modifier+Shift+r restart
 
 # i3 session - exit
 
-bindsym $modifier+Shift+e $execute /usr/bin/dmenu-exit-session
+bindsym $modifier+Shift+e $execute dmenu-exit-session
 
 # bar #
 
