@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# dependencies #
+
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
+# remove apk
+
 	# com.android.calculator2
 	# com.android.calendar
 	# com.android.contacts

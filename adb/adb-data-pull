@@ -1,8 +1,24 @@
 #!/bin/bash
 
-# adb pull data apps #
+# dependencies #
 
-# create directory #
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
+# defaults #
+
+# pull apk data
 
 if [[ ! -e ./apk ]]
 then
@@ -11,8 +27,6 @@ then
 else
 	cd ./apk || exit
 fi
-
-# pull #
 
 for package in $(adb shell pm list packages | sed -n 's/^package://p')
 do

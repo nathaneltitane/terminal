@@ -1,6 +1,22 @@
 #!/bin/bash
 
-# adb put settings #
+# dependencies #
+
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
+
+# variables #
+
+# write settings
 
 sudo adb shell settings put system hw_hide_font_style false
 sudo adb shell settings put global policy_control immersive.navigation=com.sec.android.app.desktoplauncher

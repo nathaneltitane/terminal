@@ -2,13 +2,19 @@
 
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
 
 # usage #
 
-# variables #
+# prompt #
 
-script=$(basename -- "${BASH_SOURCE[0]}")
+# variables #
 
 hostname=$(adb ${device} shell getprop net.hostname)
 
