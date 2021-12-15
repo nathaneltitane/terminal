@@ -1,0 +1,320 @@
+# i3 configuration #
+
+# references #
+
+# modifier references
+
+# A - name
+# B - call
+# C - code
+
+# [ A ]                                                 [ B ]              [ C ]
+
+# shift right                                           Shift_R             0x3e
+# shift left                                            Shift_L             0x32
+# lock                                                  Caps_Lock           0x42
+# control left                                          Control_L           0x69
+# control right                                         Control_R           0x25
+# mod1                                                  Alt_L               0x40
+#                                                       Alt_R               0x6c
+#                                                       Meta_L              0xcd
+# mod2                                                  Num_Lock            0x4d
+# mod3
+# mod4                                                  Super_L             0x85
+#                                                       Super_R             0x86
+#                                                       Super_L             0xce
+#                                                       Hyper_L             0xcf
+# mod5                                                  ISO_Level3_Shift    0x5c
+#                                                       Mode_switch         0xcb
+
+# variables #
+
+set $modifier	Mod1
+set $windows	Mod4
+
+set $execute exec --no-startup-id
+
+set $file_manager ranger
+
+set $image "${HOME}/Pictures/.background.png"
+
+set $launcher				\
+		"dmenu_run			\
+			-b				\
+			-i				\
+			-p  'Run // '	\
+			-nb '#000000'	\
+			-nf '#FFFFFF'	\
+			-sb '#666666'	\
+			-sf '#000000'"
+
+set $status i3status
+
+set $terminal st
+
+set $workspace1 "1"
+set $workspace2 "2"
+set $workspace3 "3"
+set $workspace4 "4"
+set $workspace5 "5"
+set $workspace6 "6"
+set $workspace7 "7"
+set $workspace8 "8"
+
+# startup #
+
+# background
+
+$execute xsetroot -solid #000000
+$execute feh --bg-fill $image
+
+# lock screen
+
+# $execute i3lock --color 000000
+
+# settings #
+
+# colors
+
+# A - border
+# B - background
+# C - text
+# D - indicator
+# E - child border
+
+# color class                            [  A  ] [  B  ] [  C  ] [  D  ] [  E  ]
+
+client.focused                           #000000 #000000 #FFFFFF #FFFFFF #000000
+client.focused_inactive                  #000000 #000000 #666666 #666666 #000000
+client.unfocused                         #000000 #666666 #000000 #000000 #000000
+client.urgent                            #000000 #000000 #FF0000 #FF0000 #000000
+client.placeholder                       #000000 #000000 #815FA3 #815FA3 #000000
+client.background                        #000000
+
+# fonts
+
+font pango:Sans Regular 10
+
+# windows
+
+# window border
+
+new_window normal 0
+
+# window title alignment - left | center | right
+
+title_align center
+
+# window size - floating
+
+floating_minimum_size 800 x 600
+floating_maximum_size -1 x -1
+
+# window modifier - floating - mouse drag
+
+floating_modifier $modifier
+
+# bindings #
+
+# show shortcuts
+
+bindsym $modifier+Shift+i $execute dmenu-show-shortcuts
+
+# change background image
+
+bindsym $modifier+g $execute dmenu-change-background
+
+# open file manager
+
+bindsym $modifier+m $execute dmenu-open-file-manager
+
+# open launcher
+
+bindsym $modifier+space $execute $launcher
+
+# open terminal
+
+bindsym $modifier+t $execute $terminal
+
+# kill application
+
+bindsym $modifier+x kill
+
+# windows #
+
+# change focus
+
+bindsym $modifier+Up    focus up
+bindsym $modifier+Left  focus left
+bindsym $modifier+Down  focus down
+bindsym $modifier+Right focus right
+
+# move focused window
+
+bindsym $modifier+Shift+Up    move up
+bindsym $modifier+Shift+Left  move left
+bindsym $modifier+Shift+Down  move down
+bindsym $modifier+Shift+Right move right
+
+# toggle [f]ullscreen
+
+bindsym $modifier+f fullscreen toggle
+
+# toggle floating
+
+bindsym $modifier+w floating toggle
+
+# change [w]indow focus - tiling / floating
+
+bindsym $modifier+Shift+w focus mode_toggle
+
+# containers #
+
+# change container layout  - [s]plit / stac[k] / ta[b]
+
+bindsym $modifier+s layout toggle split
+bindsym $modifier+k layout stacking
+bindsym $modifier+b layout tabbed
+
+# split container - [h]orizontal layout
+
+bindsym $modifier+v split h
+
+# split container - [v]ertical layout
+
+bindsym $modifier+h split v
+
+# focus [p]arent container
+
+bindsym $modifier+p focus parent
+
+# focus [c]hild container
+
+bindsym $modifier+c focus child
+
+# move floating container to [a]bsolute center
+
+bindsym $modifier+Shift+a move absolute position center
+
+# move container to current [m]ouse cursor position
+
+bindsym $modifier+Shift+m move position mouse
+
+# resize mode #
+
+# window resize
+# bindings are activated when entering resize mode
+# the mouse can also be used
+
+# enter resi[z]e mode
+
+bindsym $modifier+z mode "resize"
+
+mode "resize" {
+	# reset window to configured size
+	
+	bindsym $modifier+Shift+z resize set 800 px  600 px
+	
+	# shrink window width by 10 px
+	
+	bindsym Left resize shrink width 10 px
+	
+	# shrink window height by 10 px
+	
+	bindsym Up resize shrink height 10 px
+	
+	# grow window height by 10 px
+	
+	bindsym Down resize grow height 10 px
+	
+	# grow window width by 10 px
+	
+	bindsym Right resize grow width 10 px
+	
+	# exit resi[z]e mode
+	
+	bindsym $modifier+z mode "default"
+}
+
+# workspaces #
+
+# switch to workspace [n]
+
+bindsym $modifier+1 workspace number $workspace1
+bindsym $modifier+2 workspace number $workspace2
+bindsym $modifier+3 workspace number $workspace3
+bindsym $modifier+4 workspace number $workspace4
+bindsym $modifier+5 workspace number $workspace5
+bindsym $modifier+6 workspace number $workspace6
+bindsym $modifier+7 workspace number $workspace7
+bindsym $modifier+8 workspace number $workspace8
+
+# move container to workspace [n]
+
+bindsym $modifier+Shift+1 move container to workspace number $workspace1
+bindsym $modifier+Shift+2 move container to workspace number $workspace2
+bindsym $modifier+Shift+3 move container to workspace number $workspace3
+bindsym $modifier+Shift+4 move container to workspace number $workspace4
+bindsym $modifier+Shift+5 move container to workspace number $workspace5
+bindsym $modifier+Shift+6 move container to workspace number $workspace6
+bindsym $modifier+Shift+7 move container to workspace number $workspace7
+bindsym $modifier+Shift+8 move container to workspace number $workspace8
+
+# session #
+
+# i3 session - reload configuration
+
+bindsym $modifier+r reload
+
+# i3 session - restart
+
+bindsym $modifier+Shift+r restart
+
+# i3 session - exit
+
+bindsym $modifier+Shift+e $execute /usr/bin/dmenu-exit-session
+
+# bar #
+
+bar {
+	status_command i3status
+	
+	font pango:Sans Regular 10
+	
+	binding_mode_indicator yes
+	
+	mode hide
+	hidden_state hide
+	modifier $modifier
+	
+	position bottom
+	
+	separator_symbol " // "
+	
+	tray_output VNC-0
+	tray_padding 0
+	
+	workspace_buttons yes
+	workspace_min_width 20
+	strip_workspace_name no
+	strip_workspace_numbers no
+	
+	colors {
+	
+	# A - border
+	# B - background
+	# C - text
+	
+	# color class                                        [  A  ] [  B  ] [  C  ]
+
+	background                                                   #000000
+	statusline                                                   #FFFFFF
+	separator                                                    #666666
+
+	focused_workspace                                    #000000 #000000 #FFFFFF
+	active_workspace                                     #666666 #FFFFFF #FFFFFF
+	inactive_workspace                                   #000000 #000000 #666666
+	urgent_workspace                                     #000000 #000000 #FF0000
+	binding_mode                                         #000000 #000000 #815FA3
+	}
+}
