@@ -67,9 +67,9 @@ fi
 
 if [ ! -f "${BINARIES_DIRECTORY}"/container-configuration-complete ]
 then
-	[ $(dpkg -l | grep -i keyboard) ] && sudo dpkg-reconfigure keyboard
-	[ $(dpkg -l | grep -i locales) ] && sudo dpkg-reconfigure locales
 	[ $(dpkg -l | grep -i tzdata) ] && sudo dpkg-reconfigure tzdata
+	[ $(dpkg -l | grep -i locales) ] && sudo dpkg-reconfigure locales
+	[ $(dpkg -l | grep -i keyboard-configuration) ] && sudo dpkg-reconfigure keyboard-configuration
 
 	touch > "${BINARIES_DIRECTORY}"/container-configuration-complete
 fi
