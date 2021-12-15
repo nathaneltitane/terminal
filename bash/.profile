@@ -25,54 +25,6 @@ fi
 . /data/data/com.termux/files/usr/bin/console
 . /data/data/com.termux/files/usr/bin/dextop
 
-# proot startup #
-
-if [ ! -f "${BINARIES_DIRECTORY}"/container-startup-complete ]
-then
-	# continue proot setup
-
-	"${BINARIES_DIRECTORY}"/container-setup
-
-	# confirm uninterrupted setup
-
-	echo "yes" > "${BINARIES_DIRECTORY}"/container-startup-complete
-
-	# clear #
-
-	console.clear
-
-	# exit proot after successful setup
-
-	console.fwd "Logging out..."
-	echo
-
-	exit
-fi
-
-# user startup #
-
-if [ ! -f "${BINARIES_DIRECTORY}"/user-startup-complete ]
-then
-	# continue user setup
-
-	"${BINARIES_DIRECTORY}"/user-setup
-
-	# confirm uninterrupted setup
-
-	echo "yes" > "${BINARIES_DIRECTORY}"/user-startup-complete
-
-	# clear #
-
-	console.clear
-
-	# exit proot after successful setup
-
-	console.fwd "Logging out..."
-	echo
-
-	exit
-fi
-
 # dextop welcome
 
 if [[ $(ps -A | grep -i proot) ]]
