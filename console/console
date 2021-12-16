@@ -554,7 +554,7 @@ console.delete () {
 
 		[ -f "${path}"/"${file}" ] && rm -rf "${path}"/"${file}"
 	done
-	
+
 	list=()
 }
 
@@ -562,7 +562,7 @@ console.delete () {
 
 console.get () {
 	curl -sL "${source}/${file}" > "${path}"/"${file}" &
-	
+
 	console.progress "Downloading" "[ ${file} ]"
 	echo
 
