@@ -71,5 +71,5 @@ then
 	[ $(dpkg -l | grep -i locales) ] && sudo dpkg-reconfigure locales
 	[ $(dpkg -l | grep -i keyboard-configuration) ] && sudo dpkg-reconfigure keyboard-configuration
 
-	touch > "${BINARIES_DIRECTORY}"/container-configuration-complete
+	console.file "${BINARIES_DIRECTORY}" container-configuration-complete
 fi

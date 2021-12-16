@@ -523,7 +523,46 @@ console.directory () {
 
 		chown "${uid}":"${gid}" -R "${path}"/"${directory}"
 	done
-	
+
+	# unset array
+
+	list=()
+}
+
+# directory
+
+console.file () {
+	path="${1}"
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${2} - array
+
+		list=(${@:2})
+	else
+		file="${2}"
+
+		list=()
+
+		list+=("${file}")
+	fi
+
+	for file in ${list[@]}
+	do
+		console.add "Creating file" "[ ${file} ]"
+		echo
+
+		# create file and set permissions
+
+		[ ! -f "${path}"/"${file}" ] && touch "${path}"/"${file}"
+
+		# set ownership
+
+		chown "${uid}":"${gid}" -R "${path}"/"${fi}"
+	done
+
+	# unset array
+
 	list=()
 }
 
@@ -554,6 +593,8 @@ console.delete () {
 
 		[ -f "${path}"/"${file}" ] && rm -rf "${path}"/"${file}"
 	done
+
+	# unset array
 
 	list=()
 }
@@ -598,6 +639,8 @@ console.download () {
 		do
 			console.get
 		done
+
+		# unset array
 
 		list=()
 	fi
