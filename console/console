@@ -650,12 +650,12 @@ console.download () {
 
 console.put () {
 	type="${1}"
-	
+
 	curl \
 		-X POST "${destination}/${file}"	\
 		-H "Content-Type: ${type}"			\
 		-d "${file}" & 
-	
+
 	console.progress "Uploading" "[ ${file} ]"
 	echo
 }
@@ -844,6 +844,36 @@ console.release () {
 	done
 }
 
+# reconfigure
+
+console.reconfigure () {
+	export DEBIAN_FRONTEND=noninteractive
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
+	
+	console.inf "Reconfiguring packages."
+	echo
+
+	for directory in ${list[@]}
+	do
+		console.wrn "Reconfiguring" "[ '${package}' ]"
+		echo
+
+		[ $(dpkg -l | grep -i "${package}") ] && sudo dpkg-reconfigure "${package}"
+	done
+}
+
 # install
 
 console.install () {
@@ -1008,7 +1038,7 @@ console.dialog () {
 
 console.clear () {
 	console.wait
-	
+
 	clear
 }
 
@@ -1016,7 +1046,7 @@ console.exit () {
 	instance="${1}"
 
 	console.countdown 3 "Exiting" "[ ${instance} ]"
-	
+
 	kill -9 $(pgrep -f "${SHELL}")
 }
 

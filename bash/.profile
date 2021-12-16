@@ -53,23 +53,23 @@ echo
 
 # automatic vnc session start
 
-if [ -f "${HOME}"/.vnc/selection ]
+if [[ $(ps -A | grep -i proot) ]]
 then
-	echo $(cat "${HOME}"/.vnc/selection) | container-vnc -o
-else
-	container-vnc -o
+	if [ -f "${HOME}"/.vnc/selection ]
+	then
+		echo $(cat "${HOME}"/.vnc/selection) | container-vnc -o
+	else
+		container-vnc -o
+	fi
 fi
-
-# container configuration
-
 
 # container configuration
 
 if [ ! -f "${BINARIES_DIRECTORY}"/container-configuration-complete ]
 then
-	[ $(dpkg -l | grep -i tzdata) ] && sudo dpkg-reconfigure tzdata
-	[ $(dpkg -l | grep -i locales) ] && sudo dpkg-reconfigure locales
-	[ $(dpkg -l | grep -i keyboard-configuration) ] && sudo dpkg-reconfigure keyboard-configuration
+	console.reconfigure tzdata
+	console.reconfigure locales
+	console.reconfigure keyboard-configuration
 
 	console.file "${BINARIES_DIRECTORY}" container-configuration-complete
 fi
