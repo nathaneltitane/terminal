@@ -717,7 +717,7 @@ console.password () {
 		then
 			# remove input on 'BACKSPACE'/'DEL'
 
-			prompt=$'\b \b'
+			mask=$'\b \b'
 			password="${password%?}"
 		else
 			# set character mask
