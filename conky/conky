@@ -1,25 +1,24 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-shopt -s extglob globstar nullglob
-
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+version="12-03-2021"
+
+# usage #
 
 # variables #
 
-home="/home/${SUDO_USER:-$USER}"
-configuration_directory="${HOME}"/.config
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 
-
-if [ ! -d "${HOME}"/.config/conky ]
-then
-	mkdir -p "${HOME}"/.config/conky
-fi
-
-cd "${HOME}"/.config/conky || exit
+# defaults #
 
 alignment="top_right"
 font_size="8"
@@ -33,9 +32,14 @@ width="210"
 
 # configuration #
 
-console.inf "Writing configuration header (conky)..."
+if [ ! -d "${HOME}"/.config/conky ]
+then
+	mkdir -p "${HOME}"/.config/conky
+fi
 
-cat << FILE > "${HOME}"/.config/conky/conkyrc
+cd "${HOME}"/.config/conky || exit 1
+
+cat << HEADER > "${HOME}"/.config/conky/conkyrc
 # conky #
 
 alignment $alignment
@@ -76,17 +80,14 @@ xftfont Sans:size=$font_size:normal
 
 TEXT
 
-FILE
-
-console.inf "Writing configuration generator (/usr/bin/write-conky)..."
+HEADER
 
 cat << 'MAIN' > /usr/bin/write-conky
 #!/bin/bash
 
 # write conky #
 
-home="/home/${SUDO_USER:-$USER}"
-configuration_directory="${HOME}"/.config
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 
 unavailable="[ × ]"
 

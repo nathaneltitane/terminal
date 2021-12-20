@@ -2,8 +2,7 @@
 
 # dependencies #
 
-source /data/data/com.termux/files/usr/bin/console
-source /data/data/com.termux/files/usr/bin/dextop
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
 
 # script #
 

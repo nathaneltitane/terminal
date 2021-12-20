@@ -16,8 +16,9 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
+
 user="${SUDO_USER:-$USER}"
-home="/home/${SUDO_USER:-$USER}"
 cloud="/media/Internal/MEGA/"
 
 local_ssh_directory="${HOME}"/.ssh

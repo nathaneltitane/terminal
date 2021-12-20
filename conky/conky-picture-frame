@@ -1,16 +1,12 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# conky picture frame #
-
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
 
 # variables #
 
-home="/home/${SUDO_USER:-$USER}"
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 configuration_directory="${HOME}"/.config
 
 
@@ -19,7 +15,7 @@ then
 	mkdir -p "${HOME}"/.config/conky-picture-frame
 fi
 
-cd "${HOME}"/.config/conky-picture-frame || exit
+cd "${HOME}"/.config/conky-picture-frame || exit 1
 
 alignment="top_left"
 font_size="8"
@@ -30,8 +26,6 @@ size_y="512"
 width="$size_x"
 
 # configuration #
-
-console.inf "Writing configuration (conky-picture-frame)..."
 
 cat << FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
 # conky picture frame #

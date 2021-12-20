@@ -1,27 +1,20 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# conky picture selector #
-
 # dependencies #
 
-curl -sL dep.dxtp.app/console > /usr/bin/console && source /usr/bin/console
+curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
 
 # variables #
 
-home="/home/${SUDO_USER:-$USER}"
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 configuration_directory="${HOME}"/.config
 
-
 # configuration #
-
-console.inf "Adding conky picture switch to system (/usr/bin)..."
 
 cat << "FILE" > /usr/bin/conky-picture-selector
 #!/bin/bash
 
-home="/home/${SUDO_USER:-$USER}"
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 directory="${HOME}"/.config
 process="$directory/conky-picture-frame/conky-picture-framerc"
 

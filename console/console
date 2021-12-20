@@ -406,7 +406,7 @@ console.sep () {
 # use to separate instructions or warnings from prompts
 
 console.separate () {
-	echo
+
 	console.sep
 	echo
 }

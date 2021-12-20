@@ -2,8 +2,7 @@
 
 # dependencies #
 
-source /data/data/com.termux/files/usr/bin/console
-source /data/data/com.termux/files/usr/bin/dextop
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
 
 # script #
 
@@ -19,13 +18,13 @@ settings_file="${1}"
 
 if [[ $# -lt 1 ]]
 then
-	echo "Usage: ${script} [SEtTINGS FILE] | [OPTION]"
+	echo "Usage: ${script} [SETTINGS FILE] | [OPTION]"
 	exit 1
 fi
 
 # variables #
 
-user="$(whoami)"
+user="$(id -u -n)"
 
 # defaults #
 
@@ -34,7 +33,7 @@ user="$(whoami)"
 console.inf "Writing settings."
 echo
 
-grep -viE '^\s*((#|;).*)?$' "${settings_file}" | while read channel property value
+grep -E -i -v '^\s*((#|;).*)?$' "${settings_file}" | while read channel property value
 do
 	# provide data type:
 	# needs to be researched before making a new .xfconf file

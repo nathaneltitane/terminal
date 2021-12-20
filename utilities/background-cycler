@@ -16,7 +16,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
-home="/home/${SUDO_USER:-$USER}"
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 
 # defaults #
 

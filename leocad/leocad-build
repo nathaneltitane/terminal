@@ -2,21 +2,32 @@
 
 # dependencies #
 
-source /data/data/com.termux/files/usr/bin/console
-source /data/data/com.termux/files/usr/bin/dextop
+curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
 
-# usage #
-
-# variables #
+# script #
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-home="/home/${SUDO_USER:-$USER}"
+# version #
 
-build_directory="/tmp/build"
+# usage #
+
+# prompt #
+
+# variables #
+
+TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX) || exit 1
+
+trap 'rm -f "${TEMPORARY}"' EXIT
+
+build_directory="${TEMPORARY}"
 
 application="leocad"
 source="https://github.com/leozide/leocad.git"
+
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
+
+# defaults #
 
 # packages #
 
@@ -42,15 +53,7 @@ install_list=(
 
 console.install ${install_list[@]}
 
-# clean #
-
-# remove previous instance of build directory
-
-rm -rf "${build_directory}"
-
 # build #
-
-mkdir -p "${build_directory}"
 
 git clone "${source}" "${build_directory}"
 
@@ -64,6 +67,22 @@ qmake "${application}".pro
 
 make -j$(nproc)
 
-# update #
+# update binary
 
 cp "${build_directory}"/build/release/"${application}" /usr/bin/"${application}"
+
+# launcher #
+
+cat <<- 'FILE' > /usr/share/applications/leocad.desktop
+[Desktop Entry]
+Encoding=UTF-8
+Name=LeoCAD
+GenericName=LDraw Model Editor
+Comment=LDraw Model Editor
+Exec=/usr/bin/leocad
+Icon=leocad
+Terminal=false
+Type=Application
+MimeType=application/x-ldraw;application/x-multipart-ldraw;
+Categories=Graphics;2DGraphics;3DGraphics;Editor;
+FILE
