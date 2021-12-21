@@ -870,7 +870,7 @@ console.reconfigure () {
 		console.wrn "Reconfiguring" "[ '${package}' ]"
 		echo
 
-		[ $(dpkg -l | grep -i "${package}") ] && sudo dpkg-reconfigure "${package}"
+		[[ $(dpkg -l | grep -i "${package}") ]] && sudo dpkg-reconfigure "${package}"
 	done
 }
 
