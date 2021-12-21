@@ -1,3 +1,6 @@
 # automatic vnc session stop
 
-container-vnc -x
+if [[ $(ps -A | grep -i -E *vnc*) ]]
+then
+	container-vnc -x
+fi
