@@ -1,6 +1,5 @@
 # git #
 
-
 [[ -x $(command -v git) ]] && alias 'gc'='git clone'
 [[ -x $(command -v git) ]] && alias 'gi'='git init'
 [[ -x $(command -v git) ]] && alias 'gp'='git pull'
