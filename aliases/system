@@ -1,7 +1,7 @@
 # system #
 
-alias 'start'='sudo systemctl start'
-alias 'stop'='sudo systemctl stop'
-alias 'enable'='sudo systemctl enable'
-alias 'disable'='sudo systemctl disable'
-alias 'status'='sudo systemctl status'
+[[ -x $(command -v systemctl) ]] && alias 'start'='sudo systemctl start'
+[[ -x $(command -v systemctl) ]] && alias 'stop'='sudo systemctl stop'
+[[ -x $(command -v systemctl) ]] && alias 'enable'='sudo systemctl enable'
+[[ -x $(command -v systemctl) ]] && alias 'disable'='sudo systemctl disable'
+[[ -x $(command -v systemctl) ]] && alias 'status'='sudo systemctl status'
