@@ -1,13 +1,12 @@
-#!/bin/bash
-
 # youtube #
 
 youtube () {
-	[ -z "$(command -v youtube-dl)" ] && console.install youtube-dl || :
+	[[ -z $(command -v youtube-dl) ]] && console.download https://yt-dl.org/downloads/latest "${BINARIES_DIRECTORY}" youtube-dl
 
 	path="${2}"
 
 	[ -z "${path}" ] && path="${PWD}"
+
 	cd "${path}" || exit 1
 
 	youtube-dl												\
@@ -18,5 +17,5 @@ youtube () {
 		--audio-format		mp3								\
 		--audio-quality		160K							\
 		--output		"%(title)s.%(ext)s"					\
-															${1}
+															"${1}"
 }

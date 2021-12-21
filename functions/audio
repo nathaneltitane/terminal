@@ -1,20 +1,24 @@
-#!/bin/bash
+# ausio #
 
-directory="${PWD}"
-extension="${1}"
+audio () {
+	[[ -z $(command -v ffmpeg) ]] && console.install ffmpeg
+	
+	directory="${PWD}"
+	extension="${1}"
 
-if [ "${extension}" = "flac" ]
-then
-	codec_option="-b:a 320k"
-else
-	codec_option="-acodec copy"
-fi
+	if [ "${extension}" = "flac" ]
+	then
+		codec_option="-b:a 320k"
+	else
+		codec_option="-acodec copy"
+	fi
 
-for file in $(find "${directory}" -type f -iname "*.${extension}")
-do
-	ffmpeg							\
-		-i "${file}"				\
-		"${codec_option}"			\
-		-map_metadata 0				\
-		-id3v2_version 3			"${file%.*}.mp3"
-done
+	for file in $(find "${directory}" -type f -iname "*.${extension}")
+	do
+		ffmpeg							\
+			-i "${file}"				\
+			"${codec_option}"			\
+			-map_metadata 0				\
+			-id3v2_version 3			"${file%.*}.mp3"
+	done
+}

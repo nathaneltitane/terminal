@@ -1,37 +1,22 @@
-#!/bin/bash
+# colors #
 
-# dependencies #
-
-# script #
-
-script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version #
-
-# usage #
-
-# prompt #
-
-# variables #
-
-# defaults #
-echo
-
-for foreground_color in {0..7}
-do
-	set_foreground=$(tput setaf $foreground_color)
-
-	for background_color in {0..7}
+colors () {
+	for foreground_color in {0..7}
 	do
-		set_background=$(tput setab $background_color)
+		set_foreground=$(tput setaf $foreground_color)
 
-		echo -n $set_background$set_foreground
+		for background_color in {0..7}
+		do
+			set_background=$(tput setab $background_color)
 
-		printf ' F:%s B:%s ' $foreground_color $background_color
+			echo -n $set_background$set_foreground
+
+			printf ' F:%s B:%s ' $foreground_color $background_color
+		done
+
+		echo $(tput sgr0)
+
 	done
 
-	echo $(tput sgr0)
-
-done
-
-echo
+	echo
+}

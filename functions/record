@@ -1,9 +1,7 @@
-#!/bin/bash
-
 # record #
 
 record () {
-	[ -z "$(command -v recordmydesktop)" ] && console.install recordmydesktop || :
+	[[ -z "$(command -v recordmydesktop)" ]] && console.install recordmydesktop
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
 
