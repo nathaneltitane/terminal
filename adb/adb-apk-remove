@@ -18,6 +18,8 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # remove apk
 
+	# huawei #
+
 	# com.android.calculator2
 	# com.android.calendar
 	# com.android.contacts
@@ -59,7 +61,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 	# com.huawei.vision.server
 	# com.huawei.watch.sync
 
-apk_list=(
+packages_list=(
 	com.amazon.mShop.android.shopping
 	com.android.contacts
 	com.android.wallpaper.livepicker
@@ -77,7 +79,7 @@ apk_list=(
 	com.touchtype.swiftkey
 )
 
-for package in ${apk_list[@]}
+for package in ${packages_list[@]}
 do
 	sudo adb uninstall --user 0 "${package}"
 done

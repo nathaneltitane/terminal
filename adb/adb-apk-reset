@@ -106,22 +106,25 @@ write () {
 }
 
 wait () {
-	console.msg "[ ${hostname} ] Waiting - Press any key to continue..."
-	
+	console.fwd "Press any key to continue..." "[ ${hostname} ]"
+
 	read _ # placeholder
 }
 
 # clear storage
 
-console.inf "[${hostname}] Clearing storage."
+console.inf "Clearing storage" "[ ${hostname} ] "
 
 adb ${device} shell pm clear "${application}"
 
 # launch application
 
-console.inf "[ ${hostname} ] Launching application."
+console.inf "Launching application" "[ ${hostname} ]"
 
-adb ${device} shell am start --user 0 -n "${application}"/"${application}".app.PackageActivity
+adb ${device} shell	\
+	am start		\
+		--user 0	\
+		-n "${application}"/"${application}".app.PackageActivity
 
 # automate input
 

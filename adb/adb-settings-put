@@ -18,5 +18,12 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # write settings
 
-sudo adb shell settings put system hw_hide_font_style false
-sudo adb shell settings put global policy_control immersive.navigation=com.sec.android.app.desktoplauncher
+commands_list+=(
+	system hw_hide_font_style false
+	global policy_control immersive.navigation=com.sec.android.app.desktoplauncher
+	)
+
+for command in ${commands_list[@]}
+do
+	sudo adb shell settings put "${command}"
+done

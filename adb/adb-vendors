@@ -32,8 +32,6 @@ fi
 
 cd "${android_directory}" || exit
 
-console.inf "Generating ADB USB Vendor ID list..."
-
 for i in {0..65535}
 do
 	printf '0x%04x\n' "$i"
@@ -42,8 +40,6 @@ done >> "${android_directory}"/adb_usb.ini
 chmod -R 777 "${android_directory}"
 
 # udev #
-
-console.inf "Generating rules for Android devices (udev)..."
 
 while read -r vendor_id
 do
