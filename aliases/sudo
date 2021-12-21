@@ -1,3 +1,0 @@
-# sudo #
-
-[ -x $(command -v sudo) ] && alias sudo='sudo -p "$(tput setaf 3)[ "${USER}" ] >_ ? $(tput sgr 0)"'
