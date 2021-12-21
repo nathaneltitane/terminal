@@ -1,3 +1,3 @@
 # list #
 
-[[ -x $(command -v ls) ]] && alias 'list'='ls -a -c -h -l --color=auto --group-directories-first'
+[[ -x $(command -v ls) ]] && alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'
