@@ -2,7 +2,7 @@
 
 [[ $(command -v apt-get) ]] && alias 'autoclean'='sudo apt-get autoclean'
 [[ $(command -v apt-get) ]] && alias 'autoremove'='sudo apt-get autoremove'
-[[ $(command -v apt-get) ]] &&  'check'='sudo apt-get check'
+[[ $(command -v apt-get) ]] && alias 'check'='sudo apt-get check'
 [[ $(command -v apt-get) ]] && alias 'clean'='sudo apt-get clean'
 [[ $(command -v apt-get) ]] && alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
 [[ $(command -v apt-get) ]] && alias 'download'='sudo apt-get download'
