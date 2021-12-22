@@ -48,7 +48,7 @@ then
 		console.fwd "Welcome to Dextop" "[ Termux ]"
 		echo
 
-		console.inf "Launch session or application: 'container-session -u <username> | -a <application>'"
+		console.inf "Launch session: 'container-session -u <username>'"
 	fi
 
 	echo
