@@ -23,7 +23,12 @@ fi
 # dependencies #
 
 . /data/data/com.termux/files/usr/bin/console
-. /data/data/com.termux/files/usr/bin/dextop
+
+# environment
+
+export DISPLAY=":1"
+export DISPLAY_NUMBER="${DISPLAY/:/}"
+export PORT="590${DISPLAY_NUMBER}"
 
 # dextop welcome
 
