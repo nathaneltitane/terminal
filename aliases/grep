@@ -1,6 +1,6 @@
 # grep #
 
-[[ -x $(command -v grep) ]] && alias grep='grep--color=auto'
+[[ -x $(command -v grep) ]] && alias grep='grep --color=auto'
 
 [[ -x $(command -v egrep) ]] && alias egrep='egrep --color=auto'
 
