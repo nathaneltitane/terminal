@@ -692,7 +692,7 @@ console.log () {
 # password
 
 console.password () {
-	#obfuscate password input with custom mask
+	# obfuscate password input with custom mask
 
 	mask_character="•"
 
