@@ -529,7 +529,7 @@ console.directory () {
 	list=()
 }
 
-# directory
+# file
 
 console.file () {
 	path="${1}"
@@ -602,7 +602,7 @@ console.delete () {
 # get
 
 console.get () {
-	curl -sL "${source}/${file}" > "${path}"/"${file}" &
+	curl -s -L "${source}/${file}" > "${path}"/"${file}" &
 
 	console.progress "Downloading" "[ ${file} ]"
 	echo
@@ -616,34 +616,30 @@ console.download () {
 	source="${1}"
 	path="${2}"
 
-	# "${3}" - array - file list
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${3} - array
 
-	list=(${@:3}) 
+		list=(${@:3})
+	else
+		file="${3}"
+
+		list=()
+
+		list+=("${file}")
+	fi
 
 	console.dwl "Loading..."
 	echo
 
-	if [ -z "${list}" ]
-	then
-		source="${1}"
-		path="${2}"
-
-		# "${3}" - variable - file
-
-		file="${3}"
-
+	for file in ${list[@]}
+	do
 		console.get
+	done
 
-	else
-		for file in ${list[@]}
-		do
-			console.get
-		done
+	# unset array
 
-		# unset array
-
-		list=()
-	fi
+	list=()
 }
 
 # put
@@ -651,7 +647,7 @@ console.download () {
 console.put () {
 	type="${1}"
 
-	curl \
+	curl									\
 		-X POST "${destination}/${file}"	\
 		-H "Content-Type: ${type}"			\
 		-d "${file}" & 
