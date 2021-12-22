@@ -2,7 +2,7 @@
 
 # check for interactive session
 
-[ -z "$PS1" ] && return
+[ -z "${PS1}" ] && return
 
 # set shell options
 
@@ -54,7 +54,7 @@ fi
 
 # prompt string
 
-# ansi colors escape setup using 'tput'
+# setup ansi colors escape using 'tput'
 
 black="\001$(tput setaf 0)\002"
 red="\001$(tput setaf 1)\002"
