@@ -610,26 +610,27 @@ console.delete () {
 
 console.link () {
 	source="${1}"
+	target="${2}"
 
 	if [[ -n "${#list[@]}" ]]
 	then
 		# ${2} - array
 
-		list=(${@:2})
+		list=(${@:3})
 	else
-		target="${2}"
+		file="${3}"
 
 		list=()
 
-		list+=("${target}")
+		list+=("${file}")
 	fi
 
-	console.lnk "Linking..."
+	console.lnk "Linking" "[ ${file} ]"
 	echo
 
 	for file in ${list[@]}
 	do
-		ln -s -f "${source}" "${target}"
+		ln -s -f "${source}"/"${file}" "${target}"/"${file}"
 	done
 
 	# unset array
@@ -818,12 +819,12 @@ console.input () {
 console.clean () {
 	command_autoremove="apt-get autoremove"
 	command_clean="apt-get clean"
-	
+
 	console.log "${command_autoremove}" &
 	
 	console.progress "Flushing packages..."
 	echo
-	
+
 	console.log "${command_clean}" &
 
 	console.progress "Cleaning..."
@@ -895,7 +896,7 @@ console.reconfigure () {
 
 		list+=("${package}")
 	fi
-	
+
 	console.inf "Reconfiguring packages."
 	echo
 
@@ -1051,13 +1052,13 @@ console.dialog () {
 
 	# define dialog usage
 
-	if [[ -z $(command -v zenity) ]]
-	then
-		dialog=$(k_dialog)
-
-	elif [[ -z $(command -v kdialog) ]]
+	if [[ $(command -v zenity) ]]
 	then
 		dialog=$(g_dialog)
+
+	elif [[ $(command -v kdialog) ]]
+	then
+		dialog=$(k_dialog)
 	else
 		console.wrn "'dialog' not installed."
 		console.wrn "This utility must be run using the 'directory' option."
@@ -1070,31 +1071,39 @@ console.dialog () {
 	fi
 }
 
+# clear
+
 console.clear () {
 	console.wait
 
 	clear
 }
 
+# kill
+
+console.kill () {
+	process_name="${1}"
+
+	[[ $(command -v pgrep) ]] && process_id=$(pgrep -f "${process_name}")
+	[[ $(command -v ps) ]]    && process_id=$(ps -A | grep "${process_name}" | cut -d ' ' -f 1)
+
+	[[ $(command -v kill) ]]  && kill_command=$(kill -9 ${process_id})
+	[[ $(command -v pkill) ]] && kill_command=$(pkill ${process_name})
+
+	"${kill_command}"
+}
+
+# exit
+
 console.exit () {
 	instance="${1}"
 
 	console.countdown 3 "Exiting" "[ ${instance} ]"
 
-	kill -9 $(pgrep -f "${SHELL}")
+	console.kill "${SHELL}"
 }
 
-console.kill () {
-	process_name="${1}"
-
-	[ -x $(command -v pgrep) ]   && process_id=$(pgrep -f "${process_name}")
-	[ -x $(command -v ps) ]      &&  process_id=$(ps -A | grep "${process_name}" | cut -d ' ' -f 1)
-
-	[ -x $(command -v kill) ]    && kill_command=$(kill -9 ${process_id})
-	[ -x $(command -v pkill) ]   && kill_command=$(pkill ${process_name})
-
-	"${kill_command}"
-}
+# trap
 
 console.trap.clean () {
 	checkpoint="${1}"
@@ -1104,19 +1113,6 @@ console.trap.clean () {
 	then
 		console.scs "Setup complete" "[ ${instance} ]"
 		echo
-
-		console.fwd "Removing setup files..."
-		echo
-
-		remove_list=(
-			"${instance}"
-		)
-
-		console.delete ${remove_list[@]}
-
-		sed -i					\
-			-e '/.*email/d'		\
-			-e '/.*password/d'	"${BINARIES_DIRECTORY}"/"${instance}"
 	else
 		console.err "Setup errors were encountered" "[ ${instance} ]"
 		echo
@@ -1128,7 +1124,7 @@ console.trap.clean () {
 
 console.trap () {
 	instance="${1}"
-	
+
 	[ $# -eq 1 ] && signal="EXIT" || signal="${2}"
 
 	trap "${instance}" "${signal}"
