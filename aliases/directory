@@ -1,7 +1,3 @@
 # directory #
 
-alias 'directory'='mkdir -p'
-
-alias dir='dir --color=auto'
-
-alias vdir='vdir --color=auto'
+[[ $(command -v mkdir) ]] && alias 'directory'='mkdir -p'

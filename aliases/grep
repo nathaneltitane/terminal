@@ -1,7 +1,7 @@
 # grep #
 
-[[ -x $(command -v grep) ]] && alias grep='grep --color=auto'
+[[ $(command -v grep) ]] && alias grep='grep --color=auto'
 
-[[ -x $(command -v egrep) ]] && alias egrep='egrep --color=auto'
+[[ $(command -v egrep) ]] && alias egrep='egrep --color=auto'
 
-[[ -x $(command -v fgrep) ]] && alias fgrep='fgrep --color=auto'
+[[ $(command -v fgrep) ]] && alias fgrep='fgrep --color=auto'

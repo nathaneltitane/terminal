@@ -1,9 +1,9 @@
 # git #
 
-[[ -x $(command -v git) ]] && alias 'gc'='git clone'
-[[ -x $(command -v git) ]] && alias 'gi'='git init'
-[[ -x $(command -v git) ]] && alias 'gp'='git pull'
-[[ -x $(command -v git) ]] && alias 'ga'='git add *'
-[[ -x $(command -v git) ]] && alias 'gm'="git commit -a -m ${1}"
-[[ -x $(command -v git) ]] && alias 'gs'='git push'
-[[ -x $(command -v git) ]] && alias 'gu'='ga && gm "Code & Features Update" && gs'
+[[ $(command -v git) ]] && alias 'gc'='git clone'
+[[ $(command -v git) ]] && alias 'gi'='git init'
+[[ $(command -v git) ]] && alias 'gp'='git pull'
+[[ $(command -v git) ]] && alias 'ga'='git add *'
+[[ $(command -v git) ]] && alias 'gm'="git commit -a -m ${1}"
+[[ $(command -v git) ]] && alias 'gs'='git push'
+[[ $(command -v git) ]] && alias 'gu'='ga && gm "Code & Features Update" && gs'
