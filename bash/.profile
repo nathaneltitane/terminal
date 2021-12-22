@@ -32,7 +32,7 @@ export PORT="590${DISPLAY_NUMBER}"
 
 # dextop welcome
 
-if [[ $(command -v dextop) ]]
+if [[ $(command -v dextop-checkpoint-complete) ]]
 then
 	if [[ $(ps -A | grep -i proot) ]]
 	then
