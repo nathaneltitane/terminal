@@ -322,6 +322,13 @@ console.upl () {
 	echo -e "${magenta}${marker_top} ${value}${reset}"
 }
 
+console.lnk () {
+	console.prompt "$@"
+	value="${console_str[@]}"
+
+	echo -e "${magenta}${marker_stp} ${value}${reset}"
+}
+
 console.scs () {
 	console.prompt "$@"
 	value="${console_str[@]}"
@@ -592,6 +599,37 @@ console.delete () {
 		# remove file
 
 		[ -f "${path}"/"${file}" ] && rm -rf "${path}"/"${file}"
+	done
+
+	# unset array
+
+	list=()
+}
+
+# link
+
+console.link () {
+	source="${1}"
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${2} - array
+
+		list=(${@:2})
+	else
+		target="${2}"
+
+		list=()
+
+		list+=("${target}")
+	fi
+
+	console.lnk "Linking..."
+	echo
+
+	for file in ${list[@]}
+	do
+		ln -s -f "${source}" "${target}"
 	done
 
 	# unset array
