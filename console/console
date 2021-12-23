@@ -132,8 +132,6 @@ console.prompt () {
 	# parse arguments
 
 	[ $# -eq 0 ] && span_character="/"											# 0 argument   - full dash line
-	[ $# -eq 0 ] && begin="[ "													# 0 argument   - prepend bracket to 'begin' value
-	[ $# -eq 0 ] && end=" ]"													# 0 argument   - append bracket to 'end' value
 
 	[ $# -eq 1 ] && span_character="/"											# 1 argument   - pad to end of line
 
