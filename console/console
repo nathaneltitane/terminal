@@ -131,7 +131,7 @@ console.prompt () {
 
 	# parse arguments
 
-	[ $# -eq 0 ] && span_character="/"											# 0 argument   - full dash line
+	[ $# -ge 0 ] && span_character="/"											# 0 argument   - full dash line
 
 	[ $# -eq 1 ] && span_character="/"											# 1 argument   - pad to end of line
 
@@ -178,13 +178,13 @@ console.prompt () {
 
 	# populate array at end to avoid integrating spaces
 
-	[ $# -eq 0 ] && console_str+=("${span_begin}""${span_middle}""${span_end}")
+	[ $# -ge 0 ] && console_str=("${span_begin}""${span_middle}""${span_end}")
 
-	[ $# -eq 1 ] && console_str+=("${span_begin}")
+	[ $# -eq 1 ] && console_str=("${span_begin}")
 
-	[ $# -ge 2 ] && console_str+=("${span_begin}""${span_middle}""${span_end}")
+	[ $# -ge 2 ] && console_str=("${span_begin}""${span_middle}""${span_end}")
 
-	[ $# -eq 3 ] && console_str+=("${span_begin}""${span_middle}""${span_end}")
+	[ $# -eq 3 ] && console_str=("${span_begin}""${span_middle}""${span_end}")
 }
 
 # highlights
