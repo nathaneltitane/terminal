@@ -74,13 +74,13 @@ then
 
 	if [[ $(ps -A | grep -i proot) ]]
 	then
-		if [ ! -f "${BINARIES_DIRECTORY}"/container-configuration-complete ]
+		if [ ! -f "${PREFIX}"/bin/container-configuration-complete ]
 		then
 			console.reconfigure tzdata
 			console.reconfigure locales
 			console.reconfigure keyboard-configuration
 
-			console.file "${BINARIES_DIRECTORY}" container-configuration-complete
+			console.file "${PREFIX}"/bin container-configuration-complete
 		fi
 	fi
 fi

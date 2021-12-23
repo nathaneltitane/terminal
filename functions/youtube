@@ -1,7 +1,7 @@
 # youtube #
 
 youtube () {
-	[[ -z $(command -v youtube-dl) ]] && console.download https://yt-dl.org/downloads/latest "${BINARIES_DIRECTORY}" youtube-dl
+	[[ -z $(command -v youtube-dl) ]] && console.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
 
 	path="${2}"
 
