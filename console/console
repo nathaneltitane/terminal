@@ -1114,19 +1114,19 @@ console.exit () {
 
 # trap
 
-console.trap.clean () {
+console.result () {
 	checkpoint="${1}"
 	instance="${2}"
 
-	if [ -f "${BINARIES_DIRECTORY}"/${checkpoint} ]
+	if [[ $(command -v "${checkpoint}") ]]
 	then
 		console.scs "Setup complete" "[ ${instance} ]"
 		echo
 	else
 		console.err "Setup errors were encountered" "[ ${instance} ]"
 		echo
-		
-		console.inf "Consult setup logs for details." '[ ${PREFIX}/var/log/ ]'
+
+		console.inf "Consult setup logs for details" '[ ${PREFIX}/var/log/ ]'
 		echo
 	fi
 }
