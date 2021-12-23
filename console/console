@@ -112,14 +112,13 @@ marker_nul='     '
 
 console.prompt () {
 	# initialize string return array
-	
+
 	console_str=()
 
 	begin="${1}"
 	end="${2}"
-	
+
 	[ -z "${count}" ] && count="80"
-	
 
 	# set span width
 
@@ -130,38 +129,42 @@ console.prompt () {
 		span=""
 	fi
 
-	[ $# -ge 0 ] && span_character="/"											# 0 argument   - full dash line
-	[ $# -eq 1 ] && span_character=" "											# 1 argument   - pad end of line with space
+	[ $# -eq 0 ] && span_character="/"											# 0 argument   - full dash line
+	[ $# -eq 0 ] && begin="[ "													# 0 argument   - prepend bracket to 'begin' value
+	[ $# -eq 0 ] && end=" ]"													# 0 argument   - append bracket to 'end' value
+
+	[ $# -eq 1 ] && span_character="/"											# 1 argument   - pad to end of line
+
 	[ $# -eq 3 ] && span_character="${3}"										# 3 arguments  - replace span character with argument 3
-	
+
 	[ $# -ge 2 ] && span=${span::-6}											# 2+ arguments - reduce span by 6 characters: compensate for line marker + space
-	[ $# -ge 2 ] && begin="${begin} "											# 2+ arguments - append space to beginning value
-	[ $# -ge 2 ] && end=" ${end}"												# 2+ arguments - prepend space to end value
-	
+	[ $# -ge 2 ] && begin="${begin} "											# 2+ arguments - append space to 'begin' value
+	[ $# -ge 2 ] && end=" ${end}"												# 2+ arguments - prepend space to 'end' value
+
 	# fold paragraph if character count is above 80
 	# indent second line onward (6 spaces) to match line marker
-	
+
 	if [ $# -eq 1 ] && [ "${#begin}" -ge "${count}" ]
 	then
 		begin=$(echo "${begin}" | fold -s -w "${count}" | sed -e '2,$s/^/      /g')
 	fi
-	
+
 	# substitute span character
-	
+
 	span="${span//-/$span_character}"
-	
+
 	# print first argument
-	
+
 	span_begin=$(echo -ne "${begin}")
-	
+
 	# print other arguments as fixed width prompt if present
-	
+
 	# calculate span width - remove 6 characters for prompt header
-	
+
 	span_count=$(( ${#span} - ${#begin} - ${#end} ))
-	
+
 	# set new padding width
-	
+
 	if [ ${#begin} -le "${count}" ]
 	then
 		span=${span:0:$span_count}
@@ -170,12 +173,18 @@ console.prompt () {
 	fi
 
 	span_middle="${span}"
-	
+
 	span_end=$(echo -e "${end}")
-	
+
 	# populate array at end to avoid integrating spaces
-	
-	console_str+=("${span_begin}""${span_middle}""${span_end}")
+
+	[ $# -eq 0 ] && console_str+=("${span_begin}""${span_middle}""${span_end}")
+
+	[ $# -eq 1 ] && console_str+=("${span_begin}")
+
+	[ $# -ge 2 ] && console_str+=("${span_begin}""${span_middle}""${span_end}")
+
+	[ $# -eq 3 ] && console_str+=("${span_begin}""${span_middle}""${span_end}")
 }
 
 # highlights
