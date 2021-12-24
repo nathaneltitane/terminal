@@ -775,6 +775,11 @@ console.password () {
 	done
 
 	input="${password}"
+
+	# normalize line spacing:
+	# additional 'echo' required due to 'read'
+
+	echo
 }
 
 # input
@@ -862,6 +867,10 @@ console.hold () {
 		console.progress "Holding..."
 		echo
 	done
+
+	# unset array
+
+	list=()
 }
 
 # release
@@ -869,7 +878,18 @@ console.hold () {
 console.release () {
 	export DEBIAN_FRONTEND=noninteractive
 
-	list=($@)
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
 
 	command_unhold="apt-mark unhold"
 
@@ -886,6 +906,10 @@ console.release () {
 		console.progress "Releasing..."
 		echo
 	done
+
+	# unset array
+
+	list=()
 }
 
 # reconfigure
@@ -916,6 +940,10 @@ console.reconfigure () {
 
 		[[ $(dpkg -l | grep -i "${package}") ]] && sudo dpkg-reconfigure "${package}"
 	done
+
+	# unset array
+
+	list=()
 }
 
 # install
@@ -923,7 +951,18 @@ console.reconfigure () {
 console.install () {
 	export DEBIAN_FRONTEND=noninteractive
 
-	list=($@)
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
 
 	# use '--no-install-recommends' option to keep bloat to a minimum
 
@@ -953,6 +992,10 @@ console.install () {
 			:
 		fi
 	done
+
+	# unset array
+
+	list=()
 
 	# cleanup
 
@@ -996,7 +1039,18 @@ console.upgrade () {
 console.purge () {
 	export DEBIAN_FRONTEND=noninteractive
 
-	list=($@)
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
 
 	command_purge="sudo apt-get purge"
 
@@ -1024,7 +1078,11 @@ console.purge () {
 			:
 		fi
 	done
-	
+
+	# unset array
+
+	list=()
+
 	# cleanup
 	
 	console.clean
