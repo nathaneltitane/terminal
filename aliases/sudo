@@ -1,3 +1,0 @@
-# sudo #
-
-[[ $(command -v sudo) ]] && alias sudo='sudo '
