@@ -917,6 +917,8 @@ console.release () {
 console.reconfigure () {
 	export DEBIAN_FRONTEND=noninteractive
 
+	console.update
+
 	if [[ -n "${#list[@]}" ]]
 	then
 		# ${1} - array
@@ -930,15 +932,17 @@ console.reconfigure () {
 		list+=("${package}")
 	fi
 
+	command_reconfigure="dpkg-reconfigure"
+
 	console.inf "Reconfiguring packages."
 	echo
 
-	for directory in ${list[@]}
+	for package in ${list[@]}
 	do
 		console.wrn "Reconfiguring" "[ '${package}' ]"
 		echo
 
-		[[ $(dpkg -l | grep -i "${package}") ]] && sudo dpkg-reconfigure "${package}"
+		[[ $(dpkg -l | grep -i "${package}") ]] && "${command_reconfigure}" "${package}"
 	done
 
 	# unset array
