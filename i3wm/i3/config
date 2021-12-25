@@ -65,7 +65,6 @@ set $workspace8 "8"
 
 # background
 
-$execute xsetroot -solid #000000
 $execute feh --bg-fill $image
 
 # lock screen
