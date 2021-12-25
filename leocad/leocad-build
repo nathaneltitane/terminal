@@ -10,9 +10,14 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version #
 
+version="12-24-2021"
+
 # usage #
 
 # prompt #
+
+console.script "Setting up ${script#*-}"
+echo
 
 # variables #
 
@@ -25,9 +30,9 @@ build_directory="${TEMPORARY}"
 application="leocad"
 source="https://github.com/leozide/leocad.git"
 
-[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
-
 # defaults #
+
+[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 
 # packages #
 
@@ -55,7 +60,11 @@ console.install ${install_list[@]}
 
 # build #
 
-git clone "${source}" "${build_directory}"
+command_clone="git clone --quiet"
+
+console.log "${command_clone} ${source} ${build_directory}" &
+
+console.progress "Cloning..."
 
 cd "${build_directory}" || exit 1
 
@@ -65,7 +74,11 @@ qmake "${application}".pro
 
 # compile binary
 
-make -j$(nproc)
+command_build="make -j$(nproc)"
+
+console.log "${command_build}" &
+
+console.progress "Building..."
 
 # update binary
 
