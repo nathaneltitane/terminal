@@ -18,7 +18,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX) || exit 1
 
-trap 'rm -f "${TEMPORARY}"' EXIT
+trap 'rm -rf "${TEMPORARY}"' EXIT
 
 build_directory="${TEMPORARY}"
 
