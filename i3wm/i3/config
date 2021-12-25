@@ -50,7 +50,7 @@ set $launcher				\
 
 set $status i3status
 
-set $terminal st
+set $terminal termux
 
 set $workspace1 "1"
 set $workspace2 "2"
