@@ -2,16 +2,24 @@
 
 # dependencies #
 
-source /data/data/com.termux/files/usr/bin/console
-source /data/data/com.termux/files/usr/bin/dextop
+curl -sL get.trmnl.me/console/console > /usr/bin/console && . /usr/bin/console
 
-# usage #
-
-# variables #
+# script #
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-# configuration #
+# version #
+
+version="12-24-2021"
+
+# usage #
+
+# prompt #
+
+console.script "Setting up ${script#*-}"
+echo
+
+# variables #
 
 # link configuration
 

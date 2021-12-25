@@ -2,14 +2,24 @@
 
 # dependencies #
 
-source /data/data/com.termux/files/usr/bin/console
-source /data/data/com.termux/files/usr/bin/dextop
+curl -sL get.trmnl.me/console/console > /usr/bin/console && . /usr/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+version="12-24-2021"
 
 # usage #
 
-# variables #
+# prompt #
 
-script=$(basename -- "${BASH_SOURCE[0]}")
+console.script "Setting up ${script#*-}"
+echo
+
+# variables #
 
 application="leocad"
 architecture="arm64"
