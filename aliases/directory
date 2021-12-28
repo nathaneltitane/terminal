@@ -1,3 +1,0 @@
-# directory #
-
-[[ $(command -v mkdir) ]] && alias 'directory'='mkdir -p'
