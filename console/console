@@ -1152,7 +1152,7 @@ console.clear () {
 
 # kill
 
-console.kill () {
+console.terminate () {
 	process_name="${1}"
 
 	[[ $(command -v pgrep) ]] && process_id=$(pgrep -f "${process_name}")
