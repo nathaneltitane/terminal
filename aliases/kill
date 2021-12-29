@@ -1,3 +1,0 @@
-# kill #
-
-[[ $(command -v kill) ]] && alias 'kill'="sudo pkill -9"

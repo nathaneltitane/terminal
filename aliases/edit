@@ -1,1 +1,3 @@
+# edit #
+
 [[ $(command -v nano) ]] && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'

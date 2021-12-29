@@ -1150,7 +1150,7 @@ console.clear () {
 	clear
 }
 
-# kill
+# terminate
 
 console.terminate () {
 	process_name="${1}"

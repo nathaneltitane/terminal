@@ -1,4 +1,4 @@
-# apt #
+# packages #
 
 [[ $(command -v apt-get) ]] && alias 'autoclean'='sudo apt-get autoclean'
 [[ $(command -v apt-get) ]] && alias 'autoremove'='sudo apt-get autoremove'
