@@ -1,9 +1,0 @@
-# shortcuts #
-
-[ -d "/" ]               && alias 'rd'='cd /'
-[ -d "${HOME}" ]         && alias 'hd'="cd ${HOME}"
-[ -d "${HOME}"/Git ]     && alias 'gd'="cd ${HOME}/Git"
-[ -d "${HOME}"/.vnc ]    && alias 'vd'="cd ${HOME}/.vnc"
-[ -d "/media" ]          && alias 'md'='cd /media'
-[ -d "/media/internal" ] && alias 'id'='cd /media/internal'
-[ -d "/media/external" ] && alias 'ed'='cd /media/external'
