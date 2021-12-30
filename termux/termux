@@ -1,3 +1,5 @@
 #!/bin/bash
 
-am start -n com.termux/com.termux.app.TermuxActivity
+am start							\
+	-a android.intent.action.VIEW	\
+	-n com.termux/com.termux.app.TermuxActivity
