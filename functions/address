@@ -3,7 +3,7 @@
 address () {
 	echo
 
-	curl -s ipinfo.io/ip
+	curl -s -L ipinfo.io/ip
 
 	echo
 }
