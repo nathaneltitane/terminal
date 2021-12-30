@@ -50,7 +50,7 @@ extract () {
 
 			*)
 				echo
-				echo -e "'${1}' cannot be extracted:"
+				echo -e "'${1}' - extraction failed:"
 				echo -e "Unknown or unsupported archive type."
 				echo
 

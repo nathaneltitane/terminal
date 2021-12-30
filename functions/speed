@@ -1,9 +1,0 @@
-# speed #
-
-speed () {
-	[[ -z $(command -v speedtest-cli) ]] && console.install speedtest-cli
-
-	speedtest-cli			\
-		--server 2406		\
-		--simple
-}
