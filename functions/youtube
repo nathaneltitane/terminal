@@ -2,7 +2,7 @@
 
 youtube () {
 	[[ -z "${PREFI} ]] && PREFIX=""
-	
+
 	[[ -z $(command -v youtube-dl) ]] && console.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
 
 	path="${2}"
