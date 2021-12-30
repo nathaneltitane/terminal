@@ -11,13 +11,13 @@ youtube () {
 
 	cd "${path}" || exit 1
 
-	youtube-dl												\
-		--ignore-errors										\
-		--yes-playlist										\
-		--extract-audio										\
-		--format		bestaudio							\
-		--audio-format		mp3								\
-		--audio-quality		160K							\
-		--output		"%(title)s.%(ext)s"					\
-															"${1}"
+	youtube-dl									\
+		--ignore-errors							\
+		--yes-playlist							\
+		--extract-audio							\
+		--format		bestaudio				\
+		--audio-format		mp3					\
+		--audio-quality		160K				\
+		--output		"%(title)s.%(ext)s"		\
+												"${1}"
 }
