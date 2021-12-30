@@ -15,9 +15,9 @@ youtube () {
 		--ignore-errors							\
 		--yes-playlist							\
 		--extract-audio							\
-		--format		bestaudio				\
+		--format			bestaudio			\
 		--audio-format		mp3					\
 		--audio-quality		160K				\
-		--output		"%(title)s.%(ext)s"		\
+		--output		"	%(title)s.%(ext)s"	\
 												"${1}"
 }
