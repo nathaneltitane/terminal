@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ -z "${url}" ] && url="google.com"
+
 am start							\
 	-a android.intent.action.VIEW	\
-	-d "https://${@}" > /dev/null 2>&1
+	-d "https://${url}" > /dev/null 2>&1
