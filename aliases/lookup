@@ -1,3 +1,0 @@
-# lookup #
-
-[[ $(command -v ping) ]] && alias 'lookup'='ping -c 5'
