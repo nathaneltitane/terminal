@@ -1,0 +1,3 @@
+# remove #
+
+[[ $(command -v rm) ]] && alias 'remove'='rm -rf'
