@@ -211,27 +211,27 @@ bindsym $modifier+z mode "resize"
 
 mode "resize" {
 	# reset window to configured size
-	
+
 	bindsym $modifier+Shift+z resize set 800 px  600 px
-	
+
 	# shrink window width by 10 px
-	
+
 	bindsym Left resize shrink width 10 px
-	
+
 	# shrink window height by 10 px
-	
+
 	bindsym Up resize shrink height 10 px
-	
+
 	# grow window height by 10 px
-	
+
 	bindsym Down resize grow height 10 px
-	
+
 	# grow window width by 10 px
-	
+
 	bindsym Right resize grow width 10 px
-	
+
 	# exit resi[z]e mode
-	
+
 	bindsym $modifier+z mode "default"
 }
 
@@ -277,33 +277,33 @@ bindsym $modifier+Shift+e $execute dmenu-exit-session
 
 bar {
 	status_command i3status
-	
+
 	font pango:Sans Regular 10
-	
+
 	binding_mode_indicator yes
-	
+
 	mode hide
 	hidden_state hide
 	modifier $modifier
-	
+
 	position bottom
-	
+
 	separator_symbol " // "
-	
+
 	tray_output VNC-0
 	tray_padding 0
-	
+
 	workspace_buttons yes
 	workspace_min_width 20
 	strip_workspace_name no
 	strip_workspace_numbers no
-	
+
 	colors {
-	
+
 	# A - border
 	# B - background
 	# C - text
-	
+
 	# color class                                        [  A  ] [  B  ] [  C  ]
 
 	background                                                   #000000
