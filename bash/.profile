@@ -38,9 +38,13 @@ export PORT="590${DISPLAY_NUMBER}"
 
 if [[ $(command -v dextop) ]]
 then
+	[[ $(cat "${PREFIX}"/bin/dextop) = xfce ]] && session_name="XFCE" || session_name="CONSOLE"
+
+	[ -f /etc/os-release ] && . /etc/os-release && name="${NAMEˆ}" || name=Ubuntu
+
 	if [[ $(ps -A | grep -i proot) ]]
 	then
-		console.fwd "Welcome to Dextop" "[ ${DISTRIBUTION_NAME} ]"
+		console.fwd "Welcome to Dextop" "[ ${name} ]"
 		echo
 
 		if [ -f "${HOME}"/.vnc/selection ]
@@ -50,7 +54,7 @@ then
 			echo
 		else
 			console.wrn "This is your first login:"
-			console.wrn "Run 'container-vnc -o' to launch session [ ${SESSION_NAME} ]."
+			console.wrn "Run 'container-vnc -o' to launch session [ ${session_name} ]."
 			echo
 		fi
 	else
