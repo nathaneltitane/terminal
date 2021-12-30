@@ -17,7 +17,7 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 if [ -z "$(command -v tput)" ]
 then
 	# ansi colors
-	
+
 	if [[ -t 1 ]]
 	then
 		black=$(echo -e \\e\[30m)
@@ -32,7 +32,7 @@ then
 	fi
 else
 	# colors and attributes
-	
+
 	if [[ -t 1 ]]
 	then
 		black=$(tput setaf 0)
@@ -52,31 +52,31 @@ else
 		invisible=$(tput invis)
 		standout_start=$(tput smso)
 		standout_stop=$(tput rmso)
-		
+
 		reset=$(tput sgr 0)														# reset all attributes
-		
+
 		# terminal control
-		
+
 		terminal_info=$(tput longname)											# full description of terminal
-		
+
 		terminal_height=$(tput lines)											# number of lines in terminal
 		terminal_width=$(tput cols)												# number of columns in terminal
 		terminal_colors=$(tput colors)											# number of colors available
-		
+
 		terminal_save_cursor=$(tput sc)											# save cursor position of terminal
 		terminal_restore_cursor=$(tput rc)										# restore cursor position of terminal
-		
+
 		terminal_home_cursor=$(tput home)										# move cursor to upper left corner (0,0) Same as 'tput cup 0 0'
 		terminal_move_cursor=$(tput cup ${tput_row} ${tput_col})				# move cursor to position (row, column)
 		terminal_cursor_down=$(tput cud1)										# move cursor down 1 line
 		terminal_cursor_up=$(tput cuu1)											# move cursor up 1 line
-		
+
 		terminal_cursor_hide=$(tput civis)										# set cursor to invisible state
 		terminal_cursor_show=$(tput cnorm)										# set cursor to normal state
-		
+
 		terminal_save_screen=$(tput smcup)										# save screen contents
 		terminal_restore_screen=$(tput rmcup)									# restore screen contents
-		
+
 		terminal_clear_right=$(tput el)											# clear from cursor to end of line - left
 		terminal_clear_left=$(tput el)											# clear from cursor to beginning of line - right
 		terminal_clear_down=$(tput ed)											# clear from cursor to end of the screen - down
@@ -192,14 +192,14 @@ console.prompt () {
 console.red () {
 	console.prompt "$@"
 	value="${console_str[@]}"
-	
+
 	echo -e "${red}${value}${reset}"
 }
 
 console.green () {
 	console.prompt "$@"
 	value="${console_str[@]}"
-	
+
 	echo -e "${green}${value}${reset}"
 }
 
@@ -400,7 +400,7 @@ console.num () {
 
 	console.prompt "$@"
 	value="${console_str[@]}"
-	
+
 	echo -e "${before}${number}${after} ${value}"
 }
 
@@ -441,11 +441,11 @@ console.script () {
 
 console.wait () {
 	# wait in seconds
-	
+
 	seconds="${1}"
-	
+
 	# set defaults
-	
+
 	[ -z "${seconds}" ] && seconds="1"
 
 	sleep "${seconds}"
@@ -456,23 +456,23 @@ console.wait () {
 console.countdown () {
 	before="[ "
 	after=" ]"
-	
+
 	seconds="$1"
-	
+
 	shift
-	
+
 	console.prompt "$@"
 	value="${console_str[@]}"
-	
+
 	shift
-	
+
 	while [ "${seconds}" -ge 0 ]
 	do
 		echo -ne "\r${before}${red}$((seconds--))${reset}${after} ${value}\c"
-		
+
 		sleep 1
 	done
-	
+
 	# normalize line spacing:
 	# additional 'echo' required due to carriage return
 
@@ -698,7 +698,7 @@ console.put () {
 	curl									\
 		-X POST "${destination}/${file}"	\
 		-H "Content-Type: ${type}"			\
-		-d "${file}" & 
+		-d "${file}" &
 
 	console.progress "Uploading" "[ ${file} ]"
 	echo
@@ -805,7 +805,7 @@ console.input () {
 				echo
 				console.err "${prompt%:} cannot be empty."
 				echo
-				
+
 				prompt="$(echo ${label} | sed 's/_/ /'):"
 
 				console.ipt "${prompt}"
@@ -835,7 +835,7 @@ console.clean () {
 	command_clean="apt-get clean"
 
 	console.log "${command_autoremove}" &
-	
+
 	console.progress "Flushing packages..."
 	echo
 
@@ -1088,7 +1088,7 @@ console.purge () {
 	list=()
 
 	# cleanup
-	
+
 	console.clean
 }
 
@@ -1158,10 +1158,10 @@ console.terminate () {
 	[[ $(command -v pgrep) ]] && process_id=$(pgrep -f "${process_name}")
 	[[ $(command -v ps) ]]    && process_id=$(ps -A | grep "${process_name}" | cut -d ' ' -f 1)
 
-	[[ $(command -v kill) ]]  && kill_command=$(kill -9 ${process_id})
-	[[ $(command -v pkill) ]] && kill_command=$(pkill ${process_name})
+	[[ $(command -v kill) ]]  && terminate_command=$(kill -9 ${process_id})
+	[[ $(command -v pkill) ]] && terminate_command=$(pkill ${process_name})
 
-	"${kill_command}"
+	"${terminate_command}"
 }
 
 # exit
