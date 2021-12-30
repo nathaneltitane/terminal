@@ -1,7 +1,7 @@
 # system #
 
-[[ $(command -v systemctl) ]] && alias 'start'='systemctl start'
-[[ $(command -v systemctl) ]] && alias 'stop'='systemctl stop'
-[[ $(command -v systemctl) ]] && alias 'enable'='systemctl enable'
-[[ $(command -v systemctl) ]] && alias 'disable'='systemctl disable'
-[[ $(command -v systemctl) ]] && alias 'status'='systemctl status'
+[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'start'='sudo systemctl start'
+[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'stop'='sudo systemctl stop'
+[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'enable'='sudo systemctl enable'
+[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'disable'='sudo systemctl disable'
+[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'status'='sudo systemctl status'
