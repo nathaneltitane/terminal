@@ -600,14 +600,14 @@ console.delete () {
 		list+=("${file}")
 	fi
 
-	for directory in ${list[@]}
+	for file in ${list[@]}
 	do
-		console.add "Deleting" "[ ${file} ]"
+		console.rem "Deleting" "[ ${file} ]"
 		echo
 
 		# remove file
 
-		[ -f "${path}"/"${file}" ] && rm -rf "${path}"/"${file}"
+		rm -rf "${path}"/"${file}"
 	done
 
 	# unset array
