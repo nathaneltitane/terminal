@@ -615,6 +615,38 @@ console.delete () {
 	list=()
 }
 
+# copy
+
+console.copy () {
+	source="${1}"
+	target="${2}"
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${2} - array
+
+		list=(${@:3})
+	else
+		file="${3}"
+
+		list=()
+
+		list+=("${file}")
+	fi
+
+	for file in ${list[@]}
+	do
+		console.lnk "Copying" "[ ${file} ]"
+		echo
+
+		ln -s -f "${source}"/"${file}" "${target}"/"${file}"
+	done
+
+	# unset array
+
+	list=()
+}
+
 # link
 
 console.link () {
