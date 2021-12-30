@@ -1,6 +1,6 @@
 # prefix
 
-[ -z "$PREFIX" ] && PREFIX="/"
+[ -z "${PREFIX}" ] && PREFIX=""
 
 # bashrc
 

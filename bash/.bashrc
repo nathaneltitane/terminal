@@ -52,10 +52,6 @@ then
 	}
 fi
 
-# login clear
-
-clear
-
 # prompt string
 
 # setup ansi colors escape using 'tput'
