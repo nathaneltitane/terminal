@@ -12,11 +12,11 @@ record () {
 
 	console.wait 1
 
-	recordmydesktop											\
-		--no-cursor											\
-		--no-wm-check										\
-		--no-sound											\
-		--overwrite											\
-		--windowid "${window_id}"							\
+	recordmydesktop								\
+		--no-cursor								\
+		--no-wm-check							\
+		--no-sound								\
+		--overwrite								\
+		--windowid "${window_id}"				\
 		--output="${path}"/clip-"${stamp}".ogv
 }

@@ -15,10 +15,10 @@ audio () {
 
 	for file in $(find "${directory}" -type f -iname "*.${extension}")
 	do
-		ffmpeg							\
-			-i "${file}"				\
-			"${codec_option}"			\
-			-map_metadata 0				\
-			-id3v2_version 3			"${file%.*}.mp3"
+		ffmpeg					\
+			-i "${file}"		\
+			"${codec_option}"	\
+			-map_metadata 0		\
+			-id3v2_version 3	"${file%.*}.mp3"
 	done
 }
