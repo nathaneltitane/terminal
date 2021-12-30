@@ -2,7 +2,7 @@
 
 audio () {
 	[[ -z $(command -v ffmpeg) ]] && console.install ffmpeg
-	
+
 	directory="${PWD}"
 	extension="${1}"
 

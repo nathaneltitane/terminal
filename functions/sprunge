@@ -2,7 +2,7 @@
 
 sprunge () {
 	url="http://sprunge.us"
-	
+
 	if (($#))
 	then
 		curl -F 'sprunge=<-' "${url}" < "${1}"
