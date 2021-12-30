@@ -34,7 +34,12 @@ time=$(date +"%r")
 unset PS1
 
 PS1='\['
-PS1+="$(tput sc)$(tput ed)$(tput cup 0 0)$(tput setaf 0)$(tput setab 7)$(tput el)"
+PS1+="$(tput sc)"
+PS1+="$(tput ed)"
+PS1+="$(tput cup 0 0)"
+PS1+="$(tput setaf 0)"
+PS1+="$(tput setab 7)"
+PS1+="$(tput el)"
 PS1+=" HOSTNAME: ${HOSTNAME}"
 PS1+="${separator}"
 PS1+=" USER: ${USER}"
@@ -46,6 +51,7 @@ PS1+="${separator}"
 PS1+=" NET: $(getprop wifi.interface)"
 PS1+="${separator}"
 PS1+="TERMUX: ${TERMUX_VERSION}"
-PS1+="$(tput sgr 0)$(tput rc)"
+PS1+="$(tput sgr 0)"
+PS1+="$(tput rc)"
 PS1+='\]'
 PS1+="[ ${USER} ] >_ $ "
