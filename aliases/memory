@@ -1,4 +1,4 @@
 # memory #
 
-alias 'df'='df -H'
-alias 'du'='du -a -c -h'
+[[ $(command -v df) ]] && alias 'df'='df -H'
+[[ $(command -v du) ]] && alias 'du'='du -a -c -h'
