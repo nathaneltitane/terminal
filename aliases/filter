@@ -1,0 +1,3 @@
+# filter #
+
+alias 'filter'='ls -a | grep -i'
