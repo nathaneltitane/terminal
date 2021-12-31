@@ -21,6 +21,8 @@ echo
 
 # variables #
 
+# defaults #
+
 # link configuration
 
 console.inf "Linking configuration."
@@ -28,9 +30,9 @@ echo
 
 if [ -f /media/internal/Lego/leocad/leocad.conf ]
 then
-	mkdir -p "$ROOT_DIRECTORY"/home/"${USER}"/.config/"LeoCAD Software"
+	console.directory "${HOME}"/.config/"LeoCAD Software"
 
 	ln -s -f																	\
 	/media/internal/Lego/leocad/leocad.conf										\
-	"$ROOT_DIRECTORY"/home/"${USER}"/.config/"LeoCAD Software"/LeoCAD.conf
+	"${HOME}"/.config/"LeoCAD Software"/LeoCAD.conf
 fi
