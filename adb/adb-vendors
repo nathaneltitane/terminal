@@ -16,32 +16,27 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
-home=/home/"${SUDO_USER:-$USER}"
-android_directory="${HOME}"/.android
-udev_directory="/etc/udev/rules.d"
-file=$(cat "${directory}"/adb_usb.ini)
+parse=$(cat "${directory}"/adb_usb.ini)
 
 # defaults #
 
 # write vendors list
 
-if [ ! -d "${android_directory}" ]
-then
-	mkdir "${android_directory}"
-fi
-
-cd "${android_directory}" || exit
+console.directory ${HOME}"/.android
 
 for i in {0..65535}
 do
 	printf '0x%04x\n' "$i"
-done >> "${android_directory}"/adb_usb.ini
+done >> "{HOME}"/.android/adb_usb.ini
 
-chmod -R 777 "${android_directory}"
+chmod -R 777 ${HOME}"/.android
 
 # udev #
 
-while read -r vendor_id
-do
-	echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
-done <<< "$file" >> "${udev_directory}"/51-android.rules
+if [ -d /etc/udev ]
+then
+	while read -r vendor_id
+	do
+		echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
+	done <<< "${parse}" >> /etc/udev/rules.d/51-android.rules
+fi

@@ -32,7 +32,7 @@ if [ -f /media/internal/Lego/leocad/leocad.conf ]
 then
 	console.directory "${HOME}"/.config/"LeoCAD Software"
 
-	ln -s -f																	\
-	/media/internal/Lego/leocad/leocad.conf										\
+	ln -s -f											\
+	/media/internal/Lego/leocad/leocad.conf				\
 	"${HOME}"/.config/"LeoCAD Software"/LeoCAD.conf
 fi

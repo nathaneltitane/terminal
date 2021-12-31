@@ -32,8 +32,6 @@ source="https://github.com/leozide/leocad.git"
 
 # defaults #
 
-[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
-
 # packages #
 
 install_list=(
