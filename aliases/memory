@@ -1,0 +1,4 @@
+# memory #
+
+alias 'df'='df -H'
+alias 'du'='du -a -c -h'
