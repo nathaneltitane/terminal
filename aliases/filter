@@ -1,3 +1,4 @@
 # filter #
 
-alias 'filter'='ls -a | grep -i'
+alias 'ffilter'='ls -a | grep -i'
+alias 'pfilter'='ps -A | grep -i'
