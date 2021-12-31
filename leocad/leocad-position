@@ -21,7 +21,19 @@ echo
 
 # variables #
 
-# set position using wmctrl
+# defaults #
+
+# packages #
+
+install_list=(
+	wmctrl
+)
+
+# install #
+
+console.install ${install_list[@]}
+
+# set position
 
 wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
 wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350
