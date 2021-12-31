@@ -1,0 +1,5 @@
+# permissions #
+
+alias 'chgrp'='chgrp --preserve-root'
+alias 'chmod'='chmod --preserve-root'
+alias 'chown'='chown --preserve-root'
