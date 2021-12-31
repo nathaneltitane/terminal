@@ -1,0 +1,3 @@
+# ports #
+
+alias 'ports'='netstat -t -u -l -a -n -p'
