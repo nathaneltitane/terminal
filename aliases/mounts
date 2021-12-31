@@ -1,0 +1,3 @@
+# mounts #
+
+alias 'mounts'='mount | column -t'
