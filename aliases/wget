@@ -1,0 +1,3 @@
+# wget #
+
+alias 'wget'='wgat -c'
