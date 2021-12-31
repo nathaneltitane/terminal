@@ -16,6 +16,8 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
+# defaults #
+
 # write settings
 
 commands_list+=(
