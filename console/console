@@ -944,44 +944,6 @@ console.release () {
 	list=()
 }
 
-# reconfigure
-
-console.reconfigure () {
-	export DEBIAN_FRONTEND=noninteractive
-
-	console.update
-
-	if [[ -n "${#list[@]}" ]]
-	then
-		# ${1} - array
-
-		list=(${@:1})
-	else
-		package="${1}"
-
-		list=()
-
-		list+=("${package}")
-	fi
-
-	command_reconfigure="dpkg-reconfigure"
-
-	console.inf "Reconfiguring packages."
-	echo
-
-	for package in ${list[@]}
-	do
-		console.wrn "Reconfiguring" "[ '${package}' ]"
-		echo
-
-		[[ $(dpkg -l | grep -i "${package}") ]] && "${command_reconfigure}" "${package}"
-	done
-
-	# unset array
-
-	list=()
-}
-
 # install
 
 console.install () {
