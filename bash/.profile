@@ -48,9 +48,19 @@ then
 	then
 		if [ ! -f "${PREFIX}"/bin/container-configuration-complete ]
 		then
-			[[ $(dpkg -l | grep -i tzdata) ]]                 && sudo dpkg-reconfigure tzdata
-			[[ $(dpkg -l | grep -i locales) ]]                && sudo dpkg-reconfigure locales
-			[[ $(dpkg -l | grep -i keyboard-configuration) ]] && sudo dpkg-reconfigure keyboard-configuration
+			packages_list=(
+				tzdata
+				locales
+				keyboard-configuration
+			)
+
+			for package in ${packages_list[@]}
+			do
+				console.wrn "Configuring" "[ ${package} ]"
+				echo
+
+				[[ $(dpkg -l | grep -i "${package}") ]] && sudo dpkg-reconfigure "${package}"
+			done
 
 			console.file "${PREFIX}"/bin container-configuration-complete
 
