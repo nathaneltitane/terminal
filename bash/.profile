@@ -53,6 +53,8 @@ then
 			[[ $(dpkg -l | grep -i keyboard-configuration) ]] && sudo dpkg-reconfigure keyboard-configuration
 
 			console.file "${PREFIX}"/bin container-configuration-complete
+
+			clear
 		fi
 	fi
 
