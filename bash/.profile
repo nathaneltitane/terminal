@@ -40,7 +40,7 @@ if [[ $(command -v dextop) ]]
 then
 	[[ $(cat "${PREFIX}"/bin/dextop) = xfce ]] && session_name="XFCE" || session_name="CONSOLE"
 
-	[ -f /etc/os-release ] && . /etc/os-release && name="${NAMEˆ}" || name=Ubuntu
+	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}" || name=Ubuntu
 
 	# container configuration
 
