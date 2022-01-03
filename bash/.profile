@@ -34,13 +34,29 @@ export DISPLAY=":1"
 export DISPLAY_NUMBER="${DISPLAY/:/}"
 export PORT="590${DISPLAY_NUMBER}"
 
-# dextop welcome
+
 
 if [[ $(command -v dextop) ]]
 then
 	[[ $(cat "${PREFIX}"/bin/dextop) = xfce ]] && session_name="XFCE" || session_name="CONSOLE"
 
 	[ -f /etc/os-release ] && . /etc/os-release && name="${NAMEˆ}" || name=Ubuntu
+
+	# container configuration
+
+	if [[ $(ps -A | grep -i proot) ]]
+	then
+		if [ ! -f "${PREFIX}"/bin/container-configuration-complete ]
+		then
+			[[ $(dpkg -l | grep -i tzdata) ]]                 && sudo dpkg-reconfigure tzdata
+			[[ $(dpkg -l | grep -i locales) ]]                && sudo dpkg-reconfigure locales
+			[[ $(dpkg -l | grep -i keyboard-configuration) ]] && sudo dpkg-reconfigure keyboard-configuration
+
+			console.file "${PREFIX}"/bin container-configuration-complete
+		fi
+	fi
+
+	# dextop welcome
 
 	if [[ $(ps -A | grep -i proot) ]]
 	then
@@ -80,20 +96,6 @@ then
 			else
 				container-vnc -o
 			fi
-		fi
-	fi
-
-	# container configuration
-
-	if [[ $(ps -A | grep -i proot) ]]
-	then
-		if [ ! -f "${PREFIX}"/bin/container-configuration-complete ]
-		then
-			[[ $(dpkg -l | grep -i tzdata) ]]                 && sudo dpkg-reconfigure tzdata
-			[[ $(dpkg -l | grep -i locales) ]]                && sudo dpkg-reconfigure locales
-			[[ $(dpkg -l | grep -i keyboard-configuration) ]] && sudo dpkg-reconfigure keyboard-configuration
-
-			console.file "${PREFIX}"/bin container-configuration-complete
 		fi
 	fi
 fi
