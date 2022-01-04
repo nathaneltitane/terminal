@@ -877,9 +877,9 @@ console.clean () {
 	echo
 
 	# fix dpkg lock and errors:
-	# remove all post-install logs that trigger errors
+	# remove all post-install logs - prevent package configuration errors
 
-	[ -d /var/lib/dpkg/info ] && rm -rf /var/lib/dpkg/info/*.postinst
+	[ -d "${PREFIX}"/var/lib/dpkg/info ] && rm -rf "${PREFIX}"/var/lib/dpkg/info/*.postinst
 }
 
 # hold
