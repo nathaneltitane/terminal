@@ -1,30 +1,32 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# style qt4 #
-
 # dependencies #
+
+curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
 # defaults #
-
-# create directory
 
 if [ ! -e "${HOME}"/.config ]
 then
 	mkdir "${HOME}"/.config
 fi
 
-# write configuration
-
 cat << 'FILE' > "${HOME}"/.config/Trolltech.conf
 [Qt]
 
 style=GTK+
 FILE
-
-# link configuration file for GTK 3+ setup
 
 ln -s -f "${HOME}"/.config/Trolltech.conf "${HOME}"/.config/gtk-3.0/Trolltech.conf

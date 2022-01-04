@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# qt5 style #
-
 # dependencies #
+
+curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
 # defaults #
-
-# install required packages
 
 install_list=(
 	qt5-style-plugins
@@ -21,7 +27,6 @@ do
 	yes | apt-get install --no-install-recommends "${package}"
 done
 
-# write configuration
 
 cat << 'FILE' >> /etc/environment
 

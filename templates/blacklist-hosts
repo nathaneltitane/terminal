@@ -18,8 +18,6 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
-# address resolution
-
 if [ -d /etc ]
 then
 	cat <<- 'FILE' > /etc/hosts
