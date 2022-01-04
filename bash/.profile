@@ -38,32 +38,6 @@ then
 
 	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}" || name=Ubuntu
 
-	# container configuration
-
-	if [[ $(ps -A | grep -i proot) ]]
-	then
-		if [ ! -f "${PREFIX}"/bin/container-configuration-complete ]
-		then
-			packages_list=(
-				tzdata
-				locales
-				keyboard-configuration
-			)
-
-			for package in ${packages_list[@]}
-			do
-				console.wrn "Configuring" "[ ${package} ]"
-				echo
-
-				[[ $(dpkg -l | grep -i "${package}") ]] && sudo dpkg-reconfigure "${package}"
-			done
-
-			console.file "${PREFIX}"/bin container-configuration-complete
-
-			clear
-		fi
-	fi
-
 	# dextop welcome
 
 	if [[ $(ps -A | grep -i proot) ]]
