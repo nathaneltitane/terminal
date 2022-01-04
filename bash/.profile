@@ -30,8 +30,6 @@ export DISPLAY=":1"
 export DISPLAY_NUMBER="${DISPLAY/:/}"
 export PORT="590${DISPLAY_NUMBER}"
 
-
-
 if [[ $(command -v dextop) ]]
 then
 	[[ $(cat "${PREFIX}"/bin/dextop) = xfce ]] && session_name="XFCE" || session_name="CONSOLE"
