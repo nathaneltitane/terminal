@@ -16,29 +16,27 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
-shell_file="/etc/bash.bashrc"
+# defaults #
 
-cpu_mode=(
+# governor aliases #
+
+governors_list=(
 	conservative
 	ondemand
 	powersave
 	performance
 )
 
-# defaults #
-
-# governor aliases #
-
-for i in "${!cpu_mode[@]}"
+for governor in "${!governors_list[@]}"
 do
-cat << FILE >> $shell_file
+cat << FILE >> /etc/bash.bashrc
 
-# cpu ${cpu_mode[i]} #
+# cpu ${governors_list[governor]} #
 
-${cpu_mode[i]}() {
+${governors_list[governor]}() {
 	for ((n=0; n<$(grep -c processor /proc/cpuinfo); n++))
 do
-		sudo cpufreq-set -c "\$n" -g ${cpu_mode[i]}
+		sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
 	done
 }
 FILE
@@ -46,31 +44,31 @@ done
 
 # source new shell content
 
-source "$shell_file"
+. /etc/bash.bashrc
 
 # add cpu governor binary entries
 
-for i in "${!cpu_mode[@]}"
+for i in "${!governors_list[@]}"
 do
-	cat <<- FILE > "$binary_directory/${cpu_mode[i]}"
+	cat <<- FILE > "$binary_directory/${governors_list[governor]}"
 	#!/bin/bash
 
-	# cpu governor (${cpu_mode[i]}) #
+	# cpu governor (${governors_list[governor]}) #
 
 	cpu="$(grep -c processor /proc/cpuinfo)"
 
 	for ((n=0; n<cpu; n++))
 	do
-		sudo cpufreq-set -c "\$n" -g ${cpu_mode[i]}
+		sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
 	done
 
-	notify-send -i gnome-system-monitor "CPU governor set to ${cpu_mode[i]}"
+	[[ $(command -v notify-send) ]] && notify-send -i gnome-system-monitor "CPU governor set to ${governors_list[governor]}"
 	FILE
 done
 
-for i in "${!cpu_mode[@]}"
+for governor in "${!governors_list[@]}"
 do
-	sudo chmod +x /usr/bin/"$cpu_mode"
+	sudo chmod +x /usr/bin/"$governors_list"
 done
 
 # write switch
@@ -80,27 +78,35 @@ cat << 'FILE' > /usr/bin/cpu-switch
 
 # cpu-switch #
 
-cpu="$(grep -c processor /proc/cpuinfo)"
+cpu_count="$(grep -c processor /proc/cpuinfo)"
 
-status="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
+cpu_status="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
 
-case "$status" in
+case "${governor}"
+in
 	powersave)
-	status="conservative";;
+		governor="conservative"
+	;;
+
 	conservative)
-	status="ondemand";;
+		governor="ondemand"
+	;;
+
 	ondemand)
-	status="performance";;
+		governor="performance"
+	;;
+
 	performance)
-	status="powersave";;
+		governor="powersave"
+	;;
 esac
 
-for ((n=0; n<cpu; n++))
+for ((n=0; n<cpu_count; n++))
 do
-	sudo cpufreq-set -c "$n" -g "$status";
+	sudo cpufreq-set -c "$n" -g "${governor}";
 done
 
-notify-send -i gnome-system-monitor "CPU governor set to $status"
+[[ $(command -v notify-send) ]] && notify-send -i gnome-system-monitor "CPU governor set to ${cpu_status}"
 FILE
 
 # set permissions
