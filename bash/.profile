@@ -1,7 +1,3 @@
-# prefix
-
-[ -z "${PREFIX}" ] && PREFIX=""
-
 # bashrc
 
 if [ -n "${BASH_VERSION}" ]

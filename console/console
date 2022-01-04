@@ -875,6 +875,11 @@ console.clean () {
 
 	console.progress "Cleaning..."
 	echo
+
+	# fix dpkg lock and errors:
+	# remove all post-install logs that trigger errors
+
+	[ -d /var/lib/dpkg/info ] && rm -rf /var/lib/dpkg/info/*.postinst
 }
 
 # hold
