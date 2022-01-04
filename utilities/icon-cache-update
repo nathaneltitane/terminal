@@ -30,19 +30,22 @@ for icons_directory in ${icons_directory_list[@]}
 do
 	[ -d "${icons_directory}" ] && cd "${icons_directory}"
 
-	find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
-	do
-		if [ -f "${theme}"/index.theme ]
-		then
-			theme_name="${theme##*/}"
+	if [ -d "${icons_directory}" ]
+	then
+		find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
+		do
+			if [ -f "${theme}"/index.theme ]
+			then
+				theme_name="${theme##*/}"
 
-			gtk-update-icon-cache -f -q "${theme}"
+				gtk-update-icon-cache -f -q "${theme}"
 
-			console.scs "Cache update success" "[ ${theme_name} ]"
-			echo
-		else
-			console.inf "${theme_name}"
-			echo
-		fi
-	done
+				console.scs "Cache update success" "[ ${theme_name} ]"
+				echo
+			else
+				console.wrn "Skipping" "[ ${theme_name} ]"
+				echo
+			fi
+		done
+	fi
 done
