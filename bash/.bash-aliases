@@ -1,3 +1,5 @@
+# aliases #
+
 [[ $(command -v cd) ]] && alias '..'='cd ..'
 [[ $(command -v rsync) ]] && alias 'copy'='rsync -a -r -q --progress -h'
 [[ $(command -v find) && $(command -v wc) ]] && alias 'count'='find . -type f | wc -l'
