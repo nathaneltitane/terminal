@@ -75,25 +75,19 @@ fi
 
 # bash aliases
 
-if [ -f "${HOME}"/.bash_aliases ]
-then
-	. "${HOME}"/.bash_aliases
-fi
-
 if [ -d "${HOME}"/.bash-aliases ]
 then
 	for alias in "${HOME}"/.bash-aliases/*
 	do
 		[ -x "${alias}" ] && . "${alias}"
 	done
+
+elif [ -f "${HOME}"/.bash_aliases ]
+then
+	. "${HOME}"/.bash_aliases
 fi
 
 # bash functions
-
-if [ -f "${HOME}"/.bash_functions ]
-then
-	. "${HOME}"/.bash_functions
-fi
 
 if [ -d "${HOME}"/.bash-functions ]
 then
@@ -101,4 +95,8 @@ then
 	do
 		[ -x "${function}" ] && . "${function}"
 	done
+
+elif [ -f "${HOME}"/.bash_functions ]
+then
+	. "${HOME}"/.bash_functions
 fi
