@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# Author: Nathanel Titane - nathanel.titane@gmail.com
-
-# ddclient #
-
 # dependencies #
+
+curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+# usage #
+
+# prompt #
 
 # variables #
 
 # defaults #
-
-# write configuration
 
 cat << FILE -> /etc/ddclient.conf
 # ddclient #
@@ -43,7 +49,7 @@ sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
 if [ -d /var/cache/ddclient ]
 then
 	# purge service cache file
-	
+
 	rm -rf /var/cache/ddclient/ddclient.cache
 fi
 
