@@ -25,7 +25,7 @@ done
 
 cat << 'FILE' >> /etc/environment
 
-# fix themeing compliance for qt5 applications #
+# fix theme compliance for qt5 applications #
 
 QT_QPA_PLATFORMTHEME=gtk2
 FILE
