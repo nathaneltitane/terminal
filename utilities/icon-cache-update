@@ -14,30 +14,28 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
-home=/home/"${SUDO_USER:-$USER}"
-local_icons_directory="${HOME}"/.icons
-system_icons_directory="/usr/share/icons"
-
-icons_directory_list=(
-	"$local_icons_directory"
-	"$system_icons_directory"
-)
-
-# defaults 
+# defaults
 
 # update icon cache
 
+icons_directory_list=(
+	"${HOME}"/.icons
+	"${PREFIX}"/share/icons
+	/usr/share/icons
+)
+
+
 for icons_directory in ${icons_directory_list[@]}
 do
-	cd "$icons_directory" || exit
+	[ -d "${icons_directory}" ] && cd "${icons_directory}"
 
-	find "$icons_directory" -mindepth 1 -maxdepth 1 -type d | while read -r theme
+	find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
 	do
-		if [ -f "$theme/index.theme" ]
+		if [ -f "${theme}"/index.theme ]
 		then
 			theme_name="${theme##*/}"
 
-			gtk-update-icon-cache -f "$theme" || echo "$theme_name"
+			gtk-update-icon-cache -f "${theme}" || echo "${theme_name}"
 		fi
 	done
 done
