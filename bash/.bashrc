@@ -100,9 +100,25 @@ then
 	. "${HOME}"/.bash_aliases
 fi
 
+if [ -d "${HOME}"/.bash-aliases ]
+then
+	for alias in "${HOME}"/.bash-aliases/*
+	do
+		[ -x "${alias}" ] && . "${alias}"
+	done
+fi
+
 # bash functions
 
 if [ -f "${HOME}"/.bash_functions ]
 then
 	. "${HOME}"/.bash_functions
+fi
+
+if [ -d "${HOME}"/.bash-functions ]
+then
+	for function in "${HOME}"/.bash-functions/*
+	do
+		[ -x "${function}" ] && . "${function}"
+	done
 fi
