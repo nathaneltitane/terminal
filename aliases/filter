@@ -1,4 +1,2 @@
-# filter #
-
 [[ $(command -v ls) && $(command -v grep) ]] && alias 'ffilter'='ls -a | grep -i'
 [[ $(command -v ps) && $(command -v grep) ]] && alias 'pfilter'='ps -A | grep -i'

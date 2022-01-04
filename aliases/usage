@@ -1,3 +1,1 @@
-# usage #
-
 [[ $(command -v du) && $(command -v sort) ]] && alias 'usage'='du -a -d 1 -h -S --time 2> /dev/null | sort -n -r'

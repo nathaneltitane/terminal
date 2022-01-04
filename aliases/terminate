@@ -1,5 +1,2 @@
-# terminate #
-
 [[ $(command -v sudo) && $(command -v pkill) ]] && alias 'terminate'="sudo pkill -9"
-
 [[ $(command -v pkill) ]] && alias 'terminate'="pkill -9"

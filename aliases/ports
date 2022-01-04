@@ -1,3 +1,1 @@
-# ports #
-
 [[ $(command -v netstat) ]] && alias 'ports'='netstat -t -u -l -a -n -p'

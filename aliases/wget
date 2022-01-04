@@ -1,3 +1,1 @@
-# wget #
-
 [[ $(command -v wget) ]] && alias 'wget'='wgat -c'

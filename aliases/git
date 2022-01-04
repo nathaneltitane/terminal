@@ -1,5 +1,3 @@
-# git #
-
 [[ $(command -v git) ]] && alias 'gc'="git clone --depth 1"
 [[ $(command -v git) ]] && alias 'gi'='git init'
 [[ $(command -v git) ]] && alias 'gp'='git pull'

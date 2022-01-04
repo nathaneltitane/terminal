@@ -1,3 +1,1 @@
-# list #
-
 [[ $(command -v ls) ]] && alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'

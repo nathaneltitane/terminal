@@ -1,5 +1,3 @@
-# system #
-
 [[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'start'='sudo systemctl start'
 [[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'stop'='sudo systemctl stop'
 [[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'enable'='sudo systemctl enable'

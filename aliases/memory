@@ -1,4 +1,2 @@
-# memory #
-
 [[ $(command -v df) ]] && alias 'df'='df -H'
 [[ $(command -v du) ]] && alias 'du'='du -a -c -h'
