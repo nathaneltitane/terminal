@@ -1,3 +1,0 @@
-[[ $(command -v chgrp) ]] && alias 'chgrp'='chgrp --preserve-root'
-[[ $(command -v chmod) ]] && alias 'chmod'='chmod --preserve-root'
-[[ $(command -v chown) ]] && lias 'chown'='chown --preserve-root'

@@ -1,1 +1,0 @@
-[[ $(command -v cd) ]] && alias '..'='cd ..'

@@ -1,1 +1,0 @@
-[[ $(command -v dd) ]] && alias 'duplicate'="dd if=${1} of=${2} bs=${3} status=progress"

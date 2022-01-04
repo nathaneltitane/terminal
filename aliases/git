@@ -1,7 +1,0 @@
-[[ $(command -v git) ]] && alias 'gc'="git clone --depth 1"
-[[ $(command -v git) ]] && alias 'gi'='git init'
-[[ $(command -v git) ]] && alias 'gp'='git pull'
-[[ $(command -v git) ]] && alias 'ga'='git add *'
-[[ $(command -v git) ]] && alias 'gm'="git commit -a -m ${1}"
-[[ $(command -v git) ]] && alias 'gs'='git push'
-[[ $(command -v git) ]] && alias 'gu'='ga && gm "Code & Features Update" && gs'

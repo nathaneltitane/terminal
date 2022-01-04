@@ -1,1 +1,0 @@
-[[ $(command -v find) && $(command -v wc) ]] && alias 'count'='find . -type f | wc -l'

@@ -1,5 +1,0 @@
-[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'start'='sudo systemctl start'
-[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'stop'='sudo systemctl stop'
-[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'enable'='sudo systemctl enable'
-[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'disable'='sudo systemctl disable'
-[[ $(command -v sudo) && $(command -v systemctl) ]] && alias 'status'='sudo systemctl status'

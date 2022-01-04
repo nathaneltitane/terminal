@@ -1,9 +1,0 @@
-# size #
-
-size () {
-	echo "W: $(tput cols) x H: $(tput lines)"
-}
-
-trap size WINCH
-
-size

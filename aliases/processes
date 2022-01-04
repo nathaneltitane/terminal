@@ -1,1 +1,0 @@
-[[ $(command -v ps) ]] && alias 'processes'='ps -A'
