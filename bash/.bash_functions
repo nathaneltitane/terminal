@@ -6,4 +6,9 @@ then
 	do
 		[ -x "${function}" ] && . "${function}"
 	done
+else
+	if [ -f "${HOME}"/.bash-functions ]
+	then
+		. "${HOME}"/.bash-functions
+	fi
 fi
