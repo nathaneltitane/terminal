@@ -38,7 +38,7 @@ do
 
 			gtk-update-icon-cache -f -q "${theme}"
 
-			console.scs "Cache update success" "${theme_name}"
+			console.scs "Cache update success" "[ ${theme_name} ]"
 			echo
 		else
 			console.inf "${theme_name}"
