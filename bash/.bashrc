@@ -18,7 +18,11 @@ HISTFILESIZE=2000
 
 if [ ! $(shopt -oq posix) ]
 then
-	if [ -f /usr/share/bash-completion/bash_completion ]
+	if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
+	then
+		. "${PREFIX}"/share/bash-completion/bash_completion
+
+	elif [ -f /usr/share/bash-completion/bash_completion ]
 	then
 		. /usr/share/bash-completion/bash_completion
 
@@ -26,30 +30,6 @@ then
 	then
 		. /etc/bash_completion
 	fi
-fi
-
-# command not found
-
-if [ -x /usr/lib/command-not-found ] || [ -x /usr/share/command-not-found/command-not-found ]
-then
-	command_not_found_handle () {
-		if [ -x /usr/lib/command-not-found ]
-		then
-			/usr/lib/command-not-found -- "${1}"
-
-			return $?
-
-		elif [ -x /usr/share/command-not-found/command-not-found ]
-		then
-			/usr/share/command-not-found/command-not-found -- "${1}"
-
-			return $?
-		else
-			printf "%s: command not found\n" "${1}" >&2
-
-			return 127
-		fi
-	}
 fi
 
 # prompt string
