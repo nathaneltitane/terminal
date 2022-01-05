@@ -600,6 +600,8 @@ console.keep () {
 		list+=("${file}")
 	fi
 
+	cd "${path}" || exit 1
+
 	for item in *
 	do
 		keep=0
