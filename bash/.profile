@@ -36,7 +36,7 @@ then
 
 	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}" || name=Ubuntu
 
-	# dextop welcome
+	# welcome
 
 	if [[ $(ps -A | grep -i proot) ]]
 	then

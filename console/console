@@ -582,6 +582,46 @@ console.file () {
 	list=()
 }
 
+# keep
+
+console.keep () {
+	path="${1}"
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${2} - array
+
+		list=(${@:2})
+	else
+		file="${2}"
+
+		list=()
+
+		list+=("${file}")
+	fi
+
+	for item in *
+	do
+		keep=0
+
+		for file in ${list[@]}
+		do
+			[[ "${path}"/"$file" = "${path}"/"$item" ]] && keep=1
+		done
+
+		console.rem "Deleting" "[ ${item} ]"
+		echo
+
+		# remove item
+
+		[[ "$keep" = 0 ]] && rm -rf "${item}"
+	done
+
+	# unset array
+
+	list=()
+}
+
 # delete
 
 console.delete () {
