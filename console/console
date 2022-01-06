@@ -610,13 +610,16 @@ console.keep () {
 
 		for file in ${list[@]}
 		do
-			[[ "${path}"/"$file" = "${path}"/"$item" ]] && keep=1
+			# mark for keeping
+
+			if [[ "${path}"/"$file" = "${path}"/"$item" ]]
+			then
+				keep=1
+
+				console.inf "Keeping" "[ ${file} ]"
 		done
 
-		console.rem "Deleting" "[ ${item} ]"
-		echo
-
-		# remove item
+		# remove unmarked items
 
 		[[ "$keep" = 0 ]] && rm -rf "${item}"
 	done
