@@ -486,7 +486,9 @@ console.progress () {
 
 	PID=$!
 
-	spinner="\/"
+	# spinner="\/"
+
+	spinner="⬒◩◧⬕⬓◪◨⬔"
 	before="[ "
 	after="]"
 
