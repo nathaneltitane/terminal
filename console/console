@@ -96,8 +96,8 @@ marker_stp='[ / ]'
 marker_add='[ + ]'
 marker_rem='[ - ]'
 
-marker_ret='[   ]'
-marker_rel='[   ]'
+marker_ret='[ ⬢ ]'
+marker_rel='[ ⬡ ]'
 
 marker_ask='[ ? ]'
 marker_inf='[ i ]'
