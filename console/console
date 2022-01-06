@@ -633,7 +633,7 @@ console.keep () {
 			then
 				keep=1
 
-				console.inf "Keeping" "[ ${file} ]"
+				console.ret "Keeping" "[ ${file} ]"
 		done
 
 		# remove unmarked items
