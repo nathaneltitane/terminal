@@ -501,7 +501,7 @@ console.progress () {
 	do
 		echo -ne "\r${before} \b${spinner:i++%${#spinner}:1} ${after} ${value}\c "
 
-		sleep 0.175
+		sleep 0.1
 	done
 
 	# normalize line spacing:
