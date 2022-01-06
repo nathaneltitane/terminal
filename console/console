@@ -490,7 +490,7 @@ console.progress () {
 
 	spinner="⬒◩◧⬕⬓◪◨⬔"
 	before="[ "
-	after="]"
+	after=" ]"
 
 	console.prompt "$@"
 	value="${console_str[@]}"
@@ -499,7 +499,7 @@ console.progress () {
 
 	while [ -d /proc/"${PID}" ]
 	do
-		echo -ne "\r${before} \b${spinner:i++%${#spinner}:1} ${after} ${value}\c "
+		echo -ne "\r${before} \b${spinner:i++%${#spinner}:1}${after} ${value}\c "
 
 		sleep 0.1
 	done
