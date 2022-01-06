@@ -299,6 +299,20 @@ console.rem () {
 	echo -e "${red}${marker_rem} ${value}${reset}"
 }
 
+console.ret () {
+	console.prompt "$@"
+	value="${console_str[@]}"
+
+	echo -e "${cyan}${marker_ret} ${value}${reset}"
+}
+
+console.rel () {
+	console.prompt "$@"
+	value="${console_str[@]}"
+
+	echo -e "${magenta}${marker_rel} ${value}${reset}"
+}
+
 console.fwd () {
 	console.prompt "$@"
 	value="${console_str[@]}"
