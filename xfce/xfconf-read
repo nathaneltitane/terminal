@@ -40,7 +40,10 @@ do
 
 		:
 	else
-		xfconf-query -l -v -c "${channel}" | sed -r -e "s/^/xfconf-query --create -c ${channel} -p /"
+		xfconf-query -l -v -c "${channel}" | while read property setting
+		do
+			echo "xfconf-query --create -c ${channel} -p ${property} -t TYPE -s ${setting}"
+		done
 	fi
 
 done > "${settings_file}"
