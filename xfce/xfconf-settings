@@ -44,7 +44,7 @@ do
 	do
 		# provide data type:
 		# needs to be researched before making a new .xfconf file
-		# “bool”   - boolean value: either “true” or “false”
+		# “bool”   - boolean value: either 'true'or 'false'
 		# “int”    - 32-bit signed integer value, in the range from -2·147·483·648 through 2·147·483·647
 		# “uint”   - 32-bit unsigned integer value, in the range from 0 through 4·294·967·295
 		# “int64”  - 64-bit signed integer value, in the range from -9·223·372·036·854·775·808 through 9·223·372·036·854·775·807
