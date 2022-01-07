@@ -53,11 +53,11 @@ done > "${settings_file}"
 # strip ''xfce4-session'' channel:
 # problems with failsafe state reload from settings file
 
-sed -i -e '/xfce4-session/d'            "${settings_file}"
+sed -i -e '/xfce4-session/d' "${settings_file}"
 
 # strip unsupported or unused settings lines
 
-sed -i -e '/UNSUPPORTED/d'              "${settings_file}"
-sed -i -e '/xfce4-settings-editor/d'    "${settings_file}"
-sed -i -e '/xfce4-appfinder/d'          "${settings_file}"
+# sed -i -e '/UNSUPPORTED/d'   "${settings_file}"
+sed -i -e '/xfce4-settings-editor/d' "${settings_file}"
+sed -i -e '/xfce4-appfinder/d' "${settings_file}"
 
