@@ -47,35 +47,35 @@ do
 		# “double” - presumably a double-precision floating-point value, even though it will be stored as a fixed-point value instead, with six decimal places following the decimal point
 		# “string” - character string
 
-	# parse data types : FIX ME
+		# parse data types : FIX ME
 
-	#	if [[ ${setting} = "true" ]] || [[ ${setting} = "false" ]]
-	#	then
-	#		type=bool
-	#
-	#	elif [[ ${setting} -lt 2147438647 ]] || [[ ${setting} -gt -2147438647 ]]
-	#	then
-	#		type=int
-	#
-	#	elif [[ ${setting} -lt 4294967295 ]] || [[ ${setting} -gt 0 ]]
-	#	then
-	#		type=uint
-	#
-	#	elif [[ ${setting} -lt 9223372036854775807 ]] || [[ ${setting} -gt -9223372036854775807 ]]
-	#	then
-	#		type=int64
-	#
-	#	elif [[ ${setting} -lt 18446744073709551615 ]] || [[ ${setting} -gt 0 ]]
-	#	then
-	#		type=uint64
-	#
-	#	elif [[ ${setting} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
-	#	then
-	#		type=double
-	#
-	#	else
-	#		type=string
-	#	fi
+		#	if [[ ${setting} = "true" ]] || [[ ${setting} = "false" ]]
+		#	then
+		#		type=bool
+		#
+		#	elif [[ ${setting} -lt 2147438647 ]] || [[ ${setting} -gt -2147438647 ]]
+		#	then
+		#		type=int
+		#
+		#	elif [[ ${setting} -lt 4294967295 ]] || [[ ${setting} -gt 0 ]]
+		#	then
+		#		type=uint
+		#
+		#	elif [[ ${setting} -lt 9223372036854775807 ]] || [[ ${setting} -gt -9223372036854775807 ]]
+		#	then
+		#		type=int64
+		#
+		#	elif [[ ${setting} -lt 18446744073709551615 ]] || [[ ${setting} -gt 0 ]]
+		#	then
+		#		type=uint64
+		#
+		#	elif [[ ${setting} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
+		#	then
+		#		type=double
+		#
+		#	else
+		#		type=string
+		#	fi
 
 		if [[ ${setting} = "true" ]] || [[ ${setting} = "false" ]]
 		then
