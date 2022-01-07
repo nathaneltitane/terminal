@@ -44,20 +44,13 @@ do
 			type="string"
 		fi
 
-		echo "xfconf-query --create -c ${channel} -p ${property} -t ${type} -s ${setting}"
+		if [[ ${setting} = *UNSUPPORTED* ]] || [[ ${channel} = "xfce4-session" ]] || [[ ${channel} = "xfce4-settings-editor" ]] || [[ ${channel} = "displays" ]]
+		then
+			:
+		else
+			echo "xfconf-query --create -c ${channel} -p ${property} -t ${type} -s ${setting}"
+		fi
 	done
 
 done > "${settings_file}"
-
-
-# strip ''xfce4-session'' channel:
-# problems with failsafe state reload from settings file
-
-sed -i -e '/xfce4-session/d'            "${settings_file}"
-
-# strip unsupported or unused settings lines
-
-sed -i -e '/UNSUPPORTED/d'              "${settings_file}"
-sed -i -e '/xfce4-settings-editor/d'    "${settings_file}"
-sed -i -e '/xfce4-appfinder/d'          "${settings_file}"
 
