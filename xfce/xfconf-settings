@@ -99,4 +99,5 @@ done > "${settings_file}-${stamp}"
 
 echo "xfwm4 --replace &" >> "${settings_file}"
 
-
+console.scs "Done."
+echo
