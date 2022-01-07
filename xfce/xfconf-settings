@@ -95,7 +95,7 @@ do
 		fi
 	done
 
-done > "${settings_file}-${stamp}"
+done >> "${settings_file}-${stamp}"
 
 echo "xfwm4 --replace &" >> "${settings_file}"
 
