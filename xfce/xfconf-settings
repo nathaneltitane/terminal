@@ -101,3 +101,7 @@ echo "xfwm4 --replace &" >> "${settings_file}"
 
 console.scs "Done."
 echo
+
+console.msg "Use newly generated settings file as follows:"
+console.msg 'bash <settings_file>'
+echo
