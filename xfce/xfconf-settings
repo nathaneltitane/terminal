@@ -36,7 +36,7 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 console.inf "Generating" "[ ${settings_file} ]"
 echo
 
-settings_file="${settings_file}-${stamp}"
+# settings_file="${settings_file}-${stamp}"
 
 xfconf-query -l | sed '/Channel.*/d' | while read channel
 do
@@ -58,7 +58,7 @@ do
 		#	then
 		#		type=bool
 		#
-		#	elif [[ ${setting} -lt 2147438647 ]] || [[ ${setting} -gt -2147438647 ]]
+		#	elif [[ ${setting} -gt 2147438647 ]] || [[ ${setting} -lt -2147438647 ]]
 		#	then
 		#		type=int
 		#
@@ -82,9 +82,10 @@ do
 		#		type=string
 		#	fi
 
-		if [[ ${setting} = "true" ]] || [[ ${setting} = "false" ]]
+		if [[ ${setting} = true ]] || [[ ${setting} = false ]]
 		then
 			type=bool
+
 		else
 			type=string
 		fi
@@ -97,7 +98,7 @@ do
 		fi
 	done
 
-done >> "${settings_file}"
+done > "${settings_file}"
 
 echo "xfwm4 --replace &" >> "${settings_file}"
 
@@ -105,5 +106,5 @@ console.scs "Done."
 echo
 
 console.msg "Use newly generated settings file as follows:"
-console.msg 'bash <settings_file>'
+console.msg "'bash <settings_file>'"
 echo
