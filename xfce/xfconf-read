@@ -31,7 +31,7 @@ settings_file="${1}"
 console.inf "Reading settings file."
 echo
 
-xfconf-query -l | sed -r -e '/Channels:/d' | while read channel
+xfconf-query -l | sed '/Channel.*/d' | while read channel
 do
 	if [ "$channel" = "xfce4-session" ]
 	then
@@ -40,7 +40,7 @@ do
 
 		:
 	else
-		xfconf-query -lv -c "${channel}" | sed -r -e "s/^/${channel} /"
+		xfconf-query -l -v -c "${channel}" | sed -r -e "s/^/xfconf-query --create -c ${channel} -p /"
 	fi
 
 done > "${settings_file}"
