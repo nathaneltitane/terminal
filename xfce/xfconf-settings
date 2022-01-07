@@ -87,7 +87,7 @@ do
 			type=string
 		fi
 
-		if ${channel} = "xfce4-session" ]] || [[ ${channel} = "xfce4-settings-editor" ]] || [[ ${channel} = "displays" ]] || [[ ${setting} = *UNSUPPORTED* ]]
+		if [[ ${channel} = "xfce4-session" ]] || [[ ${channel} = "xfce4-settings-editor" ]] || [[ ${channel} = "displays" ]] || [[ ${setting} = *UNSUPPORTED* ]]
 		then
 			:
 		else
