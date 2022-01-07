@@ -36,6 +36,8 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 console.inf "Generating" "[ ${settings_file} ]"
 echo
 
+settings_file="${settings_file}-${stamp}"
+
 xfconf-query -l | sed '/Channel.*/d' | while read channel
 do
 	xfconf-query -l -v -c "${channel}" | while read property setting
@@ -95,7 +97,7 @@ do
 		fi
 	done
 
-done >> "${settings_file}-${stamp}"
+done >> "${settings_file}"
 
 echo "xfwm4 --replace &" >> "${settings_file}"
 
