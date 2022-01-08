@@ -86,6 +86,9 @@ do
 		then
 			type=bool
 
+		elif [[ ${setting} =~ ^[0-9]+$ ]]
+		then
+			type=int
 		else
 			type=string
 		fi
