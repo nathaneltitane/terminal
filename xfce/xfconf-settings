@@ -70,7 +70,7 @@ do
 			type=string
 		fi
 
-		if [[ ${channel} = "xfce4-session" ]] || [[ ${channel} = "xfce4-settings-editor" ]] || [[ ${channel} = "displays" ]] || [[ ${setting} = *UNSUPPORTED* ]]
+		if [[ ${channel} = "xfce4-session" ]] || [[ ${channel} = "xfce4-settings-editor" ]]
 		then
 			:
 		else
@@ -79,6 +79,10 @@ do
 	done
 
 done > "${settings_file}"
+
+#xfconf-query --create -c 'xfce4-desktop' -p '/backdrop/screen0/monitorVNC-0/workspace0/rgba1' -t double -t double -t double -t double -s 1.0 -s 1.0 -s 1.0 -s 1.0
+#xfconf-query --create -c 'xfce4-desktop' -p '/backdrop/screen0/monitorVNC-0/workspace0/rgba2' -t double -t double -t double -t double -s 1.0 -s 1.0 -s 1.0 -s 1.0
+# add hex2rgb
 
 echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
 
