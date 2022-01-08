@@ -58,10 +58,6 @@ do
 		#	then
 		#		type=bool
 		#
-		#	elif [[ ${setting} -gt 2147438647 ]] || [[ ${setting} -lt -2147438647 ]]
-		#	then
-		#		type=int
-		#
 		#	elif [[ ${setting} -lt 4294967295 ]] || [[ ${setting} -gt 0 ]]
 		#	then
 		#		type=uint
@@ -89,6 +85,10 @@ do
 		elif [[ ${setting} =~ ^[0-9]+$ ]]
 		then
 			type=int
+		elif [[ ${setting} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
+		then
+			type=double
+
 		else
 			type=string
 		fi
