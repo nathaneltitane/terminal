@@ -775,6 +775,8 @@ console.download () {
 		list+=("${file}")
 	fi
 
+	[ ! -d "${path}" ] && mkdir -p "${path}"
+
 	console.dwl "Loading..."
 	echo
 
