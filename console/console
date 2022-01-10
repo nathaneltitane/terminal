@@ -732,6 +732,8 @@ console.link () {
 		list+=("${file}")
 	fi
 
+	[ ! -d "${target}" ] && mkdir -p "${target}"
+
 	for file in ${list[@]}
 	do
 		console.lnk "Linking" "[ ${file} ]"
