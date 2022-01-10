@@ -29,22 +29,14 @@ cat << 'FILE' > /usr/bin/wallpaper-selector
 
 rgb_to_hex () {
 	IFS='(,)'
-
 	read _ r g b <<< "${1}"
-
-	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+	printf '%02x%02x%02x\n' $r $g $b
 }
 
 hex_to_rgb () {
 	read hex <<< "${1}"
-
-	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
-
-	r=$((16#${hex:0:2}))
-	g=$((16#${hex:2:2}))
-	b=$((16#${hex:4:2}))
-
-	printf '%03d %03d %03d\n' ${r} ${g} ${b}
+	hex=${hex:1}
+	printf '%d %d %d\n' 0x${hex:0:2} 0x${hex:2:2} 0x${hex:4:2}
 }
 
 
