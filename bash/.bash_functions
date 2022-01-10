@@ -55,6 +55,26 @@ colors () {
 	echo
 }
 
+hex () {
+	IFS='(,)'
+
+	read _ r g b <<< "${1}"
+
+	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+}
+
+rgb () {
+	read hex <<< "${1}"
+
+	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
+
+	r=$((16#${hex:0:2}))
+	g=$((16#${hex:2:2}))
+	b=$((16#${hex:4:2}))
+
+	printf '%03d %03d %03d\n' ${r} ${g} ${b}
+}
+
 # directory #
 
 directory () {
