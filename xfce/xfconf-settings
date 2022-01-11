@@ -103,10 +103,10 @@ do
 		command+="xfconf-query --create"
 		command+=" -c 'xfce4-desktop'"
 		command+=" -p '/backdrop/screen0/monitorVNC-0/workspace${workspace_number}/rgba${rgba_number}'"
-		command+=" -t double -s ${r}"
-		command+=" -t double -s ${g}"
-		command+=" -t double -s ${b}"
-		command+=" -t double -s ${a}"
+		command+=" -t double -s '${r}'"
+		command+=" -t double -s '${g}'"
+		command+=" -t double -s '${b}'"
+		command+=" -t double -s '${a}'"
 
 		echo ${command} >> "${settings_file}"
 	done
