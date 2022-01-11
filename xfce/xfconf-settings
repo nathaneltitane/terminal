@@ -93,10 +93,10 @@ do
 	do
 		value="1.0"
 
-		r=${value}
-		g=${value}
-		b=${value}
-		a=${value}
+		r="${value}"
+		g="${value}"
+		b="${value}"
+		a="${value}"
 
 			unset command
 
