@@ -78,8 +78,35 @@ do
 
 done > "${settings_file}"
 
-echo "xfconf-query --create -c 'xfce4-desktop' -p '/backdrop/screen0/monitorVNC-0/workspace0/rgba1' -t double -t double -t double -t double -s 1.0 -s 1.0 -s 1.0 -s 1.0" >> "${settings_file}"
-echo "xfconf-query --create -c 'xfce4-desktop' -p '/backdrop/screen0/monitorVNC-0/workspace0/rgba2' -t double -t double -t double -t double -s 1.0 -s 1.0 -s 1.0 -s 1.0" >> "${settings_file}"
+# fix 'UNSUPPORTED' values:
+# write essential values back into settings file
+
+# add 'xfce4-appfinder' actions string
+
+echo "xfconf-query --create -c 'xfce4-appfinder' -p '/actions' -t string -s ''" >> "${settings_file}"
+
+# add workspace background settings
+
+for number in {0..8}
+do
+	value="1.0"
+
+	r=${value}
+	g=${value}
+	b=${value}
+	a=${value}
+
+	echo "xfconf-query --create -c 'xfce4-desktop' -p '/backdrop/screen0/monitorVNC-0/workspace${number}/rgba1' -t double -t double -t double -t double -s ${r} -s ${g} -s ${b} -s ${a}" >> "${settings_file}"
+	echo "xfconf-query --create -c 'xfce4-desktop' -p '/backdrop/screen0/monitorVNC-0/workspace${number}/rgba2' -t double -t double -t double -t double -s ${r} -s ${g} -s ${b} -s ${a}" >> "${settings_file}"
+done
+
+# add workspace name settings
+
+echo "xfconf-query --create -c 'xfwm4' -p '/general/workspace_names' -t string -t string -t string -t string -t string -t string -t string -t string -t string -s 'Workspace 01' -s 'Workspace 02' -s 'Workspace 03' -s 'Workspace 04' -s 'Workspace 05' -s 'Workspace 06' -s 'Workspace 07' -s 'Workspace 08' -s 'Workspace 09'" >> "${settings_file}"
+
+# add keyboard-shortcut providers
+
+echo "xfconf-query --create -c 'xfce4-keyboard-shortcuts' -p '/providers' -t string -t string -s 'xfwm4' -s 'commands'" >> "${settings_file}"
 
 echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
 
