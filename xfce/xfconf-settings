@@ -114,30 +114,30 @@ done
 
 # add workspace name settings
 
-	unset command
+unset command
 
-	command+="xfconf-query --create"
-	command+=" -c 'xfwm4'"
-	command+=" -p '/general/workspace_names'"
+command+="xfconf-query --create"
+command+=" -c 'xfwm4'"
+command+=" -p '/general/workspace_names'"
 
-	for workspace_number in {1..9}
-	do
-		command+=" -t string -s 'Workspace 0${workspace_number}'"
-	done
+for workspace_number in {1..9}
+do
+	command+=" -t string -s 'Workspace 0${workspace_number}'"
+done
 
-	echo ${command} >> "${settings_file}"
+echo ${command} >> "${settings_file}"
 
 # add keyboard-shortcut providers
 
-	unset command
+unset command
 
-	command+="xfconf-query --create"
-	command+=" -c 'xfce4-keyboard-shortcuts'"
-	command+=" -p '/providers'"
-	command+=" -t string -s 'xfwm4'"
-	command+=" -t string -s 'commands'"
+command+="xfconf-query --create"
+command+=" -c 'xfce4-keyboard-shortcuts'"
+command+=" -p '/providers'"
+command+=" -t string -s 'xfwm4'"
+command+=" -t string -s 'commands'"
 
-	echo ${command} >> "${settings_file}"
+echo ${command} >> "${settings_file}"
 
 echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
 
