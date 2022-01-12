@@ -1037,11 +1037,65 @@ console.install () {
 		list+=("${package}")
 	fi
 
+	command_install="apt-get install --no-upgrade"
+
+	console.inf "Installing packages." "[ Standard ]"
+	echo
+
+	for package in ${list[@]}
+	do
+		if [ -z "$(dpkg -s ${package} 2> /dev/null | grep -o installed)" ]
+		then
+			console.wrn "Package not installed" "[ '${package}' ]"
+			echo
+
+			console.log "yes | ${command_install} ${package}" &
+
+			console.progress "Installing..."
+			echo
+		else
+			console.scs "Package installed" "[ '${package}' ]"
+			echo
+
+			console.fwd "Continuing..."
+			echo
+
+			:
+		fi
+	done
+
+	# unset array
+
+	list=()
+
+	# cleanup
+
+	console.clean
+}
+
+# install minimal
+
+console.install.minimal () {
+	export DEBIAN_FRONTEND=noninteractive
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
+
 	# use '--no-install-recommends' option to keep bloat to a minimum
 
 	command_install="apt-get install --no-install-recommends --no-upgrade"
 
-	console.inf "Installing packages."
+	console.inf "Installing packages." "[ Minimal ]"
 	echo
 
 	for package in ${list[@]}
