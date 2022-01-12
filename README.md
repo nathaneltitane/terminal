@@ -1,4 +1,4 @@
-## terminal
+### Terminal
 
 ![terminal](https://raw.githubusercontent.com/nathaneltitane/terminal/master/terminal.svg)
 
