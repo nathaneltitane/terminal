@@ -1129,6 +1129,46 @@ console.install.minimal () {
 	console.clean
 }
 
+# reinstall
+
+console.reinstall () {
+	export DEBIAN_FRONTEND=noninteractive
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
+
+	command_reinstall="apt-get install --reinstall"
+
+	console.inf "Reinstalling packages."
+	echo
+
+	for package in ${list[@]}
+	do
+		console.log "yes | ${command_reinstall} ${package}" &
+
+		console.progress "Reinstalling..."
+		echo
+	done
+
+	# unset array
+
+	list=()
+
+	# cleanup
+
+	console.clean
+}
+
 # update
 
 console.update () {
