@@ -1021,7 +1021,7 @@ console.release () {
 
 # install
 
-console.install () {
+console.install.full () {
 	export DEBIAN_FRONTEND=noninteractive
 
 	if [[ -n "${#list[@]}" ]]
