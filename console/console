@@ -564,6 +564,22 @@ console.directory () {
 	list=()
 }
 
+# type
+
+console.type () {
+	for (( character=0; character<=${#1}; character++ ))
+	do
+		interval=$(( (RANDOM % 5) + 1 ))
+		sleep=0.${interval}
+
+		printf "%s" "${1:${character}:1}"
+
+		sleep ${sleep}
+	done
+
+	printf '\n'
+}
+
 # file
 
 console.file () {
