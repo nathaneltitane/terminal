@@ -1073,9 +1073,9 @@ console.install () {
 	console.clean
 }
 
-# install minimal
+# install
 
-console.install.minimal () {
+console.install () {
 	export DEBIAN_FRONTEND=noninteractive
 
 	if [[ -n "${#list[@]}" ]]
