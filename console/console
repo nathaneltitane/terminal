@@ -598,6 +598,8 @@ console.file () {
 		list+=("${file}")
 	fi
 
+[ ! -d "${path}" ] && mkdir -p "${path}"
+
 	for file in ${list[@]}
 	do
 		console.add "Creating file" "[ ${file} ]"
@@ -715,6 +717,8 @@ console.copy () {
 
 		list+=("${file}")
 	fi
+
+	[ ! -d "${target}" ] && mkdir -p "${target}"
 
 	for file in ${list[@]}
 	do
