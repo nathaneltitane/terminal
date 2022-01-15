@@ -1,5 +1,6 @@
 # aliases #
 
+[[ $(command -v dextop) && $(grep -i termux "${PREFIX}"/cnt/etc/passwd) ]]      && alias 'dextop'='container-session -u termux'
 [[ $(command -v cd) ]]                                                          && alias '..'='cd ..'
 [[ $(command -v rsync) ]]                                                       && alias 'copy'='rsync -a -r -q --progress -h'
 [[ $(command -v find) && $(command -v wc) ]]                                    && alias 'count'='find . -type f | wc -l'
