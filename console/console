@@ -620,7 +620,6 @@ console.write () {
 	done
 }
 
-
 # file
 
 console.file () {
