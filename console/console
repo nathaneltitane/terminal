@@ -599,10 +599,8 @@ console.write () {
 		list+=("${file}")
 	fi
 
-
 	[ ! -d "${path}" ] && mkdir -p "${path}"
 
-	echo ${list[@]}
 	for file in ${list[@]}
 	do
 		console.add "Writing to file" "[ ${file} ]"
