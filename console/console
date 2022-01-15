@@ -496,7 +496,7 @@ console.countdown () {
 	echo
 }
 
-# spinner
+# progress
 
 console.progress () {
 	# catch PID of last command
@@ -810,7 +810,29 @@ console.link () {
 # get
 
 console.get () {
-	curl -s -L "${source}/${file}" > "${path}"/"${file}" &
+	# parse url and download file according to source concatenation
+
+	command_get () {
+		# verify url status
+
+		url_status=$(curl						\
+				--write-out "%{http_code}\n"	\
+				--silent						\
+				--output /dev/null				\
+												"$source/$file"
+					)
+
+		if [[ "${url_status}" = [145][0-9][0-9] ]]
+		then
+			curl -s -L "${source}" > "${path}"/"${file}"
+
+		else
+			curl -s -L "${source}"/"${file}" > "${path}"/"${file}"
+
+		fi
+	}
+
+	command_get &
 
 	console.progress "Downloading" "[ ${file} ]"
 	echo
