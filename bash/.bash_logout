@@ -2,5 +2,5 @@
 
 if [[ $(ps -A | grep -i -E *vnc*) ]]
 then
-	container-vnc -x
+	container-session -x
 fi

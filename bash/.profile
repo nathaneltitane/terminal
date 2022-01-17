@@ -44,7 +44,7 @@ then
 			echo
 		else
 			console.wrn "This is your first login:"
-			console.wrn "Run 'container-vnc -o' to launch session [ ${session_name} ]."
+			console.wrn "Run 'container-session -o' to launch session [ ${session_name} ]."
 			echo
 		fi
 	else
@@ -66,9 +66,9 @@ then
 		then
 			if [ -f "${HOME}"/.vnc/selection ]
 			then
-				echo $(cat "${HOME}"/.vnc/selection) | container-vnc -o
+				echo $(cat "${HOME}"/.vnc/selection) | container-session -o
 			else
-				container-vnc -o
+				container-session -o
 			fi
 		fi
 	fi
