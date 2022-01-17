@@ -1,11 +1,3 @@
-[pi4]
-
-# Video framebuffer
-
-max_framebuffers=2
-
-[all]
-
 # Kernel
 
 arm_64bit=1
@@ -41,6 +33,14 @@ hdmi_drive=2
 hdmi_group=1
 hdmi_mode=4
 disable_overscan=1
+
+[pi4]
+
+# Video framebuffer
+
+max_framebuffers=2
+
+[all]
 
 # Graphics acceleration
 
