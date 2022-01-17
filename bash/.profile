@@ -22,7 +22,7 @@ fi
 
 # dependencies #
 
-. /data/data/com.termux/files/usr/bin/console
+. "${PREFIX}"/bin/console
 
 if [[ $(command -v dextop) ]]
 then
