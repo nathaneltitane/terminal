@@ -1,0 +1,12 @@
+version: 2
+ethernets:
+	eth0:
+		dhcp4: true
+		optional: true
+wifis:
+	wlan0:
+		dhcp4: true
+		optional: true
+		access-points:
+			"WiFi":
+				password: "y5cE?z>6&juDEm"

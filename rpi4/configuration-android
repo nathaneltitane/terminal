@@ -1,11 +1,18 @@
-# Splash
-disable_splash=1
-
 # Kernel
+
 arm_64bit=1
 kernel=Image
 
+# Splash
+
+disable_splash=1
+
+# EMMC clock
+
+init_emmc_clock=250000000
+
 # Ramdisk
+
 gpio=21=ip,pu
 [gpio21=1]
 initramfs ramdisk.img followkernel
@@ -14,6 +21,7 @@ initramfs ramdisk-recovery.img followkernel
 [all]
 
 # Audio
+
 dtparam=audio=on
 [HDMI:0]
 [HDMI:1]
@@ -21,16 +29,20 @@ hdmi_force_edid_audio=1
 [all]
 
 # Audio DAC
+
 #dtoverlay=hifiberry-dacplus
 
 # Boot device
+
 dtoverlay=android-sdcard
 #dtoverlay=android-usb
 
 # Camera
+
 start_x=1
 
 # Display
+
 [HDMI:0]
 [HDMI:1]
 hdmi_force_hotplug=1
@@ -41,54 +53,62 @@ disable_overscan=1
 [all]
 
 # Graphics acceleration
+
 [gpio21=1]
 dtoverlay=vc4-kms-v3d,noaudio
-#dtoverlay=vc4-kms-dsi-7inch
 dtoverlay=cma,cma-384
+#dtoverlay=vc4-kms-dsi-7inch
 [all]
 
 # I2C
+
 dtparam=i2c_arm=on
 
 # I2S
+
 #dtparam=i2s=on
 
 # IR
+
 #dtoverlay=gpio-ir,gpio_pin=18
 
 # Keys
+
 #dtoverlay=gpio-key,gpio=21,keycode=116,label="POWER"
 #dtoverlay=gpio-key,gpio=26,keycode=115,label="VOLUME_UP"
 #dtoverlay=gpio-key,gpio=20,keycode=114,label="VOLUME_DOWN"
 
 # Overclock
+
 over_voltage=7
 arm_freq=2100
 gpu_freq=750
 
-# Memory allocation
-
-#gpu_mem=256
-
 # RTC
+
 #dtoverlay=i2c-rtc,ds3231
 
 # Sensors
+
 #dtoverlay=android-i2c-sensor,mpu6050
 
 # Serial console
+
 enable_uart=1
 
 # SPI
+
 dtparam=spi=on
 
 # Touchscreen
+
+dtoverlay=rpi-backlight
 #dtoverlay=ads7846,cs=1,penirq=25,penirq_pull=2,speed=50000,keep_vref_on=0,swapxy=0,pmax=255,xohms=150,xmin=200,xmax=3900,ymin=200,ymax=3900
 #dtoverlay=goodix
-dtoverlay=rpi-backlight
 #dtoverlay=edt-ft5406
 
 # USB-C
+
 dtoverlay=dwc2,dr_mode=peripheral
 [cm4]
 dtoverlay=dwc2,dr_mode=host

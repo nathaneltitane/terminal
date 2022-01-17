@@ -1,0 +1,61 @@
+[pi4]
+
+# Video framebuffer
+
+max_framebuffers=2
+
+[all]
+
+# Kernel
+
+arm_64bit=1
+kernel=vmlinuz
+cmdline=cmdline.txt
+initramfs initrd.img followkernel
+
+# Splash
+
+disable_splash=1
+
+# EMMC clock
+
+init_emmc_clock=250000000
+
+# Audio
+
+dtparam=audio=on
+dtparam=i2c_arm=on
+dtparam=spi=on
+hdmi_force_edid_audio=1
+
+# Serial pins
+
+enable_uart=1
+
+# Display
+
+[HDMI:0]
+[HDMI:1]
+hdmi_force_hotplug=1
+hdmi_drive=2
+hdmi_group=1
+hdmi_mode=4
+disable_overscan=1
+
+# Graphics acceleration
+
+[gpio21=1]
+dtoverlay=vc4-kms-v3d,noaudio
+dtoverlay=cma,cma-384
+#dtoverlay=vc4-kms-dsi-7inch
+
+
+# USB boot mode
+
+program_usb_boot_mode=0
+
+# Overclocking
+
+over_voltage=7
+arm_freq=2100
+cpu_freq=700
