@@ -151,8 +151,6 @@ extract () {
 		echo
 		echo -e "'${1}' is not a valid archive type."
 		echo
-
-		exit 1
 	fi
 }
 
