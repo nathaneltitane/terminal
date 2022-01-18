@@ -40,6 +40,8 @@ then
 		dbus-launch "${PREFIX}"/bin/container-settings
 
 		console.file "${PREFIX}"/bin/container-settings-checkpoint
+
+		clear
 	fi
 
 	# welcome
