@@ -72,6 +72,13 @@ then
 			fi
 		fi
 	fi
+
+	if [ ! -f "${PREFIX}"/bin/container-settings-checkpoint ]
+	then
+		"${PREFIX}"/bin/container-settings
+
+		console.file "${PREFIX}"/bin/container-settings-checkpoint
+	fi
 fi
 
 
