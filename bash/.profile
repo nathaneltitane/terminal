@@ -30,6 +30,18 @@ then
 
 	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}" || name=Ubuntu
 
+	# settings
+
+	if [ ! -f "${PREFIX}"/bin/container-settings-checkpoint ]
+	then
+		console.fwd "Setting up..."
+		echo
+
+		dbus-launch "${PREFIX}"/bin/container-settings
+
+		console.file "${PREFIX}"/bin/container-settings-checkpoint
+	fi
+
 	# welcome
 
 	if [[ $(ps -A | grep -i proot) ]]
@@ -71,13 +83,6 @@ then
 				container-session -o
 			fi
 		fi
-	fi
-
-	if [ ! -f "${PREFIX}"/bin/container-settings-checkpoint ]
-	then
-		"${PREFIX}"/bin/container-settings
-
-		console.file "${PREFIX}"/bin/container-settings-checkpoint
 	fi
 fi
 
