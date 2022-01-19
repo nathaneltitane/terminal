@@ -44,9 +44,9 @@ then
 
 		dbus-launch "${PREFIX}"/bin/container-settings
 
-		console.file "${HOME}"/.dextop/dextop-settings-checkpoint
+		console.file "${HOME}"/.dextop dextop-settings-checkpoint
 
-		clear
+		console.clear
 	fi
 
 	# update
@@ -77,6 +77,8 @@ then
 			)
 
 			console.download get.dxtp.app "${PREFIX}"/bin ${utilities_list[@]}
+
+			console.clear
 		fi
 	fi
 
@@ -101,7 +103,7 @@ then
 		console.fwd "Welcome to Dextop" "[ Termux ]"
 		echo
 
-		console.inf "Launch session: container-session -u <username> | -a <application>'"
+		console.inf "Launch session: 'container-session -u <username> | -a <application>'"
 	fi
 
 	echo
@@ -123,5 +125,3 @@ then
 		fi
 	fi
 fi
-
-
