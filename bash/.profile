@@ -44,6 +44,32 @@ then
 		clear
 	fi
 
+	# update
+
+	if [[ $(cat "${PREFIX}"/bin/dextop-update) = "update" ]]
+	then
+		console.fwd "Updating..."
+		echo
+
+		utilities_list+=(
+		termux-directories
+		termux-packages
+		termux-repositories
+		termux-storage
+		termux-update
+		container-expansion
+		container-image
+		container-packages
+		container-repositories
+		container-session
+		container-settings
+		container-system
+		container-user
+		)
+
+		console.download get.dxtp.app "${PREFIX}"/bin ${utilities_list[@]}
+	fi
+
 	# welcome
 
 	if [[ $(ps -A | grep -i proot) ]]
