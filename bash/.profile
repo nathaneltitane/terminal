@@ -34,7 +34,6 @@ then
 	fi
 
 	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}"
-	[ -z "${name}" ]       && name="Ubuntu"
 
 	# settings
 
