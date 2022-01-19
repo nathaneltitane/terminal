@@ -26,48 +26,59 @@ fi
 
 if [[ $(command -v dextop) ]]
 then
-	[[ $(cat "${PREFIX}"/bin/dextop) = xfce ]] && session_name="XFCE" || session_name="CONSOLE"
+	if [[ $(cat "${PREFIX}"/bin/dextop) = xfce ]]
+	then
+		session_name="XFCE"
+	else
+		session_name="CONSOLE"
+	fi
 
-	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}" || name=Ubuntu
+	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}"
+	[ -z "${name}" ]       && name="Ubuntu"
 
 	# settings
 
-	if [ ! -f "${PREFIX}"/bin/container-settings-checkpoint ]
+	if [ ! -f "${HOME}"/.dextop/dextop-settings-checkpoint ]
 	then
 		console.fwd "Setting up..."
 		echo
 
 		dbus-launch "${PREFIX}"/bin/container-settings
 
-		console.file "${PREFIX}"/bin/container-settings-checkpoint
+		console.file "${HOME}"/.dextop/dextop-settings-checkpoint
 
 		clear
 	fi
 
 	# update
 
-	if [[ $(cat "${PREFIX}"/bin/dextop-update) = "update" ]]
+	if [[ $(ps -A | grep -i proot) ]]
 	then
-		console.fwd "Updating..."
-		echo
+		:
+	else
+		if [[ $(cat "${HOME}"/.dextop/dextop-update) = "update" ]]
+		then
+			console.fwd "Updating..."
+			echo
 
-		utilities_list+=(
-		termux-directories
-		termux-packages
-		termux-repositories
-		termux-storage
-		termux-update
-		container-expansion
-		container-image
-		container-packages
-		container-repositories
-		container-session
-		container-settings
-		container-system
-		container-user
-		)
+			utilities_list+=(
+				termux-directories
+				termux-packages
+				termux-repositories
+				termux-storage
+				termux-update
+				container-expansion
+				container-image
+				container-packages
+				container-repositories
+				container-session
+				container-settings
+				container-system
+				container-user
+			)
 
-		console.download get.dxtp.app "${PREFIX}"/bin ${utilities_list[@]}
+			console.download get.dxtp.app "${PREFIX}"/bin ${utilities_list[@]}
+		fi
 	fi
 
 	# welcome
@@ -96,7 +107,7 @@ then
 
 	echo
 
-	# automatic vnc session start
+	# automatic session start
 
 	if [[ $(ps -A | grep -i vnc) ]]
 	then
