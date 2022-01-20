@@ -98,6 +98,6 @@
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                    && alias 'status'='sudo systemctl status'
 [[ $(command -v sudo) && $(command -v pkill) ]]                                        && alias 'terminate'="sudo pkill -9"
 [[ $(command -v pkill) ]]                                                              && alias 'terminate'="pkill -9"
-[[ $(command -v du) && $(command -v sort) ]]                                           && alias 'usage'='du -a -d 1 -h -S --time 2> /dev/null | sort -n -r'
+[[ $(command -v du) && $(command -v sort) ]]                                           && alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
 [[ $(command -v wget) ]]                                                               && alias 'wget'='wget -c'
 [[ $(command -v echo) ]]                                                               && alias 'where'='echo ${PWD}'
