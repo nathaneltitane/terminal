@@ -39,9 +39,9 @@ then
 
 	if [[ $(command -v pulseaudio) ]]
 	then
-		export PULSE_SERVER=tcp:127.0.0.1:4712
+		pulseaudio --start &
 
-		pulseaudio &
+		export PULSE_SERVER=tcp:127.0.0.1:4712
 	fi
 
 	# settings
