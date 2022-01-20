@@ -16,8 +16,6 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # variables #
 
-parse=$(cat "${directory}"/adb_usb.ini)
-
 # defaults #
 
 # functions #
@@ -40,5 +38,5 @@ then
 	while read -r vendor_id
 	do
 		echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
-	done <<< "${parse}" >> /etc/udev/rules.d/51-android.rules
+	done <<< $(cat "${directory}"/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
 fi
