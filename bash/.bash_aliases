@@ -39,7 +39,6 @@
 [[ $(command -v rsync) ]]                                                              && alias 'copy'='rsync -a -r -q --progress -h'
 [[ $(command -v find) && $(command -v wc) ]]                                           && alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
 [[ $(command -v find) && $(command -v wc) ]]                                           && alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
-[[ $(command -v dd) ]]                                                                 && alias 'duplicate'="dd if=${1} of=${2} bs=${3} status=progress"
 [[ $(command -v nano) ]]                                                               && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
 [[ $(command -v ls) && $(command -v grep) ]]                                           && alias 'ffilter'='ls -a | grep -i'
 [[ $(command -v ps) && $(command -v grep) ]]                                           && alias 'pfilter'='ps -A | grep -i'
