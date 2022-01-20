@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# dependencies #
+
+. "${PREFIX}"/bin/console
+
+# script #
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version #
+
+version="01-19-2022"
+
+# usage #
+
+# prompt #
+
+# variables
+
+# defaults #
+
+# functions
+
+# setup
+
+console.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
+console.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
+
+console.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
