@@ -39,7 +39,7 @@ then
 
 	if [[ $(command -v pulseaudio) ]]
 	then
-		pulseaudio --start &
+		pulseaudio --start
 
 		export PULSE_SERVER=tcp:127.0.0.1:4712
 	fi
