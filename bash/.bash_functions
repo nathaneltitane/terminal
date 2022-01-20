@@ -86,6 +86,19 @@ directory () {
 	fi
 }
 
+# duplicate #
+
+duplicate () {
+	if [ $(command -v dd) ]
+	then
+		dd 	\
+			if="${1}"	\
+			of="${2}"	\
+			bs="${3}"	\
+				status=progress
+	fi
+}
+
 # extract #
 
 extract () {
