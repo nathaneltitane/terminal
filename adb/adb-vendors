@@ -20,6 +20,8 @@ parse=$(cat "${directory}"/adb_usb.ini)
 
 # defaults #
 
+# functions #
+
 # write vendors list
 
 console.directory ${HOME}"/.android

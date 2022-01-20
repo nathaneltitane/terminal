@@ -18,6 +18,8 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
+# functions #
+
 # remove apk
 
 	# huawei #

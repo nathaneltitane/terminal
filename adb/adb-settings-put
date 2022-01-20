@@ -18,12 +18,12 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
+# functions #
+
 # write settings
 
 commands_list+=(
-	system hw_hide_font_style false
-	global policy_control immersive.navigation=com.sec.android.app.desktoplauncher
-	)
+)
 
 for command in ${commands_list[@]}
 do
