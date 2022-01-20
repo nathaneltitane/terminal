@@ -1,25 +1,21 @@
 # aliases #
 
-[[ $(command -v container-session) ]]                                                  && alias 'dextop-t'='container-session -o'
-[[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/etc/passwd) ]]  && alias 'dextop-c'='container-session -u termux'
-[[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/etc/passwd) ]]  && alias 'dextop-r'='container-session -u root'
-[[ $(ls -d "${HOME}") ]]                                                               && alias 'hd'='cd "${HOME}"'
-[[ $(ls -d "${HOME}"/[gG]it) ]]                                                        && alias 'gd'='cd "${HOME}"/[gG]it)'
-[[ $(ls -d "${HOME}"/[vV]ideo[s]) ]]                                                   && alias 'vd'='cd "${HOME}"/[vV]ideo[s]'
-[[ $(ls -d "${HOME}"/[mM]usic) ]]                                                      && alias 'md'='cd "${HOME}"/[mM]usic'
-[[ $(ls -d "${PREFIX}"/media) ]]                                                       && alias 'md'='cd "${PREFIX}"/media'
-[[ $(ls -d "${PREFIX}"/storage) ]]                                                     && alias 'sd'='cd "${PREFIX}"/storage'
-[[ $(ls -d "${PREFIX}"/media/[eE]xternal) ]]                                           && alias 'ed'='cd "${PREFIX}"/media/[eE]xternal'
-[[ $(ls -d "${PREFIX}"/media/[iI]nternal) ]]                                           && alias 'id'='cd "${PREFIX}"/media/[iI]nternal'
-[[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it) ]]                                    && alias 'ed'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
-[[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it) ]]                                    && alias 'id'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
-[[ $(command -v cd) ]]                                                                 && alias '..'='cd ..'
-[[ $(command -v rsync) ]]                                                              && alias 'copy'='rsync -a -r -q --progress -h'
-[[ $(command -v find) && $(command -v wc) ]]                                           && alias 'count'='find . -type f | wc -l'
-[[ $(command -v dd) ]]                                                                 && alias 'duplicate'="dd if=${1} of=${2} bs=${3} status=progress"
-[[ $(command -v nano) ]]                                                               && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
-[[ $(command -v ls) && $(command -v grep) ]]                                           && alias 'ffilter'='ls -a | grep -i'
-[[ $(command -v ps) && $(command -v grep) ]]                                           && alias 'pfilter'='ps -A | grep -i'
+# dextop #
+[[ $(command -v container-session) ]]                                                  && alias 'dt'='container-session -o'
+[[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/etc/passwd) ]]  && alias 'dc'='container-session -u termux'
+[[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/etc/passwd) ]]  && alias 'dr'='container-session -u root'
+
+# directories #
+
+[[ $(ls -d "${PREFIX}" 2> /dev/null) ]]                                                && alias 'pd'='cd "${PREFIX}"'
+[[ $(ls -d "${HOME}" 2> /dev/null) ]]                                                  && alias 'hd'='cd "${HOME}"'
+[[ $(ls -d "${PREFIX}"/media 2> /dev/null) ]]                                          && alias 'md'='cd "${PREFIX}"/media'
+[[ $(ls -d "${PREFIX}"/storage 2> /dev/null) ]]                                        && alias 'sd'='cd "${PREFIX}"/storage'
+[[ $(ls -d "${PREFIX}"/media/[eE]xternal 2> /dev/null) ]]                              && alias 'ed'='cd "${PREFIX}"/media/[eE]xternal'
+[[ $(ls -d "${PREFIX}"/media/[iI]nternal 2> /dev/null) ]]                              && alias 'id'='cd "${PREFIX}"/media/[iI]nternal'
+
+# git #
+
 [[ $(command -v git) ]]                                                                && alias 'gc'="git clone --depth 1"
 [[ $(command -v git) ]]                                                                && alias 'gi'='git init'
 [[ $(command -v git) ]]                                                                && alias 'gp'='git pull'
@@ -27,13 +23,31 @@
 [[ $(command -v git) ]]                                                                && alias 'gm'="git commit -a -m ${1}"
 [[ $(command -v git) ]]                                                                && alias 'gs'='git push'
 [[ $(command -v git) ]]                                                                && alias 'gu'='ga && gm "Code & Features Update" && gs'
+
+[[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]                                           && alias 'gd'='cd "${HOME}"/[gG]it)'
+[[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null)  ]]                      && alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
+[[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]                       && alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
+[[ $(ls -d "${PREFIX}"/storage/[eE]xternal/[gG]it 2> /dev/null)  ]]                    && alias 'gd'='cd "${PREFIX}"/storage/[eE]xternal/[gG]it'
+[[ $(ls -d "${PREFIX}"/storage/[iI]nternal/[gG]it 2> /dev/null) ]]                     && alias 'gd'='cd "${PREFIX}"/storage/[iI]nternal/[gG]it'
+
+# commands #
+
+[[ $(command -v cd) ]]                                                                 && alias '..'='cd ..'
+[[ $(command -v df) ]]                                                                 && alias 'df'='df -H'
+[[ $(command -v du) ]]                                                                 && alias 'du'='du -a -c -h'
+
+[[ $(command -v rsync) ]]                                                              && alias 'copy'='rsync -a -r -q --progress -h'
+[[ $(command -v find) && $(command -v wc) ]]                                           && alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
+[[ $(command -v find) && $(command -v wc) ]]                                           && alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
+[[ $(command -v dd) ]]                                                                 && alias 'duplicate'="dd if=${1} of=${2} bs=${3} status=progress"
+[[ $(command -v nano) ]]                                                               && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
+[[ $(command -v ls) && $(command -v grep) ]]                                           && alias 'ffilter'='ls -a | grep -i'
+[[ $(command -v ps) && $(command -v grep) ]]                                           && alias 'pfilter'='ps -A | grep -i'
 [[ $(command -v grep) ]]                                                               && alias 'grep'='grep --color=auto'
 [[ $(command -v egrep) ]]                                                              && alias 'egrep'='egrep --color=auto'
 [[ $(command -v fgrep) ]]                                                              && alias 'fgrep'='fgrep --color=auto'
 [[ $(command -v curl) ]]                                                               && alias 'header'='curl -I'
 [[ $(command -v ls) ]]                                                                 && alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'
-[[ $(command -v df) ]]                                                                 && alias 'df'='df -H'
-[[ $(command -v du) ]]                                                                 && alias 'du'='du -a -c -h'
 [[ $(command -v mount) && $(command -v column) ]]                                      && alias 'mounts'='mount | column -t'
 [[ $(command -v sudo) && $(command -v apt-get) ]]                                      && alias 'autoclean'='sudo apt-get autoclean'
 [[ $(command -v sudo) && $(command -v apt-get) ]]                                      && alias 'autoremove'='sudo apt-get autoremove'
@@ -86,5 +100,5 @@
 [[ $(command -v sudo) && $(command -v pkill) ]]                                        && alias 'terminate'="sudo pkill -9"
 [[ $(command -v pkill) ]]                                                              && alias 'terminate'="pkill -9"
 [[ $(command -v du) && $(command -v sort) ]]                                           && alias 'usage'='du -a -d 1 -h -S --time 2> /dev/null | sort -n -r'
-[[ $(command -v wget) ]]                                                               && alias 'wget'='wgat -c'
+[[ $(command -v wget) ]]                                                               && alias 'wget'='wget -c'
 [[ $(command -v echo) ]]                                                               && alias 'where'='echo ${PWD}'
