@@ -48,14 +48,14 @@ then
 	then
 		if [[ $(id -u -n) = "root") ]]
 		then
-			:
+			pulseaudio --system
 		else
 			pulseaudio --start
-
-			[ -z "${PULSE_SERVER}" ] && PULSE_SERVER="tcp:127.0.0.1:4712"
-
-			export PULSE_SERVER="${PULSE_SERVER}"
 		fi
+
+		[ -z "${PULSE_SERVER}" ] && PULSE_SERVER="tcp:127.0.0.1:4712"
+
+		export PULSE_SERVER="${PULSE_SERVER}"
 	fi
 
 	# settings
