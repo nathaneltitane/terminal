@@ -29,6 +29,8 @@ then
 	. "${PREFIX}"/bin/console
 fi
 
+# dextop #
+
 if [[ $(command -v dextop) ]]
 then
 	if [[ $(cat "${PREFIX}"/bin/dextop) = xfce ]]
