@@ -36,6 +36,10 @@
 [[ $(command -v cd) ]]                                                                 && alias '..'='cd ..'
 [[ $(command -v df) ]]                                                                 && alias 'df'='df -H'
 [[ $(command -v du) ]]                                                                 && alias 'du'='du -a -c -h'
+[[ $(command -v rm) ]]                                                                 && alias 'rm'='rm -rf'
+[[ $(command -v wget) ]]                                                               && alias 'wget'='wget -c'
+
+# aliases #
 
 [[ $(command -v rsync) ]]                                                              && alias 'copy'='rsync -a -r -q --progress -h'
 [[ $(command -v find) && $(command -v wc) ]]                                           && alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
@@ -90,8 +94,9 @@
 [[ $(command -v chmod) ]]                                                              && alias 'chmod'='chmod --preserve-root'
 [[ $(command -v chown) ]]                                                              && alias 'chown'='chown --preserve-root'
 [[ $(command -v netstat) ]]                                                            && alias 'ports'='netstat -t -u -l -a -n -p'
-[[ $(command -v ps) ]]                                                                 && alias 'processes'='ps -A'
-[[ $(command -v rm) ]]                                                                 && alias 'remove'='rm -rf'
+[[ $(command -v echo) ]]                                                               && alias 'where'='echo ${PWD}'
+[[ $(command -v ps) ]]                                                                 && alias 'what'='ps -A'
+[[ $(command -v ps) ]]                                                                 && alias 'how'='ps -a -u -x'
 [[ $(command -v ping) ]]                                                               && alias 'sonar'='ping -c 5'
 [[ $(command -v sudo) ]]                                                               && alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                    && alias 'start'='sudo systemctl start'
@@ -102,5 +107,3 @@
 [[ $(command -v sudo) && $(command -v pkill) ]]                                        && alias 'terminate'="sudo pkill -9"
 [[ $(command -v pkill) ]]                                                              && alias 'terminate'="pkill -9"
 [[ $(command -v du) && $(command -v sort) ]]                                           && alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
-[[ $(command -v wget) ]]                                                               && alias 'wget'='wget -c'
-[[ $(command -v echo) ]]                                                               && alias 'where'='echo ${PWD}'
