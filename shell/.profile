@@ -22,7 +22,12 @@ fi
 
 # dependencies #
 
-. "${PREFIX}"/bin/console
+if [ ! -f "${PREFIX}"/bin/console ]
+then
+	curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
+
+	. "${PREFIX}"/bin/console
+fi
 
 if [[ $(command -v dextop) ]]
 then
