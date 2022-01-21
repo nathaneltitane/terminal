@@ -52,7 +52,9 @@ then
 		else
 			pulseaudio --start
 
-			export PULSE_SERVER=tcp:127.0.0.1:4712
+			[ -z "${PULSE_SERVER}" ] && PULSE_SERVER="tcp:127.0.0.1:4712"
+
+			export PULSE_SERVER="${PULSE_SERVER}"
 		fi
 	fi
 
