@@ -22,18 +22,13 @@ fi
 
 # dependencies #
 
-if [ ! -f "${PREFIX}"/bin/console ]
-then
-	curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
-
-	. "${PREFIX}"/bin/console
-fi
+[ ! -f "${PREFIX}"/bin/console ] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
 
 # dextop #
 
 if [[ $(command -v dextop) ]]
 then
-	if [[ $(cat "${PREFIX}"/bin/dextop) = xfce ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-option) = xfce ]]
 	then
 		session_name="XFCE"
 	else
