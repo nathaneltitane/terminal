@@ -3,7 +3,6 @@
 # dependencies #
 
 [ ! -f "${PREFIX}"/bin/console ] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
-fi
 
 # script #
 

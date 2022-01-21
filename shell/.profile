@@ -22,7 +22,7 @@ fi
 
 # dependencies #
 
-[ ! -f "${PREFIX}"/bin/console ] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
+[ ! -f "${PREFIX}"/bin/console ] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/consol
 
 # dextop #
 
