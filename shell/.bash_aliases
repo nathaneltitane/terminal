@@ -11,8 +11,8 @@
 [[ $(ls -d "${HOME}" 2> /dev/null) ]]                                                  && alias 'hd'='cd "${HOME}"'
 [[ $(ls -d "${PREFIX}"/media 2> /dev/null) ]]                                          && alias 'md'='cd "${PREFIX}"/media'
 [[ $(ls -d "${PREFIX}"/storage 2> /dev/null) ]]                                        && alias 'sd'='cd "${PREFIX}"/storage'
-[[ $(ls -d "${PREFIX}"/media/[eE]xternal 2> /dev/null) ]]                              && alias 'ed'='cd "${PREFIX}"/media/[eE]xternal'
-[[ $(ls -d "${PREFIX}"/media/[iI]nternal 2> /dev/null) ]]                              && alias 'id'='cd "${PREFIX}"/media/[iI]nternal'
+[[ $(ls -d "${PREFIX}"/media/[eE]xternal 2> /dev/null) ]]                              && alias 'ex'='cd "${PREFIX}"/media/[eE]xternal'
+[[ $(ls -d "${PREFIX}"/media/[iI]nternal 2> /dev/null) ]]                              && alias 'in'='cd "${PREFIX}"/media/[iI]nternal'
 
 # git #
 

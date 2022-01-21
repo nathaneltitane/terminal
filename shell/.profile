@@ -39,9 +39,14 @@ then
 
 	if [[ $(command -v pulseaudio) ]]
 	then
-		pulseaudio --start
+		if [[ $(id -u -n) = "root") ]]
+		then
+			:
+		else
+			pulseaudio --start
 
-		export PULSE_SERVER=tcp:127.0.0.1:4712
+			export PULSE_SERVER=tcp:127.0.0.1:4712
+		fi
 	fi
 
 	# settings
