@@ -93,6 +93,7 @@
 [[ $(command -v ps) ]]                                                                 && alias 'processes'='ps -A'
 [[ $(command -v rm) ]]                                                                 && alias 'remove'='rm -rf'
 [[ $(command -v ping) ]]                                                               && alias 'sonar'='ping -c 5'
+[[ $(command -v sudo) ]]                                                               && alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                    && alias 'start'='sudo systemctl start'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                    && alias 'stop'='sudo systemctl stop'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                    && alias 'enable'='sudo systemctl enable'
