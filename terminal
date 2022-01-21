@@ -24,7 +24,28 @@ version="01-19-2022"
 
 # setup
 
+# git #
+
 console.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
 console.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
 
+# geany #
+
 console.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
+
+# shell #
+
+files_list+=(
+	.bash_aliases
+	.bash_functions
+	.bash_logout
+	.bashrc
+	.hushlogin
+	.profile
+)
+
+console.download get.trmnl.me/shell "${HOME}" ${files_list[@]}
+
+console.link "${HOME}" /root ${files_list[@]}
+
+files_list=()
