@@ -1,6 +1,7 @@
 # aliases #
 
 # dextop #
+
 [[ $(command -v container-session) ]]                                                  && alias 'dt'='container-session -o'
 [[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/etc/passwd) ]]  && alias 'dc'='container-session -u termux'
 [[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/etc/passwd) ]]  && alias 'dr'='container-session -u root'
