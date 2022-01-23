@@ -28,7 +28,7 @@ fi
 
 # dextop #
 
-if [[ $(command -v dextop) ]]
+if [ -f "${HOME}"/.dextop/dextop ]
 then
 	if [[ $(cat "${HOME}"/.dextop/dextop-option) = xfce ]]
 	then
