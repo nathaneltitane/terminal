@@ -1121,7 +1121,7 @@ console.install.full () {
 
 	command_install="apt-get install --no-upgrade"
 
-	console.inf "Installing packages." "[ Standard ]"
+	console.inf "Installing packages" "[ Standard ]"
 	echo
 
 	for package in ${list[@]}
@@ -1177,7 +1177,7 @@ console.install () {
 
 	command_install="apt-get install --no-install-recommends --no-upgrade"
 
-	console.inf "Installing packages." "[ Minimal ]"
+	console.inf "Installing packages" "[ Minimal ]"
 	echo
 
 	for package in ${list[@]}
