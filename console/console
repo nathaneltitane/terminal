@@ -603,19 +603,12 @@ console.write () {
 
 	for file in ${list[@]}
 	do
-		if [ -s "${file}" ]
-		then
-			marker=">>"
-		else
-			marker=">"
-		fi
-
 		console.add "Writing" "[ ${file} ]"
 		echo
 
 		# write to file and set permissions
 
-		echo "${content}" "${marker}" "${path}"/"${file}"
+		echo "${content}" >> "${path}"/"${file}"
 
 		# set ownership
 
