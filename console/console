@@ -603,7 +603,7 @@ console.write () {
 
 	for file in ${list[@]}
 	do
-		console.add "Writing to file" "[ ${file} ]"
+		console.add "Writing" "[ ${file} ]"
 		echo
 
 		# write to file and set permissions
@@ -642,7 +642,7 @@ console.file () {
 
 	for file in ${list[@]}
 	do
-		console.add "Creating file" "[ ${file} ]"
+		console.add "Creating" "[ ${file} ]"
 		echo
 
 		# create file and set permissions
