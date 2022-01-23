@@ -620,6 +620,46 @@ console.write () {
 	done
 }
 
+# flag
+
+console.flag () {
+	content="${1}"
+	path="${2}"
+
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${2} - array
+
+		list=(${@:3})
+	else
+		file="${3}"
+
+		list=()
+
+		list+=("${file}")
+	fi
+
+	[ ! -d "${path}" ] && mkdir -p "${path}"
+
+	for file in ${list[@]}
+	do
+		console.add "Setting flag" "[ ${file} ]"
+		echo
+
+		# write to file and set permissions
+
+		echo "${content}" > "${path}"/"${file}"
+
+		# set ownership
+
+		chown "${uid}":"${gid}" -R "${path}"/"${file}"
+
+		# set permissions
+
+		chmod a+rx "${path}"/"${file}"
+	done
+}
+
 # file
 
 console.file () {
