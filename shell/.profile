@@ -43,7 +43,7 @@ then
 
 	if [[ $(command -v pulseaudio) ]]
 	then
-		if [[ $(id -u -n) = "root") ]]
+		if [[ $(id -u -n) = "root" ]]
 		then
 			pulseaudio --system
 		else
