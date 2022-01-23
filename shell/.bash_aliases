@@ -45,7 +45,7 @@
 [[ $(command -v find) && $(command -v wc) ]]                                          && alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
 [[ $(command -v find) && $(command -v wc) ]]                                          && alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
 [[ $(command -v nano) ]]                                                              && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
-[[ $(command -v ls) && $(command -v grep) ]]                                          && alias 'efilter'='env | grep -i'
+[[ $(command -v env) && $(command -v grep) ]]                                         && alias 'efilter'='env | grep -i'
 [[ $(command -v ls) && $(command -v grep) ]]                                          && alias 'ffilter'='ls -a | grep -i'
 [[ $(command -v ps) && $(command -v grep) ]]                                          && alias 'pfilter'='ps -A | grep -i'
 [[ $(command -v grep) ]]                                                              && alias 'grep'='grep --color=auto'
