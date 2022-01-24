@@ -1123,12 +1123,15 @@ console.failsafe () {
 	command_upgrade="apt-get upgrade"
 	command_install="apt-get install"
 
-	while [[ -z $(command -v "${package}") ]]
+	for package in ${list[@]}
 	do
-	   console.log "yes | ${command_update}"
-	   console.log "yes | ${command_upgrade}"
-	   console.log "yes | ${command_install} ${package}"
-	   console.log "yes | $command_update"
+		while [[ -z $(command -v "${package}") ]]
+		do
+		   console.log "yes | ${command_update}"
+		   console.log "yes | ${command_upgrade}"
+		   console.log "yes | ${command_install} ${package}"
+		   console.log "yes | $command_update"
+		done
 	done
 }
 
