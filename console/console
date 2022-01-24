@@ -1157,7 +1157,7 @@ console.install () {
 
 	for package in ${list[@]}
 	do
-		if [ -z "$(dpkg -s ${package} 2> /dev/null | grep -o installed)" ]
+		if [ -z "$(dpkg -s ${package} 2> /dev/null | grep -i -o installed)" ]
 		then
 			console.wrn "Package not installed" "[ '${package}' ]"
 			echo
@@ -1213,7 +1213,7 @@ console.install.minimal () {
 
 	for package in ${list[@]}
 	do
-		if [ -z "$(dpkg -s ${package} 2> /dev/null | grep -o installed)" ]
+		if [ -z "$(dpkg -s ${package} 2> /dev/null | grep -i -o installed)" ]
 		then
 			console.wrn "Package not installed" "[ '${package}' ]"
 			echo
