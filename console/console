@@ -1150,7 +1150,7 @@ console.install () {
 		list+=("${package}")
 	fi
 
-	command_install="apt-get install --no-upgrade"
+	command_install="apt-get install"
 
 	console.inf "Installing packages."
 	echo
