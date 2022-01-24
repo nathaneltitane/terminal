@@ -1106,14 +1106,29 @@ console.release () {
 console.failsafe () {
 	export DEBIAN_FRONTEND=noninteractive
 
-	package="${1}"
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
+
+		list=(${@:1})
+	else
+		package="${1}"
+
+		list=()
+
+		list+=("${package}")
+	fi
+
+	command_update="yes | apt-get update"
+	command_upgrade="yes | apt-get upgrade"
+	command_install="yes | apt-get install"
 
 	while [[ -z $(command -v "${package}") ]]
 	do
-	    bash -c 'yes | apt-get update'              >> /dev/null 2>&1
-	    bash -c 'yes | apt-get upgrade'             >> /dev/null 2>&1
-	    bash -c 'yes | apt-get install "${package}' >> /dev/null 2>&1
-	    bash -c 'yes | apt-get update'              >> /dev/null 2>&1
+	    bash -c "${command_update}"               >> /dev/null 2>&1
+	    bash -c "${command_upgrade}"              >> /dev/null 2>&1
+	    bash -c "${command_install}" "${package}" >> /dev/null 2>&1
+	    bash -c "$command_update"                 >> /dev/null 2>&1
 	done
 }
 
