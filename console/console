@@ -1129,7 +1129,8 @@ console.failsafe () {
 		do
 		   console.log "yes | ${command_update}"
 		   console.log "yes | ${command_upgrade}"
-		   console.log "yes | ${command_install} ${package}"
+		   console.log "yes | ${command_install}" "${package}" &
+		   console.progress "Setting up..."
 		   console.log "yes | $command_update"
 		done
 	done
