@@ -1101,6 +1101,22 @@ console.release () {
 	list=()
 }
 
+# failsafe
+
+console.failsafe () {
+	export DEBIAN_FRONTEND=noninteractive
+
+	package="${1}"
+
+	while [[ -z $(command -v "${package}") ]]
+	do
+	    bash -c 'yes | apt-get update'              >> /dev/null 2>&1
+	    bash -c 'yes | apt-get upgrade'             >> /dev/null 2>&1
+	    bash -c 'yes | apt-get install "${package}' >> /dev/null 2>&1
+	    bash -c 'yes | apt-get update'              >> /dev/null 2>&1
+	done
+}
+
 # install
 
 console.install () {
