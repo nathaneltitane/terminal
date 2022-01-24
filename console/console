@@ -1125,10 +1125,10 @@ console.failsafe () {
 
 	while [[ -z $(command -v "${package}") ]]
 	do
-	    bash -c "${command_update}"               >> /dev/null 2>&1
-	    bash -c "${command_upgrade}"              >> /dev/null 2>&1
-	    bash -c "${command_install}" "${package}" >> /dev/null 2>&1
-	    bash -c "$command_update"                 >> /dev/null 2>&1
+	    bash -c "${command_update}"             >> /dev/null 2>&1
+	    bash -c "${command_upgrade}"            >> /dev/null 2>&1
+	    bash -c "${command_install} ${package}" >> /dev/null 2>&1
+	    bash -c "$command_update"               >> /dev/null 2>&1
 	done
 }
 
