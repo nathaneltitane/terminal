@@ -1103,7 +1103,7 @@ console.release () {
 
 # install
 
-console.install.full () {
+console.install () {
 	export DEBIAN_FRONTEND=noninteractive
 
 	if [[ -n "${#list[@]}" ]]
@@ -1121,7 +1121,7 @@ console.install.full () {
 
 	command_install="apt-get install --no-upgrade"
 
-	console.inf "Installing packages" "[ Standard ]"
+	console.inf "Installing packages"
 	echo
 
 	for package in ${list[@]}
@@ -1157,7 +1157,7 @@ console.install.full () {
 
 # install
 
-console.install () {
+console.install.minimal () {
 	export DEBIAN_FRONTEND=noninteractive
 
 	if [[ -n "${#list[@]}" ]]
@@ -1177,7 +1177,7 @@ console.install () {
 
 	command_install="apt-get install --no-install-recommends --no-upgrade"
 
-	console.inf "Installing packages" "[ Minimal ]"
+	console.inf "Installing packages"
 	echo
 
 	for package in ${list[@]}
