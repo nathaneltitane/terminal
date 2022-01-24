@@ -1119,16 +1119,16 @@ console.failsafe () {
 		list+=("${package}")
 	fi
 
-	command_update="yes | apt-get update"
-	command_upgrade="yes | apt-get upgrade"
-	command_install="yes | apt-get install"
+	command_update="apt-get update"
+	command_upgrade="apt-get upgrade"
+	command_install="apt-get install"
 
 	while [[ -z $(command -v "${package}") ]]
 	do
-	    bash -c "${command_update}"             >> /dev/null 2>&1
-	    bash -c "${command_upgrade}"            >> /dev/null 2>&1
-	    bash -c "${command_install} ${package}" >> /dev/null 2>&1
-	    bash -c "$command_update"               >> /dev/null 2>&1
+	    bash -c "yes | ${command_update}"             >> /dev/null 2>&1
+	    bash -c "yes | ${command_upgrade}"            >> /dev/null 2>&1
+	    bash -c "yes | ${command_install} ${package}" >> /dev/null 2>&1
+	    bash -c "yes | $command_update"               >> /dev/null 2>&1
 	done
 }
 
