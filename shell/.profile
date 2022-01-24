@@ -39,22 +39,6 @@ then
 
 	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}"
 
-	# audio
-
-	if [[ $(command -v pulseaudio) ]]
-	then
-		if [[ $(id -u -n) = "root" ]]
-		then
-			pulseaudio --system
-		else
-			pulseaudio --start
-		fi
-
-		[ -z "${PULSE_SERVER}" ] && PULSE_SERVER="tcp:127.0.0.1:4712"
-
-		export PULSE_SERVER="${PULSE_SERVER}"
-	fi
-
 	# settings
 
 	if [ ! -f "${HOME}"/.dextop/dextop-settings-checkpoint ]
