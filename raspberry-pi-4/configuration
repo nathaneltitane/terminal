@@ -1,13 +1,24 @@
 #!/bin/bash
 
+# user #
+
 deluser --remove-home ubuntu
 groupdel -f ubuntu
 
 chpasswd <<< root:09018610
 
+# hostname #
+
 echo pi > /etc/hostname
 
 hostnamectl set-hostname pi
+
+# ssh #
+
+cat << 'FILE' > /boot/firmware/ssh
+FILE
+
+# network #
 
 cat << 'FILE' > /etc/netplan/01-wlan0-config.yaml
 network:
@@ -43,6 +54,8 @@ FILE
 
 netplan generate
 netplan apply
+
+# configuration #
 
 cat << 'FILE' > /boot/firmware/config.txt
 [pi4]
