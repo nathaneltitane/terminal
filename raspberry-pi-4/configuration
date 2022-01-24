@@ -81,4 +81,8 @@ over_voltage=8
 arm_freq=2000
 FILE
 
+apt --assume-yes update
+apt --assume-yes purge snap thin-provisioning-tools
+apt --assume-yes upgrade
+
 reboot
