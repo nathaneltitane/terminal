@@ -1,3 +1,6 @@
+#!/bin/bash
+
+cat < 'FILE' >> /etc/netplan/01-wlan0.conf
 network:
     version: 2
 
@@ -29,3 +32,7 @@ network:
             via: 192.168.86.1
 
         set-name: wlan0
+FILE
+
+netplan generate
+netplan apply
