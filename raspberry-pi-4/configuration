@@ -51,7 +51,6 @@ network:
             password: "y5cE?z>6&juDEm"
 FILE
 
-
 netplan generate
 netplan apply
 
@@ -80,6 +79,8 @@ hdmi_force_hotplug=1
 over_voltage=8
 arm_freq=2000
 FILE
+
+# packages #
 
 apt --assume-yes update
 apt --assume-yes purge snap thin-provisioning-tools

@@ -36,6 +36,8 @@
 [[ $(command -v cd) ]]                                                                && alias '..'='cd ..'
 [[ $(command -v df) ]]                                                                && alias 'df'='df -H'
 [[ $(command -v du) ]]                                                                && alias 'du'='du -a -c -h'
+
+[[ $(command -v ls) ]]                                                                && alias 'ls'='ls -a'
 [[ $(command -v rm) ]]                                                                && alias 'rm'='rm -rf'
 [[ $(command -v wget) ]]                                                              && alias 'wget'='wget -c'
 
