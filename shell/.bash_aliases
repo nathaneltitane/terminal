@@ -39,6 +39,7 @@
 
 [[ $(command -v ls) ]]                                                                && alias 'ls'='ls -a'
 [[ $(command -v rm) ]]                                                                && alias 'rm'='rm -rf'
+[[ $(command -v shutdown) ]]                                                          && alias 'shutdown'='shutdown -h now'
 [[ $(command -v wget) ]]                                                              && alias 'wget'='wget -c'
 
 # aliases #
@@ -106,6 +107,6 @@
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'enable'='sudo systemctl enable'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'disable'='sudo systemctl disable'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'status'='sudo systemctl status'
-[[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'terminate'="sudo pkill -9"
-[[ $(command -v pkill) ]]                                                             && alias 'terminate'="pkill -9"
+[[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'terminate'='sudo pkill -9'
+[[ $(command -v pkill) ]]                                                             && alias 'terminate'='pkill -9'
 [[ $(command -v du) && $(command -v sort) ]]                                          && alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
