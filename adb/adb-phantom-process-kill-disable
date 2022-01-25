@@ -1,5 +1,4 @@
-adb												\
-	shell											\
+adb	shell											\
 	/system/bin/device_config set_sync_disabled_for_tests persistent			\
 	/system/bin/device_config put activity_manager max_phantom_processes 2147483647		\
 	/system/bin/settings get global device_config_sync_disabled
