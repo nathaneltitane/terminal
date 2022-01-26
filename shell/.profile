@@ -22,9 +22,9 @@ fi
 
 # dependencies #
 
-[[ -z $(command -v frobulate. ]] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
+[[ -z $(command -v frobulate ]] && curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
 
-. "${PREFIX}"/bin/console
+. "${PREFIX}"/bin/frobulator
 
 # dextop #
 
