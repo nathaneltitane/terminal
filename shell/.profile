@@ -22,7 +22,7 @@ fi
 
 # dependencies #
 
-[[ -z $(command -v console) ]] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
+[[ -z $(command -v frobulate. ]] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
 
 . "${PREFIX}"/bin/console
 
@@ -43,14 +43,14 @@ then
 
 	if [ ! -f "${HOME}"/.dextop/dextop-settings-checkpoint ]
 	then
-		console.fwd "Setting up..."
+		frobulate.fwd "Setting up..."
 		echo
 
 		dbus-launch "${PREFIX}"/bin/container-settings
 
-		console.file "${HOME}"/.dextop dextop-settings-checkpoint
+		frobulate.file "${HOME}"/.dextop dextop-settings-checkpoint
 
-		console.clear
+		frobulate.clear
 	fi
 
 	# update
@@ -61,7 +61,7 @@ then
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-update) = "update" ]]
 		then
-			console.fwd "Updating..."
+			frobulate.fwd "Updating..."
 			echo
 
 			utilities_list+=(
@@ -80,9 +80,9 @@ then
 				container-user
 			)
 
-			console.download get.dxtp.app "${PREFIX}"/bin ${utilities_list[@]}
+			frobulate.download get.dxtp.app "${PREFIX}"/bin ${utilities_list[@]}
 
-			console.clear
+			frobulate.clear
 		fi
 	fi
 
@@ -90,24 +90,24 @@ then
 
 	if [[ $(ps -A | grep -i proot) ]]
 	then
-		console.fwd "Welcome to Dextop" "[ ${name} ]"
+		frobulate.fwd "Welcome to Dextop" "[ ${name} ]"
 		echo
 
 		if [ -f "${HOME}"/.vnc/selection ]
 		then
-			console.inf "You have already logged in - vnc selection has been saved."
-			console.inf "Automatic session launch on shell login is enabled."
+			frobulate.inf "You have already logged in - vnc selection has been saved."
+			frobulate.inf "Automatic session launch on shell login is enabled."
 			echo
 		else
-			console.wrn "This is your first login:"
-			console.wrn "Run 'container-session -o' to launch session [ ${session_name} ]."
+			frobulate.wrn "This is your first login:"
+			frobulate.wrn "Run 'container-session -o' to launch session [ ${session_name} ]."
 			echo
 		fi
 	else
-		console.fwd "Welcome to Dextop" "[ Termux ]"
+		frobulate.fwd "Welcome to Dextop" "[ Termux ]"
 		echo
 
-		console.inf "Launch session: 'container-session -u <username> | -a <application>'"
+		frobulate.inf "Launch session: 'container-session -u <username> | -a <application>'"
 	fi
 
 	echo

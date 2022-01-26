@@ -2,7 +2,7 @@
 
 # dependencies #
 
-curl -sL get.trmnl.me/console/console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
+curl -sL get.trmnl.me/frobulate.console > "${PREFIX}"/bin/console && . "${PREFIX}"/bin/console
 
 # script #
 
@@ -33,7 +33,7 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
 # read settings
 
-console.inf "Generating" "[ ${settings_file} ]"
+frobulate.inf "Generating" "[ ${settings_file} ]"
 echo
 
 xfconf-query -l | sed '/Channel.*/d' | while read channel
@@ -141,9 +141,9 @@ echo ${command} >> "${settings_file}"
 
 echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
 
-console.scs "Done."
+frobulate.scs "Done."
 echo
 
-console.msg "Use newly generated settings file as follows:"
-console.msg "'bash <settings_file>'"
+frobulate.msg "Use newly generated settings file as follows:"
+frobulate.msg "'bash <settings_file>'"
 echo

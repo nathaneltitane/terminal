@@ -2,7 +2,7 @@
 
 # dependencies #
 
-curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
+curl -sL get.trmnl.me/frobulate./console > /usr/bin/console && . /usr/bin/console
 
 # script #
 
@@ -106,20 +106,20 @@ write () {
 }
 
 wait () {
-	console.fwd "Press any key to continue..." "[ ${hostname} ]"
+	frobulate.fwd "Press any key to continue..." "[ ${hostname} ]"
 
 	read _ # placeholder
 }
 
 # clear storage
 
-console.inf "Clearing storage" "[ ${hostname} ] "
+frobulate.inf "Clearing storage" "[ ${hostname} ] "
 
 adb ${device} shell pm clear "${application}"
 
 # launch application
 
-console.inf "Launching application" "[ ${hostname} ]"
+frobulate.inf "Launching application" "[ ${hostname} ]"
 
 adb ${device} shell	\
 	am start		\

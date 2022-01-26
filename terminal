@@ -2,7 +2,7 @@
 
 # dependencies #
 
-#[[ -z $(command -v console) ]] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
+#[[ -z $(command -v frobulate. ]] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
 
 . "${PREFIX}"/bin/console
 
@@ -28,12 +28,12 @@ version="01-19-2022"
 
 # git #
 
-console.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
-console.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
+frobulate.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
+frobulate.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
 
 # geany #
 
-console.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
+frobulate.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
 
 # shell #
 
@@ -46,8 +46,8 @@ files_list+=(
 	.profile
 )
 
-console.download get.trmnl.me/shell "${HOME}" ${files_list[@]}
+frobulate.download get.trmnl.me/shell "${HOME}" ${files_list[@]}
 
-console.link "${HOME}" /root ${files_list[@]}
+frobulate.link "${HOME}" /root ${files_list[@]}
 
 files_list=()

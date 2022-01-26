@@ -10,7 +10,7 @@ address () {
 # audio #
 
 audio () {
-	[[ -z $(command -v ffmpeg) ]] && console.install ffmpeg
+	[[ -z $(command -v ffmpeg) ]] && frobulate.install ffmpeg
 
 	directory="${PWD}"
 	extension="${1}"
@@ -170,7 +170,7 @@ extract () {
 # record #
 
 record () {
-	[[ -z "$(command -v recordmydesktop)" ]] && console.install recordmydesktop
+	[[ -z "$(command -v recordmydesktop)" ]] && frobulate.install recordmydesktop
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
 
@@ -179,7 +179,7 @@ record () {
 
 	wmctrl -i -R "${window_id}"
 
-	console.wait 1
+	frobulate.wait 1
 
 	recordmydesktop								\
 		--no-cursor								\
@@ -222,7 +222,7 @@ weather () {
 # youtube #
 
 youtube () {
-	[[ -z $(command -v youtube-dl) ]] && console.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
+	[[ -z $(command -v youtube-dl) ]] && frobulate.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
 
 	path="${2}"
 

@@ -2,7 +2,7 @@
 
 # dependencies #
 
-curl -sL get.trmnl.me/console/console > /usr/bin/console && . /usr/bin/console
+curl -sL get.trmnl.me/frobulate.console > /usr/bin/console && . /usr/bin/console
 
 # script #
 
@@ -16,7 +16,7 @@ version="12-24-2021"
 
 # prompt #
 
-console.script "Setting up ${script#*-}"
+frobulate.script "Setting up ${script#*-}"
 echo
 
 # variables #
@@ -48,13 +48,13 @@ install_list=(
 
 # install #
 
-console.install ${install_list[@]}
+frobulate.install ${install_list[@]}
 
 # get #
 
 cd "${download_directory}" || exit 1
 
-console.dwl "Downloading" "[ ${application} ]"
+frobulate.dwl "Downloading" "[ ${application} ]"
 echo
 
 	curl						\
@@ -66,8 +66,8 @@ echo
 
 # extract #
 
-console.silence "${extract_command}" &
+frobulate.silence "${extract_command}" &
 
-console.progress "Extracting..."
+frobulate.progress "Extracting..."
 
-console.scs "Done."
+frobulate.scs "Done."

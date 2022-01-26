@@ -2,7 +2,7 @@
 
 # dependencies #
 
-curl -sL get.trmnl.me/console//console > /usr/bin/console && . /usr/bin/console
+curl -sL get.trmnl.me/frobulate./console > /usr/bin/console && . /usr/bin/console
 
 # script #
 
@@ -22,7 +22,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # write vendors list
 
-console.directory ${HOME}"/.android
+frobulate.directory ${HOME}"/.android
 
 for i in {0..65535}
 do

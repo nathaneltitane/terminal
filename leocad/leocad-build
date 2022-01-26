@@ -2,7 +2,7 @@
 
 # dependencies #
 
-curl -sL get.trmnl.me/console/console > /usr/bin/console && . /usr/bin/console
+curl -sL get.trmnl.me/frobulate.console > /usr/bin/console && . /usr/bin/console
 
 # script #
 
@@ -16,7 +16,7 @@ version="12-24-2021"
 
 # prompt #
 
-console.script "Setting up ${script#*-}"
+frobulate.script "Setting up ${script#*-}"
 echo
 
 # variables #
@@ -54,15 +54,15 @@ install_list=(
 
 # install #
 
-console.install ${install_list[@]}
+frobulate.install ${install_list[@]}
 
 # build #
 
 command_clone="git clone --quiet"
 
-console.log "${command_clone} ${source} ${build_directory}" &
+frobulate.log "${command_clone} ${source} ${build_directory}" &
 
-console.progress "Cloning..."
+frobulate.progress "Cloning..."
 
 cd "${build_directory}" || exit 1
 
@@ -74,9 +74,9 @@ qmake "${application}".pro
 
 command_build="make -j$(nproc)"
 
-console.log "${command_build}" &
+frobulate.log "${command_build}" &
 
-console.progress "Building..."
+frobulate.progress "Building..."
 
 # update binary
 

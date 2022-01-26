@@ -2,7 +2,7 @@
 
 # dependencies #
 
-curl -sL get.trmnl.me/console/console > /usr/bin/console && . /usr/bin/console
+curl -sL get.trmnl.me/frobulate.console > /usr/bin/console && . /usr/bin/console
 
 # script #
 
@@ -16,7 +16,7 @@ version="12-24-2021"
 
 # prompt #
 
-console.script "Setting up ${script#*-}"
+frobulate.script "Setting up ${script#*-}"
 echo
 
 # variables #
@@ -25,12 +25,12 @@ echo
 
 # link configuration
 
-console.inf "Linking configuration."
+frobulate.inf "Linking configuration."
 echo
 
 if [ -f /media/internal/Lego/leocad/leocad.conf ]
 then
-	console.directory "${HOME}"/.config/"LeoCAD Software"
+	frobulate.directory "${HOME}"/.config/"LeoCAD Software"
 
 	ln -s -f											\
 	/media/internal/Lego/leocad/leocad.conf				\
