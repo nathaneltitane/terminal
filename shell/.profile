@@ -22,8 +22,6 @@ fi
 
 # dependencies #
 
-[ -z "${PREFIX}" ] && PREFIX="usr"
-
 [[ -z $(command -v frobulator) ]] && curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
 
 . "${PREFIX}"/bin/frobulator
