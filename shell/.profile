@@ -22,7 +22,7 @@ fi
 
 # dependencies #
 
-[[ -z $(command -v frobulate ]] && curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+[[ -z $(command -v frobulate) ]] && curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
 
 . "${PREFIX}"/bin/frobulator
 
