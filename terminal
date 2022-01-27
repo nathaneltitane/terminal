@@ -2,10 +2,6 @@
 
 # dependencies #
 
-#[[ -z $(command -v frobulate. ]] && curl -s -L get.trmnl.me/console/console > "${PREFIX}"/bin/console
-
-. "${PREFIX}"/bin/console
-
 # script #
 
 script=$(basename -- "${BASH_SOURCE[0]}")
