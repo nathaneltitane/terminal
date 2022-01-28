@@ -27,7 +27,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # write binary
 
-cat << 'FILE' > /usr/bin/background-cycler
+cat <<- 'FILE' > /usr/bin/background-cycler
 #!/bin/bash
 
 # background cycler #

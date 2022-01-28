@@ -27,7 +27,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # binary #
 
-cat << 'FILE' > /usr/bin/wallpaper-selector
+cat <<- 'FILE' > /usr/bin/wallpaper-selector
 #!/bin/bash
 
 # wallpaper selector #
@@ -51,7 +51,6 @@ hex_to_rgb () {
 
 	printf '%03d %03d %03d\n' ${r} ${g} ${b}
 }
-
 
 default_color="333333"
 

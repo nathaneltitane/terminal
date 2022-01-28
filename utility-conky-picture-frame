@@ -27,7 +27,7 @@ width="$size_x"
 
 # configuration #
 
-cat << FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
+cat <<- FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
 # conky picture frame #
 
 alignment $alignment

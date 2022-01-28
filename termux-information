@@ -1,26 +1,5 @@
 #!/bin/bash
 
-# dependencies #
-
-if [[ -z $(command -v frobulator) ]]
-then
-	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
-fi
-
-. "${PREFIX}"/bin/frobulator
-
-# script #
-
-script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version #
-
-# usage #
-
-# prompt #
-
-# variables #
-
 separator=" // "
 
 battery_capacity=$(cat /sys/class/power_supply/battery/uevent | grep -i capacity= | cut -d '=' -f 2)
@@ -31,12 +10,8 @@ battery_temperature=$(cat /sys/class/power_supply/battery/uevent | grep -i temp=
 date=$(date +"%F")
 time=$(date +"%r")
 
-# defaults #
-
 [ "$HOSTNAME" = "localhost" ] && HOSTANME="Android"
 [ -z "${USER}" ] && USER="termux"
-
-# functions #
 
 unset PS1
 

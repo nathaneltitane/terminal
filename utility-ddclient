@@ -31,7 +31,7 @@ frobulate.install ${install_list[@]}
 
 # functions #
 
-cat << FILE -> /etc/ddclient.conf
+cat <<- FILE > /etc/ddclient.conf
 # ddclient #
 
 daemon=600                               # check every 10 minutes

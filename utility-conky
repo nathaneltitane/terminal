@@ -100,7 +100,7 @@ processor=$(uname -p)
 os_name=$(cat /etc/os-release | awk -F '=' '{if (NR==1) print $2}')
 os_number=$(cat /etc/os-release | awk -F '=' '{if (NR==4) print $2}')
 
-cat << FILE >> "${HOME}"/.config/conky/conkyrc
+cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 SYSTEM\${alignr}[ $kernel ][ $node ]
 OS\${alignr}[ $os_name $os_number ][ $machine ]
 \${voffset -2}\${hr 1}
@@ -123,7 +123,7 @@ do
 	FILE
 done
 
-cat << FILE >> "${HOME}"/.config/conky/conkyrc
+cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 CPU\${alignr}[ CORE ][ FREQ ][ MODE ][ % ]
 \${voffset -2}\${hr 1}
 FILE
@@ -155,7 +155,7 @@ memory_free="free -h | awk 'NR==2{print \$4}'"
 memory_used="free -h | awk 'NR==2{print \$3}'"
 memory_total="free -h | awk 'NR==2{print \$2}'"
 
-cat << FILE >> "${HOME}"/.config/conky/conkyrc
+cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 MEMORY\${alignr}[ % ]
 \${voffset -2}\${hr 1}
 CAPACITY\${alignr}\${memperc}
@@ -268,7 +268,7 @@ then
 	done
 fi
 
-cat << FILE >> "${HOME}"/.config/conky/conkyrc
+cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 \${voffset -2}\${hr 1}
 DRIVES\${alignr}[ USED ][ TOTAL ][ G ]
 \${voffset -2}\${hr 1}
@@ -325,7 +325,7 @@ else
 	elan="$vlan"
 fi
 
-cat << FILE >> "${HOME}"/.config/conky/conkyrc
+cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 NETWORK\${alignr}[ IP ][ IFACE ]\\
 \${if_up $wlan}\\
 \${alignr}[ $wlan ]\${endif}\\

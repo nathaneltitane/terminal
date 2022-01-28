@@ -10,7 +10,7 @@ configuration_directory="${HOME}"/.config
 
 # configuration #
 
-cat << 'FILE' > /usr/bin/conky-color-selector
+cat <<- 'FILE' > /usr/bin/conky-color-selector
 #!/bin/bash
 
 rgb_to_hex () {
