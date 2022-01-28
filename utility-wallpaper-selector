@@ -82,28 +82,30 @@ gsettings set org.gnome.desktop.background primary-color "{$color}"
 gsettings set org.gnome.desktop.background secondary-color "{$color}"
 gsettings set org.gnome.desktop.background picture-uri "''"
 
-picture_option=$(zenity										\
-					--list									\
-					--title "Select a picture option"		\
-					--width="300"							\
-					--height="250"							\
-					--text="Specify an image layout option" \
-					--radiolist								\
-					--column="Selection"					\
-					--column="Option" 						\
-						TRUE "wallpaper"					\
-						FALSE "center"						\
-						FALSE "scaled"						\
-						FALSE "stretched"					\
-						FALSE "zoom"						\
-						FALSE "spanned"						\
-				) 2> /dev/null
+picture_option="zenity"
+picture_option=" --list"
+picture_option=" --title 'Select a picture option'"
+picture_option=" --width=300"							\
+picture_option=" --height=250"
+picture_option=" --text='Specify an image layout option'"
+picture_option=" --radiolist"
+picture_option=" --column=Selection"
+picture_option=" --column=Option"
+picture_option=" TRUE "wallpaper"
+picture_option=" FALSE "center"
+picture_option=" FALSE "scaled"
+picture_option=" FALSE "stretched"
+picture_option=" FALSE "zoom"
+picture_option=" FALSE "spanned"
 
-picture_uri=$(zenity							\
-				--file-selection				\
-				--separator=$'\n'				\
-				--title="Select a Directory"	\
-			) 2> /dev/null
+${picture_option} 2> /dev/null
+
+picture_uri+="zenity"
+picture_uri+=" --file-selection"
+picture_uri+=" --separator=$'\n'"
+picture_uri+=" --title='Select a Directory'"
+
+${picture_uri} 2> /dev/null
 
 # desktop #
 
