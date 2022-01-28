@@ -97,9 +97,13 @@ picture_option=$(zenity										\
 						FALSE "stretched"					\
 						FALSE "zoom"						\
 						FALSE "spanned"						\
-				) 2> /dev/null || exit
+				) 2> /dev/null
 
-picture_uri=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null || exit
+picture_uri=$(zenity							\
+				--file-selection				\
+				--separator=$'\n'				\
+				--title="Select a Directory"	\
+			) 2> /dev/null
 
 # desktop #
 
