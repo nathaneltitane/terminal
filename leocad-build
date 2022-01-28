@@ -35,8 +35,6 @@ source="https://github.com/leozide/leocad.git"
 
 # defaults #
 
-# packages #
-
 install_list=(
 	git
 	hub
@@ -85,7 +83,7 @@ frobulate.progress "Building..."
 
 cp "${build_directory}"/build/release/"${application}" /usr/bin/"${application}"
 
-# launcher #
+# generate launcher
 
 cat <<- 'FILE' > /usr/share/applications/leocad.desktop
 [Desktop Entry]

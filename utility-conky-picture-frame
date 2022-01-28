@@ -60,7 +60,7 @@ FILE
 
 chmod -R 777 "${HOME}"/.config/conky-picture-frame
 
-# launcher #
+# generate launcher
 
 cat <<- 'FILE' > /usr/share/applications/conky-picture-frame.desktop
 [Desktop Entry]

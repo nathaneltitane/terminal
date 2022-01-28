@@ -371,7 +371,7 @@ sudo chmod -R 777 "${HOME}"/.config/conky
 
 write-conky
 
-# launcher #
+# generate launcher
 
 cat <<- 'FILE' > /usr/share/applications/conky.desktop
 [Desktop Entry]

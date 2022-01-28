@@ -76,7 +76,7 @@ FILE
 
 chmod +x /usr/bin/conky-picture-selector
 
-# launcher #
+# generate launcher
 
 cat <<- 'FILE' > /usr/share/applications/conky-picture-selector.desktop
 [Desktop Entry]

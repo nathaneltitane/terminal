@@ -42,7 +42,7 @@ FILE
 
 sudo chmod +x /usr/bin/conky-color-selector
 
-# launcher #
+# generate launcher
 
 cat <<- 'FILE' > /usr/share/applications/conky-color-selector.desktop
 [Desktop Entry]

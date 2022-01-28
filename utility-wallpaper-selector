@@ -115,7 +115,7 @@ FILE
 
 sudo chmod +x /usr/bin/wallpaper-selector
 
-# launcher #
+# generate launcher
 
 cat <<- 'FILE' > /usr/share/applications/wallpaper-selector.desktop
 [Desktop Entry]
