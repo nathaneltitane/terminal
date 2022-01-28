@@ -1,3 +1,12 @@
+# dependencies #
+
+if [[ -z $(command -v frobulator) ]]
+then
+	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+fi
+
+. "${PREFIX}"/bin/frobulator
+
 # adb #
 
 adb_pull_package () {
@@ -362,10 +371,53 @@ extract () {
 	fi
 }
 
+# icons #
+
+icons () {
+	if [[ $(command -v gtk-update-icon-cache) ) ]]
+	then
+		icons_directory_list=(
+			"${HOME}"/.icons
+			"${PREFIX}"/share/icons
+			/usr/share/icons
+		)
+
+		for icons_directory in ${icons_directory_list[@]}
+		do
+			if [ -d "${icons_directory}" ]
+			then
+				cd "${icons_directory}"
+			fi
+
+			if [ -d "${icons_directory}" ]
+			then
+				find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
+				do
+					if [ -f "${theme}"/index.theme ]
+					then
+						theme_name="${theme##*/}"
+
+						gtk-update-icon-cache -f -q "${theme}"
+
+						frobulate.scs "Cache update success" "[ ${theme_name} ]"
+						echo
+					else
+						frobulate.wrn "Skipping" "[ ${theme_name} ]"
+						echo
+					fi
+				done
+			fi
+		done
+	fi
+}
+
 # record #
 
 record () {
-	[[ -z "$(command -v recordmydesktop)" ]] && frobulate.install recordmydesktop
+	if [[ -z "$(command -v recordmydesktop)" ]]
+	then
+		frobulate.install recordmydesktop
+	fi
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
 
