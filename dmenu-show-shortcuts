@@ -1,22 +1,8 @@
 #!/bin/bash
 
-# dependencies #
-
-# script #
-
 script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version #
-
-# usage #
-
-# prompt #
-
-# variables #
 
 lines=60
 prompt="SHORTCUTS"
-
-# defaults #
 
 cat $(command -v dmenu-i3-shortcuts) | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'

@@ -1,18 +1,6 @@
 #!/bin/bash
 
-# dependencies #
-
-# script #
-
 script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version #
-
-# usage #
-
-# prompt #
-
-# variables #
 
 lines=15
 prompt="SELECTION"
@@ -21,22 +9,20 @@ selections="1\n2\n\3\n4"
 
 selection_menu=$(echo -e ${selections} | dmenu -i -l "${lines} -p "${prompt}  -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
 
-# defaults #
-
 case "${selection_menu}" in
 	1)
-	
+
 	;;
 	2)
-	
+
 	;;
 	3)
-	
+
 	;;
 	4)
-	
+
 	;;
-	
+
 	*)
 		exit
 	;;

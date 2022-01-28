@@ -1,22 +1,8 @@
 #!/bin/bash
 
-# dependencies #
-
-# script #
-
 script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version #
-
-# usage #
-
-# prompt #
-
-# variables #
 
 lines=15
 prompt="MANUALS"
-
-# defaults #
 
 man -k . | sed 's/[)(]//g' | sed 's/[0-9]//g' | awk -F "- " '{printf "%-40s%s\n", $1,$2}' | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e man
