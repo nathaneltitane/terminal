@@ -18,6 +18,12 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
+install_list=(
+	ddclient
+)
+
+frobulate.install ${install_list[@]}
+
 # functions #
 
 cat << FILE -> /etc/ddclient.conf
