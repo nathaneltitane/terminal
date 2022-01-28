@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# automatic vnc session stop
+# dextop #
 
-if [[ $(ps -A | grep -i -E *vnc*) ]]
+if [ -f "${HOME}"/.dextop/dextop ]
 then
-	container-session -x
+	# automatic vnc session stop
+
+	if [[ $(ps -A | grep -i -E *vnc*) ]]
+	then
+		container-session -x
+	fi
 fi
