@@ -8,7 +8,7 @@ enforce-char-based-input=true
 
 # handle the bell character - vibrate | beep | ignore
 
-bell-character=beep
+bell-character=ignore
 
 # handle the escape key - escape | back
 
