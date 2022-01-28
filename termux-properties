@@ -1,38 +1,49 @@
-# use black for drawer and dialogs - Android 9.0+ default
+#!/bin/bash
 
-use-black-ui=true
+script=$(basename -- "${BASH_SOURCE[0]}")
 
-# enforce character based input - workaround for word-based input keyboards
+if [[ $(uname -o) =~ [aA][nN][dD][rR][oO][iI][dD] ]] && [[ "${TERMUX_VERSION}"]]
+then
+	[ ! -d "${HOME}"/.termux] && mkdir -p "${HOME}"/.termux
 
-enforce-char-based-input=true
+	cat <<- 'FILE' > "${HOME}"/.termux/termux.properties
+	# use black for drawer and dialogs - Android 9.0+ default
 
-# handle the bell character - vibrate | beep | ignore
+	use-black-ui=true
 
-bell-character=ignore
+	# enforce character based input - workaround for word-based input keyboards
 
-# handle the escape key - escape | back
+	enforce-char-based-input=true
 
-back-key=back
+	# handle the bell character - vibrate | beep | ignore
 
-# rename current terminal session
+	bell-character=ignore
 
-shortcut.rename-session=ctrl+n
+	# handle the escape key - escape | back
 
-# open a new terminal with ctrl+t (volume down+t)
+	back-key=back
 
-shortcut.create-session=ctrl+t
+	# rename current terminal session
 
-# move to previous terminal session
+	shortcut.rename-session=ctrl+n
 
-shortcut.previous-session=ctrl+1
+	# open a new terminal with ctrl+t (volume down+t)
 
-# move to next terminal session
+	shortcut.create-session=ctrl+t
 
-shortcut.next-session=ctrl+2
+	# move to previous terminal session
 
-# configure keyboard shortcut keys
+	shortcut.previous-session=ctrl+1
 
-extra-keys=[																	\
-	['ESC', '|',    '/',   'HOME', 'UP',   'END',   'PGUP', '_', 'BKSP'		],	\
-	['TAB', 'CTRL', 'ALT', 'LEFT', 'DOWN', 'RIGHT', 'PGDN', '-', 'RETURN'	]	\
-																				]
+	# move to next terminal session
+
+	shortcut.next-session=ctrl+2
+
+	# configure keyboard shortcut keys
+
+	extra-keys=[																	\
+		['ESC', '|',    '/',   'HOME', 'UP',   'END',   'PGUP', '_', 'BKSP'		],	\
+		['TAB', 'CTRL', 'ALT', 'LEFT', 'DOWN', 'RIGHT', 'PGDN', '-', 'RETURN'	]	\
+																					]
+	FILE
+fi

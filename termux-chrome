@@ -1,5 +1,14 @@
 #!/bin/bash
 
-am start						\
--a android.intent.action.VIEW	\
--n com.android.chrome/com.google.android.apps.chrome.Main
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+if [[ $(uname -o) =~ [aA][nN][dD][rR][oO][iI][dD] ]] && [[ "${TERMUX_VERSION}"]]
+then
+	cat <<- 'FILE' > "${PREFIX}"/bin/"${script}"
+	#!/bin/bash
+
+	am start						\
+	-a android.intent.action.VIEW	\
+	-n com.android.chrome/com.google.android.apps.chrome.Main
+	FILE
+fi

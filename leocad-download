@@ -21,7 +21,7 @@ echo
 
 # variables #
 
-TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX) || exit 1
+TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX)
 
 trap 'rm -rf "${TEMPORARY}"' EXIT
 
@@ -34,11 +34,9 @@ archive=$(curl -s -L https://api.github.com/repos/leozide/leocad/releases/latest
 
 archive_url="https://github.com/leozide/leocad/releases/download/continuous/${archive}"
 
-extract_command=$(unzip -qq -d /usr/bin -o ./*.zip)
+extract_command=$(unzip -qq -d /usr/bin -o "${download_directory}"/*.zip)
 
 # defaults #
-
-# packages #
 
 install_list=(
 	curl
@@ -46,23 +44,11 @@ install_list=(
 	unzip
 )
 
-# install #
-
 frobulate.install ${install_list[@]}
 
 # get #
 
-cd "${download_directory}" || exit 1
-
-frobulate.dwl "Downloading" "[ ${application} ]"
-echo
-
-	curl						\
-		--silent				\
-		--location				\
-		--remote-header-name	\
-		--remote-name			\
-								"${archive_url}"
+frobulate.download "${archive_url}" "${download_directory}"
 
 # extract #
 

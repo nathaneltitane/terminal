@@ -23,16 +23,15 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
-if [[ -z $(command -v wmctrl) ]]
-then
-	install_list=(
-		wmctrl
-	)
+install_list=(
+	wmctrl
+)
 
-	frobulate.install ${install_list[@]}
-fi
+frobulate.install ${install_list[@]}
 
 # functions #
+
+# set position
 
 wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
 wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350

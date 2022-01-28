@@ -37,15 +37,14 @@ frobulate.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
 # shell #
 
 files_list+=(
-	.bash_aliases
-	.bash_functions
-	.bash_logout
-	.bashrc
-	.hushlogin
-	.profile
+	bash-aliases
+	bash-functions
+	bash-logout
+	bash-configuration
+	bash-profile
 )
 
-frobulate.download get.trmnl.me/shell "${HOME}" ${files_list[@]}
+frobulate.download get.trmnl.me "${HOME}" ${files_list[@]}
 
 frobulate.link "${HOME}" /root ${files_list[@]}
 

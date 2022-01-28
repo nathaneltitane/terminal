@@ -26,7 +26,7 @@ echo
 
 # defaults #
 
-# link configuration
+# functions #
 
 frobulate.inf "Linking configuration."
 echo
@@ -35,7 +35,5 @@ if [ -f /media/internal/Lego/leocad/leocad.conf ]
 then
 	frobulate.directory "${HOME}"/.config/"LeoCAD Software"
 
-	ln -s -f											\
-	/media/internal/Lego/leocad/leocad.conf				\
-	"${HOME}"/.config/"LeoCAD Software"/LeoCAD.conf
+	ln -s -f /media/internal/Lego/leocad/leocad.conf "${HOME}"/.config/"LeoCAD Software"/LeoCAD.conf
 fi
