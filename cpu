@@ -2,7 +2,12 @@
 
 # dependencies #
 
-[[ -z $(command -v frobulator) ]] && curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+if [[ -z $(command -v frobulator) ]]
+then
+	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+fi
+
+. "${PREFIX}"/bin/frobulator
 
 # script #
 
@@ -10,70 +15,77 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version #
 
+version="01-06-2022"
+
 # usage #
 
 # prompt #
+
+frobulate.script "Setting up ${script#*-}"
+echo
 
 # variables #
 
 # defaults #
 
+install_list=(
+	cpufrequtils
+)
+
+frobulate.install ${install_list[@]}
+
+# functions #
+
 # governor aliases #
 
 governors_list=(
-	conservative
-	ondemand
-	powersave
-	performance
+	$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors)
 )
 
 for governor in "${!governors_list[@]}"
 do
-cat << FILE >> /etc/bash.bashrc
+	cat <<- FILE >> /etc/bash.bashrc
 
-# cpu ${governors_list[governor]} #
+	# governor - ${governors_list[governor]} #
 
-${governors_list[governor]}() {
-	for ((n=0; n<$(grep -c processor /proc/cpuinfo); n++))
-do
-		sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
-	done
-}
-FILE
-done
+	${governors_list[governor]}() {
+		for ((n=0; n<$(grep -c processor /proc/cpuinfo); n++))
+	do
+			sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
+		done
+	}
+	FILE
 
-# source new shell content
-
-. /etc/bash.bashrc
-
-# add cpu governor binary entries
-
-for i in "${!governors_list[@]}"
-do
-	cat <<- FILE > "$binary_directory/${governors_list[governor]}"
+	cat <<- FILE > /usr/bin/${governors_list[governor]}
 	#!/bin/bash
 
 	# cpu governor (${governors_list[governor]}) #
 
-	cpu="$(grep -c processor /proc/cpuinfo)"
+	if [[ $(grep -c processor /proc/cpuinfo) ]]
+	then
+		cpu="$(grep -c processor /proc/cpuinfo)"
+	fi
 
-	for ((n=0; n<cpu; n++))
+	for (( count=0; count<cpu; count++ ))
 	do
-		sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
+		sudo cpufreq-set	\
+			-c "\${count}"	\
+			-g ${governors_list[governor]}
 	done
 
-	[[ $(command -v notify-send) ]] && notify-send -i gnome-system-monitor "CPU governor set to ${governors_list[governor]}"
+	if [[ $(command -v notify-send) ]]
+	then
+		notify-send					\
+			-i gnome-system-monitor	\
+			"CPU governor set to ${governors_list[governor]}"
 	FILE
-done
 
-for governor in "${!governors_list[@]}"
-do
-	sudo chmod +x /usr/bin/"$governors_list"
+	sudo chmod +x /usr/bin/${governors_list[governor]}
 done
 
 # write switch
 
-cat << 'FILE' > /usr/bin/cpu-switch
+cat <<- 'FILE' > /usr/bin/cpu-switch
 #!/bin/bash
 
 # cpu-switch #
@@ -101,28 +113,21 @@ in
 	;;
 esac
 
-for ((n=0; n<cpu_count; n++))
+for (( count=0; count<cpu_count; count++ ))
 do
-	sudo cpufreq-set -c "$n" -g "${governor}";
+	sudo cpufreq-set	\
+		-c "${count}"	\
+		-g "${governor}"
 done
 
-[[ $(command -v notify-send) ]] && notify-send -i gnome-system-monitor "CPU governor set to ${cpu_status}"
+if [[ $(command -v notify-send) ]]
+then
+	notify-send					\
+		-i gnome-system-monitor \
+		"CPU governor set to ${governors_list[governor]}"
+FILE
 FILE
 
 # set permissions
 
 sudo chmod +x /usr/bin/cpu-switch
-
-# write launcher
-
-cat <<- FILE > /usr/share/applications/cpu-switch.desktop
-[Desktop Entry]
-Name=Background Cycler
-Comment=Enable timed background cycling
-Exec=/usr/bin/cpu-switch
-Icon=background
-Terminal=false
-Type=Application
-StartupNotify=true
-Categories=Utility;
-FILE

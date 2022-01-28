@@ -18,7 +18,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
-# configuration #
+# functions #
 
 cat << FILE -> /etc/ddclient.conf
 # ddclient #
@@ -48,10 +48,10 @@ service ddclient stop
 
 sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
 
+# purge service cache file
+
 if [ -d /var/cache/ddclient ]
 then
-	# purge service cache file
-
 	rm -rf /var/cache/ddclient/ddclient.cache
 fi
 

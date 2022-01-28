@@ -2,13 +2,18 @@
 
 # dependencies #
 
+if [[ -z $(command -v frobulator) ]]
+then
+	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+fi
+
+. "${PREFIX}"/bin/frobulator
+
 # script #
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version #
-
-version="01-19-2022"
 
 # usage #
 
@@ -18,9 +23,7 @@ version="01-19-2022"
 
 # defaults #
 
-# functions
-
-# setup
+# functions #
 
 # git #
 

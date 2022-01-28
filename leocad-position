@@ -2,7 +2,12 @@
 
 # dependencies #
 
-curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+if [[ -z $(command -v frobulator) ]]
+then
+	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+fi
+
+. "${PREFIX}"/bin/frobulator
 
 # script #
 
@@ -10,30 +15,24 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version #
 
-version="12-24-2021"
-
 # usage #
 
 # prompt #
 
-frobulate.script "Setting up ${script#*-}"
-echo
-
-# variables #
+# variables
 
 # defaults #
 
-# packages #
+if [[ -z $(command -v wmctrl) ]]
+then
+	install_list=(
+		wmctrl
+	)
 
-install_list=(
-	wmctrl
-)
+	frobulate.install ${install_list[@]}
+fi
 
-# install #
-
-frobulate.install ${install_list[@]}
-
-# set position
+# functions #
 
 wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
 wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350
