@@ -30,12 +30,12 @@ size_x="0"
 size_y="0"
 width="210"
 
-# configuration #
-
 if [ ! -d "${HOME}"/.config/conky ]
 then
 	mkdir -p "${HOME}"/.config/conky
 fi
+
+# configuration #
 
 cat << HEADER > "${HOME}"/.config/conky/conkyrc
 # conky #
