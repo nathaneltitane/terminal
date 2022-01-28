@@ -18,15 +18,17 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
+# configuration #
+
 cat << FILE -> /etc/ddclient.conf
 # ddclient #
 
-daemon=600										# check every 10 minutes
-syslog=yes										# log update messages to syslog
-mail-failure=root								# mail failed updates to user
-pid=/var/run/ddclient.pid						# record PID to file
-ssl=yes											# use ssl
-cache=/var/cache/ddclient/ddclient.cache		# set cache file
+daemon=600                               # check every 10 minutes
+syslog=yes                               # log update messages to syslog
+mail-failure=root                        # mail failed updates to user
+pid=/var/run/ddclient.pid                # record PID to file
+ssl=yes                                  # use ssl
+cache=/var/cache/ddclient/ddclient.cache # set cache file
 
 use=web, web=dynamicdns.park-your-domain.com/getip
 
@@ -34,7 +36,7 @@ protocol=protocol_name
 server=protocol_server_address
 wildcard=no
 login=login
-password=password								# protocol dynamic dns password
+password=password # protocol dynamic dns password
 $HOSTNAME
 FILE
 
