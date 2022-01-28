@@ -42,6 +42,7 @@
 [[ $(command -v pgrep) ]]                                                             && alias 'pgrep'='pgrep -f'
 [[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'pkill'='sudo pkill -9'
 [[ $(command -v pkill) ]]                                                             && alias 'pkill'='pkill -9'
+[[ $(command -v pstree) ]]                                                            && alias 'ptree'='pstree -C age -p'
 [[ $(command -v shutdown) ]]                                                          && alias 'shutdown'='shutdown -h now'
 [[ $(command -v wget) ]]                                                              && alias 'wget'='wget -c'
 

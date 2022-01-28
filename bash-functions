@@ -466,10 +466,13 @@ sprunge () {
 terminate () {
 	process_name="${1}"
 
-	while [[ $(pgrep -f "${process_name}") ]]
-	do
-		pkill -9 "${process_name}"
-	done
+	if [[ $(command -v pgrep) ]] && [[ $(command -v pkill) ]]
+	then
+		while [[ $(pgrep -f "${process_name}") ]]
+		do
+			pkill "${process_name}"
+		done
+	fi
 }
 
 # weather #
