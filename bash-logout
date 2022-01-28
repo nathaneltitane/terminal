@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # automatic vnc session stop
 
 if [[ $(ps -A | grep -i -E *vnc*) ]]
