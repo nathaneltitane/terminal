@@ -38,6 +38,15 @@ adb_remove_package () {
 	fi
 }
 
+adb_settings_put () {
+	if [[ $(command -v adb) ]]
+	then
+		setting="${1}"
+
+		adb shell settings put "${setting}"
+	fi
+}
+
 # address #
 
 address () {
