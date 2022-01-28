@@ -37,8 +37,6 @@ then
 	mkdir -p "${HOME}"/.config/conky
 fi
 
-cd "${HOME}"/.config/conky || exit 1
-
 cat << HEADER > "${HOME}"/.config/conky/conkyrc
 # conky #
 
