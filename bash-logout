@@ -1,12 +1,8 @@
 #!/bin/bash
 
-cat <<- 'FILE' > "${HOME}"/.bash_logout
-#!/bin/bash
-
 # automatic vnc session stop
 
 if [[ $(ps -A | grep -i -E *vnc*) ]]
 then
 	container-session -x
 fi
-FILE

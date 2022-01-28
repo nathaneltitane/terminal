@@ -53,8 +53,6 @@ install_list=(
 	qttools5-dev-tools
 )
 
-# install #
-
 frobulate.install ${install_list[@]}
 
 # build #

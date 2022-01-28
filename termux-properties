@@ -1,52 +1,38 @@
-#!/bin/bash
+# use black for drawer and dialogs - Android 9.0+ default
 
-script=$(basename -- "${BASH_SOURCE[0]}")
+use-black-ui=true
 
-if [[ $(uname -o) =~ [aA][nN][dD][rR][oO][iI][dD] ]] && [[ "${TERMUX_VERSION}"]]
-then
-	if [ ! -d "${HOME}"/.termux]
-	then
-		mkdir -p "${HOME}"/.termux
-	fi
+# enforce character based input - workaround for word-based input keyboards
 
-	cat <<- 'FILE' > "${HOME}"/.termux/termux.properties
-	# use black for drawer and dialogs - Android 9.0+ default
+enforce-char-based-input=true
 
-	use-black-ui=true
+# handle the bell character - vibrate | beep | ignore
 
-	# enforce character based input - workaround for word-based input keyboards
+bell-character=ignore
 
-	enforce-char-based-input=true
+# handle the escape key - escape | back
 
-	# handle the bell character - vibrate | beep | ignore
+back-key=back
 
-	bell-character=ignore
+# rename current terminal session
 
-	# handle the escape key - escape | back
+shortcut.rename-session=ctrl+n
 
-	back-key=back
+# open a new terminal with ctrl+t (volume down+t)
 
-	# rename current terminal session
+shortcut.create-session=ctrl+t
 
-	shortcut.rename-session=ctrl+n
+# move to previous terminal session
 
-	# open a new terminal with ctrl+t (volume down+t)
+shortcut.previous-session=ctrl+1
 
-	shortcut.create-session=ctrl+t
+# move to next terminal session
 
-	# move to previous terminal session
+shortcut.next-session=ctrl+2
 
-	shortcut.previous-session=ctrl+1
+# configure keyboard shortcut keys
 
-	# move to next terminal session
-
-	shortcut.next-session=ctrl+2
-
-	# configure keyboard shortcut keys
-
-	extra-keys=[																	\
-		['ESC', '|',    '/',   'HOME', 'UP',   'END',   'PGUP', '_', 'BKSP'		],	\
-		['TAB', 'CTRL', 'ALT', 'LEFT', 'DOWN', 'RIGHT', 'PGDN', '-', 'RETURN'	]	\
-																					]
-	FILE
-fi
+extra-keys=[																	\
+	['ESC', '|',    '/',   'HOME', 'UP',   'END',   'PGUP', '_', 'BKSP'		],	\
+	['TAB', 'CTRL', 'ALT', 'LEFT', 'DOWN', 'RIGHT', 'PGDN', '-', 'RETURN'	]	\
+																				]
