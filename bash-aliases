@@ -37,12 +37,15 @@
 [[ $(command -v df) ]]                                                                && alias 'df'='df -H'
 [[ $(command -v du) ]]                                                                && alias 'du'='du -a -c -h'
 
-[[ $(command -v ls) ]]                                                                && alias 'ls'='ls -a'
+[[ $(command -v ls) ]]                                                                && alias 'ls'='ls -l -d'
 [[ $(command -v rm) ]]                                                                && alias 'rm'='rm -rf'
+[[ $(command -v pgrep) ]]                                                             && alias 'pgrep'='pgrep -f'
+[[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'pkill'='sudo pkill -9'
+[[ $(command -v pkill) ]]                                                             && alias 'pkill'='pkill -9'
 [[ $(command -v shutdown) ]]                                                          && alias 'shutdown'='shutdown -h now'
 [[ $(command -v wget) ]]                                                              && alias 'wget'='wget -c'
 
-# aliases #
+# aliases ##
 
 [[ $(command -v rsync) ]]                                                             && alias 'copy'='rsync -a -r -q --progress -h'
 [[ $(command -v find) && $(command -v wc) ]]                                          && alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
@@ -50,10 +53,7 @@
 [[ $(command -v nano) ]]                                                              && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
 [[ $(command -v env) && $(command -v grep) ]]                                         && alias 'efilter'='env | grep -i'
 [[ $(command -v ls) && $(command -v grep) ]]                                          && alias 'ffilter'='ls -a | grep -i'
-[[ $(command -v ps) && $(command -v grep) ]]                                          && alias 'pfilter'='ps -A | grep -i'
-[[ $(command -v grep) ]]                                                              && alias 'grep'='grep --color=auto'
-[[ $(command -v egrep) ]]                                                             && alias 'egrep'='egrep --color=auto'
-[[ $(command -v fgrep) ]]                                                             && alias 'fgrep'='fgrep --color=auto'
+[[ $(command -v ps) && $(command -v grep) ]]                                          && alias 'pfilter'='ps -a -u -x | grep -i'
 [[ $(command -v curl) ]]                                                              && alias 'header'='curl -I'
 [[ $(command -v ls) ]]                                                                && alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'
 [[ $(command -v mount) && $(command -v column) ]]                                     && alias 'mounts'='mount | column -t'
@@ -98,8 +98,8 @@
 [[ $(command -v chown) ]]                                                             && alias 'chown'='chown --preserve-root'
 [[ $(command -v netstat) ]]                                                           && alias 'ports'='netstat -t -u -l -a -n -p'
 [[ $(command -v echo) ]]                                                              && alias 'where'='echo ${PWD}'
-[[ $(command -v ps) ]]                                                                && alias 'what'='ps -A'
-[[ $(command -v ps) ]]                                                                && alias 'how'='ps -a -u -x'
+[[ $(command -v ps) ]]                                                                && alias 'what'='ps -e'
+[[ $(command -v ps) ]]                                                                && alias 'how'='ps -u'
 [[ $(command -v ping) ]]                                                              && alias 'sonar'='ping -c 5'
 [[ $(command -v sudo) ]]                                                              && alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'start'='sudo systemctl start'
@@ -107,7 +107,5 @@
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'enable'='sudo systemctl enable'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'disable'='sudo systemctl disable'
 [[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'status'='sudo systemctl status'
-[[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'terminate'='sudo pkill -9'
-[[ $(command -v pkill) ]]                                                             && alias 'terminate'='pkill -9'
 [[ $(command -v killall) ]]                                                           && alias 'kill'='killall'
 [[ $(command -v du) && $(command -v sort) ]]                                          && alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
