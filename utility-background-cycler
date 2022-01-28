@@ -31,6 +31,8 @@ list=(
 
 frobulate.command ${list[@]}
 
+# functions ////////////////////////////////////////////////////////////////////
+
 cat <<- 'FILE' > /usr/bin/background-cycler
 #!/bin/bash
 

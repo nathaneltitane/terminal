@@ -33,6 +33,8 @@ frobulate.command ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
+# write ddclient configuration
+
 cat <<- FILE > /etc/ddclient.conf
 # ddclient #
 

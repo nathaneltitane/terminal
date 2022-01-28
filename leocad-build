@@ -57,7 +57,9 @@ install_list=(
 
 frobulate.install ${install_list[@]}
 
-# build #
+# functions ////////////////////////////////////////////////////////////////////
+
+# get source code
 
 command_clone="git clone --quiet"
 

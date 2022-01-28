@@ -31,6 +31,8 @@ list=(
 
 frobulate.command ${list[@]}
 
+# functions ////////////////////////////////////////////////////////////////////
+
 alignment="top_right"
 font_size="8"
 

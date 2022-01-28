@@ -33,6 +33,8 @@ list=(
 
 frobulate.command ${list[@]}
 
+# functions ////////////////////////////////////////////////////////////////////
+
 cat <<- 'FILE' > /usr/bin/conky-color-selector
 #!/bin/bash
 
