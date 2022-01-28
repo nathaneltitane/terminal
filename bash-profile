@@ -20,7 +20,7 @@ then
 	PATH="${HOME}/.local/bin:${PATH}"
 fi
 
-# dependencies #
+# dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
 then

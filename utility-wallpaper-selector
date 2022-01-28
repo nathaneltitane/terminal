@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# dependencies #
+# dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
 then
@@ -9,21 +9,28 @@ fi
 
 . "${PREFIX}"/bin/frobulator
 
-# script #
+# script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-# version #
+# version //////////////////////////////////////////////////////////////////////
 
-# usage #
+# usage ////////////////////////////////////////////////////////////////////////
 
-# prompt #
+# prompt ///////////////////////////////////////////////////////////////////////
 
-# variables #
+# variables ////////////////////////////////////////////////////////////////////
 
 [[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
 
-# defaults #
+# defaults /////////////////////////////////////////////////////////////////////
+
+list=(
+	gsettings
+	zenity
+)
+
+frobulate.command ${list[@]}
 
 # binary #
 
@@ -54,7 +61,7 @@ hex_to_rgb () {
 
 default_color="333333"
 
-color_input="$(zenity --color-selection --color="#333333" --show-palette)"
+color_input="$(zenity --color-selection --color="${default_color}" --show-palette)"
 color_selection=$(rgb_to_hex "${color_input}")
 
 if [ ! -z "${color_input}" ]

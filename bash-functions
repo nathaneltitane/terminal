@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# dependencies #
+# dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
 then
@@ -9,7 +9,7 @@ fi
 
 . "${PREFIX}"/bin/frobulator
 
-# adb #
+# adb //////////////////////////////////////////////////////////////////////////
 
 adb_pull_package () {
 	if [[ $(command -v adb) ]]
@@ -38,7 +38,6 @@ adb_install_package () {
 		adb install "${package}"
 	fi
 }
-
 
 adb_remove_package () {
 	if [[ $(command -v adb) ]]
@@ -206,7 +205,7 @@ adb_reset_apk () {
 	fi
 }
 
-# address #
+# address //////////////////////////////////////////////////////////////////////
 
 address () {
 	echo
@@ -216,7 +215,7 @@ address () {
 	echo
 }
 
-# audio #
+# audio ////////////////////////////////////////////////////////////////////////
 
 audio () {
 	[[ -z $(command -v ffmpeg) ]] && frobulate.install ffmpeg
@@ -241,7 +240,7 @@ audio () {
 	done
 }
 
-# colors #
+# colors ///////////////////////////////////////////////////////////////////////
 
 colors () {
 	for foreground_color in {0..7}
@@ -284,7 +283,7 @@ rgb () {
 	printf '%03d %03d %03d\n' ${r} ${g} ${b}
 }
 
-# directory #
+# directory ////////////////////////////////////////////////////////////////////
 
 directory () {
 	if [[ $(command -v mkdir) ]]
@@ -295,7 +294,7 @@ directory () {
 	fi
 }
 
-# duplicate #
+# duplicate ////////////////////////////////////////////////////////////////////
 
 duplicate () {
 	if [ $(command -v dd) ]
@@ -308,31 +307,43 @@ duplicate () {
 	fi
 }
 
-# extract #
+# extract //////////////////////////////////////////////////////////////////////
 
 extract () {
+	list=(
+		tar
+		bunzip2
+		unrar
+		gunzip
+		unzip
+		uncompress
+		7z
+	)
+
+	frobulate.command ${list[@]}
+
 	if [ -f "${1}" ]
 	then
 		case "${1}"
 		in
-			*.tar.bz2)
-				tar xjf "${1}"
-			;;
-
-			*.tar.gz)
-				tar xzf "${1}"
+			*.7z)
+				7z x "${1}"
 			;;
 
 			*.bz2)
 				bunzip2 "${1}"
 			;;
 
-			*.rar)
-				unrar e "${1}"
-			;;
-
 			*.gz)
 				gunzip "${1}"
+			;;
+
+			*.tar.bz2)
+				tar xjf "${1}"
+			;;
+
+			*.tar.gz)
+				tar xzf "${1}"
 			;;
 
 			*.tar)
@@ -347,16 +358,16 @@ extract () {
 				tar xzf "${1}"
 			;;
 
+			*.rar)
+				unrar e "${1}"
+			;;
+
 			*.zip)
 				unzip "${1}"
 			;;
 
 			*.Z)
 				uncompress "${1}"
-			;;
-
-			*.7z)
-				7z x "${1}"
 			;;
 
 			*)
@@ -376,53 +387,49 @@ extract () {
 	fi
 }
 
-# icons #
+# icons ////////////////////////////////////////////////////////////////////////
 
 icons () {
-	if [[ $(command -v gtk-update-icon-cache) ]]
-	then
-		icons_directory_list=(
-			"${HOME}"/.icons
-			"${PREFIX}"/share/icons
-			/usr/share/icons
-		)
+	frobulate.command gtk-update-icon-cache
 
-		for icons_directory in ${icons_directory_list[@]}
-		do
-			if [ -d "${icons_directory}" ]
-			then
-				cd "${icons_directory}"
-			fi
+	icons_directory_list=(
+		"${HOME}"/.icons
+		"${PREFIX}"/share/icons
+		/usr/share/icons
+	)
 
-			if [ -d "${icons_directory}" ]
-			then
-				find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
-				do
-					if [ -f "${theme}"/index.theme ]
-					then
-						theme_name="${theme##*/}"
+	for icons_directory in ${icons_directory_list[@]}
+	do
+		if [ -d "${icons_directory}" ]
+		then
+			cd "${icons_directory}"
+		fi
 
-						gtk-update-icon-cache -f -q "${theme}"
+		if [ -d "${icons_directory}" ]
+		then
+			find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
+			do
+				if [ -f "${theme}"/index.theme ]
+				then
+					theme_name="${theme##*/}"
 
-						frobulate.scs "Cache update success" "[ ${theme_name} ]"
-						echo
-					else
-						frobulate.wrn "Skipping" "[ ${theme_name} ]"
-						echo
-					fi
-				done
-			fi
-		done
-	fi
+					gtk-update-icon-cache -f -q "${theme}"
+
+					frobulate.scs "Cache update success" "[ ${theme_name} ]"
+					echo
+				else
+					frobulate.wrn "Skipping" "[ ${theme_name} ]"
+					echo
+				fi
+			done
+		fi
+	done
 }
 
 # record #
 
 record () {
-	if [[ -z "$(command -v recordmydesktop)" ]]
-	then
-		frobulate.install recordmydesktop
-	fi
+	frobulate.command recordmydesktop
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
 
@@ -488,7 +495,10 @@ weather () {
 # youtube #
 
 youtube () {
-	[[ -z $(command -v youtube-dl) ]] && frobulate.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
+	if [[ -z $(command -v youtube-dl) ]]
+	then
+		frobulate.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
+	fi
 
 	path="${2}"
 
