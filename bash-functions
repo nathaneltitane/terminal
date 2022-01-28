@@ -98,8 +98,8 @@ adb_vendor_ids () {
 	fi
 }
 
-adb_ keycode () {
-		if [[ $(command -v adb) ]]
+adb_keycode () {
+	if [[ $(command -v adb) ]]
 	then
 		adb "${device}" shell input keyevent "${1}"
 
@@ -379,7 +379,7 @@ extract () {
 # icons #
 
 icons () {
-	if [[ $(command -v gtk-update-icon-cache) ) ]]
+	if [[ $(command -v gtk-update-icon-cache) ]]
 	then
 		icons_directory_list=(
 			"${HOME}"/.icons
@@ -459,21 +459,6 @@ sprunge () {
 	else
 		curl -F 'sprunge=<-' "${url}"
 	fi
-}
-
-# terminate #
-
-terminate () {
-	process_name="${1}"
-
-	[[ $(command -v pgrep) ]] && process_id=$(pgrep -f "${process_name}")
-
-	[[ $(command -v pkill) ]] && terminate_command=$(pkill -9 ${process_name})
-
-	while [[ "${process_id}" ]]
-	do
-		"${terminate_command}"
-	done
 }
 
 # weather #
