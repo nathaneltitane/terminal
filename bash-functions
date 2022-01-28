@@ -461,6 +461,17 @@ sprunge () {
 	fi
 }
 
+# terminate
+
+terminate () {
+	process_name="${1}"
+
+	while [[ $(pgrep -f "${process_name}") ]]
+	do
+		pkill -9 "${process_name}"
+	done
+}
+
 # weather #
 
 weather () {
