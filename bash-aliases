@@ -1,3 +1,6 @@
+#!/bin/bash
+
+cat <<- 'FILE' > "${HOME}"/.bash_aliases
 # aliases #
 
 # dextop #
@@ -111,3 +114,4 @@
 [[ $(command -v pkill) ]]                                                             && alias 'terminate'='pkill -9'
 [[ $(command -v killall) ]]                                                           && alias 'kill'='killall'
 [[ $(command -v du) && $(command -v sort) ]]                                          && alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
+FILE

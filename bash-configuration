@@ -1,5 +1,8 @@
 #!/bin/bash
 
+cat <<- 'FILE' > "${HOME}"/.bashrc
+#!/bin/bash
+
 # check for interactive session
 
 [ -z "${PS1}" ] && return
@@ -100,3 +103,4 @@ elif [ -f "${HOME}"/.bash_functions ]
 then
 	. "${HOME}"/.bash_functions
 fi
+FILE

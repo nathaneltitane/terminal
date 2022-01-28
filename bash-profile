@@ -1,3 +1,6 @@
+#!/bin/bash
+
+cat <<- 'FILE' > "${HOME}"/.profile
 # bashrc #
 
 if [ -n "${BASH_VERSION}" ]
@@ -132,3 +135,4 @@ then
 		fi
 	fi
 fi
+FILE

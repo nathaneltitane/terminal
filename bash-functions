@@ -1,5 +1,8 @@
 #!/bin/bash
 
+cat <<- 'FILE' > "${HOME}"/.bash_functions
+#!/bin/bash
+
 # dependencies #
 
 if [[ -z $(command -v frobulator) ]]
@@ -489,3 +492,4 @@ youtube () {
 		--output			"%(title)s.%(ext)s"				\
 															"${1}"
 }
+FILE
