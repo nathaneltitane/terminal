@@ -149,16 +149,15 @@ adb_keycode () {
 }
 
 adb_device () {
-	if [[ $(command -v adb) ]]
+	frobulate.command adb
+
+	if [ $# -gt 1 ]
 	then
-		if [ $# -gt 1 ]
-		then
-			device="-s ${@:2}"
+		device="-s ${@:2}"
 
-			adb connect ${@:2}
+		adb connect ${@:2}
 
-			sleep 2
-		fi
+		sleep 2
 	fi
 }
 
@@ -235,21 +234,26 @@ audio () {
 # colors ///////////////////////////////////////////////////////////////////////
 
 colors () {
+	frobulate.command tput
+
+	# print palette
+
 	for foreground_color in {0..7}
 	do
-		set_foreground=$(tput setaf $foreground_color)
+		set_foreground=$(tput setaf "${foreground_color}")
 
 		for background_color in {0..7}
 		do
-			set_background=$(tput setab $background_color)
+			set_background=$(tput setab "${background_color}")
 
 			echo -n "${set_background} ${set_foreground}"
 
 			printf 'F:%s B:%s ' "${foreground_color}" "${background_color}"
 		done
 
-		echo $(tput sgr0)
+		# reset
 
+		echo $(tput sgr0)
 	done
 
 	echo
