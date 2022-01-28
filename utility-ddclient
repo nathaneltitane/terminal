@@ -23,11 +23,11 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # defaults #
 
-install_list=(
+list=(
 	ddclient
 )
 
-frobulate.install ${install_list[@]}
+frobulate.command ${list[@]}
 
 # functions #
 

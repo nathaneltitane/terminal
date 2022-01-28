@@ -36,6 +36,12 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
 # defaults #
 
+list=(
+	xfconf-query
+)
+
+frobulate.command ${list[@]}
+
 # read settings
 
 frobulate.inf "Generating" "[ ${settings_file} ]"

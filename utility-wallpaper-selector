@@ -55,7 +55,7 @@ hex_to_rgb () {
 default_color="333333"
 
 color_input="$(zenity --color-selection --color="#333333" --show-palette)"
-color_selection=$(rgb_to_hex "$color_input")
+color_selection=$(rgb_to_hex "${color_input}")
 
 if [ ! -z "${color_input}" ]
 then

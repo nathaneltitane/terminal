@@ -28,11 +28,11 @@ echo
 
 # defaults #
 
-install_list=(
-	cpufrequtils
+list=(
+	cpufreq-set
 )
 
-frobulate.install ${install_list[@]}
+frobulate.command ${install_list[@]}
 
 # functions #
 
