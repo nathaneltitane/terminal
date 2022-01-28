@@ -4,7 +4,10 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 if [[ $(uname -o) =~ [aA][nN][dD][rR][oO][iI][dD] ]] && [[ "${TERMUX_VERSION}"]]
 then
-	[ ! -d "${HOME}"/.termux] && mkdir -p "${HOME}"/.termux
+	if [ ! -d "${HOME}"/.termux]
+	then
+		mkdir -p "${HOME}"/.termux
+	fi
 
 	cat <<- 'FILE' > "${HOME}"/.termux/termux.properties
 	# use black for drawer and dialogs - Android 9.0+ default
