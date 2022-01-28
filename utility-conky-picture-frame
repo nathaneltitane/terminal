@@ -1,22 +1,5 @@
 #!/bin/bash
 
-# dependencies #
-
-curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
-
-# variables #
-
-[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
-configuration_directory="${HOME}"/.config
-
-
-if [ ! -d "${HOME}"/.config/conky-picture-frame ]
-then
-	mkdir -p "${HOME}"/.config/conky-picture-frame
-fi
-
-cd "${HOME}"/.config/conky-picture-frame || exit 1
-
 alignment="top_left"
 font_size="8"
 gap_x="10"
@@ -25,7 +8,10 @@ size_x="512"
 size_y="512"
 width="$size_x"
 
-# configuration #
+if [ ! -d "${HOME}"/.config/conky-picture-frame ]
+then
+	mkdir -p "${HOME}"/.config/conky-picture-frame
+fi
 
 cat <<- FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
 # conky picture frame #

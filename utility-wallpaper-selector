@@ -57,40 +57,49 @@ default_color="333333"
 color_input="$(zenity --color-selection --color="#333333" --show-palette)"
 color_selection=$(rgb_to_hex "$color_input")
 
-if [[ "$color_input" != "" ]]
+if [ ! -z "${color_input}" ]
 then
-	color="#$color_selection"
+	color="#${color_selection}"
 else
-	color="#$default_color"
+	color="#${default_color}"
 fi
 
 # desktop #
 
-gsettings set org.gnome.desktop.background primary-color "$color"
-gsettings set org.gnome.desktop.background secondary-color "$color"
+gsettings set org.gnome.desktop.background primary-color "{$color}"
+gsettings set org.gnome.desktop.background secondary-color "{$color}"
 gsettings set org.gnome.desktop.background picture-uri "''"
 
 # lockscreen #
 
-gsettings set org.gnome.desktop.screensaver primary-color "$color"
-gsettings set org.gnome.desktop.screensaver secondary-color "$color"
+gsettings set org.gnome.desktop.screensaver primary-color "{$color}"
+gsettings set org.gnome.desktop.screensaver secondary-color "{$color}"
 gsettings set org.gnome.desktop.screensaver picture-uri "''"
 
 # login screen #
 
-gsettings set org.gnome.desktop.background primary-color "$color"
-gsettings set org.gnome.desktop.background secondary-color "$color"
+gsettings set org.gnome.desktop.background primary-color "{$color}"
+gsettings set org.gnome.desktop.background secondary-color "{$color}"
 gsettings set org.gnome.desktop.background picture-uri "''"
 
-picture_option=$(zenity --list --title "Select a picture option" --width="300" --height="250" --text="Specify an image layout option" --radiolist --column="Selection" --column="Option" \
-TRUE "wallpaper" \
-FALSE "center" \
-FALSE "scaled" \
-FALSE "stretched" \
-FALSE "zoom" \
-FALSE "spanned") 2> /dev/null || exit # Specify image layout option or exit on 'Cancel'
+picture_option=$(zenity										\
+					--list									\
+					--title "Select a picture option"		\
+					--width="300"							\
+					--height="250"							\
+					--text="Specify an image layout option" \
+					--radiolist								\
+					--column="Selection"					\
+					--column="Option" 						\
+						TRUE "wallpaper"					\
+						FALSE "center"						\
+						FALSE "scaled"						\
+						FALSE "stretched"					\
+						FALSE "zoom"						\
+						FALSE "spanned"						\
+				) 2> /dev/null || exit
 
-picture_uri=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null || exit # Specify source image location or exit on 'Cancel'
+picture_uri=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null || exit
 
 # desktop #
 

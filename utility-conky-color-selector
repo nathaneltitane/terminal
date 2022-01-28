@@ -1,31 +1,33 @@
 #!/bin/bash
 
-# dependencies #
-
-curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
-
-# variables #
-
-configuration_directory="${HOME}"/.config
-
-# configuration #
-
 cat <<- 'FILE' > /usr/bin/conky-color-selector
 #!/bin/bash
 
+# conky color selector #
+
 rgb_to_hex () {
 	IFS='(,)'
-	read _ r g b <<< "$1"
-	printf '%02x%02x%02x\n' $r $g $b
+
+	read _ r g b <<< "${1}"
+
+	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+}
+
+hex_to_rgb () {
+	read hex <<< "${1}"
+
+	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
+
+	r=$((16#${hex:0:2}))
+	g=$((16#${hex:2:2}))
+	b=$((16#${hex:4:2}))
+
+	printf '%03d %03d %03d\n' ${r} ${g} ${b}
 }
 
 default_color="cccccc"
 color_input="$(zenity --color-selection --color="#cccccc" --show-palette)"
-color_selection=$(rgb_to_hex "$color_input")
-
-[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
-
-cd "$home" || exit
+color_selection=$(rgb_to_hex "${color_input}")
 
 if [[ "$color_input" != "" ]]
 then
@@ -34,7 +36,7 @@ else
 	color="$default_color"
 fi
 
-find . -type f -name *conkyrc -exec \
+find "${HOME}" -type f -name *conkyrc -exec \
 	sed -i \
 	-e "s|default_color.*|default_color $color|g" \
 	-e "s|default_shade_color.*|default_shade_color $color|g" {} +

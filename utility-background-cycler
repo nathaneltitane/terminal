@@ -40,7 +40,8 @@ while true
 do
 	picture="$(ls $directory | sort -R | head -n 1)"
 
-	gsettings set org.gnome.desktop.background picture-uri "file://$picture"
+	gsettings set org.gnome.desktop.background picture-uri "file://${picture}"
+
 	sleep 60
 done
 FILE
