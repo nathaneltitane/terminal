@@ -24,7 +24,7 @@ echo
 
 # variables #
 
-TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX) || exit 1
+TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX)
 
 trap 'rm -rf "${TEMPORARY}"' EXIT
 
@@ -63,7 +63,7 @@ frobulate.log "${command_clone} ${source} ${build_directory}" &
 
 frobulate.progress "Cloning..."
 
-cd "${build_directory}" || exit 1
+cd "${build_directory}"
 
 # compile project
 
