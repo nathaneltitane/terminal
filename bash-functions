@@ -180,19 +180,15 @@ adb_reset_apk () {
 	if [[ $(command -v adb) ]]
 	then
 		application="${1}"
+		activity="${2}"
 
-		frobulate.inf "Clearing storage" "[ ${hostname} ] "
+		adb "${device}" shell	\
+			pm clear "${application}"
 
-		adb "${device}" shell pm clear "${application}"
-
-		# launch application
-
-		frobulate.inf "Launching application" "[ ${hostname} ]"
-
-		adb ${device} shell	\
-			am start		\
-				--user 0	\
-				-n "${application}"/"${application}".app.PackageActivity
+		adb "${device}" shell	\
+			am start			\
+				--user 0		\
+				-n "${application}"/"${application}"."${activity}"
 	fi
 }
 
