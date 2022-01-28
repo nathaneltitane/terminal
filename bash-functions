@@ -1,6 +1,6 @@
 # adb #
 
-adb_pull_data () {
+adb_pull_package () {
 	if [[ $(command -v adb) ]]
 	then
 		if [[ ! -d ./apk ]]
@@ -18,6 +18,17 @@ adb_pull_data () {
 		done
 	fi
 }
+
+adb_install_package () {
+	if [[ $(command -v adb) ]]
+	then
+		package="${1}"
+
+		adb install "${package}"
+	fi
+}
+
+
 adb_remove_package () {
 	if [[ $(command -v adb) ]]
 	then
@@ -26,6 +37,7 @@ adb_remove_package () {
 		adb uninstall --user 0 "${package}"
 	fi
 }
+
 # address #
 
 address () {
