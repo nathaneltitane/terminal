@@ -234,7 +234,12 @@ audio () {
 # colors ///////////////////////////////////////////////////////////////////////
 
 colors () {
-	frobulate.command tput
+	list=(
+		tput
+		printf
+	)
+
+	frobulate.command ${list[@]}
 
 	# print palette
 
@@ -260,6 +265,8 @@ colors () {
 }
 
 hex () {
+	frobulate.command printf
+
 	IFS='(,)'
 
 	read _ r g b <<< "${1}"
@@ -268,6 +275,8 @@ hex () {
 }
 
 rgb () {
+	frobulate.command printf
+
 	read hex <<< "${1}"
 
 	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
