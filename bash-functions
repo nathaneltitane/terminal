@@ -12,148 +12,140 @@ fi
 # adb //////////////////////////////////////////////////////////////////////////
 
 adb_pull_package () {
-	if [[ $(command -v adb) ]]
+	frobulate.command adb
+
+	if [[ ! -d ./apk ]]
 	then
-		if [[ ! -d ./apk ]]
-		then
-			mkdir -p "${HOME}"/Android
+		mkdir -p "${HOME}"/Android
 
-			cd "${HOME}"/Android
-		fi
-
-		for package in $(adb shell pm list packages | sed -n 's/^package://p')
-		do
-			adb pull "$(adb shell pm path "${package}" | grep /data/app | sed -n "s/^package://p")"
-
-			mv base.apk "${package}".apk
-		done
+		cd "${HOME}"/Android
 	fi
+
+	for package in $(adb shell pm list packages | sed -n 's/^package://p')
+	do
+		adb pull "$(adb shell pm path "${package}" | grep /data/app | sed -n "s/^package://p")"
+
+		mv base.apk "${package}".apk
+	done
 }
 
 adb_install_package () {
-	if [[ $(command -v adb) ]]
-	then
-		package="${1}"
+	frobulate.command adb
 
-		adb install "${package}"
-	fi
+	package="${1}"
+
+	adb install "${package}"
 }
 
 adb_remove_package () {
-	if [[ $(command -v adb) ]]
-	then
-		package="${1}"
+	frobulate.command adb
 
-		adb uninstall --user 0 "${package}"
-	fi
+	package="${1}"
+
+	adb uninstall --user 0 "${package}"
 }
 
 adb_settings_get () {
-	if [[ $(command -v adb) ]]
-	then
-		setting="${1}"
+	frobulate.command adb
 
-		adb shell settings get "${setting}"
-	fi
+	setting="${1}"
+
+	adb shell settings get "${setting}"
 }
 
 adb_settings_put () {
-	if [[ $(command -v adb) ]]
-	then
-		setting="${1}"
+	frobulate.command adb
 
-		adb shell settings put "${setting}"
-	fi
+	setting="${1}"
+
+	adb shell settings put "${setting}"
 }
 
 adb_disable_phantom_killer () {
-	if [[ $(command -v adb) ]]
-	then
-		adb	shell /system/bin/device_config set_sync_disabled_for_tests persistent
-		adb shell /system/bin/device_config put activity_manager max_phantom_processes 2000000000
-		adb shell /system/bin/settings get global device_config_sync_disabled
-	fi
+	frobulate.command adb
+
+	adb	shell /system/bin/device_config set_sync_disabled_for_tests persistent
+	adb shell /system/bin/device_config put activity_manager max_phantom_processes 2000000000
+	adb shell /system/bin/settings get global device_config_sync_disabled
 }
 
 adb_vendor_ids () {
-	if [[ $(command -v adb) ]]
+	frobulate.command adb
+
+	mkdir -p ${HOME}"/.android
+
+	for id in {0..65535}
+	do
+		printf '0x%04x\n' "${id}"
+	done >> "{HOME}"/.android/adb_usb.ini
+
+	chmod -R 777 ${HOME}"/.android
+
+	if [[ $(dpkg -l udev) ]]
 	then
-		mkdir -p ${HOME}"/.android
-
-		for id in {0..65535}
+		while read -r vendor_id
 		do
-			printf '0x%04x\n' "${id}"
-		done >> "{HOME}"/.android/adb_usb.ini
-
-		chmod -R 777 ${HOME}"/.android
-
-		if [[ $(dpkg -l udev) ]]
-		then
-			while read -r vendor_id
-			do
-				echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
-			done <<< $(cat "${HOME}"/.android/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
-		fi
+			echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
+		done <<< $(cat "${HOME}"/.android/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
 	fi
 }
 
 adb_keycode () {
-	if [[ $(command -v adb) ]]
-	then
-		adb "${device}" shell input keyevent "${1}"
+	frobulate.command adb
 
-		# https://developer.android.com/reference/android/view/KeyEvent.html
+	adb "${device}" shell input keyevent "${1}"
 
-		#  0 - KEYCODE_0                           # 49 - KEYCODE_U
-		#  1 - KEYCODE_SOFT_LEFT                   # 50 - KEYCODE_V
-		#  2 - KEYCODE_SOFT_RIGHT                  # 51 - KEYCODE_W
-		#  3 - KEYCODE_HOME                        # 52 - KEYCODE_X
-		#  4 - KEYCODE_BACK                        # 53 - KEYCODE_Y
-		#  5 - KEYCODE_CALL                        # 54 - KEYCODE_Z
-		#  6 - KEYCODE_ENDCALL                     # 55 - KEYCODE_COMMA
-		#  7 - KEYCODE_0                           # 56 - KEYCODE_PERIOD
-		#  8 - KEYCODE_1                           # 57 - KEYCODE_ALT_LEFT
-		#  9 - KEYCODE_2                           # 58 - KEYCODE_ALT_RIGHT
-		# 10 - KEYCODE_3                           # 59 - KEYCODE_SHIFT_LEFT
-		# 11 - KEYCODE_4                           # 60 - KEYCODE_SHIFT_RIGHT
-		# 12 - KEYCODE_5                           # 61 - KEYCODE_TAB
-		# 13 - KEYCODE_6                           # 62 - KEYCODE_SPACE
-		# 14 - KEYCODE_7                           # 63 - KEYCODE_SYM
-		# 15 - KEYCODE_8                           # 64 - KEYCODE_EXPLORER
-		# 16 - KEYCODE_9                           # 65 - KEYCODE_ENVELOPE
-		# 17 - KEYCODE_STAR                        # 66 - KEYCODE_ENTER
-		# 18 - KEYCODE_POUND                       # 67 - KEYCODE_DEL
-		# 19 - KEYCODE_DPAD_UP                     # 68 - KEYCODE_GRAVE
-		# 20 - KEYCODE_DPAD_DOWN                   # 69 - KEYCODE_MINUS
-		# 21 - KEYCODE_DPAD_LEFT                   # 70 - KEYCODE_EQUALS
-		# 22 - KEYCODE_DPAD_RIGHT                  # 71 - KEYCODE_LEFT_BRACKET
-		# 23 - KEYCODE_DPAD_CENTER                 # 72 - KEYCODE_RIGHT_BRACKET
-		# 24 - KEYCODE_VOLUME_UP                   # 73 - KEYCODE_BACKSLASH
-		# 25 - KEYCODE_VOLUME_DOWN                 # 74 - KEYCODE_SEMICOLON
-		# 26 - KEYCODE_POWER                       # 75 - KEYCODE_APOSTROPHE
-		# 27 - KEYCODE_CAMERA                      # 76 - KEYCODE_SLASH
-		# 28 - KEYCODE_CLEAR                       # 77 - KEYCODE_AT
-		# 29 - KEYCODE_A                           # 78 - KEYCODE_NUM
-		# 30 - KEYCODE_B                           # 79 - KEYCODE_HEADSETHOOK
-		# 31 - KEYCODE_C                           # 80 - KEYCODE_FOCUS
-		# 32 - KEYCODE_D                           # 81 - KEYCODE_PLUS
-		# 33 - KEYCODE_E                           # 82 - KEYCODE_MENU
-		# 34 - KEYCODE_F                           # 83 - KEYCODE_NOTIFICATION
-		# 35 - KEYCODE_G                           # 84 - KEYCODE_SEARCH
-		# 36 - KEYCODE_H                           # 85 - KEYCODE_MEDIA_PLAY_PAUSE
-		# 37 - KEYCODE_I                           # 86 - KEYCODE_MEDIA_STOP
-		# 38 - KEYCODE_J                           # 87 - KEYCODE_MEDIA_NEXT
-		# 39 - KEYCODE_K                           # 88 - KEYCODE_MEDIA_PREVIOUS
-		# 40 - KEYCODE_L                           # 89 - KEYCODE_MEDIA_REWIND
-		# 41 - KEYCODE_M                           # 90 - KEYCODE_MEDIA_FAST_FORWARD
-		# 42 - KEYCODE_N                           # 91 - KEYCODE_MUTE
-		# 43 - KEYCODE_O                           # 92 - KEYCODE_PAGE_UP
-		# 44 - KEYCODE_P                           # 93 - KEYCODE_PAGE_DOWN
-		# 45 - KEYCODE_Q                           # 94 - KEYCODE_PICTSYMBOLS
-		# 46 - KEYCODE_R                           # ...
-		# 47 - KEYCODE_S                           # 122  KEYCODE_MOVE_HOME
-		# 48 - KEYCODE_T                           # 123  KEYCODE_MOVE_END
-	fi
+	# https://developer.android.com/reference/android/view/KeyEvent.html
+
+	#  0 - KEYCODE_0                           # 49 - KEYCODE_U
+	#  1 - KEYCODE_SOFT_LEFT                   # 50 - KEYCODE_V
+	#  2 - KEYCODE_SOFT_RIGHT                  # 51 - KEYCODE_W
+	#  3 - KEYCODE_HOME                        # 52 - KEYCODE_X
+	#  4 - KEYCODE_BACK                        # 53 - KEYCODE_Y
+	#  5 - KEYCODE_CALL                        # 54 - KEYCODE_Z
+	#  6 - KEYCODE_ENDCALL                     # 55 - KEYCODE_COMMA
+	#  7 - KEYCODE_0                           # 56 - KEYCODE_PERIOD
+	#  8 - KEYCODE_1                           # 57 - KEYCODE_ALT_LEFT
+	#  9 - KEYCODE_2                           # 58 - KEYCODE_ALT_RIGHT
+	# 10 - KEYCODE_3                           # 59 - KEYCODE_SHIFT_LEFT
+	# 11 - KEYCODE_4                           # 60 - KEYCODE_SHIFT_RIGHT
+	# 12 - KEYCODE_5                           # 61 - KEYCODE_TAB
+	# 13 - KEYCODE_6                           # 62 - KEYCODE_SPACE
+	# 14 - KEYCODE_7                           # 63 - KEYCODE_SYM
+	# 15 - KEYCODE_8                           # 64 - KEYCODE_EXPLORER
+	# 16 - KEYCODE_9                           # 65 - KEYCODE_ENVELOPE
+	# 17 - KEYCODE_STAR                        # 66 - KEYCODE_ENTER
+	# 18 - KEYCODE_POUND                       # 67 - KEYCODE_DEL
+	# 19 - KEYCODE_DPAD_UP                     # 68 - KEYCODE_GRAVE
+	# 20 - KEYCODE_DPAD_DOWN                   # 69 - KEYCODE_MINUS
+	# 21 - KEYCODE_DPAD_LEFT                   # 70 - KEYCODE_EQUALS
+	# 22 - KEYCODE_DPAD_RIGHT                  # 71 - KEYCODE_LEFT_BRACKET
+	# 23 - KEYCODE_DPAD_CENTER                 # 72 - KEYCODE_RIGHT_BRACKET
+	# 24 - KEYCODE_VOLUME_UP                   # 73 - KEYCODE_BACKSLASH
+	# 25 - KEYCODE_VOLUME_DOWN                 # 74 - KEYCODE_SEMICOLON
+	# 26 - KEYCODE_POWER                       # 75 - KEYCODE_APOSTROPHE
+	# 27 - KEYCODE_CAMERA                      # 76 - KEYCODE_SLASH
+	# 28 - KEYCODE_CLEAR                       # 77 - KEYCODE_AT
+	# 29 - KEYCODE_A                           # 78 - KEYCODE_NUM
+	# 30 - KEYCODE_B                           # 79 - KEYCODE_HEADSETHOOK
+	# 31 - KEYCODE_C                           # 80 - KEYCODE_FOCUS
+	# 32 - KEYCODE_D                           # 81 - KEYCODE_PLUS
+	# 33 - KEYCODE_E                           # 82 - KEYCODE_MENU
+	# 34 - KEYCODE_F                           # 83 - KEYCODE_NOTIFICATION
+	# 35 - KEYCODE_G                           # 84 - KEYCODE_SEARCH
+	# 36 - KEYCODE_H                           # 85 - KEYCODE_MEDIA_PLAY_PAUSE
+	# 37 - KEYCODE_I                           # 86 - KEYCODE_MEDIA_STOP
+	# 38 - KEYCODE_J                           # 87 - KEYCODE_MEDIA_NEXT
+	# 39 - KEYCODE_K                           # 88 - KEYCODE_MEDIA_PREVIOUS
+	# 40 - KEYCODE_L                           # 89 - KEYCODE_MEDIA_REWIND
+	# 41 - KEYCODE_M                           # 90 - KEYCODE_MEDIA_FAST_FORWARD
+	# 42 - KEYCODE_N                           # 91 - KEYCODE_MUTE
+	# 43 - KEYCODE_O                           # 92 - KEYCODE_PAGE_UP
+	# 44 - KEYCODE_P                           # 93 - KEYCODE_PAGE_DOWN
+	# 45 - KEYCODE_Q                           # 94 - KEYCODE_PICTSYMBOLS
+	# 46 - KEYCODE_R                           # ...
+	# 47 - KEYCODE_S                           # 122  KEYCODE_MOVE_HOME
+	# 48 - KEYCODE_T                           # 123  KEYCODE_MOVE_END
 }
 
 adb_device () {
@@ -171,43 +163,43 @@ adb_device () {
 }
 
 adb_write () {
-	if [[ $(command -v adb) ]]
-	then
-		hostname=$(adb ${device} shell getprop net.hostname)
+	frobulate.command adb
 
-		write_command"${@}"
+	hostname=$(adb ${device} shell getprop net.hostname)
 
-		echo ${write_command@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
+	write_command"${@}"
 
-		# enter
+	echo ${write_command@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
 
-		adb_keycode 66
+	# enter
 
-		# sleep for consecutive writes
+	adb_keycode 66
 
-		sleep 0.125
-	fi
+	# sleep for consecutive writes
+
+	sleep 0.125
 }
 
 adb_reset_apk () {
-	if [[ $(command -v adb) ]]
-	then
-		application="${1}"
-		activity="${2}"
+	frobulate.command adb
 
-		adb "${device}" shell	\
-			pm clear "${application}"
+	application="${1}"
+	activity="${2}"
 
-		adb "${device}" shell	\
-			am start			\
-				--user 0		\
-				-n "${application}"/"${application}"."${activity}"
-	fi
+	adb "${device}" shell	\
+		pm clear "${application}"
+
+	adb "${device}" shell	\
+		am start			\
+			--user 0		\
+			-n "${application}"/"${application}"."${activity}"
 }
 
 # address //////////////////////////////////////////////////////////////////////
 
 address () {
+	frobulate.command curl
+
 	echo
 
 	curl -s -L ipinfo.io/ip
@@ -218,7 +210,7 @@ address () {
 # audio ////////////////////////////////////////////////////////////////////////
 
 audio () {
-	[[ -z $(command -v ffmpeg) ]] && frobulate.install ffmpeg
+	frobulate.command ffmpeg
 
 	directory="${PWD}"
 	extension="${1}"
@@ -251,9 +243,9 @@ colors () {
 		do
 			set_background=$(tput setab $background_color)
 
-			echo -n $set_background$set_foreground
+			echo -n "${set_background} ${set_foreground}"
 
-			printf ' F:%s B:%s ' $foreground_color $background_color
+			printf 'F:%s B:%s ' "${foreground_color}" "${background_color}"
 		done
 
 		echo $(tput sgr0)
@@ -286,25 +278,23 @@ rgb () {
 # directory ////////////////////////////////////////////////////////////////////
 
 directory () {
-	if [[ $(command -v mkdir) ]]
-	then
-		mkdir -p "${1}"
+	frobulate.command mkdir
 
-		cd "${1}"
-	fi
+	mkdir -p "${1}"
+
+	cd "${1}"
 }
 
 # duplicate ////////////////////////////////////////////////////////////////////
 
 duplicate () {
-	if [ $(command -v dd) ]
-	then
-		dd 	\
-			if="${1}"	\
-			of="${2}"	\
-			bs="${3}"	\
-				status=progress
-	fi
+frobulate.command dd
+
+	dd				\
+		if="${1}"	\
+		of="${2}"	\
+		bs="${3}"	\
+			status=progress
 }
 
 # extract //////////////////////////////////////////////////////////////////////
