@@ -38,6 +38,15 @@ adb_remove_package () {
 	fi
 }
 
+adb_settings_get () {
+	if [[ $(command -v adb) ]]
+	then
+		setting="${1}"
+
+		adb shell settings get "${setting}"
+	fi
+}
+
 adb_settings_put () {
 	if [[ $(command -v adb) ]]
 	then
@@ -47,6 +56,36 @@ adb_settings_put () {
 	fi
 }
 
+adb_disable_phantom_killer () {
+	if [[ $(command -v adb) ]]
+	then
+		adb	shell /system/bin/device_config set_sync_disabled_for_tests persistent
+		adb shell /system/bin/device_config put activity_manager max_phantom_processes 2000000000
+		adb shell /system/bin/settings get global device_config_sync_disabled
+	fi
+}
+
+adb_vendor_ids () {
+	if [[ $(command -v adb) ]]
+	then
+		mkdir -p ${HOME}"/.android
+
+		for id in {0..65535}
+		do
+			printf '0x%04x\n' "${id}"
+		done >> "{HOME}"/.android/adb_usb.ini
+
+		chmod -R 777 ${HOME}"/.android
+
+		if [[ $(dpkg -l udev) ]]
+		then
+			while read -r vendor_id
+			do
+				echo SUBSYSTEM=='"usb"', SYSFS{idVendor}=="\"${vendor_id:2}\"", MODE='"0666"';
+			done <<< $(cat "${HOME}"/.android/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
+		fi
+	fi
+}
 # address #
 
 address () {
