@@ -40,7 +40,7 @@ list=(
 	xfconf-query
 )
 
-frobulator.command ${list[@]}
+frobulator.require ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 

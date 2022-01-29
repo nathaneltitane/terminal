@@ -29,7 +29,7 @@ list=(
 	gsettings
 )
 
-frobulator.command ${list[@]}
+frobulator.require ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 

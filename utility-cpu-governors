@@ -32,7 +32,7 @@ list=(
 	cpufreq-set
 )
 
-frobulator.command ${install_list[@]}
+frobulator.require ${install_list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 

@@ -12,7 +12,7 @@ fi
 # adb //////////////////////////////////////////////////////////////////////////
 
 adb_pull_package () {
-	frobulator.command adb
+	frobulator.require adb
 
 	if [[ ! -d ./apk ]]
 	then
@@ -30,7 +30,7 @@ adb_pull_package () {
 }
 
 adb_install_package () {
-	frobulator.command adb
+	frobulator.require adb
 
 	package="${1}"
 
@@ -38,7 +38,7 @@ adb_install_package () {
 }
 
 adb_remove_package () {
-	frobulator.command adb
+	frobulator.require adb
 
 	package="${1}"
 
@@ -46,7 +46,7 @@ adb_remove_package () {
 }
 
 adb_settings_get () {
-	frobulator.command adb
+	frobulator.require adb
 
 	setting="${1}"
 
@@ -54,7 +54,7 @@ adb_settings_get () {
 }
 
 adb_settings_put () {
-	frobulator.command adb
+	frobulator.require adb
 
 	setting="${1}"
 
@@ -62,7 +62,7 @@ adb_settings_put () {
 }
 
 adb_disable_phantom_killer () {
-	frobulator.command adb
+	frobulator.require adb
 
 	adb	shell /system/bin/device_config set_sync_disabled_for_tests persistent
 	adb shell /system/bin/device_config put activity_manager max_phantom_processes 2000000000
@@ -70,7 +70,7 @@ adb_disable_phantom_killer () {
 }
 
 adb_vendor_ids () {
-	frobulator.command adb
+	frobulator.require adb
 
 	mkdir -p ${HOME}"/.android
 
@@ -91,7 +91,7 @@ adb_vendor_ids () {
 }
 
 adb_keycode () {
-	frobulator.command adb
+	frobulator.require adb
 
 	adb "${device}" shell input keyevent "${1}"
 
@@ -149,7 +149,7 @@ adb_keycode () {
 }
 
 adb_device () {
-	frobulator.command adb
+	frobulator.require adb
 
 	if [ $# -gt 1 ]
 	then
@@ -162,7 +162,7 @@ adb_device () {
 }
 
 adb_write () {
-	frobulator.command adb
+	frobulator.require adb
 
 	hostname=$(adb ${device} shell getprop net.hostname)
 
@@ -180,7 +180,7 @@ adb_write () {
 }
 
 adb_reset_apk () {
-	frobulator.command adb
+	frobulator.require adb
 
 	application="${1}"
 	activity="${2}"
@@ -197,7 +197,7 @@ adb_reset_apk () {
 # address //////////////////////////////////////////////////////////////////////
 
 address () {
-	frobulator.command curl
+	frobulator.require curl
 
 	echo
 
@@ -209,7 +209,7 @@ address () {
 # audio ////////////////////////////////////////////////////////////////////////
 
 audio () {
-	frobulator.command ffmpeg
+	frobulator.require ffmpeg
 
 	directory="${PWD}"
 	extension="${1}"
@@ -239,7 +239,7 @@ colors () {
 		printf
 	)
 
-	frobulator.command ${list[@]}
+	frobulator.require ${list[@]}
 
 	# print palette
 
@@ -265,7 +265,7 @@ colors () {
 }
 
 hex () {
-	frobulator.command printf
+	frobulator.require printf
 
 	IFS='(,)'
 
@@ -275,7 +275,7 @@ hex () {
 }
 
 rgb () {
-	frobulator.command printf
+	frobulator.require printf
 
 	read hex <<< "${1}"
 
@@ -291,7 +291,7 @@ rgb () {
 # directory ////////////////////////////////////////////////////////////////////
 
 directory () {
-	frobulator.command mkdir
+	frobulator.require mkdir
 
 	mkdir -p "${1}"
 
@@ -301,7 +301,7 @@ directory () {
 # duplicate ////////////////////////////////////////////////////////////////////
 
 duplicate () {
-	frobulator.command dd
+	frobulator.require dd
 
 	dd				\
 		if="${1}"	\
@@ -323,9 +323,10 @@ extract () {
 		7z
 	)
 
-	frobulator.command ${list[@]}
+	frobulator.require ${list[@]}
 
 	archive="${1}"
+	directory="${2}"
 
 	if [ -z "${directory}" ]
 	then
@@ -399,16 +400,13 @@ extract () {
 			*)
 				echo
 				frobulator.err "Extraction failed" "[ '${archive}' ]"
-				frobulator.wrn "Unknown or unsupported archive type."
 				echo
-
-				exit 1
 			;;
 
 		esac
 	else
 		echo
-		frobulator.err "Not a valid archive type" "[ '${archive}' ]"
+		frobulator.err "Unsupported archive type" "[ '${archive}' ]"
 		echo
 	fi
 }
@@ -416,7 +414,7 @@ extract () {
 # icons ////////////////////////////////////////////////////////////////////////
 
 icons () {
-	frobulator.command gtk-update-icon-cache
+	frobulator.require gtk-update-icon-cache
 
 	icons_directory_list=(
 		"${HOME}"/.icons
@@ -455,7 +453,7 @@ icons () {
 # record #
 
 record () {
-	frobulator.command recordmydesktop
+	frobulator.require recordmydesktop
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
 

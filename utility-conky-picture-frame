@@ -31,7 +31,7 @@ list=(
 	zenity
 )
 
-frobulator.command ${list[@]}
+frobulator.require ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
