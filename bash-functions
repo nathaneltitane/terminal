@@ -325,57 +325,82 @@ extract () {
 
 	frobulator.command ${list[@]}
 
-	if [ -f "${1}" ]
+	archive="${1}"
+
+	if [ -z "${directory}" ]
 	then
-		case "${1}"
+		directory="${PWD}"
+	fi
+
+	if [ ! -d "${directory}" ]
+	then
+		mkdir -p "${directory}"
+	fi
+
+	if [ -f "${archive}" ]
+	then
+		case "${archive}"
 		in
 			*.7z)
-				7z x "${1}"
+				7z \
+					x "${archive}" \
+					-o "${directory}"
 			;;
 
 			*.bz2)
-				bunzip2 "${1}"
+				bzip \
+					--stdout \
+					--keep \
+					--decompress "${archive}" > "${directory}"
 			;;
 
 			*.gz)
-				gunzip "${1}"
+				gzip \
+					--stdout \
+					--keep \
+					--decompress "${archive}" > "${directory}"
 			;;
 
-			*.tar.bz2)
-				tar xjf "${1}"
+			*.tar.bz2|*.tbz2)
+				tar \
+					--extract \
+					--bzip2 \
+					--file="${archive}" \
+					--directory="${directory}"
 			;;
 
-			*.tar.gz)
-				tar xzf "${1}"
+			*.tar.gz|*.tgz)
+				tar \
+					--extract \
+					--gzip \
+					--file="${archive}" \
+					--directory="${directory}"
 			;;
 
 			*.tar)
-				tar xf "${1}"
-			;;
-
-			*.tbz2)
-				tar xjf "${1}"
-			;;
-
-			*.tgz)
-				tar xzf "${1}"
+				tar \
+					--extract \
+					--file="${archive}" \
+					--directory="${directory}"
 			;;
 
 			*.rar)
-				unrar e "${1}"
+				unrar e "${archive}" "${directory}"
 			;;
 
 			*.zip)
-				unzip "${1}"
+				unzip "${archive}" -d "${directory}"
 			;;
 
 			*.Z)
-				uncompress "${1}"
+				uncompress \
+					--stdout \
+					--keep "${archive}" > "${directory}"
 			;;
 
 			*)
 				echo
-				echo -e "'${1}' - extraction failed:"
+				echo -e "'${archive}' - extraction failed:"
 				echo -e "Unknown or unsupported archive type."
 				echo
 
@@ -385,7 +410,7 @@ extract () {
 		esac
 	else
 		echo
-		echo -e "'${1}' is not a valid archive type."
+		echo -e "'${archive}' is not a valid archive type."
 		echo
 	fi
 }
