@@ -37,8 +37,6 @@
 [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]                                          && alias 'gd'='cd "${HOME}"/[gG]it)'
 [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null)  ]]                     && alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
 [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]                      && alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
-[[ $(ls -d "${PREFIX}"/storage/[eE]xternal/[gG]it 2> /dev/null)  ]]                   && alias 'gd'='cd "${PREFIX}"/storage/[eE]xternal/[gG]it'
-[[ $(ls -d "${PREFIX}"/storage/[iI]nternal/[gG]it 2> /dev/null) ]]                    && alias 'gd'='cd "${PREFIX}"/storage/[iI]nternal/[gG]it'
 
 # commands #
 
