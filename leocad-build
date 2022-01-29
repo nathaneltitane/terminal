@@ -21,7 +21,7 @@ version=""
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
-frobulate.script "Setting up ${script#*-}"
+frobulator.script "Setting up ${script#*-}"
 echo
 
 # variables ////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ install_list=(
 	qttools5-dev-tools
 )
 
-frobulate.install ${install_list[@]}
+frobulator.install ${install_list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -63,9 +63,9 @@ frobulate.install ${install_list[@]}
 
 command_clone="git clone --quiet"
 
-frobulate.log "${command_clone} ${source} ${build_directory}" &
+frobulator.log "${command_clone} ${source} ${build_directory}" &
 
-frobulate.progress "Cloning..."
+frobulator.progress "Cloning..."
 
 cd "${build_directory}"
 
@@ -77,9 +77,9 @@ qmake "${application}".pro
 
 command_build="make -j$(nproc)"
 
-frobulate.log "${command_build}" &
+frobulator.log "${command_build}" &
 
-frobulate.progress "Building..."
+frobulator.progress "Building..."
 
 # update binary
 

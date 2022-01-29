@@ -29,7 +29,7 @@ install_list=(
 	wmctrl
 )
 
-frobulate.install ${install_list[@]}
+frobulator.install ${install_list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 

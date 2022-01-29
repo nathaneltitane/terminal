@@ -30,7 +30,7 @@ list=(
 	zenity
 )
 
-frobulate.command ${list[@]}
+frobulator.command ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 

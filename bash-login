@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# dextop #
+
+if [ -f "${HOME}"/.dextop/dextop ]
+then
+	# automatic session start
+
+	if [[ $(ps -A | grep -i vnc) ]]
+	then
+		:
+	else
+		if [[ $(ps -A | grep -i proot) ]]
+		then
+			if [ -f "${HOME}"/.vnc/selection ]
+			then
+				echo $(cat "${HOME}"/.vnc/selection) | container-session -o
+			else
+				container-session -o
+			fi
+		fi
+	fi
+fi

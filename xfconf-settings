@@ -40,13 +40,13 @@ list=(
 	xfconf-query
 )
 
-frobulate.command ${list[@]}
+frobulator.command ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
 # read settings
 
-frobulate.inf "Generating" "[ ${settings_file} ]"
+frobulator.inf "Generating" "[ ${settings_file} ]"
 echo
 
 xfconf-query -l | sed '/Channel.*/d' | while read channel
@@ -154,9 +154,9 @@ echo ${command} >> "${settings_file}"
 
 echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
 
-frobulate.scs "Done."
+frobulator.scs "Done."
 echo
 
-frobulate.msg "Use newly generated settings file as follows:"
-frobulate.msg "'bash <settings_file>'"
+frobulator.msg "Use newly generated settings file as follows:"
+frobulator.msg "'bash <settings_file>'"
 echo

@@ -21,7 +21,7 @@ version="12-24-2021"
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
-frobulate.script "Setting up ${script#*-}"
+frobulator.script "Setting up ${script#*-}"
 echo
 
 # variables ////////////////////////////////////////////////////////////////////
@@ -49,16 +49,16 @@ install_list=(
 	unzip
 )
 
-frobulate.install ${install_list[@]}
+frobulator.install ${install_list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
-frobulate.download "${archive_url}" "${download_directory}"
+frobulator.download "${archive_url}" "${download_directory}"
 
 # extract #
 
-frobulate.silence "${extract_command}" &
+frobulator.silence "${extract_command}" &
 
-frobulate.progress "Extracting..."
+frobulator.progress "Extracting..."
 
-frobulate.scs "Done."
+frobulator.scs "Done."

@@ -21,7 +21,7 @@ version=""
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
-frobulate.script "Setting up ${script#*-}"
+frobulator.script "Setting up ${script#*-}"
 echo
 
 # variables ////////////////////////////////////////////////////////////////////
@@ -30,12 +30,12 @@ echo
 
 # functions ////////////////////////////////////////////////////////////////////
 
-frobulate.inf "Linking configuration."
+frobulator.inf "Linking configuration."
 echo
 
 if [ -f /media/internal/Lego/leocad/leocad.conf ]
 then
-	frobulate.directory "${HOME}"/.config/"LeoCAD Software"
+	frobulator.directory "${HOME}"/.config/"LeoCAD Software"
 
 	ln -s -f /media/internal/Lego/leocad/leocad.conf "${HOME}"/.config/"LeoCAD Software"/LeoCAD.conf
 fi

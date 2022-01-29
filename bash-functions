@@ -12,7 +12,7 @@ fi
 # adb //////////////////////////////////////////////////////////////////////////
 
 adb_pull_package () {
-	frobulate.command adb
+	frobulator.command adb
 
 	if [[ ! -d ./apk ]]
 	then
@@ -30,7 +30,7 @@ adb_pull_package () {
 }
 
 adb_install_package () {
-	frobulate.command adb
+	frobulator.command adb
 
 	package="${1}"
 
@@ -38,7 +38,7 @@ adb_install_package () {
 }
 
 adb_remove_package () {
-	frobulate.command adb
+	frobulator.command adb
 
 	package="${1}"
 
@@ -46,7 +46,7 @@ adb_remove_package () {
 }
 
 adb_settings_get () {
-	frobulate.command adb
+	frobulator.command adb
 
 	setting="${1}"
 
@@ -54,7 +54,7 @@ adb_settings_get () {
 }
 
 adb_settings_put () {
-	frobulate.command adb
+	frobulator.command adb
 
 	setting="${1}"
 
@@ -62,7 +62,7 @@ adb_settings_put () {
 }
 
 adb_disable_phantom_killer () {
-	frobulate.command adb
+	frobulator.command adb
 
 	adb	shell /system/bin/device_config set_sync_disabled_for_tests persistent
 	adb shell /system/bin/device_config put activity_manager max_phantom_processes 2000000000
@@ -70,7 +70,7 @@ adb_disable_phantom_killer () {
 }
 
 adb_vendor_ids () {
-	frobulate.command adb
+	frobulator.command adb
 
 	mkdir -p ${HOME}"/.android
 
@@ -91,7 +91,7 @@ adb_vendor_ids () {
 }
 
 adb_keycode () {
-	frobulate.command adb
+	frobulator.command adb
 
 	adb "${device}" shell input keyevent "${1}"
 
@@ -149,7 +149,7 @@ adb_keycode () {
 }
 
 adb_device () {
-	frobulate.command adb
+	frobulator.command adb
 
 	if [ $# -gt 1 ]
 	then
@@ -162,7 +162,7 @@ adb_device () {
 }
 
 adb_write () {
-	frobulate.command adb
+	frobulator.command adb
 
 	hostname=$(adb ${device} shell getprop net.hostname)
 
@@ -180,7 +180,7 @@ adb_write () {
 }
 
 adb_reset_apk () {
-	frobulate.command adb
+	frobulator.command adb
 
 	application="${1}"
 	activity="${2}"
@@ -197,7 +197,7 @@ adb_reset_apk () {
 # address //////////////////////////////////////////////////////////////////////
 
 address () {
-	frobulate.command curl
+	frobulator.command curl
 
 	echo
 
@@ -209,7 +209,7 @@ address () {
 # audio ////////////////////////////////////////////////////////////////////////
 
 audio () {
-	frobulate.command ffmpeg
+	frobulator.command ffmpeg
 
 	directory="${PWD}"
 	extension="${1}"
@@ -239,7 +239,7 @@ colors () {
 		printf
 	)
 
-	frobulate.command ${list[@]}
+	frobulator.command ${list[@]}
 
 	# print palette
 
@@ -265,7 +265,7 @@ colors () {
 }
 
 hex () {
-	frobulate.command printf
+	frobulator.command printf
 
 	IFS='(,)'
 
@@ -275,7 +275,7 @@ hex () {
 }
 
 rgb () {
-	frobulate.command printf
+	frobulator.command printf
 
 	read hex <<< "${1}"
 
@@ -291,7 +291,7 @@ rgb () {
 # directory ////////////////////////////////////////////////////////////////////
 
 directory () {
-	frobulate.command mkdir
+	frobulator.command mkdir
 
 	mkdir -p "${1}"
 
@@ -301,7 +301,7 @@ directory () {
 # duplicate ////////////////////////////////////////////////////////////////////
 
 duplicate () {
-	frobulate.command dd
+	frobulator.command dd
 
 	dd				\
 		if="${1}"	\
@@ -323,7 +323,7 @@ extract () {
 		7z
 	)
 
-	frobulate.command ${list[@]}
+	frobulator.command ${list[@]}
 
 	if [ -f "${1}" ]
 	then
@@ -393,7 +393,7 @@ extract () {
 # icons ////////////////////////////////////////////////////////////////////////
 
 icons () {
-	frobulate.command gtk-update-icon-cache
+	frobulator.command gtk-update-icon-cache
 
 	icons_directory_list=(
 		"${HOME}"/.icons
@@ -418,10 +418,10 @@ icons () {
 
 					gtk-update-icon-cache -f -q "${theme}"
 
-					frobulate.scs "Cache update success" "[ ${theme_name} ]"
+					frobulator.scs "Cache update success" "[ ${theme_name} ]"
 					echo
 				else
-					frobulate.wrn "Skipping" "[ ${theme_name} ]"
+					frobulator.wrn "Skipping" "[ ${theme_name} ]"
 					echo
 				fi
 			done
@@ -432,7 +432,7 @@ icons () {
 # record #
 
 record () {
-	frobulate.command recordmydesktop
+	frobulator.command recordmydesktop
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
 
@@ -441,7 +441,7 @@ record () {
 
 	wmctrl -i -R "${window_id}"
 
-	frobulate.wait 1
+	frobulator.wait 1
 
 	recordmydesktop								\
 		--no-cursor								\
@@ -500,7 +500,7 @@ weather () {
 youtube () {
 	if [[ -z $(command -v youtube-dl) ]]
 	then
-		frobulate.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
+		frobulator.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
 	fi
 
 	path="${2}"

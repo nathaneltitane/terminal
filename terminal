@@ -29,12 +29,12 @@ version=""
 
 # git #
 
-frobulate.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
-frobulate.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
+frobulator.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
+frobulator.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
 
 # geany #
 
-frobulate.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
+frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
 
 # shell #
 
@@ -46,8 +46,8 @@ files_list+=(
 	bash-profile
 )
 
-frobulate.download get.trmnl.me "${HOME}" ${files_list[@]}
+frobulator.download get.trmnl.me "${HOME}" ${files_list[@]}
 
-frobulate.link "${HOME}" /root ${files_list[@]}
+frobulator.link "${HOME}" /root ${files_list[@]}
 
 files_list=()
