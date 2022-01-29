@@ -342,44 +342,42 @@ extract () {
 		case "${archive}"
 		in
 			*.7z)
-				7z \
-					x "${archive}" \
-					-o "${directory}"
+				7z x "${archive}" -o "${directory}"
 			;;
 
 			*.bz2)
-				bzip \
-					--stdout \
-					--keep \
+				bzip					\
+					--stdout			\
+					--keep				\
 					--decompress "${archive}" > "${directory}"
 			;;
 
 			*.gz)
-				gzip \
-					--stdout \
-					--keep \
+				gzip					\
+					--stdout			\
+					--keep				\
 					--decompress "${archive}" > "${directory}"
 			;;
 
 			*.tar.bz2|*.tbz2)
-				tar \
-					--extract \
-					--bzip2 \
+				tar						\
+					--extract			\
+					--bzip2				\
 					--file="${archive}" \
 					--directory="${directory}"
 			;;
 
 			*.tar.gz|*.tgz)
-				tar \
-					--extract \
-					--gzip \
+				tar						\
+					--extract			\
+					--gzip				\
 					--file="${archive}" \
 					--directory="${directory}"
 			;;
 
 			*.tar)
-				tar \
-					--extract \
+				tar						\
+					--extract			\
 					--file="${archive}" \
 					--directory="${directory}"
 			;;
