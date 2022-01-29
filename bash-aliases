@@ -1,119 +1,505 @@
-# aliases #
+#!/bin/bash
 
-# bash #
+# aliases //////////////////////////////////////////////////////////////////////
 
-[[ -f "${HOME}"/.bash_aliases ]]                                                                   && alias 'ba'='. "${HOME}"/.bash_aliases'
-[[ -f "${HOME}"/.bashrc ]]                                                                         && alias 'bc'='. "${HOME}"/.bashrc'
-[[ -f "${HOME}"/.bash_login ]]                                                                     && alias 'bi'='. "${HOME}"/.bash_login'
-[[ -f "${HOME}"/.bash_logout ]]                                                                    && alias 'bo'='. "${HOME}"/.bash_logout'
-[[ -f "${HOME}"/.bash_profile ]]                                                                   && alias 'bp'='. "${HOME}"/.bash_profile'
+# bash  ////////////////////////////////////////////////////////////////////////
 
-# dextop #
+if [[ -f "${HOME}"/.bash_aliases ]]
+then
+	alias 'ba'='. "${HOME}"/.bash_aliases'
+fi
 
-[[ $(command -v container-session) ]]                                                              && alias 'do'='container-session -o'
-[[ $(command -v container-session) ]]                                                              && alias 'dx'='container-session -x'
-[[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]] && alias 'dt'='container-session -u termux'
-[[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]] && alias 'dr'='container-session -u root'
+if [[ -f "${HOME}"/.bashrc ]]
+then
+	alias 'bc'='. "${HOME}"/.bashrc'
+fi
 
-# directories #
+if [[ -f "${HOME}"/.bash_login ]]
+then
+	alias 'bi'='. "${HOME}"/.bash_login'
+fi
 
-[[ $(ls -d "${PREFIX}" 2> /dev/null) ]]                                               && alias 'pd'='cd "${PREFIX}"'
-[[ $(ls -d "${HOME}" 2> /dev/null) ]]                                                 && alias 'hd'='cd "${HOME}"'
-[[ $(ls -d "${PREFIX}"/media 2> /dev/null) ]]                                         && alias 'md'='cd "${PREFIX}"/media'
-[[ $(ls -d "${PREFIX}"/storage 2> /dev/null) ]]                                       && alias 'sd'='cd "${PREFIX}"/storage'
-[[ $(ls -d "${PREFIX}"/media/[eE]xternal 2> /dev/null) ]]                             && alias 'ex'='cd "${PREFIX}"/media/[eE]xternal'
-[[ $(ls -d "${PREFIX}"/media/[iI]nternal 2> /dev/null) ]]                             && alias 'in'='cd "${PREFIX}"/media/[iI]nternal'
+if [[ -f "${HOME}"/.bash_logout ]]
+then
+	alias 'bo'='. "${HOME}"/.bash_logout'
+fi
 
-# git #
+if [[ -f "${HOME}"/.bash_profile ]]
+then
+	alias 'bp'='. "${HOME}"/.bash_profile'
+fi
 
-[[ $(command -v git) ]]                                                               && alias 'gc'="git clone --depth 1"
-[[ $(command -v git) ]]                                                               && alias 'gi'='git init'
-[[ $(command -v git) ]]                                                               && alias 'gp'='git pull'
-[[ $(command -v git) ]]                                                               && alias 'ga'='git add *'
-[[ $(command -v git) ]]                                                               && alias 'gm'="git commit -a -m ${1}"
-[[ $(command -v git) ]]                                                               && alias 'gs'='git push'
-[[ $(command -v git) ]]                                                               && alias 'gu'='ga && gm "Code & Features Update" && gs'
+# dextop  //////////////////////////////////////////////////////////////////////
 
-[[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]                                          && alias 'gd'='cd "${HOME}"/[gG]it)'
-[[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]                     && alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
-[[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]                      && alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
+if [[ $(command -v container-session) ]]
+then
+	alias 'do'='container-session -o'
+fi
 
-# commands #
+if [[ $(command -v container-session) ]]
+then
+	alias 'dx'='container-session -x'
+fi
 
-[[ $(command -v cd) ]]                                                                && alias '..'='cd ..'
-[[ $(command -v df) ]]                                                                && alias 'df'='df -H'
-[[ $(command -v du) ]]                                                                && alias 'du'='du -a -c -h'
+if [[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]]
+then
+	alias 'dt'='container-session -u termux'
+fi
 
-[[ $(command -v ls) ]]                                                                && alias 'ls'='ls -l -d *'
-[[ $(command -v rm) ]]                                                                && alias 'rm'='rm -rf'
-[[ $(command -v pgrep) ]]                                                             && alias 'pgrep'='pgrep -f'
-[[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'pkill'='sudo pkill -9'
-[[ $(command -v pkill) ]]                                                             && alias 'pkill'='pkill -9'
-[[ $(command -v pstree) ]]                                                            && alias 'ptree'='pstree -C age -p'
-[[ $(command -v shutdown) ]]                                                          && alias 'shutdown'='shutdown -h now'
-[[ $(command -v wget) ]]                                                              && alias 'wget'='wget -c'
+if [[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]]
+then
+	alias 'dr'='container-session -u root'
+fi
 
-# aliases ##
+# directories  /////////////////////////////////////////////////////////////////
 
-[[ $(command -v rsync) ]]                                                             && alias 'copy'='rsync -a -r -q --progress -h'
-[[ $(command -v find) && $(command -v wc) ]]                                          && alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
-[[ $(command -v find) && $(command -v wc) ]]                                          && alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
-[[ $(command -v nano) ]]                                                              && alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
-[[ $(command -v env) && $(command -v grep) ]]                                         && alias 'efilter'='env | grep -i'
-[[ $(command -v ls) && $(command -v grep) ]]                                          && alias 'ffilter'='ls -a | grep -i'
-[[ $(command -v ps) && $(command -v grep) ]]                                          && alias 'pfilter'='ps -a -u -x | grep -i'
-[[ $(command -v curl) ]]                                                              && alias 'header'='curl -I'
-[[ $(command -v ls) ]]                                                                && alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'
-[[ $(command -v mount) && $(command -v column) ]]                                     && alias 'mounts'='mount | column -t'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'autoclean'='sudo apt-get autoclean'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'autoremove'='sudo apt-get autoremove'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'check'='sudo apt-get check'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'clean'='sudo apt-get clean'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'download'='sudo apt-get download'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'install'='sudo apt-get install --no-install-recommends --no-upgrade'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'purge'='sudo apt-get purge'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'reinstall'='sudo apt-get reinstall'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'repair'='sudo apt-get -f install'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'remove'='sudo apt-get remove'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'source'='sudo apt-get source'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'update'='sudo apt-get update'
-[[ $(command -v sudo) && $(command -v apt-get) ]]                                     && alias 'upgrade'='sudo apt-get upgrade'
-[[ $(command -v apt-get) ]]                                                           && alias 'autoclean'='apt-get autoclean'
-[[ $(command -v apt-get) ]]                                                           && alias 'autoremove'='apt-get autoremove'
-[[ $(command -v apt-get) ]]                                                           && alias 'check'='apt-get check'
-[[ $(command -v apt-get) ]]                                                           && alias 'clean'='apt-get clean'
-[[ $(command -v apt-get) ]]                                                           && alias 'distribution-upgrade'='apt-get dist-upgrade'
-[[ $(command -v apt-get) ]]                                                           && alias 'download'='apt-get download'
-[[ $(command -v apt-get) ]]                                                           && alias 'install'='apt-get install --no-install-recommends --no-upgrade'
-[[ $(command -v apt-get) ]]                                                           && alias 'purge'='apt-get purge'
-[[ $(command -v apt-get) ]]                                                           && alias 'reinstall'='apt-get reinstall'
-[[ $(command -v apt-get) ]]                                                           && alias 'repair'='apt-get -f install'
-[[ $(command -v apt-get) ]]                                                           && alias 'remove'='apt-get remove'
-[[ $(command -v apt-get) ]]                                                           && alias 'source'='apt-get source'
-[[ $(command -v apt-get) ]]                                                           && alias 'update'='apt-get update'
-[[ $(command -v apt-get) ]]                                                           && alias 'upgrade'='apt-get upgrade'
-[[ $(command -v sudo) && $(command -v apt-cache) ]]                                   && alias 'depend'='sudo apt-cache depends'
-[[ $(command -v sudo) && $(command -v apt-cache) ]]                                   && alias 'reverse'='sudo apt-cache rdepends'
-[[ $(command -v sudo) && $(command -v apt-cache) ]]                                   && alias 'search'='sudo apt-cache search'
-[[ $(command -v sudo) && $(command -v apt-cache) ]]                                   && alias 'status'='sudo apt-cache stats'
-[[ $(command -v apt-cache) ]]                                                         && alias 'depend'='apt-cache depends'
-[[ $(command -v apt-cache) ]]                                                         && alias 'reverse'='apt-cache rdepends'
-[[ $(command -v apt-cache) ]]                                                         && alias 'search'='apt-cache search'
-[[ $(command -v apt-cache) ]]                                                         && alias 'status'='apt-cache stats'
-[[ $(command -v chgrp) ]]                                                             && alias 'chgrp'='chgrp --preserve-root'
-[[ $(command -v chmod) ]]                                                             && alias 'chmod'='chmod --preserve-root'
-[[ $(command -v chown) ]]                                                             && alias 'chown'='chown --preserve-root'
-[[ $(command -v netstat) ]]                                                           && alias 'ports'='netstat -t -u -l -a -n -p'
-[[ $(command -v echo) ]]                                                              && alias 'where'='echo ${PWD}'
-[[ $(command -v ps) ]]                                                                && alias 'what'='ps -e'
-[[ $(command -v ps) ]]                                                                && alias 'how'='ps -u'
-[[ $(command -v ping) ]]                                                              && alias 'sonar'='ping -c 5'
-[[ $(command -v sudo) ]]                                                              && alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
-[[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'start'='sudo systemctl start'
-[[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'stop'='sudo systemctl stop'
-[[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'enable'='sudo systemctl enable'
-[[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'disable'='sudo systemctl disable'
-[[ $(command -v sudo) && $(command -v systemctl) ]]                                   && alias 'status'='sudo systemctl status'
-[[ $(command -v killall) ]]                                                           && alias 'kill'='killall'
-[[ $(command -v du) && $(command -v sort) ]]                                          && alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
+if [[ $(ls -d "${PREFIX}" 2> /dev/null) ]]
+then
+	alias 'pd'='cd "${PREFIX}"'
+fi
+
+if [[ $(ls -d "${HOME}" 2> /dev/null) ]]
+then
+	alias 'hd'='cd "${HOME}"'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media 2> /dev/null) ]]
+then
+	alias 'md'='cd "${PREFIX}"/media'
+fi
+
+if [[ $(ls -d "${PREFIX}"/storage 2> /dev/null) ]]
+then
+	alias 'sd'='cd "${PREFIX}"/storage'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media/[eE]xternal 2> /dev/null) ]]
+then
+	alias 'ex'='cd "${PREFIX}"/media/[eE]xternal'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media/[iI]nternal 2> /dev/null) ]]
+then
+	alias 'in'='cd "${PREFIX}"/media/[iI]nternal'
+fi
+
+# git  /////////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v git) ]]
+then
+	alias 'gc'="git clone --depth 1"
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gi'='git init'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gp'='git pull'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'ga'='git add *'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gm'="git commit -a -m ${1}"
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gs'='git push'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gu'='ga && gm "Code & Features Update" && gs'
+fi
+
+if [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${HOME}"/[gG]it)'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
+fi
+
+# commands  ////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v cd) ]]
+then
+	alias '..'='cd ..'
+fi
+
+if [[ $(command -v df) ]]
+then
+	alias 'df'='df -H'
+fi
+
+if [[ $(command -v du) ]]
+then
+	alias 'du'='du -a -c -h'
+fi
+
+if [[ $(command -v ls) ]]
+then
+	alias 'ls'='ls -l -d *'
+fi
+
+if [[ $(command -v rm) ]]
+then
+	alias 'rm'='rm -rf'
+fi
+
+if [[ $(command -v pgrep) ]]
+then
+	alias 'pgrep'='pgrep -f'
+fi
+
+if [[ $(command -v sudo) && $(command -v pkill) ]]
+then
+	alias 'pkill'='sudo pkill -9'
+fi
+
+if [[ $(command -v pkill) ]]
+then
+	alias 'pkill'='pkill -9'
+fi
+
+if [[ $(command -v pstree) ]]
+then
+	alias 'ptree'='pstree -C age -p'
+fi
+
+if [[ $(command -v shutdown) ]]
+then
+	alias 'shutdown'='shutdown -h now'
+fi
+
+if [[ $(command -v wget) ]]
+then
+	alias 'wget'='wget -c'
+fi
+
+# aliases  /////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v rsync) ]]
+then
+	alias 'copy'='rsync -a -r -q --progress -h'
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
+fi
+
+if [[ $(command -v nano) ]]
+then
+	alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
+fi
+
+if [[ $(command -v env) && $(command -v grep) ]]
+then
+	alias 'efilter'='env | grep -i'
+fi
+
+if [[ $(command -v ls) && $(command -v grep) ]]
+then
+	alias 'ffilter'='ls -a | grep -i'
+fi
+
+if [[ $(command -v ps) && $(command -v grep) ]]
+then
+	alias 'pfilter'='ps -a -u -x | grep -i'
+fi
+
+if [[ $(command -v curl) ]]
+then
+	alias 'header'='curl -I'
+fi
+
+if [[ $(command -v ls) ]]
+then
+	alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'
+fi
+
+if [[ $(command -v mount) && $(command -v column) ]]
+then
+	alias 'mounts'='mount | column -t'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'autoclean'='sudo apt-get autoclean'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'autoremove'='sudo apt-get autoremove'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'check'='sudo apt-get check'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'clean'='sudo apt-get clean'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'download'='sudo apt-get download'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'install'='sudo apt-get install --no-install-recommends --no-upgrade'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'purge'='sudo apt-get purge'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'reinstall'='sudo apt-get reinstall'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'repair'='sudo apt-get -f install'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'remove'='sudo apt-get remove'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'source'='sudo apt-get source'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'update'='sudo apt-get update'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'upgrade'='sudo apt-get upgrade'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'autoclean'='apt-get autoclean'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'autoremove'='apt-get autoremove'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'check'='apt-get check'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'clean'='apt-get clean'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'distribution-upgrade'='apt-get dist-upgrade'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'download'='apt-get download'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'install'='apt-get install --no-install-recommends --no-upgrade'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'purge'='apt-get purge'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'reinstall'='apt-get reinstall'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'repair'='apt-get -f install'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'remove'='apt-get remove'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'source'='apt-get source'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'update'='apt-get update'
+fi
+
+if [[ $(command -v apt-get) ]]
+then
+	alias 'upgrade'='apt-get upgrade'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'depend'='sudo apt-cache depends'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'reverse'='sudo apt-cache rdepends'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'search'='sudo apt-cache search'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'status'='sudo apt-cache stats'
+fi
+
+if [[ $(command -v apt-cache) ]]
+then
+	alias 'depend'='apt-cache depends'
+fi
+
+if [[ $(command -v apt-cache) ]]
+then
+	alias 'reverse'='apt-cache rdepends'
+fi
+
+if [[ $(command -v apt-cache) ]]
+then
+	alias 'search'='apt-cache search'
+fi
+
+if [[ $(command -v apt-cache) ]]
+then
+	alias 'status'='apt-cache stats'
+fi
+
+if [[ $(command -v chgrp) ]]
+then
+	alias 'chgrp'='chgrp --preserve-root'
+fi
+
+if [[ $(command -v chmod) ]]
+then
+	alias 'chmod'='chmod --preserve-root'
+fi
+
+if [[ $(command -v chown) ]]
+then
+	alias 'chown'='chown --preserve-root'
+fi
+
+if [[ $(command -v netstat) ]]
+then
+	alias 'ports'='netstat -t -u -l -a -n -p'
+fi
+
+if [[ $(command -v echo) ]]
+then
+	alias 'where'='echo ${PWD}'
+fi
+
+if [[ $(command -v ps) ]]
+then
+	alias 'what'='ps -e'
+fi
+
+if [[ $(command -v ps) ]]
+then
+	alias 'how'='ps -u'
+fi
+
+if [[ $(command -v ping) ]]
+then
+	alias 'sonar'='ping -c 5'
+fi
+
+if [[ $(command -v sudo) ]]
+then
+	alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'start'='sudo systemctl start'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'stop'='sudo systemctl stop'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'enable'='sudo systemctl enable'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'disable'='sudo systemctl disable'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'status'='sudo systemctl status'
+fi
+
+if [[ $(command -v killall) ]]
+then
+	alias 'kill'='killall'
+fi
+
+if [[ $(command -v du) && $(command -v sort) ]]
+then
+	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
+fi
