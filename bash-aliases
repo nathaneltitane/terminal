@@ -35,7 +35,7 @@
 [[ $(command -v git) ]]                                                               && alias 'gu'='ga && gm "Code & Features Update" && gs'
 
 [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]                                          && alias 'gd'='cd "${HOME}"/[gG]it)'
-[[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null)  ]]                     && alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
+[[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]                     && alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
 [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]                      && alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
 
 # commands #
@@ -44,7 +44,7 @@
 [[ $(command -v df) ]]                                                                && alias 'df'='df -H'
 [[ $(command -v du) ]]                                                                && alias 'du'='du -a -c -h'
 
-[[ $(command -v ls) ]]                                                                && alias 'ls'='ls -l -d'
+[[ $(command -v ls) ]]                                                                && alias 'ls'='ls -l -d *'
 [[ $(command -v rm) ]]                                                                && alias 'rm'='rm -rf'
 [[ $(command -v pgrep) ]]                                                             && alias 'pgrep'='pgrep -f'
 [[ $(command -v sudo) && $(command -v pkill) ]]                                       && alias 'pkill'='sudo pkill -9'
