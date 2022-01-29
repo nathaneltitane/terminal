@@ -1,5 +1,13 @@
 # aliases #
 
+# bash #
+
+[[ -f "${HOME}"/.bash_aliases ]]                                                                   && alias 'ba'='. "${HOME}"/.bash_aliases'
+[[ -f "${HOME}"/.bashrc ]]                                                                         && alias 'bc'='. "${HOME}"/.bashrc'
+[[ -f "${HOME}"/.bash_login ]]                                                                     && alias 'bi'='. "${HOME}"/.bash_login'
+[[ -f "${HOME}"/.bash_logout ]]                                                                    && alias 'bo'='. "${HOME}"/.bash_logout'
+[[ -f "${HOME}"/.bash_profile ]]                                                                   && alias 'bp'='. "${HOME}"/.bash_profile'
+
 # dextop #
 
 [[ $(command -v container-session) ]]                                                              && alias 'do'='container-session -o'
