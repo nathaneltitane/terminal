@@ -341,10 +341,6 @@ extract () {
 	then
 		case "${archive}"
 		in
-			*.7z)
-				7z x "${archive}" -o "${directory}"
-			;;
-
 			*.bz2)
 				bzip					\
 					--stdout			\
@@ -357,6 +353,12 @@ extract () {
 					--stdout			\
 					--keep				\
 					--decompress "${archive}" > "${directory}"
+			;;
+
+			*.Z)
+				uncompress 				\
+					--stdout 			\
+					--keep "${archive}" > "${directory}"
 			;;
 
 			*.tar.bz2|*.tbz2)
@@ -382,6 +384,10 @@ extract () {
 					--directory="${directory}"
 			;;
 
+			*.7z)
+				7z x "${archive}" -o "${directory}"
+			;;
+
 			*.rar)
 				unrar e "${archive}" "${directory}"
 			;;
@@ -390,16 +396,10 @@ extract () {
 				unzip "${archive}" -d "${directory}"
 			;;
 
-			*.Z)
-				uncompress \
-					--stdout \
-					--keep "${archive}" > "${directory}"
-			;;
-
 			*)
 				echo
-				echo -e "'${archive}' - extraction failed:"
-				echo -e "Unknown or unsupported archive type."
+				frobulator.err "Extraction failed" "[ '${archive}' ]"
+				frobulator.wrn "Unknown or unsupported archive type."
 				echo
 
 				exit 1
@@ -408,7 +408,7 @@ extract () {
 		esac
 	else
 		echo
-		echo -e "'${archive}' is not a valid archive type."
+		frobulator.err "Not a valid archive type" "[ '${archive}' ]"
 		echo
 	fi
 }
