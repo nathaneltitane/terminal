@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# check for interactive session
+# session //////////////////////////////////////////////////////////////////////
 
-[ -z "${PS1}" ] && return
+if[ -z "${PS1}" ]
+then
+	return
+fi
 
-# set shell options
+# options //////////////////////////////////////////////////////////////////////
 
 shopt -s checkwinsize
 shopt -s histappend
@@ -32,9 +35,16 @@ then
 	fi
 fi
 
-# prompt string
+# user  ////////////////////////////////////////////////////////////////////////
 
-# setup ansi colors escape using 'tput'
+if [ -z "${USER}" ]
+then
+	USER="termux"
+fi
+
+# colors ///////////////////////////////////////////////////////////////////////
+
+# setup ansi color escapes using 'tput'
 
 black="\001$(tput setaf 0)\002"
 red="\001$(tput setaf 1)\002"
@@ -47,7 +57,7 @@ white="\001$(tput setaf 7)\002"
 
 reset="\001$(tput sgr 0)\002"
 
-[ -z "${USER}" ] && USER="termux"
+# prompt ///////////////////////////////////////////////////////////////////////
 
 unset PS1
 
@@ -73,7 +83,7 @@ else
 	PS1+="${white} >_ $ ${reset}"
 fi
 
-# bash aliases
+# aliases //////////////////////////////////////////////////////////////////////
 
 if [ -d "${HOME}"/.bash-aliases ]
 then
@@ -87,7 +97,7 @@ then
 	. "${HOME}"/.bash_aliases
 fi
 
-# bash functions
+# functions ////////////////////////////////////////////////////////////////////
 
 if [ -d "${HOME}"/.bash-functions ]
 then
