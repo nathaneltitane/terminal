@@ -20,7 +20,12 @@ then
 		session_name="CONSOLE"
 	fi
 
-	[ -f /etc/os-release ] && . /etc/os-release && name="${NAME}"
+	if [ -f /etc/os-release ]
+	then
+		. /etc/os-release
+
+		name="${NAME}"
+	fi
 
 	# settings
 
