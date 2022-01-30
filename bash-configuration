@@ -89,7 +89,10 @@ if [ -d "${HOME}"/.bash-aliases ]
 then
 	for alias in "${HOME}"/.bash-aliases/*
 	do
-		[ -x "${alias}" ] && . "${alias}"
+		if [ -x "${alias}" ]
+		then
+			. "${alias}"
+		fi
 	done
 fi
 
@@ -104,7 +107,10 @@ if [ -d "${HOME}"/.bash-functions ]
 then
 	for function in "${HOME}"/.bash-functions/*
 	do
-		[ -x "${function}" ] && . "${function}"
+		if [ -x "${function}" ]
+		then
+			. "${function}"
+		fi
 	done
 fi
 
