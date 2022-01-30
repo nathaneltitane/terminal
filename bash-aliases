@@ -33,22 +33,22 @@ fi
 
 if [[ $(command -v container-session) ]]
 then
-	alias 'do'='container-session -o'
+	alias 'co'='container-session -o'
 fi
 
 if [[ $(command -v container-session) ]]
 then
-	alias 'dx'='container-session -x'
+	alias 'cx'='container-session -x'
 fi
 
 if [[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]]
 then
-	alias 'dt'='container-session -u termux'
+	alias 'ct'='container-session -u termux'
 fi
 
 if [[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]]
 then
-	alias 'dr'='container-session -u root'
+	alias 'cr'='container-session -u root'
 fi
 
 # directories  /////////////////////////////////////////////////////////////////
