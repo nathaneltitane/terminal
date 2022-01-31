@@ -58,7 +58,7 @@ files_list=()
 
 files_list+=(
 	termux-colors
-	termux-fon
+	termux-font
 	termux-properties
 )
 
