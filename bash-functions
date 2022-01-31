@@ -342,26 +342,6 @@ extract () {
 	then
 		case "${archive}"
 		in
-			*.bz2)
-				bzip					\
-					--stdout			\
-					--keep				\
-					--decompress "${archive}" > "${directory}"
-			;;
-
-			*.gz)
-				gzip					\
-					--stdout			\
-					--keep				\
-					--decompress "${archive}" > "${directory}"
-			;;
-
-			*.Z)
-				uncompress 				\
-					--stdout 			\
-					--keep "${archive}" > "${directory}"
-			;;
-
 			*.tar.bz2|*.tbz2)
 				tar						\
 					--extract			\
@@ -385,6 +365,26 @@ extract () {
 					--directory="${directory}"
 			;;
 
+			*.bz2)
+				bzip					\
+					--stdout			\
+					--keep				\
+					--decompress "${archive}" > "${directory}"
+			;;
+
+			*.gz)
+				gzip					\
+					--stdout			\
+					--keep				\
+					--decompress "${archive}" > "${directory}"
+			;;
+
+			*.Z)
+				uncompress 				\
+					--stdout 			\
+					--keep "${archive}" > "${directory}"
+			;;
+
 			*.7z)
 				7z x "${archive}" -o "${directory}"
 			;;
@@ -402,7 +402,6 @@ extract () {
 				frobulator.err "Extraction failed" "[ '${archive}' ]"
 				echo
 			;;
-
 		esac
 	else
 		echo
