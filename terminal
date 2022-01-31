@@ -21,11 +21,26 @@ version=""
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
+frobulator.script "Setting up ${script#*-}"
+
 # variables ////////////////////////////////////////////////////////////////////
 
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
+
+settings_intent () {
+        # reload termux settings
+
+        unset settings_command
+
+        settings_command+="am broadcast"
+        settings_command+=" --user 0"
+        settings_command+=" -a com.termux.app.reload_style"
+        settings_command+=" com.termux"
+
+        frobulator.silence "${settings_command}"
+}
 
 # git //////////////////////////////////////////////////////////////////////////
 
@@ -79,5 +94,7 @@ frobulator.download get.trmnl.me "${PREFIX}"/bin ${files_list[@]}
 frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-colors     colors.properties
 frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-font       font.ttf
 frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-properties termux.properties
+
+settings_intent
 
 files_list=()
