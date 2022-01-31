@@ -29,8 +29,8 @@ version=""
 
 # git #
 
-frobulator.link "${PREFIX}"/media/internal/Git          "${HOME}"         .gitconfig
-frobulator.link "${PREFIX}"/media/internal/Git          "${HOME}"         .git-credentials
+frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-configuration .gitconfig
+frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-credentials .git-credentials
 
 # geany #
 
@@ -40,9 +40,10 @@ frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
 
 files_list+=(
 	bash-aliases
-	bash-functions
-	bash-logout
 	bash-configuration
+	bash-functions
+	bash-login
+	bash-logout
 	bash-profile
 )
 
