@@ -27,16 +27,16 @@ version=""
 
 # functions ////////////////////////////////////////////////////////////////////
 
-# git #
+# git //////////////////////////////////////////////////////////////////////////
 
 frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-configuration .gitconfig
-frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-credentials .git-credentials
+frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-credentials   .git-credentials
 
-# geany #
+# geany  ///////////////////////////////////////////////////////////////////////
 
 frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
 
-# shell #
+# shell ////////////////////////////////////////////////////////////////////////
 
 files_list+=(
 	bash-aliases
@@ -50,5 +50,20 @@ files_list+=(
 frobulator.download get.trmnl.me "${HOME}" ${files_list[@]}
 
 frobulator.link "${HOME}" /root ${files_list[@]}
+
+files_list=()
+
+# termux ///////////////////////////////////////////////////////////////////////
+
+
+files_list+=(
+	termux-colors
+	termux-properties
+)
+
+frobulator.download get.trmnl.me "${PREFIX}"/bin ${files_list[@]}
+
+frobulator.link "${PREFIX}"bin "${HOME}"/.termux termux-colors     colors.properties
+frobulator.link "${PREFIX}"bin "${HOME}"/.termux termux-properties termux.properties
 
 files_list=()
