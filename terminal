@@ -36,8 +36,8 @@ else
 	storage="/storage/emulated/0"
 fi
 
-frobulator.link "${storage}" "${HOME}" git-configuration .gitconfig
-frobulator.link "${storage}" "${HOME}" git-credentials   .git-credentials
+frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
 # geany  ///////////////////////////////////////////////////////////////////////
 
