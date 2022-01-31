@@ -154,7 +154,7 @@ fi
 
 if [[ $(command -v ls) ]]
 then
-	alias 'ls'='ls -l -d *'
+	alias 'ls'='ls -a -h -l'
 fi
 
 if [[ $(command -v rm) ]]
@@ -232,11 +232,6 @@ fi
 if [[ $(command -v curl) ]]
 then
 	alias 'header'='curl -I'
-fi
-
-if [[ $(command -v ls) ]]
-then
-	alias 'list'='ls -A -c -h -l --color=auto --group-directories-first'
 fi
 
 if [[ $(command -v mount) && $(command -v column) ]]
