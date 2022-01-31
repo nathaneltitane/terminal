@@ -47,9 +47,14 @@ files_list+=(
 	bash-profile
 )
 
-frobulator.download get.trmnl.me "${HOME}" ${files_list[@]}
+frobulator.download get.trmnl.me "${PREFIX}"/bin ${files_list[@]}
 
-frobulator.link "${HOME}" /root ${files_list[@]}
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-aliases       .bash_aliases
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-configuration .bashrc
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-functions     .bash_functions
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-login         .bash_login
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-logout         .bash_logout
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-profile         .bash_profile
 
 files_list=()
 
@@ -64,8 +69,8 @@ files_list+=(
 
 frobulator.download get.trmnl.me "${PREFIX}"/bin ${files_list[@]}
 
-frobulator.link "${PREFIX}"bin "${HOME}"/.termux termux-colors     colors.properties
-frobulator.link "${PREFIX}"bin "${HOME}"/.termux termux-font       font.ttf
-frobulator.link "${PREFIX}"bin "${HOME}"/.termux termux-properties termux.properties
+frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-colors     colors.properties
+frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-font       font.ttf
+frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-properties termux.properties
 
 files_list=()
