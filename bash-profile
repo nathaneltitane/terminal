@@ -4,9 +4,9 @@
 
 if [ -n "${BASH_VERSION}" ]
 then
-	if [ -f "${HOME}"/.bashrc ]
+	if [ -f "${HOME}"/.bash_configuration ]
 	then
-		. "${HOME}"/.bashrc
+		. "${HOME}"/.bash_configuration
 	fi
 fi
 
