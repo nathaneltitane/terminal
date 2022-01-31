@@ -29,8 +29,15 @@ version=""
 
 # git //////////////////////////////////////////////////////////////////////////
 
-frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-configuration .gitconfig
-frobulator.link "${PREFIX}"/media/internal/Git "${HOME}" git-credentials   .git-credentials
+if [ -d "${PREFIX}"/media/internal/Git ]
+then
+	storage="${PREFIX}"/media/internal/Git
+else
+	storage="/storage/emulated/0"
+fi
+
+frobulator.link "${storage}" "${HOME}" git-configuration .gitconfig
+frobulator.link "${storage}" "${HOME}" git-credentials   .git-credentials
 
 # geany  ///////////////////////////////////////////////////////////////////////
 
