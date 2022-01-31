@@ -154,7 +154,7 @@ fi
 
 if [[ $(command -v ls) ]]
 then
-	alias 'ls'='ls -a -h -l'
+	alias 'ls'='ls -a -h -l --group-directories-first'
 fi
 
 if [[ $(command -v rm) ]]
