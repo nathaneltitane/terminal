@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# shell loading order
+
+# login shell:
+
+# system profile
+# system bash configuration
+# home bash configuration
+
+# non-login shell:
+
+# system bash configuration
+# home bash configuration
+
+# non-login shell requires 'bashrc'
+
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
