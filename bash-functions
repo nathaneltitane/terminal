@@ -21,7 +21,7 @@ then
 		make_f2fs
 	)
 
-	frobulator.download get.trmnl.meandroid "${PREFIX}"/bin ${files_list[@]}
+	frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
 
 	files_list=()
 fi
