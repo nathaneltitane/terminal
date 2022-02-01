@@ -6,7 +6,7 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	# automatic vnc session stop
 
-	if [[ $(ps -A | grep -i -E *vnc*) ]]
+	if [[ $(pidof Xvnc) ]]
 	then
 		container-session -x
 	fi
