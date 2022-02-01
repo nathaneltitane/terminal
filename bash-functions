@@ -11,6 +11,21 @@ fi
 
 # adb //////////////////////////////////////////////////////////////////////////
 
+if [[ -z $(command -v adb) ]]
+then
+	files_list=(
+		adb
+		fastboot
+		e2fsdroid
+		f2fs_sload
+		make_f2fs
+	)
+
+	frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
+
+	files_list=()
+fi
+
 if [[ $(command -v adb) ]]
 then
     export ANDROID_NO_USE_FWMARK=1
