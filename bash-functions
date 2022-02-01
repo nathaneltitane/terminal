@@ -11,6 +11,18 @@ fi
 
 # adb //////////////////////////////////////////////////////////////////////////
 
+if [[ $(command -v adb) ]]
+then
+    export ANDROID_NO_USE_FWMARK=1
+
+    if [ ! -d "${HOME}"/.adb ]
+    then
+        mkdir -p "${HOME}"/.adb
+    fi
+
+    export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
+fi
+
 adb_pull_package () {
 	frobulator.require adb
 
