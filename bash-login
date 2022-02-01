@@ -67,7 +67,7 @@ then
 
 	# automatic session start
 
-	if [[ $(ps -A | grep -i vnc) ]]
+	if [[ $(pidof Xvnc) ]]
 	then
 		:
 	else
