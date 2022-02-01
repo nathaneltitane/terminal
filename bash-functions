@@ -13,7 +13,7 @@ fi
 
 if [[ -z $(command -v adb) ]]
 then
-	files_list=(
+	files_list+=(
 		adb
 		fastboot
 		e2fsdroid
