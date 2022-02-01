@@ -9,6 +9,11 @@ then
 	alias 'ba'='. "${HOME}"/.bash_aliases'
 fi
 
+if [[ -f "${HOME}"/.bash_funtions ]]
+then
+	alias 'ba'='. "${HOME}"/.bash_functions'
+fi
+
 if [[ -f "${HOME}"/.bashrc ]]
 then
 	alias 'bc'='. "${HOME}"/.bashrc'
