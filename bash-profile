@@ -52,7 +52,7 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	# welcome #
 
-	    if [[ $(ps -A | grep -i proot) ]]
+	    if [[ $(pidof proot) ]]
 	    then
 	        frobulator.fwd "Welcome to Dextop" "[ ${name} ]"
 	        echo
