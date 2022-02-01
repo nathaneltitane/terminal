@@ -42,46 +42,7 @@ settings_intent () {
         frobulator.silence "${settings_command}"
 }
 
-# git //////////////////////////////////////////////////////////////////////////
-
-if [ -d "${PREFIX}"/media/internal/Git ]
-then
-	storage="${PREFIX}"/media/internal/Git
-else
-	storage="/storage/emulated/0"
-fi
-
-frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
-frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
-
-# geany  ///////////////////////////////////////////////////////////////////////
-
-frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
-
-# shell ////////////////////////////////////////////////////////////////////////
-
-files_list+=(
-	bash-aliases
-	bash-configuration
-	bash-functions
-	bash-login
-	bash-logout
-	bash-profile
-)
-
-frobulator.download get.trmnl.me "${PREFIX}"/bin ${files_list[@]}
-
-frobulator.link "${PREFIX}"/bin "${HOME}" bash-aliases       .bash_aliases
-frobulator.link "${PREFIX}"/bin "${HOME}" bash-configuration .bashrc
-frobulator.link "${PREFIX}"/bin "${HOME}" bash-functions     .bash_functions
-frobulator.link "${PREFIX}"/bin "${HOME}" bash-login         .bash_login
-frobulator.link "${PREFIX}"/bin "${HOME}" bash-logout        .bash_logout
-frobulator.link "${PREFIX}"/bin "${HOME}" bash-profile       .bash_profile
-
-files_list=()
-
 # termux ///////////////////////////////////////////////////////////////////////
-
 
 files_list+=(
 	termux-colors
@@ -96,5 +57,58 @@ frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-font       font.ttf
 frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-properties termux.properties
 
 settings_intent
+
+files_list=()
+
+# git //////////////////////////////////////////////////////////////////////////
+
+if [ -d "${PREFIX}"/media/internal/Git ]
+then
+	storage="${PREFIX}"/media/internal/Git
+else
+	storage="/storage/emulated/0"
+fi
+
+frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+
+# shell ////////////////////////////////////////////////////////////////////////
+
+files_list+=(
+	bash-aliases
+	bash-configuration
+	bash-functions
+	bash-login
+	bash-logout
+	bash-profile
+)
+
+frobulator.download get.trmnl.me "${PREFIX}"/bin ${files_list[@]}
+
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-configuration .bashrc
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-configuration .bash-configuration
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-aliases       .bash_aliases
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-functions     .bash_functions
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-login         .bash_login
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-logout        .bash_logout
+frobulator.link "${PREFIX}"/bin "${HOME}" bash-profile       .bash_profile
+
+files_list=()
+
+# geany  ///////////////////////////////////////////////////////////////////////
+
+frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
+
+# adb /////////////////////////////////////////////////////////////////////////
+
+files_list+=(
+    adb
+    fastboot
+    e2fsdroid
+    f2fs_sload
+    make_f2fs
+)
+
+frobulator.download get.trmnl.meandroid "${PREFIX}"/bin ${files_list[@]}
 
 files_list=()
