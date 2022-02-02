@@ -147,6 +147,11 @@ then
 	alias '..'='cd ..'
 fi
 
+if [[ $(command -v cd) ]]
+then
+	alias '../'='cd ../'
+fi
+
 if [[ $(command -v df) ]]
 then
 	alias 'df'='df -H'
