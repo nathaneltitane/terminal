@@ -52,11 +52,13 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	# welcome #
 
-	    if [[ $(pidof proot) ]]
-	    then
-	        frobulator.fwd "Welcome to Dextop" "[ ${name} ]"
-	        echo
+    if [[ $(pidof proot) ]]
+    then
+        frobulator.fwd "Welcome to Dextop" "[ ${name} ]"
+        echo
 
+		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
+    	then
 	        if [ -f "${HOME}"/.vnc/selection ]
 	        then
 	            frobulator.inf "You have already logged in - vnc selection has been saved."
@@ -71,8 +73,7 @@ then
 	        frobulator.fwd "Welcome to Dextop" "[ Termux ]"
 	        echo
 
-	        frobulator.inf "Launch session: 'container-session -u <username> | -a <application>'"
+	        frobulator.inf "Launch session: 'container-session -o | -u <username> | -a <application>'"
 	    fi
-
-	    echo
+    fi
 fi
