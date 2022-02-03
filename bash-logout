@@ -6,8 +6,11 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	# automatic vnc session stop
 
-	if [[ $(pidof Xvnc) ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-logout) = "logout" ]]
 	then
-		container-session -x
+		if [[ $(pidof Xvnc) ]]
+		then
+			container-session -x
+		fi
 	fi
 fi
