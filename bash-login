@@ -71,13 +71,16 @@ then
 	then
 		:
 	else
-		if [[ $(pidof proot) ]]
-		then
-			if [ -f "${HOME}"/.vnc/selection ]
+		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
+        then
+			if [[ $(pidof proot) ]]
 			then
-				echo $(cat "${HOME}"/.vnc/selection) | container-session -o
-			else
-				container-session -o
+				if [ -f "${HOME}"/.vnc/selection ]
+				then
+					echo $(cat "${HOME}"/.vnc/selection) | container-session -o
+				else
+					container-session -o
+				fi
 			fi
 		fi
 	fi
