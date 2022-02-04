@@ -52,13 +52,13 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	# welcome #
 
-    if [[ $(pidof proot) ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
     then
-        frobulator.fwd "Welcome to Dextop" "[ ${name} ]"
-        echo
+	    if [[ $(pidof proot) ]]
+	    then
+	        frobulator.fwd "Welcome to Dextop" "[ ${name} ]"
+	        echo
 
-		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
-    	then
 	        if [ -f "${HOME}"/.vnc/selection ]
 	        then
 	            frobulator.inf "You have already logged in - vnc selection has been saved."
