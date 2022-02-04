@@ -65,6 +65,31 @@ then
 		fi
 	fi
 
+	# audio
+
+	if [[ $(pidof proot) ]]
+	then
+		:
+	else
+		if [[ $(command -v pulseaudio) ]]
+		then
+			# start pulseaudio and daemonize
+
+			pulseaudio					\
+				--start					\
+				--daemonize=true		\
+				--exit-idle-time=-1
+
+			# initialize tcp connection protocol
+
+			pacmd								\
+				load-module						\
+					module-native-protocol-tcp	\
+						auth-ip-acl=127.0.0.1	\
+						auth-anonymous=1
+		fi
+	fi
+
 	# automatic session start
 
 	if [[ $(pidof Xvnc) ]]
