@@ -73,20 +73,25 @@ then
 	else
 		if [[ $(command -v pulseaudio) ]]
 		then
-			# start pulseaudio and daemonize
+			if [[ $(pidof pulseaudio) ]]
+			then
+				:
+			else
+				# start pulseaudio and daemonize
 
-			pulseaudio					\
-				--start					\
-				--daemonize=true		\
-				--exit-idle-time=-1
+				pulseaudio					\
+					--start					\
+					--daemonize=true		\
+					--exit-idle-time=-1
 
-			# initialize tcp connection protocol
+				# initialize tcp connection protocol
 
-			pacmd								\
-				load-module						\
-					module-native-protocol-tcp	\
-						auth-ip-acl=127.0.0.1	\
-						auth-anonymous=1
+				pacmd								\
+					load-module						\
+						module-native-protocol-tcp	\
+							auth-ip-acl=127.0.0.1	\
+							auth-anonymous=1
+			fi
 		fi
 	fi
 
