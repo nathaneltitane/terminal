@@ -33,7 +33,7 @@ trap 'rm -rf "${TEMPORARY}"' EXIT
 build_directory="${TEMPORARY}"
 
 application="leocad"
-source="https://github.com/leozide/leocad.git"# variables ////////////////////////////////////////////////////////////////////
+source="https://github.com/leozide/leocad.git"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
