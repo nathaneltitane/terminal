@@ -65,7 +65,7 @@ files_list=()
 
 if [ -d "${PREFIX}"/media/internal/Git ]
 then
-	storage="${PREFIX}"/media/internal/Git
+	storage="${PREFIX}"/media/internal
 else
 	storage="/storage/emulated/0"
 fi
