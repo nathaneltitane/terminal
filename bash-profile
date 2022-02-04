@@ -74,6 +74,7 @@ then
 	        echo
 
 	        frobulator.inf "Launch session: 'container-session -o | -u <username> | -a <application>'"
+	        echo
 	    fi
     fi
 fi
