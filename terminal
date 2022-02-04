@@ -45,6 +45,9 @@ settings_intent () {
 
 # termux ///////////////////////////////////////////////////////////////////////
 
+frobulator.inf "Setting up" "[ termux ]"
+echo
+
 files_list+=(
 	termux-colors
 	termux-font
@@ -63,6 +66,9 @@ files_list=()
 
 # git //////////////////////////////////////////////////////////////////////////
 
+frobulator.inf "Setting up" "[ git ]"
+echo
+
 if [ -d "${PREFIX}"/media/internal/Git ]
 then
 	storage="${PREFIX}"/media/internal
@@ -74,6 +80,9 @@ frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
 frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
 # shell ////////////////////////////////////////////////////////////////////////
+
+frobulator.inf "Setting up" "[ shell ]"
+echo
 
 files_list+=(
 	bash-aliases
@@ -96,11 +105,10 @@ frobulator.link "${PREFIX}"/bin "${HOME}" bash-profile       .bash_profile
 
 files_list=()
 
-# geany  ///////////////////////////////////////////////////////////////////////
-
-frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
-
 # adb /////////////////////////////////////////////////////////////////////////
+
+frobulator.inf "Setting up" "[ adb ]"
+echo
 
 files_list+=(
     adb
@@ -113,3 +121,10 @@ files_list+=(
 frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
 
 files_list=()
+
+# geany  ///////////////////////////////////////////////////////////////////////
+
+frobulator.inf "Setting up" "[ geany ]"
+echo
+
+frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
