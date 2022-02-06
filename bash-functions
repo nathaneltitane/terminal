@@ -11,35 +11,41 @@ fi
 
 # adb //////////////////////////////////////////////////////////////////////////
 
-if [[ -z $(command -v adb) ]]
-then
-	files_list+=(
-		adb
-		fastboot
-		e2fsdroid
-		f2fs_sload
-		make_f2fs
-	)
+adb_download () {
+	if [[ -z $(command -v adb) ]]
+	then
+		files_list+=(
+			adb
+			fastboot
+			e2fsdroid
+			f2fs_sload
+			make_f2fs
+		)
 
-	frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
+		frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
 
-	files_list=()
-fi
+		files_list=()
+	fi
+}
 
-if [[ $(command -v adb) ]]
-then
-    export ANDROID_NO_USE_FWMARK=1
+adb_set_environment () {
+	if [[ $(command -v adb) ]]
+	then
+	    export ANDROID_NO_USE_FWMARK=1
 
-    if [ ! -d "${HOME}"/.adb ]
-    then
-        mkdir -p "${HOME}"/.adb
-    fi
+	    if [ ! -d "${HOME}"/.adb ]
+	    then
+	        mkdir -p "${HOME}"/.adb
+	    fi
 
-    export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
-fi
+	    export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
+	fi
+}
 
 adb_pull_package () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	if [[ ! -d ./apk ]]
 	then
@@ -57,7 +63,9 @@ adb_pull_package () {
 }
 
 adb_install_package () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	package="${1}"
 
@@ -65,7 +73,9 @@ adb_install_package () {
 }
 
 adb_remove_package () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	package="${1}"
 
@@ -73,7 +83,9 @@ adb_remove_package () {
 }
 
 adb_settings_get () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	setting="${1}"
 
@@ -81,7 +93,9 @@ adb_settings_get () {
 }
 
 adb_settings_put () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	setting="${1}"
 
@@ -89,7 +103,9 @@ adb_settings_put () {
 }
 
 adb_disable_phantom_killer () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	adb	shell /system/bin/device_config set_sync_disabled_for_tests persistent
 	adb shell /system/bin/device_config put activity_manager max_phantom_processes 2000000000
@@ -97,7 +113,9 @@ adb_disable_phantom_killer () {
 }
 
 adb_vendor_ids () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	mkdir -p ${HOME}"/.android
 
@@ -118,7 +136,9 @@ adb_vendor_ids () {
 }
 
 adb_keycode () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	adb "${device}" shell input keyevent "${1}"
 
@@ -176,7 +196,9 @@ adb_keycode () {
 }
 
 adb_device () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	if [ $# -gt 1 ]
 	then
@@ -189,7 +211,9 @@ adb_device () {
 }
 
 adb_write () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	hostname=$(adb ${device} shell getprop net.hostname)
 
@@ -207,7 +231,9 @@ adb_write () {
 }
 
 adb_reset_apk () {
-	frobulator.require adb
+	adb_download
+
+	adb_set_environment
 
 	application="${1}"
 	activity="${2}"
