@@ -2,7 +2,7 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
-if [ -z "{PREFIX}" ]
+if [ -z "${PREFIX}" ]
 then
 	PREFIX="/usr"
 fi
