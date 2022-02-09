@@ -1,5 +1,0 @@
-#!/bin/bash
-
-am start						\
--a android.intent.action.VIEW	\
--n com.android.chrome/com.google.android.apps.chrome.Main
