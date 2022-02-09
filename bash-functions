@@ -42,6 +42,25 @@ adb_set_environment () {
 	fi
 }
 
+adb_record () {
+	adb_download
+
+	adb_set_environment
+
+	adb shell screenrecord /storage/emulated/0/Videos/"${recording}" &
+	adb_record_PID=$!
+
+	read -r -p 'Press enter to stop recording...'
+
+	kill ${adb_record_PID} > /dev/null 2&>1
+
+	sleep 0.5
+
+	adb pull /sdcard/"${recording}" screenrecord/"${recording}"
+
+	adb shell rm /sdcard/"${recording}"
+}
+
 adb_pull_package () {
 	adb_download
 
