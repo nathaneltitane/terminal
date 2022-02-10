@@ -52,8 +52,11 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	# interface #
 
-	frobulator.fwd "Session" "[ ${session_interface} ]"
-	echo
+	if [[ $(pidof x11vnc)  ]]
+	then
+		frobulator.fwd "Session" "[ ${session_interface} ]"
+		echo
+	fi
 
 	# welcome #
 
