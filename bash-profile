@@ -50,6 +50,11 @@ fi
 
 if [ -f "${HOME}"/.dextop/dextop ]
 then
+	# interface #
+
+	frobulator.fwd "Session" "[ ${session_interface} ]"
+	echo
+
 	# welcome #
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
