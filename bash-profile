@@ -71,7 +71,7 @@ then
 	            echo
 	        else
 	            frobulator.wrn "This is your first login:"
-	            frobulator.wrn "Run 'container-session -o' to launch session [ ${session_name} ]."
+	            frobulator.wrn "Run 'container-session -o' to launch session [ ${session_interface} ]."
 	            echo
 	        fi
 	    else
