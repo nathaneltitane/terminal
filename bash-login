@@ -6,16 +6,16 @@ if [ -f "${HOME}"/.dextop/dextop ]
 then
 	if [[ $(cat "${HOME}"/.dextop/dextop-option) = xfce ]]
 	then
-		session_name="XFCE"
+		session_interface="XFCE"
 	else
-		session_name="CONSOLE"
+		session_interface="CONSOLE"
 	fi
 
 	if [ -f /etc/os-release ]
 	then
 		. /etc/os-release
 
-		name="${NAME}"
+		distribution_name="${NAME}"
 	fi
 
 	# settings

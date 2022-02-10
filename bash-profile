@@ -56,12 +56,12 @@ then
     then
 	    if [[ $(pidof proot) ]]
 	    then
-	        frobulator.fwd "Welcome to Dextop" "[ ${name} ]"
+	        frobulator.fwd "Welcome to Dextop" "[ ${distribution_name} ]"
 	        echo
 
 	        if [ -f "${HOME}"/.vnc/selection ]
 	        then
-	            frobulator.inf "You have already logged in - vnc selection has been saved."
+	            frobulator.inf "You have already logged in - display selection has been saved."
 	            frobulator.inf "Automatic session launch on shell login is enabled."
 	            echo
 	        else
