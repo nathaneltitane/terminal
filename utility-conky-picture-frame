@@ -2,17 +2,12 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
-if [ -z "${TERMUX_VERSION}" ]
-then
-	PREFIX="/usr"
-fi
-
 if [[ -z $(command -v frobulator) ]]
 then
-	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+	curl -s -L get.frbltr.app > /usr/bin/frobulator
 fi
 
-. "${PREFIX}"/bin/frobulator
+. /usr/bin/frobulator
 
 if [[ $(id -u -n) = "root" ]]
 then
