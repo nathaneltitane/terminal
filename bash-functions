@@ -2,17 +2,12 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
-if [ -z "${TERMUX_VERSION}" ]
-then
-	PREFIX="/usr"
-fi
-
 if [[ -z $(command -v frobulator) ]]
 then
-	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
+	curl -s -L get.frbltr.app > /usr/bin/frobulator
 fi
 
-. "${PREFIX}"/bin/frobulator
+. /usr/bin/frobulator
 
 if [[ $(id -u -n) = "root" ]]
 then
@@ -21,23 +16,6 @@ then
 fi
 
 # adb //////////////////////////////////////////////////////////////////////////
-
-adb_download () {
-	if [[ -z $(command -v adb) ]]
-	then
-		files_list+=(
-			adb
-			fastboot
-			e2fsdroid
-			f2fs_sload
-			make_f2fs
-		)
-
-		frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
-
-		files_list=()
-	fi
-}
 
 adb_set_environment () {
 	if [[ $(command -v adb) ]]
@@ -53,7 +31,6 @@ adb_set_environment () {
 	fi
 }
 
-
 adb_creenshot () {
 	adb_download
 
@@ -65,7 +42,6 @@ adb_creenshot () {
 
 	adb shell rm /sdcard/"${screenshot}"
 }
-
 
 adb_record () {
 	adb_download
@@ -618,7 +594,7 @@ weather () {
 youtube () {
 	if [[ -z $(command -v youtube-dl) ]]
 	then
-		frobulator.download https://yt-dl.org/downloads/latest "${PREFIX}"/bin youtube-dl
+		frobulator.download https://yt-dl.org/downloads/latest /usr/bin youtube-dl
 	fi
 
 	path="${2}"
