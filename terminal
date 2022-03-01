@@ -62,13 +62,13 @@ files_list+=(
 
 frobulator.download get.trmnl.me /usr/bin ${files_list[@]}
 
-frobulator.link /usr/bin "${HOME}"         bash-aliases       .bash_aliases
-frobulator.link /usr/bin "${HOME}"         bash-configuration .bashrc
-frobulator.link /usr/bin "${HOME}"         bash-configuration .bash_configuration
-frobulator.link /usr/bin "${HOME}"         bash-functions     .bash_functions
-frobulator.link /usr/bin "${HOME}"         bash-login         .bash_login
-frobulator.link /usr/bin "${HOME}"         bash-logout        .bash_logout
-frobulator.link /usr/bin "${HOME}"         bash-profile       .bash_profile
+frobulator.link /usr/bin "${HOME}"        bash-aliases       .bash_aliases
+frobulator.link /usr/bin "${HOME}"        bash-configuration .bashrc
+frobulator.link /usr/bin "${HOME}"        bash-configuration .bash_configuration
+frobulator.link /usr/bin "${HOME}"        bash-functions     .bash_functions
+frobulator.link /usr/bin "${HOME}"        bash-login         .bash_login
+frobulator.link /usr/bin "${HOME}"        bash-logout        .bash_logout
+frobulator.link /usr/bin "${HOME}"        bash-profile       .bash_profile
 
 frobulator.link /usr/bin "${SUDO:-$HOME}" bash-aliases       .bash_aliases
 frobulator.link /usr/bin "${SUDO:-$HOME}" bash-configuration .bashrc
