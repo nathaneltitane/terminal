@@ -74,7 +74,7 @@ then
 		echo 'autospawn = no'               >> /etc/pulse/client.conf
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
-        then
+	    then
 			if [[ $(command -v pulseaudio) ]]
 			then
 				if [[ $(pidof pulseaudio) ]]
@@ -107,7 +107,7 @@ then
 		:
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
-        then
+	    then
 			if [[ $(pidof proot) ]]
 			then
 				if [ -f "${HOME}"/.vnc/selection ]

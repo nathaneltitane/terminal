@@ -2,12 +2,23 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
+if [ -z "${TERMUX_VERSION}" ]
+then
+	PREFIX="/usr"
+fi
+
 if [[ -z $(command -v frobulator) ]]
 then
 	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
 fi
 
 . "${PREFIX}"/bin/frobulator
+
+if [[ $(id -u -n) = "root" ]]
+then
+	USER="${SUDO_USER}"
+	HOME=/home/"${USER}"
+fi
 
 # adb //////////////////////////////////////////////////////////////////////////
 
@@ -31,14 +42,14 @@ adb_download () {
 adb_set_environment () {
 	if [[ $(command -v adb) ]]
 	then
-	    export ANDROID_NO_USE_FWMARK=1
+		export ANDROID_NO_USE_FWMARK=1
 
-	    if [ ! -d "${HOME}"/.adb ]
-	    then
-	        mkdir -p "${HOME}"/.adb
-	    fi
+		if [ ! -d "${HOME}"/.adb ]
+		then
+		    mkdir -p "${HOME}"/.adb
+		fi
 
-	    export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
+		export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
 	fi
 }
 

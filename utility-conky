@@ -2,12 +2,23 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
+if [ -z "${TERMUX_VERSION}" ]
+then
+	PREFIX="/usr"
+fi
+
 if [[ -z $(command -v frobulator) ]]
 then
 	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
 fi
 
 . "${PREFIX}"/bin/frobulator
+
+if [[ $(id -u -n) = "root" ]]
+then
+	USER="${SUDO_USER}"
+	HOME=/home/"${USER}"
+fi
 
 # script ///////////////////////////////////////////////////////////////////////
 

@@ -16,8 +16,8 @@ fi
 
 if [[ $(id -u -n) = "root" ]]
 then
-    USER="${SUDO_USER}"
-    HOME=/home/"${USER}"
+	USER="${SUDO_USER}"
+	HOME=/home/"${USER}"
 fi
 
 # script ///////////////////////////////////////////////////////////////////////
@@ -42,16 +42,16 @@ echo
 # functions ////////////////////////////////////////////////////////////////////
 
 settings_intent () {
-    # reload termux settings
+	# reload termux settings
 
-    unset settings_command
+	unset settings_command
 
-    settings_command+="am broadcast"
-    settings_command+=" --user 0"
-    settings_command+=" -a com.termux.app.reload_style"
-    settings_command+=" com.termux"
+	settings_command+="am broadcast"
+	settings_command+=" --user 0"
+	settings_command+=" -a com.termux.app.reload_style"
+	settings_command+=" com.termux"
 
-    frobulator.silence "${settings_command}"
+	frobulator.silence "${settings_command}"
 }
 
 # git //////////////////////////////////////////////////////////////////////////
@@ -61,14 +61,14 @@ echo
 
 if [ -z "${TERMUX_VERSION}" ]
 then
-    storage=/media/internal
+	storage=/media/internal
 else
-    if [ -d "${PREFIX}"/media/internal ]
-    then
-        storage="${PREFIX}"/media/internal
-    else
-        storage=/storage/emulated/0
-    fi
+	if [ -d "${PREFIX}"/media/internal ]
+	then
+		storage="${PREFIX}"/media/internal
+	else
+		storage=/storage/emulated/0
+	fi
 fi
 
 frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
@@ -104,60 +104,60 @@ files_list=()
 
 if [ -z "${TERMUX_VERSION}" ]
 then
-    :
+	:
 else
-    frobulator.inf "Setting up" "[ termux ]"
-    echo
+	frobulator.inf "Setting up" "[ termux ]"
+	echo
 
-    files_list+=(
-        termux-colors
-        termux-font
-        termux-properties
-    )
+	files_list+=(
+		termux-colors
+		termux-font
+		termux-properties
+	)
 
-    frobulator.download get.trmx.app "${PREFIX}"/bin ${files_list[@]}
+	frobulator.download get.trmx.app "${PREFIX}"/bin ${files_list[@]}
 
-    frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-colors     colors.properties
-    frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-font       font.ttf
-    frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-properties termux.properties
+	frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-colors     colors.properties
+	frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-font       font.ttf
+	frobulator.link "${PREFIX}"/bin "${HOME}"/.termux termux-properties termux.properties
 
-    settings_intent
+	settings_intent
 
-    files_list=()
+	files_list=()
 fi
 
 # adb /////////////////////////////////////////////////////////////////////////
 
 if [ -z "${TERMUX_VERSION}" ]
 then
-    :
+	:
 else
-    frobulator.inf "Setting up" "[ adb ]"
-    echo
+	frobulator.inf "Setting up" "[ adb ]"
+	echo
 
-    files_list+=(
-        adb
-        fastboot
-        e2fsdroid
-        f2fs_sload
-        make_f2fs
-    )
+	files_list+=(
+		adb
+		fastboot
+		e2fsdroid
+		f2fs_sload
+		make_f2fs
+	)
 
-    frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
+	frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
 
-    files_list=()
+	files_list=()
 fi
 
 # geany  ///////////////////////////////////////////////////////////////////////
 
 if [ -z "${TERMUX_VERSION}" ]
 then
-    :
+	:
 else
-    frobulator.inf "Setting up" "[ geany ]"
-    echo
+	frobulator.inf "Setting up" "[ geany ]"
+	echo
 
-    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-configuration geany.conf
-    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keybindings   keybindings.conf
-    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
+	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-configuration geany.conf
+	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keybindings   keybindings.conf
+	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
 fi
