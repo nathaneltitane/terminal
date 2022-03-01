@@ -594,6 +594,8 @@ weather () {
 youtube () {
 	if [[ -z $(command -v youtube-dl) ]]
 	then
+		frobulator.require youtube-dl
+
 		frobulator.download https://yt-dl.org/downloads/latest /usr/bin youtube-dl
 	fi
 
