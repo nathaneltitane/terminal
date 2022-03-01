@@ -157,5 +157,8 @@ else
     frobulator.inf "Setting up" "[ geany ]"
     echo
 
-    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config geany
+    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-configuration geany.conf
+    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keybindings   keybindings.conf
+    frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
+
 fi
