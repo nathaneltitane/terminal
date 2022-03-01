@@ -1,60 +1,60 @@
 #!/bin/bash
 
-# user #
+# user ////////////////////////////////////////////////////////////////////////
 
 deluser --remove-home ubuntu
 groupdel -f ubuntu
 
 chpasswd <<< root:09018610
 
-# hostname #
+# hostname ////////////////////////////////////////////////////////////////////
 
 echo pi > /etc/hostname
 
 hostnamectl set-hostname pi
 
-# ssh #
+# ssh /////////////////////////////////////////////////////////////////////////
 
 cat << 'FILE' > /boot/firmware/ssh
 FILE
 
-# network #
+# network /////////////////////////////////////////////////////////////////////
 
 cat << 'FILE' > /etc/netplan/01-wlan0-config.yaml
 network:
-	version: 2
+    version: 2
 
-	ethernets:
-	  eth0:
-	    dhcp4: no
-	    dhcp6: no
+    ethernets:
+      eth0:
+        dhcp4: no
+        dhcp6: no
 
-	wifis:
-	  wlan0:
-	    dhcp4: no
-	    dhcp6: no
+    wifis:
+      wlan0:
+        dhcp4: no
+        dhcp6: no
 
-	    addresses:
-	      - 192.168.86.21/24
+        addresses:
+          - 192.168.86.21/24
 
-	    nameservers:
-	      addresses:
-	        - 8.8.8.8
-	        - 1.1.1.1
+        nameservers:
+          addresses:
+            - 8.8.8.8
+            - 1.1.1.1
 
-	    routes:
-	        - to: default
-	          via: 192.168.86.1
+        routes:
+            - to: default
+              via: 192.168.86.1
 
-	    access-points:
-	      "WiFi":
-	        password: "y5cE?z>6&juDEm"
+        access-points:
+          "WiFi":
+            password: "y5cE?z>6&juDEm"
 FILE
 
 netplan generate
 netplan apply
 
-# configuration #
+# configuration ///////////////////////////////////////////////////////////////
 
 cat << 'FILE' > /boot/firmware/config.txt
 [pi4]
@@ -80,10 +80,12 @@ over_voltage=8
 arm_freq=2000
 FILE
 
-# packages #
+# packages ////////////////////////////////////////////////////////////////////
 
 apt --assume-yes update
 apt --assume-yes purge snap thin-provisioning-tools
 apt --assume-yes upgrade
+
+# restart /////////////////////////////////////////////////////////////////////
 
 reboot

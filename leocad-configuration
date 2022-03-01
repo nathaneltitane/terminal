@@ -48,5 +48,5 @@ if [ -f /media/internal/Lego/leocad/leocad.conf ]
 then
 	frobulator.directory "${HOME}"/.config/"LeoCAD Software"
 
-	ln -s -f /media/internal/Lego/leocad/leocad.conf "${HOME}"/.config/"LeoCAD Software"/LeoCAD.conf
+	frobulator.link /media/internal/Lego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
 fi

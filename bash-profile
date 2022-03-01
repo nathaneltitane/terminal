@@ -17,6 +17,11 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
+if [ -z "${TERMUX_VERSION}" ]
+then
+	PREFIX="/usr"
+fi
+
 if [[ -z $(command -v frobulator) ]]
 then
 	curl -s -L get.frbltr.app > "${PREFIX}"/bin/frobulator
