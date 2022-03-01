@@ -32,58 +32,26 @@ then
 	alias 'bp'='. "${HOME}"/.bash_profile'
 fi
 
-# dextop  //////////////////////////////////////////////////////////////////////
-
-if [[ $(command -v container-session) ]]
-then
-	alias 'co'='container-session -o'
-fi
-
-if [[ $(command -v container-session) ]]
-then
-	alias 'cx'='container-session -x'
-fi
-
-if [[ $(command -v container-session) && $(grep -i termux "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]]
-then
-	alias 'ct'='container-session -u termux'
-fi
-
-if [[ $(command -v container-session) && $(grep -i root   "${PREFIX}"/cnt/ubuntu/21.10/etc/passwd) ]]
-then
-	alias 'cr'='container-session -u root'
-fi
-
 # directories //////////////////////////////////////////////////////////////////
-
-if [[ $(ls -d "${PREFIX}" 2> /dev/null) ]]
-then
-	alias 'pd'='cd "${PREFIX}"'
-fi
 
 if [[ $(ls -d "${HOME}" 2> /dev/null) ]]
 then
 	alias 'hd'='cd "${HOME}"'
 fi
 
-if [[ $(ls -d "${PREFIX}"/media 2> /dev/null) ]]
+if [[ $(ls -d /media 2> /dev/null) ]]
 then
-	alias 'md'='cd "${PREFIX}"/media'
+	alias 'md'='cd /media'
 fi
 
-if [[ $(ls -d "${PREFIX}"/storage 2> /dev/null) ]]
+if [[ $(ls -d /media/[eE]xternal 2> /dev/null) ]]
 then
-	alias 'sd'='cd "${PREFIX}"/storage'
+	alias 'ex'='cd /media/[eE]xternal'
 fi
 
-if [[ $(ls -d "${PREFIX}"/media/[eE]xternal 2> /dev/null) ]]
+if [[ $(ls -d /media/[iI]nternal 2> /dev/null) ]]
 then
-	alias 'ex'='cd "${PREFIX}"/media/[eE]xternal'
-fi
-
-if [[ $(ls -d "${PREFIX}"/media/[iI]nternal 2> /dev/null) ]]
-then
-	alias 'in'='cd "${PREFIX}"/media/[iI]nternal'
+	alias 'in'='cd /media/[iI]nternal'
 fi
 
 # git  /////////////////////////////////////////////////////////////////////////
