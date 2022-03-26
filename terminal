@@ -11,8 +11,15 @@ fi
 
 if [[ $(id -u -n) = "root" ]]
 then
+    if [ -z "${SUDO:-$HOME}" ]
+    then
+        SUDO_HOME=/root
+    else
+        SUDO_HOME="${SUDO:-$HOME}"
+    fi
+
 	USER="${SUDO_USER}"
-	HOME=/home/"${USER}"
+	USER_HOME=/home/"${USER}"
 fi
 
 # script ///////////////////////////////////////////////////////////////////////
@@ -73,12 +80,12 @@ frobulator.link /usr/bin "${HOME}"        bash-login         .bash_login
 frobulator.link /usr/bin "${HOME}"        bash-logout        .bash_logout
 frobulator.link /usr/bin "${HOME}"        bash-profile       .bash_profile
 
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-aliases       .bash_aliases
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-configuration .bashrc
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-configuration .bash_configuration
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-functions     .bash_functions
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-login         .bash_login
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-logout        .bash_logout
-frobulator.link /usr/bin "${SUDO:-$HOME}" bash-profile       .bash_profile
+frobulator.link /usr/bin "${SUDO_HOME}" bash-aliases       .bash_aliases
+frobulator.link /usr/bin "${SUDO_HOME}" bash-configuration .bashrc
+frobulator.link /usr/bin "${SUDO_HOME}" bash-configuration .bash_configuration
+frobulator.link /usr/bin "${SUDO_HOME}" bash-functions     .bash_functions
+frobulator.link /usr/bin "${SUDO_HOME}" bash-login         .bash_login
+frobulator.link /usr/bin "${SUDO_HOME}" bash-logout        .bash_logout
+frobulator.link /usr/bin "${SUDO_HOME}" bash-profile       .bash_profile
 
 files_list=()
