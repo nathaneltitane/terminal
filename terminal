@@ -22,8 +22,6 @@ then
 	USER_HOME=/home/"${USER}"
 fi
 
-
-
 # script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
