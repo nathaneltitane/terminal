@@ -56,6 +56,9 @@ fi
 frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
 frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
+chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+
 # shell ////////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Setting up" "[ shell ]"
