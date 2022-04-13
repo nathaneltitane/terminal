@@ -97,3 +97,5 @@ frobulator.link /usr/bin "${SUDO_HOME}" bash-logout        .bash_logout
 frobulator.link /usr/bin "${SUDO_HOME}" bash-profile       .bash_profile
 
 files_list=()
+
+ls
