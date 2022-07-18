@@ -523,6 +523,29 @@ icons () {
 	done
 }
 
+# inkscape #
+
+inkscape-export () {
+	frobulator.require inkscape
+
+	export_types_list=(
+		pdf
+		png
+	)
+
+	for file in *.svg
+	do
+		for export_type in ${export_types_list[@]}
+		do
+		inkscape "${file}"							\
+			--batch-process							\
+			--export-area-page						\
+			--export-type=png 						\
+			--export-filename="${file::-3}"."${export_type}"
+		done
+	done
+}
+
 # record #
 
 record () {
