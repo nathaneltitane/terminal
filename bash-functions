@@ -541,7 +541,7 @@ inkscape-export () {
 			--batch-process							\
 			--export-area-page						\
 			--export-type=png 						\
-			--export-filename="${file::-3}"."${export_type}"
+			--export-filename="${file::-4}"."${export_type}"
 		done
 	done
 }
