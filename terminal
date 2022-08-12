@@ -48,6 +48,22 @@ echo
 
 # functions ////////////////////////////////////////////////////////////////////
 
+# storage //////////////////////////////////////////////////////////////////////
+
+storage_list=(
+    external
+    internal
+)
+
+for storage in ${storage_list[@]}
+do
+    if [ -d /media/"${storage}" ]
+    then
+        chmod -R 777 /media//media/"${storage}"
+        chmod -R 777 /media/"${storage}"/*
+    fi
+done
+
 # git //////////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Setting up" "[ git ]"
