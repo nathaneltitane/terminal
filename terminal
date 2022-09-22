@@ -59,20 +59,30 @@ for storage in ${storage_list[@]}
 do
     if [ -d /media/"${storage}" ]
     then
-        chmod -R 777 /media//media/"${storage}"
+        chmod -R 777 /media/"${storage}"
         chmod -R 777 /media/"${storage}"/*
     fi
 done
+
+storage_list=()
 
 # git //////////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Setting up" "[ git ]"
 echo
 
-if [ -d /media/internal ]
-then
-	storage=/media/internal
-fi
+storage_list=(
+    internal
+)
+for storage in ${storage_list[@]}
+do
+    if [ -d  /media/"${storage}" ]
+    then
+    	storage=/media/internal
+    fi
+done
+
+storage_list=()
 
 frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
 frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
