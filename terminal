@@ -1,18 +1,6 @@
 #!/bin/bash
 
-# dependencies /////////////////////////////////////////////////////////////////
-
-if [[ -z $(command -v frobulator) ]]
-then
-    if [[ -z $(command -v curl) ]]
-    then
-        yes | apt-get install curl
-    fi
-
-    curl -s -L get.frbltr.app > /usr/bin/frobulator
-fi
-
-. /usr/bin/frobulator
+# superuser ////////////////////////////////////////////////////////////////////
 
 if [[ $(id -u -n) = "root" ]]
 then
@@ -25,7 +13,30 @@ then
 
 	USER="${SUDO_USER}"
 	USER_HOME=/home/"${USER}"
+else
+    echo
+    echo "[ ⨉ ] This script must be run as 'root'"
+    echo
+
+    exit 1
+
 fi
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ -z $(command -v frobulator) ]]
+then
+    if [[ -z $(command -v curl) ]]
+    then
+        yes | apt-get install curl
+    fi
+
+    curl -s -L get.frbltr.app > /usr/bin/frobulator
+
+    chmod +x /usr/bin/frobulator
+fi
+
+. /usr/bin/frobulator
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -74,6 +85,7 @@ echo
 storage_list=(
     internal
 )
+
 for storage in ${storage_list[@]}
 do
     if [ -d  /media/"${storage}" ]
