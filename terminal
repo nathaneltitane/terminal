@@ -14,12 +14,9 @@ then
 	USER="${SUDO_USER}"
 	USER_HOME=/home/"${USER}"
 else
-    echo
-    echo "[ ⨉ ] This script must be run as 'root'"
-    echo
+    # restart as superuser
 
-    exit 1
-
+    exec sudo bash "${0}" "${@}"
 fi
 
 # dependencies /////////////////////////////////////////////////////////////////
