@@ -1,19 +1,39 @@
 #!/bin/bash
 
+# superuser ////////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+    if [ -z "${SUDO:-$HOME}" ]
+    then
+        SUDO_HOME=/root
+    else
+        SUDO_HOME="${SUDO:-$HOME}"
+    fi
+
+	USER="${SUDO_USER}"
+	USER_HOME=/home/"${USER}"
+else
+    # restart as superuser
+
+    exec sudo bash "${0}" "${@}"
+fi
+
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
 then
-	curl -s -L get.frbltr.app > /usr/bin/frobulator
+    if [[ -z $(command -v curl) ]]
+    then
+        yes | apt-get install curl
+    fi
+
+    curl -s -L get.frbltr.app > /usr/bin/frobulator
+
+    chmod +x /usr/bin/frobulator
 fi
 
 . /usr/bin/frobulator
-
-if [[ $(id -u -n) = "root" ]]
-then
-	USER="${SUDO_USER}"
-	HOME=/home/"${USER}"
-fi
 
 # script ///////////////////////////////////////////////////////////////////////
 
