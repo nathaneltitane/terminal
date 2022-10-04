@@ -32,7 +32,7 @@ adb_set_environment () {
 	fi
 }
 
-adb_creenshot () {
+adb_screenshot () {
 	adb_download
 
 	adb_set_environment
