@@ -28,13 +28,7 @@ adb_download () {
 
 		files_list+=(
 			adb
-			e2fsdroid
-			fsfs_sload
 			fastboot
-			make_f2fs
-			zipalign
-			apktool.jar
-			apktool
 		)
 
 		frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
