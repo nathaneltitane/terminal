@@ -18,6 +18,31 @@ fi
 
 # adb //////////////////////////////////////////////////////////////////////////
 
+adb_download () {
+
+	if [[ -z "${TERMUX_VERSION}" ]]
+	then
+		frobulator.require adb
+	else
+		frobulator.require curl
+
+		files_list+=(
+			adb
+			e2fsdroid
+			fsfs_sload
+			fastboot
+			make_f2fs
+			zipalign
+			apktool.jar
+			apktool
+		)
+
+		frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
+
+		files_list=()
+	fi
+}
+
 adb_set_environment () {
 	if [[ $(command -v adb) ]]
 	then
