@@ -20,20 +20,9 @@ fi
 
 adb_download () {
 
-	if [[ -z "${TERMUX_VERSION}" ]]
+	if [[ -z $(command -v adb) ]]
 	then
 		frobulator.require adb
-	else
-		frobulator.require curl
-
-		files_list+=(
-			adb
-			fastboot
-		)
-
-		frobulator.download get.trmnl.me/android "${PREFIX}"/bin ${files_list[@]}
-
-		files_list=()
 	fi
 }
 
