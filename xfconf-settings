@@ -1,43 +1,42 @@
 #!/bin/bash
 
-# superuser ////////////////////////////////////////////////////////////////////
-
-if [[ $(id -u -n) = "root" ]]
-then
-	if [ -z "${SUDO:-$HOME}" ]
-	then
-		SUDO_HOME=/root
-	else
-		SUDO_HOME="${SUDO:-$HOME}"
-	fi
-
-	USER="${SUDO_USER}"
-	USER_HOME=/home/"${USER}"
-else
-	# set prompt
-
-	# export SUDO_PROMPT="[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "
-
-	# restart as superuser
-
-	# exec sudo bash "${0}" "${@}"
-fi
-
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
 then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		if [ -z "${SUDO:-$HOME}" ]
+		then
+			SUDO_HOME=/root
+		else
+			SUDO_HOME="${SUDO:-$HOME}"
+		fi
+
+		USER="${SUDO_USER}"
+		USER_HOME=/home/"${USER}"
+	else
+		USER_HOME="${HOME}"
+	fi
+
 	if [[ -z $(command -v curl) ]]
 	then
 		yes | apt-get install curl
 	fi
 
-	curl -s -L get.frbltr.app > /usr/bin/frobulator
+	if [ ! -d "${USER_HOME}"/.local/bin ]
+	then
+		mkdir -p "${USER_HOME}"/.local/bin/frobulator
+	fi
 
-	chmod +x /usr/bin/frobulator
+	curl -s -L get.frbltr.app > "${USER_HOME}"/.local/bin/frobulator
+
+	chmod +x "${USER_HOME}"/.local/bin/frobulator
 fi
 
-. /usr/bin/frobulator
+. "${USER_HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
 
 # script ///////////////////////////////////////////////////////////////////////
 
