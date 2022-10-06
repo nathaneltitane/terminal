@@ -8,7 +8,7 @@
 
 ### Welcome to Terminal!
 
-A collection of shell scripts, templates, dotfiles and utilities to make your Linux-based system experience a breeze!
+The Terminal repository is a  collection of shell scripts, templates, dotfiles and utilities to make your Linux-based system experience a breeze!
 
 Terminal uses [Frobulator](https://github.com/nathaneltitane/frobulator) to streamline the scripts and make redundant code a thing of the past.
 
