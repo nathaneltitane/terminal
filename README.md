@@ -2,8 +2,18 @@
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=QG58TMRHNSZAU)
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 01-21-2022 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 10-05-2022 ]
+
+---
 
 Welcome to Terminal!
 
 A collection of shell scripts, templates, dotfiles and utilities.
+
+---
+
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 10-05-2022 ]
+
+### Enjoying Terminal? Buy me a coffee to show your appreciation!
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=QG58TMRHNSZAU)
