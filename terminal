@@ -32,12 +32,17 @@ then
 		yes | apt-get install curl
 	fi
 
-	curl -s -L get.frbltr.app > /usr/bin/frobulator
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin/frobulator
+	fi
 
-	chmod +x /usr/bin/frobulator
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
 fi
 
-. /usr/bin/frobulator
+. "${HOME}"/.local/bin/frobulator
 
 # script ///////////////////////////////////////////////////////////////////////
 
