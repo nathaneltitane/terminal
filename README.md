@@ -6,7 +6,7 @@
 
 ---
 
-Welcome to Terminal!
+### Welcome to Terminal!
 
 A collection of shell scripts, templates, dotfiles and utilities to make your Linux-based system experince a breeze!
 
