@@ -16,6 +16,7 @@ Some Terminal files can be found being used in the following projects:
 
 [[ Dextop // Project Page ]](https://github.com/nathaneltitane/dextop)
 
+---
 
 [[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 10-05-2022 ]
 
