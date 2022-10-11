@@ -17,7 +17,11 @@
 
 # non-login shell requires 'bashrc'
 
+#!/bin/bash
+
 # dependencies /////////////////////////////////////////////////////////////////
+
+USER_HOME="${HOME}"
 
 if [[ -z $(command -v frobulator) ]]
 then
@@ -32,8 +36,6 @@ then
 
 		USER="${SUDO_USER}"
 		USER_HOME=/home/"${USER}"
-	else
-		USER_HOME="${HOME}"
 	fi
 
 	if [[ -z $(command -v curl) ]]
