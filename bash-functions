@@ -658,13 +658,13 @@ youtube () {
 
 	cd "${path}" || exit 1
 
-	youtube-dl												\
-		--ignore-errors										\
-		--yes-playlist										\
-		--extract-audio										\
-		--format			bestaudio						\
-		--audio-format		mp3								\
-		--audio-quality		160K							\
-		--output			"%(title)s.%(ext)s"				\
-															"${url}"
+	youtube-dl																					\
+		--ignore-errors																			\
+		--yes-playlist																			\
+		--extract-audio																			\
+		--format			bestaudio															\
+		--audio-format		mp3																	\
+		--audio-quality		160K																\
+		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
+																								"${url}"
 }
