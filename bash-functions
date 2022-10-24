@@ -317,20 +317,30 @@ audio () {
 	directory="${PWD}"
 	extension="${1}"
 
+	convert_command () {
+		ffmpeg					\
+			-i "${file}"		\
+			-f mp3				\
+			-map_metadata 0		\
+			-id3v2_version 3	"${file%.*}.mp3"
+	}
+
 	if [ "${extension}" = "flac" ]
 	then
-		codec_option="-b:a 320k"
-	else
-		codec_option="-acodec copy"
+		convert_command () {
+			ffmpeg					\
+				-i "${file}"		\
+				-ac b:a 320k		\
+				-map_metadata 0		\
+				-id3v2_version 3	"${file%.*}.mp3"
+		}
 	fi
 
 	for file in $(find "${directory}" -type f -iname "*.${extension}")
 	do
-		ffmpeg					\
-			-i "${file}"		\
-			"${codec_option}"	\
-			-map_metadata 0		\
-			-id3v2_version 3	"${file%.*}.mp3"
+		convert_command
+
+		rm -rf "${file}"
 	done
 }
 
