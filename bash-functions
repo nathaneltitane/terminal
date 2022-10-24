@@ -319,6 +319,7 @@ audio () {
 
 	convert_command () {
 		ffmpeg					\
+			-y					\
 			-i "${file}"		\
 			-f mp3				\
 			-map_metadata 0		\
@@ -329,6 +330,7 @@ audio () {
 	then
 		convert_command () {
 			ffmpeg					\
+				-y					\
 				-i "${file}"		\
 				-ac b:a 320k		\
 				-map_metadata 0		\
