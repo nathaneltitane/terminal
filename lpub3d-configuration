@@ -70,3 +70,19 @@ then
 
 	frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf lpub3d24.conf
 fi
+
+frobulator.inf "Linking library archives."
+echo
+
+if [ -d /media/internal/Lego ]
+then
+	frobulator.directory "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries/
+
+	# official parts archive
+
+	frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries complete.zip complete.zip
+
+	# unofficial parts archive
+
+	frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldrawunf.zip lpub3dldrawunf.zip
+fi
