@@ -38,7 +38,7 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -61,26 +61,26 @@ echo
 
 # functions ////////////////////////////////////////////////////////////////////
 
-frobulator.inf "Linking configuration."
-echo
-
-if [ -f /media/internal/Lego/lpub3d/lpub3d.conf ]
-then
-	frobulator.directory "${HOME}"/.config/"LPub3D Software"
-
-	frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf lpub3d24.conf
-fi
-
-frobulator.inf "Linking library archives."
-echo
-
 if [ -d /media/internal/Lego ]
 then
+	if [ -f /media/internal/Lego/lpub3d/lpub3d.conf ]
+	then
+		frobulator.inf "Linking configuration."
+		echo
+
+		frobulator.directory "${HOME}"/.config/"LPub3D Software"
+
+		frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf lpub3d24.conf
+	fi
+
+	frobulator.inf "Linking library archives."
+	echo
+
 	frobulator.directory "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries/
 
 	# official parts archive
 
-	frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries complete.zip complete.zip
+	frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldraw.zip complete.zip
 
 	# unofficial parts archive
 
