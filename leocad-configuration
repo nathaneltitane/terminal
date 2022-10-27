@@ -61,12 +61,15 @@ echo
 
 # functions ////////////////////////////////////////////////////////////////////
 
-frobulator.inf "Linking configuration."
-echo
-
-if [ -f /media/internal/Lego/leocad/leocad.conf ]
+if [ -d /media/internal/Lego ]
 then
-	frobulator.directory "${HOME}"/.config/"LeoCAD Software"
+	if [ -f /media/internal/Lego/leocad/leocad.conf ]
+	then
+		frobulator.inf "Linking configuration."
+		echo
 
-	frobulator.link /media/internal/Lego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+		frobulator.directory "${HOME}"/.config/"LeoCAD Software"
+
+		frobulator.link /media/internal/Lego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+	fi
 fi
