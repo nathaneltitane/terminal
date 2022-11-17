@@ -58,9 +58,9 @@ build_directory="${TEMPORARY}"
 application="leocad"
 source="https://github.com/leozide/leocad.git"
 
-# defaults /////////////////////////////////////////////////////////////////////
+# requirements /////////////////////////////////////////////////////////////////////
 
-install_list=(
+list+=(
 	git
 	hub
 	g++
@@ -77,7 +77,9 @@ install_list=(
 	qttools5-dev-tools
 )
 
-frobulator.install ${install_list[@]}
+frobulator.require ${list[@]}
+
+list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
