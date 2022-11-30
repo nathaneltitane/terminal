@@ -1,6 +1,6 @@
 ![terminal](https://raw.githubusercontent.com/nathaneltitane/terminal/main/terminal.svg)
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=QG58TMRHNSZAU)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=2WZT7PCW3XDX6)
 
 [[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 10-05-2022 ]
 
@@ -26,4 +26,4 @@ Some Terminal files can be found being used in the following projects:
 
 ### Enjoying Terminal? Buy me a coffee to show your appreciation!
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=QG58TMRHNSZAU)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=2WZT7PCW3XDX6)
