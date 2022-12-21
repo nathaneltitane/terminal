@@ -1,0 +1,500 @@
+#!/bin/bash
+
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+USER_HOME="${HOME}"
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		if [ -z "${SUDO:-$HOME}" ]
+		then
+			SUDO_HOME=/root
+		else
+			SUDO_HOME="${SUDO:-$HOME}"
+		fi
+
+		USER="${SUDO_USER}"
+		USER_HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${USER_HOME}"/.local/bin ]
+	then
+		mkdir -p "${USER_HOME}"/.local/bin/frobulator
+	fi
+
+	curl -s -L get.frbltr.app > "${USER_HOME}"/.local/bin/frobulator
+
+	chmod +x "${USER_HOME}"/.local/bin/frobulator
+fi
+
+. "${USER_HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="12-20-2022"
+
+# usage ///////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}" in
+		-directory)
+			directory="${2}"
+
+			shift
+		;;
+
+		-all)
+			extension_option="all"
+
+			extensions_list=(
+				stl
+			)
+		;;
+
+		-stl)
+			extension_option="stl"
+
+			extensions_list=(
+				stl
+			)
+		;;
+
+		-render)
+			option="render"
+		;;
+
+			full)
+				render_option="full"
+				render_preset="full"
+			;;
+
+			render)
+				render_option="render"
+				render_preset="render"
+			;;
+
+			thumbnail)
+				render_option="thumbnail"
+				render_preset="thumbnail"
+			;;
+
+			1)
+				render_option="1"
+				render_preset="1"
+			;;
+
+			2)
+				render_option="2"
+				render_preset="2"
+			;;
+
+			3)
+				render_option="3"
+				render_preset="3"
+			;;
+
+			4)
+				render_option="4"
+				render_preset="4"
+			;;
+
+			5)
+				render_option="5"
+				render_preset="5"
+			;;
+
+			6)
+				render_option="6"
+				render_preset="6"
+			;;
+
+			7)
+				render_option="7"
+				render_preset="7"
+			;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} [EXTENSION] | [OPTION] [PARAMETER]"
+			echo
+			echo -e "Utility options:"
+			echo
+			echo -e "-directory        Specify directory to load models from."
+			echo
+			echo -e "-all              Selects all supported file formats as target."
+			echo -e "-stl              Selects mpd file format as target."
+			echo
+			echo -e "-render           Renders model files using the following parameters:"
+			echo
+			echo -e "0                 Render image using a quarter-back view preset.          [ 0 ] [ Lat.:30, Lon.: 0 ]"
+			echo -e "1                 Render image using a quarter-back view preset.          [ 1 ] [ Lat.:30, Lon.: 45 ]"
+			echo -e "2                 Render image using a quarter-back view preset.          [ 2 ] [ Lat.:30, Lon.: 90 ]"
+			echo -e "3                 Render image using a quarter-back view preset.          [ 3 ] [ Lat.:30, Lon.: 135 ]"
+			echo -e "4                 Render image using a quarter-back view preset.          [ 4 ] [ Lat.:30, Lon.: 180 ]"
+			echo -e "5                 Render image using a quarter-back view preset.          [ 5 ] [ Lat.:30, Lon.: 225 ]"
+			echo -e "6                 Render image using a quarter-back view preset.          [ 6 ] [ Lat.:30, Lon.: 270 ]"
+			echo -e "7                 Render image using a quarter-back view preset.          [ 7 ] [ Lat.:30, Lon.: 315 ]"
+			echo
+			echo -e "full              Render series of images using options 0 to 7."
+			echo -e "render           Render series of images using option 1."
+			echo -e "thumbnail         Render image using option 0 without edges or shading at 12.5% of the original size."
+			echo
+			echo -e "'${script}'       [ Version ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} [EXTENSION] | [OPTION] [PARAMETER]"
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+		shift
+done
+
+# clear ///////////////////////////////////////////////////////////////////////
+
+frobulator.clear
+
+# prompt //////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+echo
+
+# variables ///////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# defaults ////////////////////////////////////////////////////////////////////
+
+if [ -z "${directory}" ]
+then
+	frobulator.ask "Specify directory?"
+	echo
+
+	read reply
+
+	if [[ "${reply}" = [yY] || "${reply}" = [yY][eE][sS] ]]
+	then
+		# specify directory location or exit on 'cancel'
+
+		directory=$(frobulator.dialog "Directory")
+	else
+		frobulator.err "No directory specified."
+		echo
+
+		frobulator.fwd "Assuming defaults..."
+		echo
+
+		directory="${PWD}"
+	fi
+fi
+
+if [ -z "${extension_option}" ]
+then
+	extension_option="stl"
+fi
+
+if [ -z "${render_option}" ]
+then
+	render_option="full"
+fi
+
+# functions ////////////////////////////////////////////////////////////////////
+
+pew_pew_render () {
+	# render model
+
+	frobulator.inf "Rendering" "[ ${view[coordinates]} // ${model_name} ]"
+	echo
+
+	frobulator.fwd "Output" "[ ${render_file} ]"
+	echo
+
+	model_path="${1}"
+	coordinates="${2}"
+
+	if [[  -z "${height}" ]]
+	then
+		height="4096"
+	fi
+
+	if [[ -z "${width}" ]]
+	then
+		width="4096"
+	fi
+
+	extension="png"
+
+	f3d																	\
+		--ssao															\
+		--fxaa															\
+		--tone-mapping													\
+		--resolution "${width}","${height}"								\
+		--camera-azimuth-angle=${latitude[$coordinates]}				\
+		--camera-elevation-angle=${longitude[$coordinates]}				\
+		--no-background													\
+		--output="${model_name}-${view[$coordinates]}.${extension}"		\
+																		"${model_path}" > /dev/null 2>&1
+
+		wait
+}
+
+# requirements ////////////////////////////////////////////////////////////////
+
+list=(
+	f3d
+)
+
+if [[ $(id -u -n) = "root" ]]
+then
+	frobulator.require ${list[@]}
+
+	frobulator.msg "${script} requirements installed."
+	echo
+
+	frobulator.inf "Run ${script} as 'user' to proceed."
+	echo
+
+	exit
+else
+	for requirement in ${list[@]}
+	do
+		if [[ -z $(command -v "${requirement}") ]]
+		then
+			frobulator.err "Missing" "[ '${requirement}' ]"
+			echo
+
+			frobulator.wrn "Start ${script} as 'root' to install requirements."
+			echo
+
+			exit 1
+		fi
+	done
+fi
+
+list=()
+
+if [ "${option}" = "render" ]
+then
+	for extension in ${extensions_list[@]}
+	do
+		models_list=( $(find ${directory} -type f -iname "*.${extension}" ! -iname "*instructions*") )
+
+		for model_path in ${models_list[@]}
+		do
+			# set IFS
+
+			IFS=' '
+
+			# get model file name from path
+
+			model_file="${model_path##*/}"
+
+			# strip extension from model file name
+
+			model_name="${model_file%.*}"
+
+			# define render output directory
+
+			# use model directory as root
+
+			render_directory="${model_path%/*}"/renders
+
+			# use render directory as root
+
+			full_directory="${model_path%/*}"/renders/full
+
+			thumbnail_directory="${model_path%/*}"/renders/thumbnail
+
+			# define coordinate values and labels
+
+			# camera latitude
+
+			latitude=(
+				30
+				30
+				30
+				30
+				30
+				30
+				30
+				30
+			)
+
+			# camera longitude
+
+			longitude=(
+				0
+				45
+				90
+				135
+				180
+				225
+				270
+				315
+			)
+
+			# view labels
+
+			view=(
+				"00"
+				"01"
+				"02"
+				"03"
+				"04"
+				"05"
+				"06"
+				"07"
+			)
+
+			# define camera position presets
+
+			if [[ "${render_preset}" = "0" ]]
+			then
+				position=(0)
+			fi
+
+			if [[ "${render_preset}" = "1" ]]
+			then
+				position=(1)
+			fi
+
+			if [[ "${render_preset}" = "2" ]]
+			then
+				position=(2)
+			fi
+
+			if [[ "${render_preset}" = "3" ]]
+			then
+				position=(3)
+			fi
+
+			if [[ "${render_preset}" = "4" ]]
+			then
+				position=(4)
+			fi
+
+			if [[ "${render_preset}" = "5" ]]
+			then
+				position=(5)
+			fi
+
+			if [[ "${render_preset}" = "6" ]]
+			then
+				position=(6)
+			fi
+
+			if [[ "${render_preset}" = "7" ]]
+			then
+				position=(7)
+			fi
+
+			if [[ "${render_preset}" = "render" ]]
+			then
+				position=(1)
+			fi
+
+			if [[ "${render_preset}" = "thumbnail" ]]
+			then
+				height=512
+				width=512
+
+				position=(1)
+			fi
+
+			# render
+
+			# prepare base render directory:
+			# generate if does not exist
+
+			if [[ ! -d "${render_directory}" ]]
+			then
+				mkdir -p "${render_directory}"
+			fi
+
+			cd "${render_directory}"
+
+			if [[ "${render_preset}" = "thumbnail" ]]
+			then
+				if [[ -d "${thumbnail_directory}" ]]
+				then
+					rm -rf "${thumbnail_directory}"
+				fi
+
+				mkdir -p "${thumbnail_directory}"
+
+				cd "${thumbnail_directory}"
+			fi
+
+			for coordinates in ${position[@]}
+			do
+				render_file="${model_name}-${view[$coordinates]}.${extension}"
+
+				pew_pew_render "${model_path}" "${coordinates}"
+			done
+
+			# post rendering
+
+			if [[ "${render_option}" = "render" ]]
+			then
+				# rename renders to designated splash images
+
+				mv												\
+					"${model_name}-${view[1]}.${extension}"		\
+					"${render_directory}"/render."${extension}"
+			fi
+
+			if [[ "${render_option}" = "thumbnail" ]]
+			then
+				# rename renders to designated splash images
+
+				mv												\
+					"${model_name}-${view[1]}.${extension}"		\
+					"${thumbnail_directory}"/thumbnail."${extension}"
+			fi
+
+			# unset IFS
+
+			IFS=''
+		done
+	done
+fi
+
+# complete ////////////////////////////////////////////////////////////////////
+
+frobulator.scs "Done."
+echo
