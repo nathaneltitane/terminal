@@ -648,11 +648,11 @@ weather () {
 # youtube #
 
 youtube () {
-	if [[ -z $(command -v youtube-dl) ]]
+	if [[ -z $(command -v yt-dlp) ]]
 	then
-		frobulator.require youtube-dl
+		frobulator.require yt-dlp
 
-		frobulator.download https://yt-dl.org/downloads/latest /usr/bin youtube-dl
+		frobulator.download https://github.com/yt-dlp/yt-dlp/releases/download/2022.11.11/yt-dlp_linux /usr/bin yt-dlp
 	fi
 
 	url="${1}"
@@ -662,7 +662,7 @@ youtube () {
 
 	cd "${path}" || exit 1
 
-	youtube-dl																					\
+	yt-dlp																					\
 		--ignore-errors																			\
 		--yes-playlist																			\
 		--extract-audio																			\
