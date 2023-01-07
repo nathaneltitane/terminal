@@ -6,6 +6,8 @@ if [[ -z $(command -v frobulator) ]]
 then
 	if [[ $(id -u -n) = "root" ]]
 	then
+		SUDO_HOME=/root
+
 		USER="${SUDO_USER}"
 
 		HOME=/home/"${USER}"
@@ -18,10 +20,10 @@ then
 
 	if [ ! -d "${HOME}"/.local/bin ]
 	then
-		mkdir -p "${HOME}"/.local/bin/frobulator
+		mkdir -p "${HOME}"/.local/bin
 	fi
 
-	#curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin
 
 	chmod +x "${HOME}"/.local/bin/frobulator
 fi
