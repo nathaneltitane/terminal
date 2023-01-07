@@ -6,6 +6,8 @@ if [[ -z $(command -v frobulator) ]]
 then
 	if [[ $(id -u -n) = "root" ]]
 	then
+		SUDO_HOME=/root
+
 		USER="${SUDO_USER}"
 
 		HOME=/home/"${USER}"
@@ -58,6 +60,7 @@ echo
 storage_list=(
     external
     internal
+    recovery
 )
 
 for storage in ${storage_list[@]}
