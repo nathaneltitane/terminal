@@ -18,10 +18,10 @@ then
 
 	if [ ! -d "${HOME}"/.local/bin ]
 	then
-		mkdir -p "${HOME}"/.local/bin/frobulator
+		mkdir -p "${HOME}"/.local/bin
 	fi
 
-	#curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
 
 	chmod +x "${HOME}"/.local/bin/frobulator
 fi
