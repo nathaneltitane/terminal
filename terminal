@@ -77,15 +77,14 @@ storage_list=(
 	internal
 )
 
-frobulator.directory /media/ ${storage_list[@]}
+if [ -d /media/internal ]
+then
+	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
-storage_list=()
-
-frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
-frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
-
-chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
-chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+	chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+	chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+fi
 
 # shell ////////////////////////////////////////////////////////////////////////
 
