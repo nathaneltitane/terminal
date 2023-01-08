@@ -32,7 +32,7 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -57,26 +57,47 @@ echo
 
 if [ -d /media/internal/Lego ]
 then
-	if [ -f /media/internal/Lego/lpub3d/lpub3d.conf ]
+	if [ -d /media/internal/Lego/lpub3d ]
 	then
-		frobulator.inf "Linking configuration."
-		echo
+		if [ -f /media/internal/Lego/lpub3d/lpub3d.conf ]
+		then
+			frobulator.inf "Linking configuration."
+			echo
 
-		frobulator.directory "${HOME}"/.config/"LPub3D Software"
+			frobulator.directory "${HOME}"/.config/"LPub3D Software"
 
-		frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf lpub3d24.conf
+			frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf lpub3d24.conf
+		fi
+
+		if [ -f /media/internal/Lego/ldraw.zip ]
+		then
+			frobulator.inf "Generating library setup."
+			echo
+
+			mkdir -p "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries/
+
+			# official parts archive
+
+			unzip		\
+				-qq 	\
+				-o		\
+				-d 		\
+						"${HOME}"/.local/share/"LPub3D Software"/lpub3d24			\
+																					/media/internal/Lego/ldraw.zip
+
+			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldraw.zip complete.zip
+
+			# unofficial parts archive
+
+			unzip		\
+				-qq		\
+				-o		\
+				-d 		\
+						"${HOME}"/.local/share/"LPub3D Software"/lpub3d24/ldraw		\
+																					/media/internal/Lego/ldrawunf.zip
+
+			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldrawunf.zip lpub3dldrawunf.zip
+		fi
+
 	fi
-
-	frobulator.inf "Linking library archives."
-	echo
-
-	frobulator.directory "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries/
-
-	# official parts archive
-
-	frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldraw.zip complete.zip
-
-	# unofficial parts archive
-
-	frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldrawunf.zip lpub3dldrawunf.zip
 fi
