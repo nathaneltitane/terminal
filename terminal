@@ -64,18 +64,7 @@ storage_list=(
 	samsung/t7
 )
 
-for storage in ${storage_list[@]}
-do
-	if [ ! -d /media/"${storage}" ]
-	then
-		mkdir -p /media/"${storage}"
-
-		chown "${USER}":"${USER}" /media/"${storage}"
-
-		chmod -R 777 /media/"${storage}"
-		chmod -R 777 /media/"${storage}"/*
-	fi
-done
+frobulator.directory /media/ ${storage_list[@]}
 
 storage_list=()
 
@@ -88,13 +77,7 @@ storage_list=(
 	internal
 )
 
-for storage in ${storage_list[@]}
-do
-	if [ -d  /media/"${storage}" ]
-	then
-		storage=/media/internal
-	fi
-done
+frobulator.directory /media/ ${storage_list[@]}
 
 storage_list=()
 
