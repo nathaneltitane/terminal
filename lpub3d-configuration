@@ -74,7 +74,7 @@ then
 			frobulator.inf "Generating library setup."
 			echo
 
-			mkdir -p "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries/
+			frobulator.directory "${HOME}"/.local/share/"LPub3D Software" lpub3d24/libraries
 
 			# official parts archive
 
