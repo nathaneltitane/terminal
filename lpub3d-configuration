@@ -78,23 +78,13 @@ then
 
 			# official parts archive
 
-			unzip		\
-				-qq 	\
-				-o		\
-				-d 		\
-						"${HOME}"/.local/share/"LPub3D Software"/lpub3d24			\
-																					/media/internal/Lego/ldraw.zip
+			frobulator.extract /media/internal/Lego/ldraw.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d24
 
 			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldraw.zip complete.zip
 
 			# unofficial parts archive
 
-			unzip		\
-				-qq		\
-				-o		\
-				-d 		\
-						"${HOME}"/.local/share/"LPub3D Software"/lpub3d24/ldraw		\
-																					/media/internal/Lego/ldrawunf.zip
+			frobulator.extract /media/internal/Lego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/ldraw
 
 			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldrawunf.zip lpub3dldrawunf.zip
 		fi
