@@ -25,7 +25,7 @@ then
 
 	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
 
-	chmod +x "${HOME}"/.local/bin/frobulator
+	#chmod +x "${HOME}"/.local/bin/frobulator
 fi
 
 . "${HOME}"/.local/bin/frobulator
@@ -85,6 +85,7 @@ list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
+exit
 # get source code
 
 command_clone="git clone --quiet"
