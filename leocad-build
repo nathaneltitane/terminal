@@ -40,7 +40,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="09-23-2022"
+version="01-08-2023"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +109,7 @@ frobulator.progress "Building..."
 
 # update binary
 
-cp "${build_directory}"/build/release/"${application}" /usr/bin/"${application}"
+frobulator.copy "${build_directory}"/build/release/ /usr/bin/ "${application}"
 
 # generate launcher
 
