@@ -58,18 +58,18 @@ echo
 # storage //////////////////////////////////////////////////////////////////////
 
 storage_list=(
-    external
-    internal
-    recovery
+	external
+	internal
+	recovery
 )
 
 for storage in ${storage_list[@]}
 do
-    if [ -d /media/"${storage}" ]
-    then
-        chmod -R 777 /media/"${storage}"
-        chmod -R 777 /media/"${storage}"/*
-    fi
+	if [ -d /media/"${storage}" ]
+	then
+		chmod -R 777 /media/"${storage}"
+		chmod -R 777 /media/"${storage}"/*
+	fi
 done
 
 storage_list=()
@@ -80,15 +80,15 @@ frobulator.inf "Setting up" "[ git ]"
 echo
 
 storage_list=(
-    internal
+	internal
 )
 
 for storage in ${storage_list[@]}
 do
-    if [ -d  /media/"${storage}" ]
-    then
-    	storage=/media/internal
-    fi
+	if [ -d  /media/"${storage}" ]
+	then
+		storage=/media/internal
+	fi
 done
 
 storage_list=()
