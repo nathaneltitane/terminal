@@ -7,37 +7,45 @@ then
     mkdir -p "$docker_image_directory"
 fi
 
-docker run                  \
---detach                    \
---name pihole               \
--p 53:53/tcp                \
--p 53:53/udp                \
--p 80:80                    \
--e tz="america/toronto"                             \
--v "${docker_image_directory}/etc-pihole:/etc/pihole"               \
--v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"         \
---dns=127.0.0.1                                                    \
---dns=1.1.1.1                                                      \
---restart=unless-stopped                                           \
---hostname pi.hole                                                \
--e virtual_host="pi.hole"                                        \
--e proxy_location="pi.hole"                                      \
--e ftlconf_local_ipv4="192.168.86.13"                              \
-                                                                "${docker_image_source}
+docker run															\
+--detach															\
+--name pihole														\
+-p 53:53/tcp														\
+-p 53:53/udp														\
+-p 80:80															\
+-e tz="america/toronto"												\
+-v "${docker_image_directory}/etc-pihole:/etc/pihole"				\
+-v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"			\
+--dns=127.0.0.1														\
+--dns=1.1.1.1														\
+--restart=unless-stopped											\
+--hostname pi.hole													\
+-e virtual_host="pi.hole"											\
+-e proxy_location="pi.hole"											\
+-e ftlconf_local_ipv4="192.168.86.13"								\
+																	"${docker_image_source}
 
 printf 'starting up pihole container '
-for i in $(seq 1 20); do
-if [ "$(docker inspect -f "{{.state.health.status}}" pihole)" == "healthy" ] ; then
-printf ' ok'
-echo -e "\n$(docker logs pihole 2> /dev/null | grep 'password:') for your pi-hole: http://${ip}/admin/"
-exit 0
-else
-sleep 3
-printf '.'
-fi
 
-if [ $i -eq 20 ] ; then
-echo -e "\ntimed out waiting for pi-hole start, consult your container logs for more info (\`docker logs pihole\`)"
-exit 1
-fi
-done;
+for i in $(seq 1 20)
+do
+
+	if [ "$(docker inspect -f "{{.state.health.status}}" pihole)" == "healthy" ]
+	then
+		printf ' ok'
+		echo -e "\n$(docker logs pihole 2> /dev/null | grep 'password:') for your pi-hole: http://${ip}/admin/"
+		exit 0
+		else
+		sleep 3
+		printf '.'
+	fi
+
+	if [ $i -eq 20 ]
+	then
+		echo -e "\ntimed out waiting for pi-hole start, consult your container logs for more info (\`docker logs pihole\`)"
+
+		exit 1
+
+	fi
+
+done
