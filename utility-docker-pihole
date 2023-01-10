@@ -59,7 +59,6 @@ list=(
 	docker
 	docker-clean
 	docker-compose
-	docker-neon
 	docker-registry
 	docker.io
 )
@@ -73,7 +72,7 @@ then
 	frobulator.log "docker stop ${docker_image_name}"
 	frobulator.log "docker rm -f ${docker_image_name}"
 
-	frobulator.delete "${docker_image_directory}"
+	frobulator.delete "/var" "docker"
 
 	frobulator.directory "${docker_image_directory}"
 fi
