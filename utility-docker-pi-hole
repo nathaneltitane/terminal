@@ -3,6 +3,7 @@
 docker_image_name="pihole"
 docker_image_source="pihole/pihole:latest"
 docker_image_directory=/var/docker/pihole
+docker_image_address="192.168.86.13"
 
 if [[ ! -d "$docker_image_directory" ]]
 then
@@ -24,7 +25,7 @@ docker run																					\
 	-v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
 	-e virtual_host="${docker_image_name}"													\
 	-e proxy_location="${docker_image_name}"												\
-	-e ftlconf_local_ipv4="192.168.86.13"													\
+	-e ftlconf_local_ipv4="${docker_image_address}"													\
 																							"${docker_image_source}"
 
 for i in $(seq 1 20)
@@ -34,7 +35,7 @@ do
 	if [ "${docker_image_inspect}" == "healthy" ]
 	then
 		printf ' ok'
-		echo -e "\n$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:') for your pi-hole: http://${ip}/admin/"
+		echo -e "\n$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:') password for your pi-hole: http://${docker_image_address}/admin/"
 		exit 0
 		else
 		sleep 3
