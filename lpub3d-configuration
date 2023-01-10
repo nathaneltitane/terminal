@@ -32,7 +32,7 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-# frobulator.escalate
+frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -87,6 +87,8 @@ then
 			frobulator.extract /media/internal/Lego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/ldraw
 
 			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldrawunf.zip lpub3dldrawunf.zip
+
+			chmod -R 777 "${HOME}"/.local/share/"LPub3D Software"
 		fi
 
 	fi
