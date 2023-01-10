@@ -30,14 +30,13 @@ docker run																					\
 
 for i in $(seq 1 20)
 do
-	docker_image_inspect=$(docker inspect -f "{{json .State.Health}}" "${docker_image_name}")
+	docker_image_inspect=$(sudo docker inspect -f "{{json .State.Health}}" ${docker_image_name} | grep -i -o 'healthy')
+	docker_image_password=$(sudo docker logs ${docker_image_name} 2> /dev/null | grep 'password:' | cut -d ':' -f 2)
 
-	if [ "${docker_image_inspect}" == *healthy* ]
+	if [ "${docker_image_inspect}" = "healthy" ]
 	then
-		printf ' ok'
-		echo -e "\n$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:') password for your pi-hole: http://${docker_image_address}/admin/"
-		exit 0
-		else
+		echo -e "Password:${docker_image_password} -  http://${docker_image_address}/admin/"
+	else
 		sleep 3
 		printf '.'
 	fi
@@ -45,8 +44,5 @@ do
 	if [ $i -eq 20 ]
 	then
 		echo -e "image timeout"
-
-		exit 1
-
 	fi
 done
