@@ -32,7 +32,7 @@ for i in $(seq 1 20)
 do
 	docker_image_inspect=$(docker inspect -f "{{json .State.Health}}" "${docker_image_name}")
 
-	if [ "${docker_image_inspect}" == "healthy" ]
+	if [ "${docker_image_inspect}" == *healthy* ]
 	then
 		printf ' ok'
 		echo -e "\n$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:') password for your pi-hole: http://${docker_image_address}/admin/"
