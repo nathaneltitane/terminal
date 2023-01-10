@@ -68,9 +68,14 @@ frobulator.require ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [[ ! -d "$docker_image_directory" ]]
+if [[ -d "$docker_image_directory" ]]
 then
-	mkdir -p "${docker_image_directory}"
+	docker stop pihole
+	docker rm -f pihole
+
+	frobulator.delete "${docker_image_directory}"
+
+	frobulator.directory "${docker_image_directory}"
 fi
 
 docker run																					\
