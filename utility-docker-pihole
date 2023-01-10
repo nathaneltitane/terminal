@@ -67,7 +67,7 @@ list=(
 	docker.io
 )
 
-#frobulator.require ${list[@]}
+frobulator.require ${list[@]}
 
 list=()
 
@@ -113,7 +113,7 @@ docker run																					\
 
 wait
 
-frobulator.write "${docker_image_password}" "${docker_image_directory}"/password
+frobulator.write "${docker_image_password}" "${docker_image_directory}" password
 
 frobulator.inf "Image ID" "[ ${docker_image_id} ]"
 echo
