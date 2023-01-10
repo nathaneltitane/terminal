@@ -70,8 +70,8 @@ frobulator.require ${list[@]}
 
 if [[ -d "${docker_image_directory}" ]]
 then
-	docker stop pihole
-	docker rm -f pihole
+	docker stop pihole /dev/null 2>&1
+	docker rm -f pihole /dev/null 2>&1
 
 	frobulator.delete "${docker_image_directory}"
 
@@ -98,8 +98,8 @@ docker run																					\
 
 for i in $(seq 1 20)
 do
-	docker_image_inspect=$(sudo docker inspect -f "{{json .State.Health}}" ${docker_image_name} | grep -i -o 'healthy')
-	docker_image_password=$(sudo docker logs ${docker_image_name} 2> /dev/null | grep 'password:' | cut -d ':' -f 2)
+	docker_image_inspect=$(docker inspect -f "{{json .State.Health}}" ${docker_image_name} | grep -i -o 'healthy')
+	docker_image_password=$(docker logs ${docker_image_name} 2> /dev/null | grep 'password:' | cut -d ':' -f 2)
 
 	if [ "${docker_image_inspect}" = "healthy" ]
 	then
