@@ -51,8 +51,8 @@ version="01-10-2023"
 docker_image_name="pihole"
 docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
 docker_image_base="/var"
-docker_image_container=docker/"${docker_image_name}"
-docker_image_directory="${docker_image_base}"/"${docker_image_container}"
+docker_image_container="docker"
+docker_image_directory="${docker_image_base}"/"${docker_image_container}"/"${docker_image_name}"
 docker_image_address="192.168.86.13"
 
 # defaults /////////////////////////////////////////////////////////////////////
@@ -65,19 +65,28 @@ list=(
 	docker.io
 )
 
-frobulator.require ${list[@]}
+# frobulator.require ${list[@]}
+
+list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [[ -d "${docker_image_directory}" ]]
+if [[ ! -d "${docker_image_directory}" ]]
 then
+	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+else
 	frobulator.log "docker stop ${docker_image_name}"
 	frobulator.log "docker rm -f ${docker_image_name}"
 
-	frobulator.delete "${docker_image_base}" "${docker_image_container}"
+	frobulator.delete "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
 
-	frobulator.directory "${docker_image_directory}"
+	wait
+
+	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
 fi
+
+frobulator.inf "Deploying" "[ ${docker_image_name} ]"
+echo
 
 docker run																					\
 	--detach																				\
@@ -97,13 +106,6 @@ docker run																					\
 	-e ftlconf_local_ipv4="${docker_image_address}"											\
 																							"${docker_image_source}"
 
-	docker_image_inspect=$(docker inspect -f "{{json .State.Health}}" ${docker_image_name} | grep -i -o 'healthy')
-	docker_image_password=$(docker logs ${docker_image_name} 2> /dev/null | grep 'password:' | cut -d ':' -f 2)
+docker_image_password=$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:' | cut -d ':' -f 2)
 
-	if [ "${docker_image_inspect}" = "healthy" ]
-	then
-		echo -e "Password:${docker_image_password} -  http://${docker_image_address}/admin/"
-	else
-		sleep 3
-		printf '.'
-	fi
+frobulator.inf "Password:${docker_image_password}"
