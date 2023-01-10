@@ -68,7 +68,7 @@ frobulator.require ${list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [[ -d "$docker_image_directory" ]]
+if [[ -d "${docker_image_directory}" ]]
 then
 	docker stop pihole
 	docker rm -f pihole
