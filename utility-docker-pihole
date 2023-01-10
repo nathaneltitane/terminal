@@ -50,7 +50,9 @@ version="01-10-2023"
 
 docker_image_name="pihole"
 docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
-docker_image_directory=/var/docker/"${docker_image_name}"
+docker_image_base="/var"
+docker_image_container=docker/"${docker_image_name}"
+docker_image_directory="${docker_image_base}"/"${docker_image_container}"
 docker_image_address="192.168.86.13"
 
 # defaults /////////////////////////////////////////////////////////////////////
@@ -72,7 +74,7 @@ then
 	frobulator.log "docker stop ${docker_image_name}"
 	frobulator.log "docker rm -f ${docker_image_name}"
 
-	frobulator.delete "/var" "docker"
+	frobulator.delete "${docker_image_base}" "${docker_image_container}"
 
 	frobulator.directory "${docker_image_directory}"
 fi
