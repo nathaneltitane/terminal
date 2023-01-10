@@ -1,39 +1,40 @@
 #!/bin/bash
 
 docker_image_name="pihole"
-docker_image_source="${name}"/"${name}":latest
-docker_image_directory=/var/docker/"${name}"
+docker_image_source="${docker_image_name}"/"${docker_image_name}":latest
+docker_image_directory=/var/docker/"${docker_image_name}"
 
 if [[ -d "$docker_image_directory" ]]
 then
 		mkdir -p "$docker_image_directory"
 fi
 
-docker run															\
---detach															\
---name "${name}"													\
--p 53:53/tcp														\
--p 53:53/udp														\
--p 80:80															\
--e tz="america/toronto"												\
--v "${docker_image_directory}/etc-"${name}":/etc/"${name}""			\
--v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"			\
---dns=127.0.0.1														\
---dns=1.1.1.1														\
---restart=unless-stopped											\
---hostname "pi.hole"												\
--e virtual_host="pi.hole"											\
--e proxy_location="pi.hole"											\
--e ftlconf_local_ipv4="192.168.86.13"								\
-																	"${docker_image_source}
+docker run																					\
+	--detach																				\
+	--name "${docker_image_name}"															\
+	--dns=127.0.0.1																			\
+	--dns=1.1.1.1																			\
+	--restart=unless-stopped																\
+	--hostname "pi.hole"																	\
+	-p 53:53/tcp																			\
+	-p 53:53/udp																			\
+	-p 80:80																				\
+	-e tz="america/toronto"																	\
+	-v "${docker_image_directory}/etc-${docker_image_name}:/etc/${docker_image_name}"		\
+	-v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
+	-e virtual_host="pi.hole"																\
+	-e proxy_location="pi.hole"																\
+	-e ftlconf_local_ipv4="192.168.86.13"													\
+																							"${docker_image_source}
 
 for i in $(seq 1 20)
 do
+	docker_image_inspect=$(docker inspect -f "{{.state.health.status}}" "${docker_image_name}")
 
-	if [ "$(docker inspect -f "{{.state.health.status}}" "${name}")" == "healthy" ]
+	if [ "${docker_image_inspect}" == "healthy" ]
 	then
 		printf ' ok'
-		echo -e "\n$(docker logs "${name}" 2> /dev/null | grep 'password:') for your pi-hole: http://${ip}/admin/"
+		echo -e "\n$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:') for your pi-hole: http://${ip}/admin/"
 		exit 0
 		else
 		sleep 3
@@ -42,7 +43,7 @@ do
 
 	if [ $i -eq 20 ]
 	then
-		echo -e "\ntimed out waiting for pi-hole start, consult your container logs for more info (\`docker logs "${name}"\`)"
+		echo -e "\ntimed out waiting for pi-hole start, consult your container logs for more info (\`docker logs "${docker_image_name}"\`)"
 
 		exit 1
 
