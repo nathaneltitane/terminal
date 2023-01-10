@@ -53,7 +53,7 @@ docker_image_address="192.168.86.13"
 docker_image_base="/var"
 docker_image_container="docker"
 docker_image_directory="${docker_image_base}"/"${docker_image_container}"/"${docker_image_name}"
-docker_image_password=$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:' | cut -d ':' -f 2)
+docker_image_password=$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
 docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
 docker_image_id=$(docker container ls --all --quiet --filter "name=${docker_image_name}")
 
@@ -67,7 +67,7 @@ list=(
 	docker.io
 )
 
-frobulator.require ${list[@]}
+#frobulator.require ${list[@]}
 
 list=()
 
@@ -109,11 +109,11 @@ docker run																					\
 	-e virtual_host="${docker_image_name}"													\
 	-e proxy_location="${docker_image_name}"												\
 	-e ftlconf_local_ipv4="${docker_image_address}"											\
-																							"${docker_image_source}" 2>&1 /dev/null
+																							"${docker_image_source}" > /dev/null 2>&1
 
 wait
 
-frobulator.ing "Image ID" "[ ${docker_image_id} ]"
+frobulator.inf "Image ID" "[ ${docker_image_id} ]"
 echo
 
 frobulator.inf "Password" "[ ${docker_image_password} ]"
