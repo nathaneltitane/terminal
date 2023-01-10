@@ -49,8 +49,8 @@ version="01-10-2023"
 # variables ////////////////////////////////////////////////////////////////////
 
 docker_image_name="pihole"
-docker_image_source="pihole/pihole:latest"
-docker_image_directory=/var/docker/pihole
+docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
+docker_image_directory=/var/docker/"${docker_image_name}"
 docker_image_address="192.168.86.13"
 
 # defaults /////////////////////////////////////////////////////////////////////
@@ -83,12 +83,12 @@ docker run																					\
 	-p 53:53/tcp																			\
 	-p 53:53/udp																			\
 	-p 80:80																				\
-	-e tz="america/toronto"																	\
 	-v "${docker_image_directory}/etc-${docker_image_name}:/etc/${docker_image_name}"		\
 	-v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
+	-e tz="america/toronto"																	\
 	-e virtual_host="${docker_image_name}"													\
 	-e proxy_location="${docker_image_name}"												\
-	-e ftlconf_local_ipv4="${docker_image_address}"													\
+	-e ftlconf_local_ipv4="${docker_image_address}"											\
 																							"${docker_image_source}"
 
 for i in $(seq 1 20)
