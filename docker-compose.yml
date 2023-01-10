@@ -11,13 +11,14 @@ services:
       - "80:80/tcp"
       - "443:443/tcp"
     environment:
-      TZ: 'Asia/Kolkata' #this is the time zone
+      TZ: 'America/Toronto'
     volumes:
        - './etc-pihole/:/etc/pihole/'
        - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
     dns:
       - 127.0.0.1
       - 1.1.1.1
+    hostname: pihole
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
