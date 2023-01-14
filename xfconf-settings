@@ -65,6 +65,8 @@ list=(
 
 frobulator.require ${list[@]}
 
+list=()
+
 # functions ////////////////////////////////////////////////////////////////////
 
 # read settings

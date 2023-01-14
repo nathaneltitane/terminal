@@ -56,6 +56,8 @@ list=(
 
 frobulator.require ${list[@]}
 
+list=()
+
 # functions ////////////////////////////////////////////////////////////////////
 
 cat <<- 'FILE' > /usr/bin/background-cycler

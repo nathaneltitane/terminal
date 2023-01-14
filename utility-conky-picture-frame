@@ -58,6 +58,8 @@ list=(
 
 frobulator.require ${list[@]}
 
+list=()
+
 # functions ////////////////////////////////////////////////////////////////////
 
 alignment="top_left"

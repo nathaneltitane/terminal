@@ -350,6 +350,8 @@ colors () {
 
 	frobulator.require ${list[@]}
 
+	list=()
+
 	# print palette
 
 	for foreground_color in {0..7}
@@ -433,6 +435,8 @@ extract () {
 	)
 
 	frobulator.require ${list[@]}
+
+	list=()
 
 	archive="${1}"
 	directory="${2}"
