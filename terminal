@@ -74,7 +74,9 @@ list=()
 frobulator.inf "Setting up" "[ git ]"
 echo
 
-if [ -d /media/internal ]
+storage=/media/internal
+
+if [ -d "${storage}" ]
 then
 	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
 	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
