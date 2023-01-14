@@ -51,31 +51,28 @@ echo
 
 # variables ////////////////////////////////////////////////////////////////////
 
+storage=/media
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
 
 # storage //////////////////////////////////////////////////////////////////////
 
-storage_list=(
+list+=(
 	external
 	internal
 	recovery
 	samsung/t7
 )
 
-frobulator.directory /media/ ${storage_list[@]}
+frobulator.directory /media ${storage_list[@]}
 
-storage_list=()
+list=()
 
 # git //////////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Setting up" "[ git ]"
 echo
-
-storage_list=(
-	internal
-)
 
 if [ -d /media/internal ]
 then
@@ -91,7 +88,9 @@ fi
 frobulator.inf "Setting up" "[ shell ]"
 echo
 
-files_list+=(
+frobulator.directory "${HOME}" .local/bin
+
+list+=(
 	bash-aliases
 	bash-configuration
 	bash-functions
@@ -100,22 +99,22 @@ files_list+=(
 	bash-profile
 )
 
-frobulator.download get.trmnl.me /usr/bin ${files_list[@]}
+frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
 
-frobulator.link /usr/bin "${HOME}"      bash-aliases       .bash_aliases
-frobulator.link /usr/bin "${HOME}"      bash-configuration .bashrc
-frobulator.link /usr/bin "${HOME}"      bash-configuration .bash_configuration
-frobulator.link /usr/bin "${HOME}"      bash-functions     .bash_functions
-frobulator.link /usr/bin "${HOME}"      bash-login         .bash_login
-frobulator.link /usr/bin "${HOME}"      bash-logout        .bash_logout
-frobulator.link /usr/bin "${HOME}"      bash-profile       .bash_profile
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-aliases       .bash_aliases
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bashrc
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bash_configuration
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-functions     .bash_functions
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-login         .bash_login
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-logout        .bash_logout
+frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-profile       .bash_profile
 
-frobulator.link /usr/bin "${SUDO_HOME}" bash-aliases       .bash_aliases
-frobulator.link /usr/bin "${SUDO_HOME}" bash-configuration .bashrc
-frobulator.link /usr/bin "${SUDO_HOME}" bash-configuration .bash_configuration
-frobulator.link /usr/bin "${SUDO_HOME}" bash-functions     .bash_functions
-frobulator.link /usr/bin "${SUDO_HOME}" bash-login         .bash_login
-frobulator.link /usr/bin "${SUDO_HOME}" bash-logout        .bash_logout
-frobulator.link /usr/bin "${SUDO_HOME}" bash-profile       .bash_profile
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-aliases       .bash_aliases
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bashrc
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bash_configuration
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-functions     .bash_functions
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-login         .bash_login
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
+frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
 
-files_list=()
+list=()
