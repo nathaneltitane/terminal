@@ -47,7 +47,7 @@ adb_set_environment () {
 
 		if [ ! -d "${HOME}"/.adb ]
 		then
-		    mkdir -p "${HOME}"/.adb
+			mkdir -p "${HOME}"/.adb
 		fi
 
 		export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
