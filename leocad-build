@@ -85,7 +85,6 @@ list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
-exit
 # get source code
 
 command_clone="git clone --quiet"
