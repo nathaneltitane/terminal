@@ -51,15 +51,38 @@ echo
 
 # variables ////////////////////////////////////////////////////////////////////
 
-TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX)
+frobulator.temporary () {
+	if [[ -n "${#list[@]}" ]]
+	then
+		# ${1} - array
 
-trap 'rm -rf "${TEMPORARY}"' EXIT
+		list=(${@:1})
+	else
+		directory="${1}"
 
-build_directory="${TEMPORARY}"
+		list=()
 
+		list+=("${directory}")
+	fi
+
+	for directory in ${list[@]}
+	do
+		frobulator.add "Creating temporary directory" "[ ${directory} ]"
+		echo
+
+		mktemp -d -t frobulator.temporary.XXXXXX
+
+
+	done
+}
+
+frobulator.temporary build_directory
+
+echo "${build_directory}"
+trap 'rm -rf "${directory}"' EXIT
 application="leocad"
 source="https://github.com/leozide/leocad.git"
-
+exit 0
 # requirements /////////////////////////////////////////////////////////////////////
 
 list+=(
