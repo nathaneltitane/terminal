@@ -51,12 +51,6 @@ echo
 
 # variables ////////////////////////////////////////////////////////////////////
 
-TEMPORARY=$(mktemp -d -t TEMPORARY.XXXXXX)
-
-trap 'rm -rf "${TEMPORARY}"' EXIT
-
-download_directory="${TEMPORARY}"
-
 application="leocad"
 architecture="arm64"
 
@@ -77,6 +71,8 @@ install_list=(
 frobulator.install ${install_list[@]}
 
 # functions ////////////////////////////////////////////////////////////////////
+
+frobulator.temporary download_directory
 
 frobulator.download "${archive_url}" "${download_directory}"
 
