@@ -130,7 +130,7 @@ fi
 
 if [[ $(command -v rm) ]]
 then
-	alias 'rm'='rm -rf'
+	alias 'rm'='rm -r -f'
 fi
 
 if [[ $(command -v pgrep) ]]
