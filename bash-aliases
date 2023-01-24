@@ -168,179 +168,163 @@ fi
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'autoclean'='sudo apt-get autoclean'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'autoclean'='apt-get autoclean'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'autoremove'='sudo apt-get autoremove'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'autoremove'='apt-get autoremove'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'check'='sudo apt-get check'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'check'='apt-get check'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'clean'='sudo apt-get clean'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'clean'='apt-get clean'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'distribution-upgrade'='apt-get dist-upgrade'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'download'='sudo apt-get download'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'download'='apt-get download'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'install'='sudo apt-get install --no-install-recommends --no-upgrade'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'install'='apt-get install --no-install-recommends --no-upgrade'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'purge'='sudo apt-get purge'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'purge'='apt-get purge'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'reinstall'='sudo apt-get reinstall'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'reinstall'='apt-get reinstall'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'repair'='sudo apt-get -f install'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'repair'='apt-get -f install'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'remove'='sudo apt-get remove'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'remove'='apt-get remove'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'source'='sudo apt-get source'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'source'='apt-get source'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'update'='sudo apt-get update'
-fi
 
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'upgrade'='sudo apt-get upgrade'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'autoclean'='apt-get autoclean'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'autoremove'='apt-get autoremove'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'check'='apt-get check'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'clean'='apt-get clean'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'distribution-upgrade'='apt-get dist-upgrade'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'download'='apt-get download'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'install'='apt-get install --no-install-recommends --no-upgrade'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'purge'='apt-get purge'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'reinstall'='apt-get reinstall'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'repair'='apt-get -f install'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'remove'='apt-get remove'
-fi
-
-if [[ $(command -v apt-get) ]]
-then
-	alias 'source'='apt-get source'
-fi
-
+el
 if [[ $(command -v apt-get) ]]
 then
 	alias 'update'='apt-get update'
 fi
 
-if [[ $(command -v apt-get) ]]
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
-	alias 'upgrade'='apt-get upgrade'
+	alias 'upgrade'='sudo apt-get dist-upgrade'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'upgrade'='apt-get dist-upgrade'
 fi
+
 
 if [[ $(command -v sudo) && $(command -v apt-cache) ]]
 then
 	alias 'depend'='sudo apt-cache depends'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'depend'='apt-cache depends'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-cache) ]]
 then
 	alias 'reverse'='sudo apt-cache rdepends'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'reverse'='apt-cache rdepends'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-cache) ]]
 then
 	alias 'search'='sudo apt-cache search'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'search'='apt-cache search'
 fi
 
 if [[ $(command -v sudo) && $(command -v apt-cache) ]]
 then
 	alias 'status'='sudo apt-cache stats'
-fi
 
-if [[ $(command -v apt-cache) ]]
-then
-	alias 'depend'='apt-cache depends'
-fi
-
-if [[ $(command -v apt-cache) ]]
-then
-	alias 'reverse'='apt-cache rdepends'
-fi
-
-if [[ $(command -v apt-cache) ]]
-then
-	alias 'search'='apt-cache search'
-fi
-
-if [[ $(command -v apt-cache) ]]
+elif [[ $(command -v apt-cache) ]]
 then
 	alias 'status'='apt-cache stats'
 fi
