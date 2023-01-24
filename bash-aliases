@@ -163,52 +163,7 @@ then
 	alias 'wget'='wget -c'
 fi
 
-# aliases  /////////////////////////////////////////////////////////////////////
-
-if [[ $(command -v rsync) ]]
-then
-	alias 'copy'='rsync -a -r -q --progress -h'
-fi
-
-if [[ $(command -v find) && $(command -v wc) ]]
-then
-	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
-fi
-
-if [[ $(command -v find) && $(command -v wc) ]]
-then
-	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
-fi
-
-if [[ $(command -v nano) ]]
-then
-	alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
-fi
-
-if [[ $(command -v env) && $(command -v grep) ]]
-then
-	alias 'efilter'='env | grep -i'
-fi
-
-if [[ $(command -v ls) && $(command -v grep) ]]
-then
-	alias 'ffilter'='ls -a | grep -i'
-fi
-
-if [[ $(command -v ps) && $(command -v grep) ]]
-then
-	alias 'pfilter'='ps -a -u -x | grep -i'
-fi
-
-if [[ $(command -v curl) ]]
-then
-	alias 'header'='curl -I'
-fi
-
-if [[ $(command -v mount) && $(command -v column) ]]
-then
-	alias 'mounts'='mount | column -t'
-fi
+# package handling /////////////////////////////////////////////////////////////
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
@@ -388,6 +343,53 @@ fi
 if [[ $(command -v apt-cache) ]]
 then
 	alias 'status'='apt-cache stats'
+fi
+
+# aliases  /////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v rsync) ]]
+then
+	alias 'copy'='rsync -a -r -q --progress -h'
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
+fi
+
+if [[ $(command -v nano) ]]
+then
+	alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
+fi
+
+if [[ $(command -v env) && $(command -v grep) ]]
+then
+	alias 'efilter'='env | grep -i'
+fi
+
+if [[ $(command -v ls) && $(command -v grep) ]]
+then
+	alias 'ffilter'='ls -a | grep -i'
+fi
+
+if [[ $(command -v ps) && $(command -v grep) ]]
+then
+	alias 'pfilter'='ps -a -u -x | grep -i'
+fi
+
+if [[ $(command -v curl) ]]
+then
+	alias 'header'='curl -I'
+fi
+
+if [[ $(command -v mount) && $(command -v column) ]]
+then
+	alias 'mounts'='mount | column -t'
 fi
 
 if [[ $(command -v chgrp) ]]
