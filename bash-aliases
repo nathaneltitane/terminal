@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# bash  ////////////////////////////////////////////////////////////////////////
+# bash /////////////////////////////////////////////////////////////////////////
 
 if [[ -f "${HOME}"/.bash_aliases ]]
 then
@@ -33,6 +33,11 @@ then
 fi
 
 # directories //////////////////////////////////////////////////////////////////
+
+if [[ $(command -v cd) ]]
+then
+	alias '..'='cd ..'
+fi
 
 if [[ $(ls -d "${HOME}" 2> /dev/null) ]]
 then
@@ -106,64 +111,7 @@ then
 	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
 fi
 
-# commands  ////////////////////////////////////////////////////////////////////
-
-if [[ $(command -v cd) ]]
-then
-	alias '..'='cd ..'
-fi
-
-if [[ $(command -v df) ]]
-then
-	alias 'df'='df -H'
-fi
-
-if [[ $(command -v du) ]]
-then
-	alias 'du'='du -a -c -h'
-fi
-
-if [[ $(command -v ls) ]]
-then
-	alias 'ls'='ls -a -h -l --group-directories-first'
-fi
-
-if [[ $(command -v rm) ]]
-then
-	alias 'rm'='rm -r -f'
-fi
-
-if [[ $(command -v pgrep) ]]
-then
-	alias 'pgrep'='pgrep -f'
-fi
-
-if [[ $(command -v sudo) && $(command -v pkill) ]]
-then
-	alias 'pkill'='sudo pkill -9'
-fi
-
-if [[ $(command -v pkill) ]]
-then
-	alias 'pkill'='pkill -9'
-fi
-
-if [[ $(command -v pstree) ]]
-then
-	alias 'ptree'='pstree -C age -p'
-fi
-
-if [[ $(command -v shutdown) ]]
-then
-	alias 'shutdown'='shutdown -h now'
-fi
-
-if [[ $(command -v wget) ]]
-then
-	alias 'wget'='wget -c'
-fi
-
-# package handling /////////////////////////////////////////////////////////////
+# packages /////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
@@ -328,97 +276,7 @@ then
 	alias 'status'='apt-cache stats'
 fi
 
-# aliases  /////////////////////////////////////////////////////////////////////
-
-if [[ $(command -v rsync) ]]
-then
-	alias 'copy'='rsync -a -r -q --progress -h'
-fi
-
-if [[ $(command -v find) && $(command -v wc) ]]
-then
-	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
-fi
-
-if [[ $(command -v find) && $(command -v wc) ]]
-then
-	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
-fi
-
-if [[ $(command -v nano) ]]
-then
-	alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
-fi
-
-if [[ $(command -v env) && $(command -v grep) ]]
-then
-	alias 'efilter'='env | grep -i'
-fi
-
-if [[ $(command -v ls) && $(command -v grep) ]]
-then
-	alias 'ffilter'='ls -a | grep -i'
-fi
-
-if [[ $(command -v ps) && $(command -v grep) ]]
-then
-	alias 'pfilter'='ps -a -u -x | grep -i'
-fi
-
-if [[ $(command -v curl) ]]
-then
-	alias 'header'='curl -I'
-fi
-
-if [[ $(command -v mount) && $(command -v column) ]]
-then
-	alias 'mounts'='mount | column -t'
-fi
-
-if [[ $(command -v chgrp) ]]
-then
-	alias 'chgrp'='chgrp --preserve-root'
-fi
-
-if [[ $(command -v chmod) ]]
-then
-	alias 'chmod'='chmod --preserve-root'
-fi
-
-if [[ $(command -v chown) ]]
-then
-	alias 'chown'='chown --preserve-root'
-fi
-
-if [[ $(command -v netstat) ]]
-then
-	alias 'ports'='netstat -t -u -l -a -n -p'
-fi
-
-if [[ $(command -v echo) ]]
-then
-	alias 'where'='echo ${PWD}'
-fi
-
-if [[ $(command -v ps) ]]
-then
-	alias 'what'='ps -e'
-fi
-
-if [[ $(command -v ps) ]]
-then
-	alias 'how'='ps -u'
-fi
-
-if [[ $(command -v ping) ]]
-then
-	alias 'sonar'='ping -c 5'
-fi
-
-if [[ $(command -v sudo) ]]
-then
-	alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
-fi
+# stystem //////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v sudo) && $(command -v systemctl) ]]
 then
@@ -445,12 +303,155 @@ then
 	alias 'status'='sudo systemctl status'
 fi
 
+# filters //////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v env) && $(command -v grep) ]]
+then
+	alias 'efilter'='env | grep -i'
+fi
+
+if [[ $(command -v ls) && $(command -v grep) ]]
+then
+	alias 'ffilter'='ls -a | grep -i'
+fi
+
+if [[ $(command -v ps) && $(command -v grep) ]]
+then
+	alias 'pfilter'='ps -a -u -x | grep -i'
+fi
+
+# commands  ////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v chgrp) ]]
+then
+	alias 'chgrp'='chgrp --preserve-root'
+fi
+
+if [[ $(command -v chmod) ]]
+then
+	alias 'chmod'='chmod --preserve-root'
+fi
+
+if [[ $(command -v chown) ]]
+then
+	alias 'chown'='chown --preserve-root'
+fi
+
+if [[ $(command -v curl) ]]
+then
+	alias 'header'='curl -I'
+fi
+
+if [[ $(command -v df) ]]
+then
+	alias 'df'='df -H'
+fi
+
+if [[ $(command -v du) ]]
+then
+	alias 'du'='du -a -c -h'
+fi
+
+if [[ $(command -v du) ]]
+then
+	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
+fi
+
+if [[ $(command -v echo) ]]
+then
+	alias 'where'='echo ${PWD}'
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
+fi
+
 if [[ $(command -v killall) ]]
 then
 	alias 'kill'='killall'
 fi
 
-if [[ $(command -v du) && $(command -v sort) ]]
+if [[ $(command -v ls) ]]
 then
-	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
+	alias 'ls'='ls -a -h -l --group-directories-first'
+fi
+
+if [[ $(command -v mount) && $(command -v column) ]]
+then
+	alias 'mounts'='mount | column -t'
+fi
+
+if [[ $(command -v nano) ]]
+then
+	alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
+fi
+
+if [[ $(command -v netstat) ]]
+then
+	alias 'ports'='netstat -t -u -l -a -n -p'
+fi
+
+if [[ $(command -v pgrep) ]]
+then
+	alias 'pgrep'='pgrep -f'
+fi
+
+if [[ $(command -v sudo) && $(command -v pkill) ]]
+then
+	alias 'pkill'='sudo pkill -9'
+
+elif [[ $(command -v pkill) ]]
+then
+	alias 'pkill'='pkill -9'
+fi
+
+if [[ $(command -v pstree) ]]
+then
+	alias 'ptree'='pstree -C age -p'
+fi
+
+if [[ $(command -v ping) ]]
+then
+	alias 'sonar'='ping -c 5'
+fi
+
+if [[ $(command -v ps) ]]
+then
+	alias 'what'='ps -e'
+fi
+
+if [[ $(command -v ps) ]]
+then
+	alias 'how'='ps -u'
+fi
+
+if [[ $(command -v rm) ]]
+then
+	alias 'rm'='rm -r -f'
+fi
+
+if [[ $(command -v rsync) ]]
+then
+	alias 'copy'='rsync -a -r -q --progress -h'
+fi
+
+if [[ $(command -v shutdown) ]]
+then
+	alias 'shutdown'='shutdown -h now'
+fi
+
+if [[ $(command -v sudo) ]]
+then
+	alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
+fi
+
+if [[ $(command -v wget) ]]
+then
+	alias 'wget'='wget -c'
 fi
