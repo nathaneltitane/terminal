@@ -292,7 +292,6 @@ then
 	alias 'upgrade'='apt-get dist-upgrade'
 fi
 
-
 if [[ $(command -v sudo) && $(command -v apt-cache) ]]
 then
 	alias 'depend'='sudo apt-cache depends'
