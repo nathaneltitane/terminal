@@ -111,6 +111,11 @@ then
 	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
 fi
 
+if [[ $(command -v git) ]]
+then
+	alias 'gn'='git ls-files | xargs cat | wc -l'
+fi
+
 # packages /////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v sudo) && $(command -v apt-get) ]]
