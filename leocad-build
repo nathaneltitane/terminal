@@ -81,6 +81,8 @@ list=()
 
 frobulator.temporary build_directory
 
+frobulator.trap "${build_directory}"
+
 # get source code
 
 command_clone="git clone --quiet"
