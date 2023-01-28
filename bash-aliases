@@ -341,6 +341,11 @@ then
 	alias 'chown'='chown --preserve-root'
 fi
 
+if [[ $(command -v command) ]]
+then
+	alias 'which'='command -v'
+fi
+
 if [[ $(command -v curl) ]]
 then
 	alias 'header'='curl -I'
