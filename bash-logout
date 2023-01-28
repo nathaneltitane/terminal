@@ -1,3 +1,26 @@
 #!/bin/bash
 
-# logout //////////////////////////////////////////////////////////////////////
+# logout ///////////////////////////////////////////////////////////////////////
+
+# dextop ///////////////////////////////////////////////////////////////////////
+
+if [ "${TERMUX_VERSION}" ] && [ -f "${HOME}"/.dextop/dextop ]
+then
+	if [[ $(cat "${HOME}"/.dextop/dextop-logout) = "logout" ]]
+	then
+
+		# audio
+
+		if [[ $(pidof pulseaudio) ]]
+		then
+			pulseaudio --kill
+		fi
+
+		# automatic session stop
+
+		if [[ $(pidof Xvnc) ]]
+		then
+			container-session -x
+		fi
+	fi
+fi
