@@ -230,8 +230,7 @@ if [[ $(command -v sudo) && $(command -v apt-get) ]]
 then
 	alias 'update'='sudo apt-get update'
 
-el
-if [[ $(command -v apt-get) ]]
+elif [[ $(command -v apt-get) ]]
 then
 	alias 'update'='apt-get update'
 fi
