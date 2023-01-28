@@ -83,7 +83,7 @@ frobulator.temporary build_directory
 
 frobulator.trap "${build_directory}"
 
-build_directory=$temporary_directory
+build_directory="${temporary_directory}"
 
 # get source code
 
