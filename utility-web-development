@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="01-04-2022"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+echo
+
+# variables ////////////////////////////////////////////////////////////////////
+
+local_content_directory="${PWD}"
+local_server_directory=/var/www/html
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+list=(
+	apache2
+)
+
+frobulator.require ${list[@]}
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# generate server configuration
+
+cat <<- 'FILE' > /etc/apache2/sites-enabled/web-development.conf
+<VirtualHost *:80>
+        ServerAdmin     nathanel.titane@gmail.com
+        ServerName      web-development
+        ServerAlias     dev.web.com
+        DocumentRoot    /var/www/html/
+        ErrorLog        ${APACHE_LOG_DIR}/web-development.error.log
+        CustomLog       ${APACHE_LOG_DIR}/web-development.access.log combined
+</VirtualHost>
+FILE
+
+# reload service
+
+service apache2 reload
+
+# enable virtual host configuration distribution
+
+a2ensite web-development.conf
+
+# configure server host address
+
+cat <<- 'FILE' >> /etc/hosts
+127.0.0.1       dev.web.com
+FILE
+
+# generate local server directory
+
+directories_list=(
+	/var/www/html
+)
+
+frobulator.directory ${directories_list[@]}
+
+# pull /////////////////////////////////////////////////////////////////////////
+
+rsync							\
+	--archive					\
+	--quiet						\
+	--recursive					\
+	--exclude='*.ldr'			\
+	--exclude='*.mpd'			\
+	--exclude='*.pdf'			\
+	--exclude="instructions"	\
+	--exclude="configuration"	\
+	--exclude='LPub3D'			\
+						"${local_content_directory}"/* "${local_server_directory}"
+
+frobulator.scs "Server" "[ Done ]"
+echo
