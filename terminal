@@ -67,11 +67,9 @@ storage_directory=/media
 list+=(
 	external
 	internal
-	recovery
-	samsung/t7
 )
 
-frobulator.directory /media ${storage_list[@]}
+frobulator.directory /media ${list[@]}
 
 list=()
 
