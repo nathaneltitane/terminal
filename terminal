@@ -90,9 +90,11 @@ storage="${storage_directory}"/internal
 if [ -d "${storage}" ]
 then
 	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
-	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
 	chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+
+	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+
 	chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
 fi
 
