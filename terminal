@@ -28,6 +28,13 @@ then
 		mkdir -p "${HOME}"/.local/bin
 	fi
 
+	if [[ $(id -u -n) = "root" ]]
+	then
+		chown "${USER}:${USER}" "${HOME}"/.local/*
+
+		chmod -R 777 "${HOME}"/.local/*
+	fi
+
 	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
 
 	chmod +x "${HOME}"/.local/bin/frobulator
@@ -35,6 +42,8 @@ fi
 
 . "${HOME}"/.local/bin/frobulator
 
+
+exit
 # superuser ////////////////////////////////////////////////////////////////////
 
 frobulator.escalate
