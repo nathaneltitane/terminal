@@ -42,8 +42,6 @@ fi
 
 . "${HOME}"/.local/bin/frobulator
 
-
-exit
 # superuser ////////////////////////////////////////////////////////////////////
 
 frobulator.escalate
