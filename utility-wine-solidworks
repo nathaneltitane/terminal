@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# requirements
+
+yes | sudo apt-get install cabextract curl p7zip p7zip-full p7zip-rar wget winbind
+
+# repository
+
+sudo apt-get update
+sudo apt-get upgrade
+
+yes | sudo dpkg --add-architecture i386
+
+wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+
+yes | sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ jammy main'
+
+sudo apt-get update
+sudo apt-get upgrade
+
+yes | sudo apt-get install --install-recommends winehq-staging
+
+# variables
+
+wine_prefix="${HOME}"/.wine
+wine_drive="${wine_prefix}"/drive_c
+
+WINEPREFIX="${wine_prefix}"
+
+# gecko
+
+curl -s -L https://dl.winehq.org/wine/wine-gecko/2.47.3/wine-gecko-2.47.3-x86.msi > "${HOME}"/Downloads/wine-gecko.msi
+
+WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-gecko.msi /qn
+
+# mono
+
+curl -s -L https://dl.winehq.org/wine/wine-mono/7.4.0/wine-mono-7.4.0-x86.msi > "${HOME}"/Downloads/wine-mono.msi
+
+WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-mono.msi /qn
+
+# winetricks
+
+curl -s -L https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks > "${HOME}"/.local/bin/winetricks
+
+chmod +x "${HOME}"/.local/bin/winetricks
+
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q corefonts
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dxvk
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q vcrun2019
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml6
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q win10
+
+# vba 7.1
+
+curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba7.1.zip > "${HOME}"/Downloads/vba7.1.zip
+
+unzip "${HOME}"/Downloads/vba7.1.zip
+
+cp -r "${HOME}"/Downloads/vba7.1/* "${wine_drive}"
+
+# vba 7.1 patch
+
+curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba71-kb2783832-x64.msp > "${HOME}"/Downloads/vba-patch.msp
+
+WINEPREFIX="${wine_prefix}" msiexec /p "${HOME}"/Downloads/vba-patch.msp REINSTALL=ALL REINSTALLMODE=omus /qn
+
+exit
+
+# solidworks
+
+curl -s -L https://dl-ak.solidworks.com/nonsecure/sw2022/sw2022_sp02.0_f/x64/220318.003-1-PGQH6ND3/SolidWorksSetup.exe > "${HOME}"/Downloads/solidworks.exe
+
+unzip "${HOME}"/Downloads/solidworks.exe
+
+# rfkill block 1
+
+WINEPREFIX="${wine_prefix}" wine "${HOME}"/Downloads/sldim/sldIM.exe
+
+# rfkill unblock 1
