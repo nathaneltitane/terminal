@@ -30,7 +30,7 @@ then
 
 	if [[ $(id -u -n) = "root" ]]
 	then
-		chown "${USER}:${USER}" "${HOME}"/.local/*
+		chown "${USER}":"${USER}" "${HOME}"/.local/*
 
 		chmod -R 777 "${HOME}"/.local/*
 	fi
