@@ -45,7 +45,7 @@ curl -s -L https://raw.githubusercontent.com/Winetricks/winetricks/master/src/wi
 
 chmod +x "${HOME}"/.local/bin/winetricks
 
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q corefonts
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q allfonts
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dxvk
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q vcrun2019
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml6
