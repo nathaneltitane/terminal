@@ -2,7 +2,7 @@
 
 # requirements
 
-yes | sudo apt-get install cabextract curl p7zip p7zip-full p7zip-rar wget winbind
+yes | sudo apt-get install cabextract curl p7zip p7zip-full p7zip-rar rfkill wget winbind
 
 # repository
 
