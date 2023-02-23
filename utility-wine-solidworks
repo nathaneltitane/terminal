@@ -69,12 +69,12 @@ exit
 
 # solidworks
 
-curl -s -L https://dl-ak.solidworks.com/nonsecure/sw2022/sw2022_sp02.0_f/x64/220318.003-1-PGQH6ND3/SolidWorksSetup.exe > "${HOME}"/Downloads/solidworks.exe
+# curl -s -L https://dl-ak.solidworks.com/nonsecure/sw2022/sw2022_sp02.0_f/x64/220318.003-1-PGQH6ND3/SolidWorksSetup.exe > "${HOME}"/Downloads/solidworks.exe
 
-unzip "${HOME}"/Downloads/solidworks.exe
+# unzip "${HOME}"/Downloads/solidworks.exe
 
-# rfkill block 1
+rfkill block 1
 
-WINEPREFIX="${wine_prefix}" wine "${HOME}"/Downloads/sldim/sldIM.exe
+# WINEPREFIX="${wine_prefix}" wine "${HOME}"/Downloads/sldim/sldIM.exe
 
 # rfkill unblock 1
