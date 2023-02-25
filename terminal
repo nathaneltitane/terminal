@@ -69,6 +69,17 @@ storage_directory=/media
 
 # functions ////////////////////////////////////////////////////////////////////
 
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+        git
+	hub
+)
+
+frobulator.assess ${list[@]}
+
+list=()
+
 # storage //////////////////////////////////////////////////////////////////////
 
 list+=(
@@ -76,7 +87,13 @@ list+=(
 	internal
 )
 
-frobulator.directory /media ${list[@]}
+if [ -d "/mnt/wsl*" ]
+then
+	ln -s -f /mnt/y /media/internal
+	ln -s -f /mnt/z /media/external
+else
+	frobulator.directory /media ${list[@]}
+fi
 
 list=()
 
