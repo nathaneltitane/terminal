@@ -398,7 +398,7 @@ fi
 
 if [[ $(command -v nano) ]]
 then
-	alias 'edit'='nano -c -g -i -l -m -D -F -J80 -T4'
+	alias 'edit'='nano -c -g -i -l -m -q -D -F -J 80 -T 4'
 fi
 
 if [[ $(command -v netstat) ]]
