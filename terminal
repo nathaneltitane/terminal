@@ -89,8 +89,8 @@ list+=(
 
 if [ -d "/mnt/wsl*" ]
 then
-	ln -s -f /mnt/y /media/internal
-	ln -s -f /mnt/z /media/external
+	frobulator.link /mnt/y /media/internal
+	frobulator.link /mnt/z /media/external
 else
 	frobulator.directory /media ${list[@]}
 fi
