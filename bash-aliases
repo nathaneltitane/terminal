@@ -442,7 +442,7 @@ fi
 
 if [[ $(command -v rm) ]]
 then
-	alias 'rm'='rm -r -f'
+	alias 'delete'='rm -r -f'
 fi
 
 if [[ $(command -v rsync) ]]
