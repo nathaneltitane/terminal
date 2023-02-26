@@ -567,7 +567,7 @@ icons () {
 	done
 }
 
-# inkscape #
+# inkscape /////////////////////////////////////////////////////////////////////
 
 inkscape-export () {
 	frobulator.require inkscape
@@ -590,7 +590,7 @@ inkscape-export () {
 	done
 }
 
-# record #
+# record ///////////////////////////////////////////////////////////////////////
 
 record () {
 	frobulator.require recordmydesktop
@@ -613,15 +613,15 @@ record () {
 		--output="${path}"/clip-"${stamp}".ogv
 }
 
-# size #
+# size /////////////////////////////////////////////////////////////////////////
 
 size () {
 	echo "W: $(tput cols) x H: $(tput lines)"
 }
 
-# sprunge #
+# snippet //////////////////////////////////////////////////////////////////////
 
-sprunge () {
+snippet () {
 	url="http://sprunge.us"
 
 	if (($#))
@@ -632,7 +632,7 @@ sprunge () {
 	fi
 }
 
-# terminate
+# terminate ////////////////////////////////////////////////////////////////////
 
 terminate () {
 	process_name="${1}"
@@ -646,24 +646,30 @@ terminate () {
 	fi
 }
 
-# weather #
+# weather //////////////////////////////////////////////////////////////////////
 
 weather () {
+	url="wttr.in"
+	
 	echo
 
-	curl -s wttr.in | head -n -2
+	curl -s "${url}" | head -n -2
 
 	echo
 }
 
-# youtube #
+# youtube //////////////////////////////////////////////////////////////////////
 
 youtube () {
 	if [[ -z $(command -v yt-dlp) ]]
 	then
 		frobulator.require yt-dlp
 
-		frobulator.download https://github.com/yt-dlp/yt-dlp/releases/download/2022.11.11/yt-dlp_linux /usr/bin yt-dlp
+		frobulator.download https://github.com/yt-dlp/yt-dlp/releases/download/2022.11.11/yt-dlp_linux "${HOME}"/.local/bin yt-dlp
+
+		wait
+
+		yt-dlp --update
 	fi
 
 	url="${1}"
@@ -673,7 +679,7 @@ youtube () {
 
 	cd "${path}" || exit 1
 
-	yt-dlp																					\
+	yt-dlp																						\
 		--ignore-errors																			\
 		--yes-playlist																			\
 		--extract-audio																			\
