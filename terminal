@@ -72,7 +72,7 @@ storage_directory=/media
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
-        git
+	git
 	hub
 )
 
