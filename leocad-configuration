@@ -67,8 +67,6 @@ then
 		frobulator.inf "Linking configuration."
 		echo
 
-		frobulator.directory "${HOME}"/.config "LeoCAD Software"
-
 		frobulator.link /media/internal/Lego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
 	fi
 fi
