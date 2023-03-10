@@ -60,7 +60,13 @@ echo
 
 # functions ////////////////////////////////////////////////////////////////////
 
-list+=(
+install_list+=(
+	apache2
+	cura
+	ffmpeg
+)
+
+remove_list+=(
 	apport*
 	firefox
 	info
@@ -71,19 +77,24 @@ list+=(
 	xterm
 )
 
-frobulator.remove ${list[@]}
-
-list=()
-
-list+=(
-	apache2
-	ffmpeg
+kde_list+=(
 	kaffeine
 	kfind
 	krename
 	ktorrent
 )
 
-frobulator.install ${list[@]}
+pip_list=(
+	trimesh
+	puddletag
+	scdl
+)
 
-list=()
+frobulator.remove ${remove_list[@]}
+
+frobulator.install ${install_list[@]}
+
+if [[ "${DESKTOP_SESSION}" = "plasma" ]]
+then
+	frobulator.install ${kde_list[@]}
+fi
