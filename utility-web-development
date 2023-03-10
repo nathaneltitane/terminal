@@ -60,11 +60,13 @@ echo
 
 # functions ////////////////////////////////////////////////////////////////////
 
-frobulator.require apache2
+frobulator.install apache2
 
 frobulator.silence "service apache2 start" &
 
 frobulator.progress "Starting service..."
+
+frobulator.inf "Setting ownership"
 
 chmod -R 777 /var/www/html
 
