@@ -37,7 +37,7 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-# frobulator.escalate
+frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -78,10 +78,6 @@ purge_list+=(
 	xterm
 )
 
-gnome_list+=(
-
-)
-
 kde_list+=(
 	kaffeine
 	kfind
@@ -117,9 +113,4 @@ done
 if [[ "${DESKTOP_SESSION}" = "plasma" ]]
 then
 	frobulator.install ${kde_list[@]}
-fi
-
-if [[ "${DESKTOP_SESSION}" = "gnome" ]]
-then
-	frobulator.install ${gnome_list[@]}
 fi
