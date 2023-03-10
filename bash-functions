@@ -663,23 +663,22 @@ weather () {
 youtube () {
 	if [[ -z $(command -v yt-dlp) ]]
 	then
-		frobulator.require yt-dlp
-
 		frobulator.download https://github.com/yt-dlp/yt-dlp/releases/download/2022.11.11/yt-dlp_linux "${HOME}"/.local/bin yt-dlp
-
-		wait
-
-		yt-dlp --update
 	fi
+
+	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
 
 	url="${1}"
 	path="${2}"
 
-	[ -z "${path}" ] && path="${PWD}"
+	if [ -z "${path}" ]
+	then
+		path="${PWD}"
+	fi
 
 	cd "${path}" || exit 1
 
-	yt-dlp																						\
+	"${HOME}"/.local/bin/yt-dlp																	\
 		--ignore-errors																			\
 		--yes-playlist																			\
 		--extract-audio																			\
