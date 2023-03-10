@@ -64,9 +64,10 @@ install_list+=(
 	apache2
 	cura
 	ffmpeg
+	samba
 )
 
-remove_list+=(
+purge_list+=(
 	apport*
 	firefox
 	info
@@ -75,6 +76,10 @@ remove_list+=(
 	snapd
 	vlc
 	xterm
+)
+
+gnome_list+=(
+
 )
 
 kde_list+=(
@@ -90,11 +95,16 @@ pip_list=(
 	scdl
 )
 
-frobulator.remove ${remove_list[@]}
+frobulator.purge ${purge_list[@]}
 
 frobulator.install ${install_list[@]}
 
 if [[ "${DESKTOP_SESSION}" = "plasma" ]]
 then
 	frobulator.install ${kde_list[@]}
+fi
+
+if [[ "${DESKTOP_SESSION}" = "gnome" ]]
+then
+	frobulator.install ${gnome_list[@]}
 fi
