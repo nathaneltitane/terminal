@@ -99,6 +99,21 @@ frobulator.purge ${purge_list[@]}
 
 frobulator.install ${install_list[@]}
 
+if [ -d /media/internal/Linux/applications ]
+then
+	cd /media/internal/Linux/applications
+
+	for package in *.deb
+	do
+		frobulator.install "${package}"
+	done
+fi
+
+for package in ${pip_list[@]}
+do
+	pip install "${package}"
+done
+
 if [[ "${DESKTOP_SESSION}" = "plasma" ]]
 then
 	frobulator.install ${kde_list[@]}
