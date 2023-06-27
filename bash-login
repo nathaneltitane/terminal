@@ -6,7 +6,7 @@
 
 if [ "${TERMUX_VERSION}" ] && [ -f "${HOME}"/.dextop/dextop ]
 then
-	if [[ $(cat "${HOME}"/.dextop/dextop-option) = xfce ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-environment) = xfce ]]
 	then
 		session_interface="XFCE"
 	else
@@ -50,6 +50,7 @@ then
 				termux-packages
 				termux-repositories
 				termux-storage
+				termux-display
 				termux-update
 				container-expansion
 				container-image
