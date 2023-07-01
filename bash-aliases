@@ -381,11 +381,6 @@ then
 	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
 fi
 
-if [[ $(command -v killall) ]]
-then
-	alias 'kill'='killall'
-fi
-
 if [[ $(command -v ls) ]]
 then
 	alias 'ls'='ls -a -h -l --group-directories-first'
@@ -409,15 +404,6 @@ fi
 if [[ $(command -v pgrep) ]]
 then
 	alias 'pgrep'='pgrep -f'
-fi
-
-if [[ $(command -v sudo) && $(command -v pkill) ]]
-then
-	alias 'pkill'='sudo pkill -9'
-
-elif [[ $(command -v pkill) ]]
-then
-	alias 'pkill'='pkill -9'
 fi
 
 if [[ $(command -v pstree) ]]
