@@ -18,7 +18,16 @@ then
 
 		# automatic session stop
 
+		# vnc
+
 		if [[ $(pidof Xvnc) ]]
+		then
+			container-session -x
+		fi
+
+		# x11
+
+		if [[ $(pidof app_process / com.termux.x11.Loader) ]]
 		then
 			container-session -x
 		fi
