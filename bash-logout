@@ -6,17 +6,16 @@
 
 if [ "${TERMUX_VERSION}" ] && [ -f "${HOME}"/.dextop/dextop ]
 then
+	# automatic session stop
+
 	if [[ $(cat "${HOME}"/.dextop/dextop-logout) = "logout" ]]
 	then
-
 		# audio
 
 		if [[ $(pidof pulseaudio) ]]
 		then
 			pulseaudio --kill
 		fi
-
-		# automatic session stop
 
 		# vnc
 
