@@ -19,7 +19,7 @@ then
 
 		# vnc
 
-		if [[ $(pidof Xvnc) ]]
+		if [[ $(pidof x11vnc) ]]
 		then
 			container-session -x
 		fi
