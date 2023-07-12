@@ -105,7 +105,7 @@ then
 
 	# automatic session start
 
-	if [[ $(pidof Xvnc) ]]
+	if [[ $(pidof x11vnc) ]]
 	then
 		:
 	else
