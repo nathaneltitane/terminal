@@ -6,7 +6,7 @@
 
 if [ "${TERMUX_VERSION}" ]
 then
-	if [[ $(cat "${HOME}"/.dextop/dextop-environment) = xfce ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-environment) = "xfce" ]]
 	then
 		session_interface="XFCE"
 	else
