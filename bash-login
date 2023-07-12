@@ -4,7 +4,7 @@
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ] && [ -f "${HOME}"/.dextop/dextop ]
+if [ "${TERMUX_VERSION}" ]
 then
 	if [[ $(cat "${HOME}"/.dextop/dextop-environment) = xfce ]]
 	then
@@ -63,6 +63,8 @@ then
 			)
 
 			frobulator.download get.dxtp.app "${HOME}"/.local/bin ${utilities_list[@]}
+
+			utilities_list=()
 
 			frobulator.clear
 		fi
