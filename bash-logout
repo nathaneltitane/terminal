@@ -4,7 +4,7 @@
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ] && [ -f "${HOME}"/.dextop/dextop ]
+if [ "${TERMUX_VERSION}" ]
 then
 	# automatic session stop
 
