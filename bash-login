@@ -45,8 +45,8 @@ then
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-update) = "update" ]]
 		then
+			dextop -u dextop
 			dextop -u shell
-
 			dextop -u utility all
 
 			frobulator.clear
