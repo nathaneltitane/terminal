@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# shell loading order
+# shell ////////////////////////////////////////////////////////////////////////
 
-# login shell:
+# loading order - login shell:
 
 # system profile
 # system bash configuration
 # home bash configuration
 
-# non-login shell:
+# loading order - non-login shell:
 
 # system bash configuration
 # home bash configuration
