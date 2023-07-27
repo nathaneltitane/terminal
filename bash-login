@@ -42,29 +42,7 @@ then
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-update) = "update" ]]
 		then
-			frobulator.fwd "Updating..."
-			echo
-
-			utilities_list+=(
-				termux-directories
-				termux-packages
-				termux-repositories
-				termux-storage
-				termux-display
-				termux-update
-				container-expansion
-				container-image
-				container-packages
-				container-repositories
-				container-session
-				container-settings
-				container-system
-				container-user
-			)
-
-			frobulator.download get.dxtp.app "${HOME}"/.local/bin ${utilities_list[@]}
-
-			utilities_list=()
+			dextop -u utility all
 
 			frobulator.clear
 		fi
