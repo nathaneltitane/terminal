@@ -17,10 +17,13 @@
 
 # profile /////////////////////////////////////////////////////////////////////
 
-frobulator.fwd "Loading profile..."
-echo
+if [ "${TERMUX_VERSION}" ]
+then
+	frobulator.fwd "Loading profile..."
+	echo
 
-frobulator.clear
+	frobulator.clear
+fi
 
 # path /////////////////////////////////////////////////////////////////////////
 
