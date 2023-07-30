@@ -25,6 +25,43 @@ then
 	frobulator.clear
 fi
 
+# bash /////////////////////////////////////////////////////////////////////////
+
+if [ -n "${BASH_VERSION}" ]
+then
+	if [ -d "${HOME}"/.bash-aliases ]
+	then
+		for alias in "${HOME}"/.bash-aliases/*
+		do
+			if [ -x "${alias}" ]
+			then
+				. "${alias}"
+			fi
+		done
+	fi
+
+	if [ -f "${HOME}"/.bash_aliases ]
+	then
+		. "${HOME}"/.bash_aliases
+	fi
+
+	if [ -d "${HOME}"/.bash-functions ]
+	then
+		for function in "${HOME}"/.bash-functions/*
+		do
+			if [ -x "${function}" ]
+			then
+				. "${function}"
+			fi
+		done
+	fi
+
+	if [ -f "${HOME}"/.bash_functions ]
+	then
+		. "${HOME}"/.bash_functions
+	fi
+fi
+
 # path /////////////////////////////////////////////////////////////////////////
 
 if [ -d "${HOME}"/bin ]
