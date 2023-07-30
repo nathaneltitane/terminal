@@ -43,16 +43,6 @@ then
 	echo
 fi
 
-# bash /////////////////////////////////////////////////////////////////////////
-
-if [ -n "${BASH_VERSION}" ]
-then
-	if [ -f "${HOME}"/.bash_configuration ]
-	then
-		. "${HOME}"/.bash_configuration
-	fi
-fi
-
 # session //////////////////////////////////////////////////////////////////////
 
 if [ -z "${PS1}" ]
@@ -86,57 +76,6 @@ then
 	then
 		. /etc/bash_completion
 	fi
-fi
-
-# user  ////////////////////////////////////////////////////////////////////////
-
-if [ "${TERMUX_VERSION}" ]
-then
-	if [ -z "${USER}" ]
-	then
-		USER="termux"
-	fi
-fi
-
-# colors ///////////////////////////////////////////////////////////////////////
-
-# setup ansi color escapes using 'tput'
-
-black="\001$(tput setaf 0)\002"
-red="\001$(tput setaf 1)\002"
-green="\001$(tput setaf 2)\002"
-yellow="\001$(tput setaf 3)\002"
-blue="\001$(tput setaf 4)\002"
-magenta="\001$(tput setaf 5)\002"
-cyan="\001$(tput setaf 6)\002"
-white="\001$(tput setaf 7)\002"
-
-reset="\001$(tput sgr 0)\002"
-
-# prompt ///////////////////////////////////////////////////////////////////////
-
-unset PS1
-
-PS1+="${reset}[ "
-
-if [[ $(id -u -n) = "root" ]]
-then
-	PS1+="${red}${USER}"
-
-elif [[ $(id -u -n) = "termux" ]] && [[ $(pidof proot) ]]
-then
-	PS1+="${magenta}${USER}"
-else
-	PS1+="${green}${USER}"
-fi
-
-PS1+="${reset} ]"
-
-if [[ $(id -u -n) = "root" ]]
-then
-	PS1+="${white} >_ # ${reset}"
-else
-	PS1+="${white} >_ $ ${reset}"
 fi
 
 # aliases //////////////////////////////////////////////////////////////////////
