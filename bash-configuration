@@ -43,6 +43,16 @@ then
 	echo
 fi
 
+# bash /////////////////////////////////////////////////////////////////////////
+
+if [ -n "${BASH_VERSION}" ]
+then
+	if [ -f "${HOME}"/.bash_configuration ]
+	then
+		. "${HOME}"/.bash_configuration
+	fi
+fi
+
 # session //////////////////////////////////////////////////////////////////////
 
 if [ -z "${PS1}" ]
