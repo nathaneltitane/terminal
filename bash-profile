@@ -29,6 +29,9 @@ fi
 
 if [ -n "${BASH_VERSION}" ]
 then
+
+	# aliases //////////////////////////////////////////////////////////////////
+
 	if [ -d "${HOME}"/.bash-aliases ]
 	then
 		for alias in "${HOME}"/.bash-aliases/*
@@ -44,6 +47,8 @@ then
 	then
 		. "${HOME}"/.bash_aliases
 	fi
+
+	# functions ////////////////////////////////////////////////////////////////
 
 	if [ -d "${HOME}"/.bash-functions ]
 	then
@@ -86,8 +91,6 @@ fi
 
 # colors ///////////////////////////////////////////////////////////////////////
 
-# setup ansi color escapes using 'tput'
-
 black="\001$(tput setaf 0)\002"
 red="\001$(tput setaf 1)\002"
 green="\001$(tput setaf 2)\002"
@@ -125,11 +128,12 @@ else
 	PS1+="${white} >_ $ ${reset}"
 fi
 
-# dextop //////////////////////////////////////////////////////////////////////
+# dextop ///////////////////////////////////////////////////////////////////////
 
 if [ "${TERMUX_VERSION}" ]
 then
-	# interface #
+
+	# interface ////////////////////////////////////////////////////////////////
 
 	if [[ $(pidof x11vnc)  ]]
 	then
@@ -137,7 +141,7 @@ then
 		echo
 	fi
 
-	# welcome #
+	# welcome //////////////////////////////////////////////////////////////////
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
