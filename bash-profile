@@ -25,6 +25,16 @@ then
 	frobulator.clear
 fi
 
+# bash /////////////////////////////////////////////////////////////////////////
+
+if [ -n "${BASH_VERSION}" ]
+then
+	if [ -f "${HOME}"/.bash_configuration ]
+	then
+		. "${HOME}"/.bash_configuration
+	fi
+fi
+
 # path /////////////////////////////////////////////////////////////////////////
 
 if [ -d "${HOME}"/bin ]
