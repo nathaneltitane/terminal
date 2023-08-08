@@ -94,7 +94,7 @@ build_directory="${temporary_directory}"
 
 command_clone="git clone --quiet"
 
-frobulator.log "${command_clone} ${source} ${build_directory}" &
+frobulator.log "${command_clone} ${source} ${build_directory}" & > /dev/null 2>&1
 
 frobulator.progress "Cloning..."
 echo
