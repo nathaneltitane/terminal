@@ -116,7 +116,7 @@ echo
 
 # update binary
 
-frobulator.copy "${build_directory}"/build/release/ /usr/bin/ "${application}"
+frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
 
 # generate launcher
 
