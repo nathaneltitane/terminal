@@ -96,7 +96,7 @@ command_clone="git clone --quiet"
 
 frobulator.silence "${command_clone} ${source} ${build_directory}" &
 
-frobulator.progress clone
+frobulator.progress "clone"
 
 cd "${build_directory}"
 
@@ -110,7 +110,7 @@ command_build="make -j$(nproc)"
 
 frobulator.log "${command_build}" &
 
-frobulator.progress build
+frobulator.progress "build"
 
 # update binary
 
