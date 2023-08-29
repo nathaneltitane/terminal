@@ -102,7 +102,7 @@ cd "${build_directory}"
 
 # compile project
 
-qmake "${application}".pro
+qmake "${application}".pro > "${sink}" 2>&1
 
 # compile binary
 
