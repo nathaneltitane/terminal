@@ -94,7 +94,7 @@ build_directory="${temporary_directory}"
 
 command_clone="git clone --quiet"
 
-frobulator.log "${command_clone} ${source} ${build_directory}" & > "${sink}" 2>&1
+frobulator.silence "${command_clone} ${source} ${build_directory}" &
 
 frobulator.progress clone
 
@@ -102,7 +102,7 @@ cd "${build_directory}"
 
 # compile project
 
-qmake "${application}".pro > "${sink}" 2>&1
+frobulator.silence "qmake ${application}.pro"
 
 # compile binary
 
