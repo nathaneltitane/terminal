@@ -85,6 +85,6 @@ frobulator.download "${archive_url}" "${download_directory}"
 
 frobulator.silence "${extract_command}" &
 
-frobulator.progress "Extracting..."
+frobulator.progress "extract"
 
 frobulator.scs "Done."

@@ -65,7 +65,6 @@ frobulator.install apache2
 frobulator.silence "service apache2 start" &
 
 frobulator.progress "Starting service..."
-echo
 
 frobulator.inf "Setting ownership"
 echo
