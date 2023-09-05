@@ -233,6 +233,7 @@ fi
 # functions ////////////////////////////////////////////////////////////////////
 
 pew_pew_render () {
+
 	# render model
 
 	frobulator.inf "Rendering" "[ ${view[coordinates]} // ${model_name} ]"

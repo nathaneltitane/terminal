@@ -11,6 +11,7 @@ adb_download () {
 }
 
 adb_set_environment () {
+
 	if [[ $(command -v adb) ]]
 	then
 		export ANDROID_NO_USE_FWMARK=1
@@ -25,6 +26,7 @@ adb_set_environment () {
 }
 
 adb_screenshot () {
+
 	adb_download
 
 	adb_set_environment
@@ -37,6 +39,7 @@ adb_screenshot () {
 }
 
 adb_record () {
+
 	adb_download
 
 	adb_set_environment
@@ -57,6 +60,7 @@ adb_record () {
 }
 
 adb_pull_package () {
+
 	adb_download
 
 	adb_set_environment
@@ -77,6 +81,7 @@ adb_pull_package () {
 }
 
 adb_install_package () {
+
 	adb_download
 
 	adb_set_environment
@@ -87,6 +92,7 @@ adb_install_package () {
 }
 
 adb_remove_package () {
+
 	adb_download
 
 	adb_set_environment
@@ -97,6 +103,7 @@ adb_remove_package () {
 }
 
 adb_settings_get () {
+
 	adb_download
 
 	adb_set_environment
@@ -107,6 +114,7 @@ adb_settings_get () {
 }
 
 adb_settings_put () {
+
 	adb_download
 
 	adb_set_environment
@@ -117,6 +125,7 @@ adb_settings_put () {
 }
 
 adb_disable_phantom_killer () {
+
 	adb_download
 
 	adb_set_environment
@@ -127,6 +136,7 @@ adb_disable_phantom_killer () {
 }
 
 adb_vendor_ids () {
+
 	adb_download
 
 	adb_set_environment
@@ -150,6 +160,7 @@ adb_vendor_ids () {
 }
 
 adb_keycode () {
+
 	adb_download
 
 	adb_set_environment
@@ -210,6 +221,7 @@ adb_keycode () {
 }
 
 adb_device () {
+
 	adb_download
 
 	adb_set_environment
@@ -225,6 +237,7 @@ adb_device () {
 }
 
 adb_write () {
+
 	adb_download
 
 	adb_set_environment
@@ -245,6 +258,7 @@ adb_write () {
 }
 
 adb_reset_apk () {
+
 	adb_download
 
 	adb_set_environment
@@ -264,6 +278,7 @@ adb_reset_apk () {
 # address //////////////////////////////////////////////////////////////////////
 
 address () {
+
 	frobulator.require curl
 
 	echo
@@ -276,12 +291,14 @@ address () {
 # audio ////////////////////////////////////////////////////////////////////////
 
 audio () {
+
 	frobulator.require ffmpeg
 
 	directory="${PWD}"
 	extension="${1}"
 
 	convert_command () {
+
 		ffmpeg					\
 			-y					\
 			-i "${file}"		\
@@ -293,6 +310,7 @@ audio () {
 	if [ "${extension}" = "flac" ]
 	then
 		convert_command () {
+
 			ffmpeg					\
 				-y					\
 				-i "${file}"		\
@@ -313,6 +331,7 @@ audio () {
 # colors ///////////////////////////////////////////////////////////////////////
 
 colors () {
+
 	list=(
 		tput
 		printf
@@ -346,6 +365,7 @@ colors () {
 }
 
 hex () {
+
 	frobulator.require printf
 
 	IFS='(,)'
@@ -356,6 +376,7 @@ hex () {
 }
 
 rgb () {
+
 	frobulator.require printf
 
 	read hex <<< "${1}"
@@ -372,6 +393,7 @@ rgb () {
 # directory ////////////////////////////////////////////////////////////////////
 
 directory () {
+
 	frobulator.require mkdir
 
 	mkdir -p "${1}"
@@ -382,6 +404,7 @@ directory () {
 # duplicate ////////////////////////////////////////////////////////////////////
 
 duplicate () {
+
 	frobulator.require dd
 
 	dd				\
@@ -394,6 +417,7 @@ duplicate () {
 # extract //////////////////////////////////////////////////////////////////////
 
 extract () {
+
 	list=(
 		tar
 		bunzip2
@@ -496,6 +520,7 @@ extract () {
 # icons ////////////////////////////////////////////////////////////////////////
 
 icons () {
+
 	frobulator.require gtk-update-icon-cache
 
 	icons_directory_list=(
@@ -535,6 +560,7 @@ icons () {
 # inkscape /////////////////////////////////////////////////////////////////////
 
 inkscape-export () {
+
 	frobulator.require inkscape
 
 	export_types_list=(
@@ -558,6 +584,7 @@ inkscape-export () {
 # record ///////////////////////////////////////////////////////////////////////
 
 record () {
+
 	frobulator.require recordmydesktop
 
 	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
@@ -581,12 +608,14 @@ record () {
 # size /////////////////////////////////////////////////////////////////////////
 
 size () {
+
 	echo "W: $(tput cols) x H: $(tput lines)"
 }
 
 # snippet //////////////////////////////////////////////////////////////////////
 
 snippet () {
+
 	url="http://sprunge.us"
 
 	if (($#))
@@ -600,6 +629,7 @@ snippet () {
 # terminate ////////////////////////////////////////////////////////////////////
 
 terminate () {
+
 	process_name="${1}"
 
 	if [[ $(command -v pgrep) ]] && [[ $(command -v pkill) ]]
@@ -614,6 +644,7 @@ terminate () {
 # weather //////////////////////////////////////////////////////////////////////
 
 weather () {
+
 	url="wttr.in"
 	
 	echo
@@ -626,6 +657,7 @@ weather () {
 # youtube //////////////////////////////////////////////////////////////////////
 
 youtube () {
+
 	if [[ -z $(command -v yt-dlp) ]]
 	then
 		frobulator.download https://github.com/yt-dlp/yt-dlp/releases/download/2022.11.11/yt-dlp_linux "${HOME}"/.local/bin yt-dlp

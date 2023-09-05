@@ -73,6 +73,7 @@ cat <<- 'FILE' > /usr/bin/conky-color-selector
 # conky color selector #
 
 rgb_to_hex () {
+
 	IFS='(,)'
 
 	read _ r g b <<< "${1}"
@@ -81,6 +82,7 @@ rgb_to_hex () {
 }
 
 hex_to_rgb () {
+
 	read hex <<< "${1}"
 
 	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
