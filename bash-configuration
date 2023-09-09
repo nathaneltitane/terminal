@@ -4,7 +4,12 @@
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
 then
+	frobulator.fwd "Updating..."
+	echo
+
 	rm -r -f "${HOME}"/.local/bin/frobulator
+else
+	echo -n -e "[ ▷ ] Updating..."
 fi
 
 if [[ -z $(command -v frobulator) ]]
@@ -100,6 +105,157 @@ cyan="\001$(tput setaf 6)\002"
 white="\001$(tput setaf 7)\002"
 
 reset="\001$(tput sgr 0)\002"
+
+colors_selection=(
+	white="255"
+	silver="248"
+	grey="243"
+	black="238"
+
+	red="1"
+	crimson="88"
+
+	green="2"
+	lime="28"
+
+	yellow="11"
+	orange="202"
+
+	blue="4"
+	navy="26"
+
+	magenta="5"
+	purple="53"
+
+	fuschia="126"
+	pink="200"
+
+	aqua="6"
+	teal="30"
+)
+
+if [ -z "$(command -v tput)" ]
+then
+	# handle color digit length for ansi fallback method
+
+	for color in ${colors_selection[@]}
+	do
+		IFS='='
+
+		read color_name color_value <<< "${color}"
+
+		if [ ${#color_value} = 3 ]
+		then
+			color_value="${color_value}"
+		fi
+
+		if [ ${#color_value} = 2 ]
+		then
+			color_value="0${color_value}"
+		fi
+
+		if [ ${#color_value} = 1 ]
+		then
+			color_value="00${color_value}"
+		fi
+
+		IFS=''
+
+		eval "${color_name}=${color_value}"
+
+		unset color
+	done
+
+	# ansi color attributes
+
+	if [[ -t 1 ]]
+	then
+		# monochromatic colors
+
+		white=$(echo -e \\e\[38\;5\;"${white}"m)
+		silver=$(echo -e \\e\[38\;5\;"${silver}"m)
+		grey=$(echo -e \\e\[38\;5\;"${grey}"m)
+		black=$(echo -e \\e\[38\;5\;"${black}"m)
+
+		# standard colors by saturation offset
+
+		red=$(echo -e \\e\[38\;5\;"${red}"m)
+		crimson=$(echo -e \\e\[38\;5\;"${crimson}"m)
+
+		green=$(echo -e \\e\[38\;5\;"${green}"m)
+		lime=$(echo -e \\e\[38\;5\;"${lime}"m)
+
+		yellow=$(echo -e \\e\[38\;5\;"${yellow}"m)
+		orange=$(echo -e \\e\[38\;5\;"${orange}"m)
+
+		blue=$(echo -e \\e\[38\;5\;"${blue}"m)
+		navy=$(echo -e \\e\[38\;5\;"${navy}"m)
+
+		magenta=$(echo -e \\e\[38\;5\;"${magenta}"m)
+		purple=$(echo -e \\e\[38\;5\;"${purple}"m)
+
+		aqua=$(echo -e \\e\[38\;5\;"${aqua}"m)
+		teal=$(echo -e \\e\[38\;5\;"${teal}"m)
+
+		# reset all attributes
+
+		reset=$(echo -e \\e\[39m)
+	fi
+else
+	# handle color selections
+
+	for color in ${colors_selection[@]}
+	do
+		IFS='='
+
+		read color_name color_value <<< "${color}"
+
+		IFS=''
+
+		eval "${color_name}=${color_value}"
+
+		unset color
+	done
+
+	# 'tput' colors and attributes
+
+	if [[ -t 1 ]]
+	then
+		# monochromatic colors
+
+		white="\001$(tput setaf ${white})\002"
+		silver="\001$(tput setaf ${silver})\002"
+		grey="\001$(tput setaf ${grey})\002"
+		black="\001$(tput setaf ${black})\002"
+
+		# standard colors by saturation offset
+
+		red="\001$(tput setaf ${red})\002"
+		crimson="\001$(tput setaf ${crimson})\002"
+
+		green="\001$(tput setaf ${green})\002"
+		lime="\001$(tput setaf ${lime})\002"
+
+		yellow="\001$(tput setaf ${yellow})\002"
+		orange="\001$(tput setaf ${orange})\002"
+
+		blue="\001$(tput setaf ${blue})\002"
+		navy="\001$(tput setaf ${navy})\002"
+
+		magenta="\001$(tput setaf ${magenta})\002"
+		purple="\001$(tput setaf ${purple})\002"
+
+		fuschia="\001$(tput setaf ${fuschia})\002"
+		pink="\001$(tput setaf ${pink})\002"
+
+		aqua="\001$(tput setaf ${aqua})\002"
+		teal="\001$(tput setaf ${teal})\002"
+
+		# reset all attributes
+
+		reset="\001$(tput setaf ${reset})\002"
+	fi
+fi
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
