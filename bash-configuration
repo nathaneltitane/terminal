@@ -4,12 +4,15 @@
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
 then
+	. "${HOME}"/.local/bin/frobulator
+
 	frobulator.fwd "Updating..."
 	echo
 
 	rm -r -f "${HOME}"/.local/bin/frobulator
 else
 	echo -n -e "[ ▷ ] Updating..."
+	echo
 fi
 
 if [[ -z $(command -v frobulator) ]]
@@ -39,6 +42,8 @@ then
 fi
 
 . "${HOME}"/.local/bin/frobulator
+
+clear
 
 # configuration ////////////////////////////////////////////////////////////////
 
@@ -94,17 +99,6 @@ then
 fi
 
 # colors ///////////////////////////////////////////////////////////////////////
-
-black="\001$(tput setaf 0)\002"
-red="\001$(tput setaf 1)\002"
-green="\001$(tput setaf 2)\002"
-yellow="\001$(tput setaf 3)\002"
-blue="\001$(tput setaf 4)\002"
-magenta="\001$(tput setaf 5)\002"
-cyan="\001$(tput setaf 6)\002"
-white="\001$(tput setaf 7)\002"
-
-reset="\001$(tput sgr 0)\002"
 
 colors_selection=(
 	white="255"
@@ -223,37 +217,37 @@ else
 	then
 		# monochromatic colors
 
-		white="\001$(tput setaf ${white})\002"
-		silver="\001$(tput setaf ${silver})\002"
-		grey="\001$(tput setaf ${grey})\002"
-		black="\001$(tput setaf ${black})\002"
+		white=$(tput setaf "${white}")
+		silver=$(tput setaf "${silver}")
+		grey=$(tput setaf "${grey}")
+		black=$(tput setaf "${black}")
 
 		# standard colors by saturation offset
 
-		red="\001$(tput setaf ${red})\002"
-		crimson="\001$(tput setaf ${crimson})\002"
+		red=$(tput setaf "${red}")
+		crimson=$(tput setaf "${crimson}")
 
-		green="\001$(tput setaf ${green})\002"
-		lime="\001$(tput setaf ${lime})\002"
+		green=$(tput setaf "${green}")
+		lime=$(tput setaf "${lime}")
 
-		yellow="\001$(tput setaf ${yellow})\002"
-		orange="\001$(tput setaf ${orange})\002"
+		yellow=$(tput setaf "${yellow}")
+		orange=$(tput setaf "${orange}")
 
-		blue="\001$(tput setaf ${blue})\002"
-		navy="\001$(tput setaf ${navy})\002"
+		blue=$(tput setaf "${blue}")
+		navy=$(tput setaf "${navy}")
 
-		magenta="\001$(tput setaf ${magenta})\002"
-		purple="\001$(tput setaf ${purple})\002"
+		magenta=$(tput setaf "${magenta}")
+		purple=$(tput setaf "${purple}")
 
-		fuschia="\001$(tput setaf ${fuschia})\002"
-		pink="\001$(tput setaf ${pink})\002"
+		fuschia=$(tput setaf "${fuschia}")
+		pink=$(tput setaf "${pink}")
 
-		aqua="\001$(tput setaf ${aqua})\002"
-		teal="\001$(tput setaf ${teal})\002"
+		aqua=$(tput setaf "${aqua}")
+		teal=$(tput setaf "${teal}")
 
 		# reset all attributes
 
-		reset="\001$(tput setaf ${reset})\002"
+		reset=$(tput sgr 0)
 	fi
 fi
 
