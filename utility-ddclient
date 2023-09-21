@@ -99,7 +99,9 @@ sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
 
 if [ -d /var/cache/ddclient ]
 then
-	rm -rf /var/cache/ddclient/ddclient.cache
+	rm					\
+		--recursive		\
+		--force			 /var/cache/ddclient/ddclient.cache
 fi
 
 # restart service

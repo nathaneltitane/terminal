@@ -324,7 +324,9 @@ audio () {
 	do
 		convert_command
 
-		rm -rf "${file}"
+		rm					\
+			--recursive		\
+			--force			 "${file}"
 	done
 }
 

@@ -424,7 +424,9 @@ then
 			then
 				if [[ -d "${thumbnail_directory}" ]]
 				then
-					rm -rf "${thumbnail_directory}"
+					rm					\
+						--recursive		\
+						--force			 "${thumbnail_directory}"
 				fi
 
 				mkdir -p "${thumbnail_directory}"

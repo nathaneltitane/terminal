@@ -114,7 +114,9 @@ fi
 
 if [[ -e .picture.png ]]
 then
-	rm -rf .picture.png
+	rm					\
+		--recursive		\
+		--force			 .picture.png
 fi
 
 # picture frame compositor
