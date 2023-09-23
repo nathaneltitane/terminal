@@ -60,17 +60,34 @@ source="https://github.com/leozide/leocad.git"
 
 # requirements /////////////////////////////////////////////////////////////////////
 
+list+=(
+	git
+	hub
+	g++
+	make
+	zip
+	zlib1g-dev
+	libqt5concurrent5
+	libqt5opengl5
+	libqt5opengl5-dev
+	libqt5printsupport5
+	libqt5xml5
+	qtbase5-dev
+	qttools5-dev
+	qttools5-dev-tools
+)
 
+frobulator.install ${list[@]}
+
+list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
 frobulator.temporary build_directory
 
+build_directory=${frobulator_return[@]}
+
 frobulator.trap "${build_directory}"
-
-build_directory="${temporary_directory}"
-
-echo $build_directory
 
 # get source code
 
