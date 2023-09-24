@@ -127,6 +127,6 @@ Exec=/usr/bin/leocad
 Icon=leocad
 Terminal=false
 Type=Application
-MimeType=application/x-ldraw;application/x-multipart-ldraw;
+MimeType=application/x-ldraw;application/x-multipart-ldraw;x-multi-part-ldraw;
 Categories=Graphics;2DGraphics;3DGraphics;Editor;
 FILE
