@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
