@@ -123,10 +123,10 @@ Encoding=UTF-8
 Name=LeoCAD
 GenericName=LDraw Model Editor
 Comment=LDraw Model Editor
-Exec=/usr/bin/leocad
+Exec=/usr/bin/leocad %f
 Icon=leocad
 Terminal=false
 Type=Application
-MimeType=application/x-ldraw;application/x-multipart-ldraw;x-multi-part-ldraw;
+MimeType=application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;
 Categories=Graphics;2DGraphics;3DGraphics;Editor;
 FILE
