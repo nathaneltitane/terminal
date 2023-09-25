@@ -420,26 +420,35 @@ duplicate () {
 
 extract () {
 
-	list=(
-		tar
+	list+=(
+		7zip
 		bunzip2
-		unrar
 		gunzip
+		tar
+		unrar
 		unzip
-		uncompress
-		7z
 	)
 
 	frobulator.require ${list[@]}
 
+	# unset array
+
 	list=()
 
-	archive="${1}"
+	file="${1}"
 	directory="${2}"
+	extension="${3}"
+
+	archive="${file##*/}"
 
 	if [ -z "${directory}" ]
 	then
 		directory="${PWD}"
+	fi
+
+	if [ -z "${extension}" ]
+	then
+		extension="${file##*.}"
 	fi
 
 	if [ ! -d "${directory}" ]
@@ -447,76 +456,97 @@ extract () {
 		mkdir -p "${directory}"
 	fi
 
-	if [ -f "${archive}" ]
-	then
-		case "${archive}"
-		in
-			*.tar.bz2|*.tbz2)
-				tar						\
-					--extract			\
-					--bzip2				\
-					--file="${archive}" \
-					--directory="${directory}"
-			;;
+	case "${extension}"
+	in
+		tar.bz2|tbz2)
+			tar								\
+				--extract					\
+				--bzip2						\
+				--file="${file}" 			\
+				--directory="${directory}"
 
-			*.tar.gz|*.tgz)
-				tar						\
-					--extract			\
-					--gzip				\
-					--file="${archive}" \
-					--directory="${directory}"
-			;;
-
-			*.tar)
-				tar						\
-					--extract			\
-					--file="${archive}" \
-					--directory="${directory}"
-			;;
-
-			*.bz2)
-				bzip					\
-					--stdout			\
-					--keep				\
-					--decompress "${archive}" > "${directory}"
-			;;
-
-			*.gz)
-				gzip					\
-					--stdout			\
-					--keep				\
-					--decompress "${archive}" > "${directory}"
-			;;
-
-			*.Z)
-				uncompress 				\
-					--stdout 			\
-					--keep "${archive}" > "${directory}"
-			;;
-
-			*.7z)
-				7z x "${archive}" -o "${directory}"
-			;;
-
-			*.rar)
-				unrar e "${archive}" "${directory}"
-			;;
-
-			*.zip)
-				unzip "${archive}" -d "${directory}"
-			;;
-
-			*)
+				frobulator.inf "Extracting" "[ ${archive} ]"
 				echo
-				frobulator.err "Extraction failed" "[ '${archive}' ]"
+		;;
+
+		tar.gz|tgz)
+			tar								\
+				--extract					\
+				--gzip						\
+				--file="${file}" 			\
+				--directory="${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
 				echo
-			;;
-		esac
-	else
-		echo
-		frobulator.err "Unsupported archive type" "[ '${archive}' ]"
-		echo
-	fi
+		;;
+
+		tar)
+			tar								\
+				--extract					\
+				--file="${file}" 			\
+				--directory="${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+				echo
+
+		;;
+
+		bz2)
+			bzip							\
+				--stdout					\
+				--keep						\
+				--quiet						\
+				--decompress				"${file}"	> "${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+				echo
+		;;
+
+		gz)
+			gzip							\
+				--stdout					\
+				--keep						\
+				--quiet						\
+				--decompress				"${file}"	> "${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+				echo
+		;;
+
+		7z)
+			7z								\
+				x "${file}" 				\
+				-o							"${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+				echo
+		;;
+
+		rar)
+			unrar e "${file}" "${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+				echo
+		;;
+
+		zip)
+			unzip							\
+				-o							\
+				-qq "${file}"				\
+				-d							"${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+				echo
+		;;
+
+		*)
+			frobulator.err "Unsupported archive type" "[ '${archive}' ]"
+			echo
+
+			exit 1
+		;;
+
+	esac
 }
 
 # icons ////////////////////////////////////////////////////////////////////////
