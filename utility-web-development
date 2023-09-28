@@ -55,6 +55,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+web_development_directory="/var/www/html"
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -68,6 +70,6 @@ frobulator.process "Starting service..."
 frobulator.inf "Setting ownership"
 echo
 
-chmod -R 777 /var/www/html
+chmod -R 777 "${web_development_directory}"
 
-chown -R "${USER}":"${USER}" /var/www/html
+chown -R "${USER}":"${USER}" "${web_development_directory}"
