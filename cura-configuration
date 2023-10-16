@@ -67,4 +67,13 @@ then
 	frobulator.copy /media/internal/Printer/cura/configuration "${HOME}"/.config/cura/4.13/ cura.cfg
 fi
 
-list=()
+list=(
+	trimesh
+)
+
+for dependency in ${list[@]}
+do
+	frobulator.inf "Installing dependency" "[ ${dependency} ]"
+
+	frobulator.silence "pip install trimesh"
+done
