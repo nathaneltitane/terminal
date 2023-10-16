@@ -73,7 +73,9 @@ then
 
 	for configuration in ${list[@]}
 	do
-		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.FreeCAD "${configuration}"
+		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/config/FreeCAD "${configuration}"
+
+		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD/FreeCAD.conf freecad.conf
 	done
 fi
 
