@@ -77,7 +77,7 @@ then
 	do
 		frobulator.copy /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD	"${configuration}"
 
-		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD freecad.conf		FreeCAD.conf
+		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD freecad.conf FreeCAD.conf
 	done
 fi
 
