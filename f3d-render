@@ -50,13 +50,13 @@ version="12-20-2022"
 while (($#))
 do
 	case "${1}" in
-		-directory)
+		-d|--directory)
 			directory="${2}"
 
 			shift
 		;;
 
-		-all)
+		-a|--all)
 			extension_option="all"
 
 			extensions_list=(
@@ -64,15 +64,27 @@ do
 			)
 		;;
 
-		-stl)
-			extension_option="stl"
-
-			extensions_list=(
-				stl
-			)
+		-f|--file)
+			file="file"
 		;;
 
-		-render)
+			all)
+				extension_option="all"
+
+				extensions_list=(
+					stl
+				)
+				;;
+
+			stl)
+				extension_option="stl"
+
+				extensions_list=(
+					stl
+				)
+			;;
+
+		-r|--render)
 			option="render"
 		;;
 
@@ -149,7 +161,7 @@ do
 			echo -e "7                 Render image using a quarter-back view preset.          [ 7 ] [ Lat.:30, Lon.: 315 ]"
 			echo
 			echo -e "full              Render series of images using options 0 to 7."
-			echo -e "render           Render series of images using option 1."
+			echo -e "render            Render series of images using option 1."
 			echo -e "thumbnail         Render image using option 0 without edges or shading at 25% of the original size."
 			echo
 			echo -e "'${script}'       [ Version ${version} ]"
@@ -219,10 +231,60 @@ then
 	fi
 fi
 
-if [ -z "${extension_option}" ]
+if [ -z "${file}" ]
 then
-	extension_option="stl"
+	frobulator.ask "Specify model file type? [ simple / multipart ]"
+
+	frobulator.read reply
+
+	if [[ "${reply}" = [yY] || "${reply}" = [yY][eE][sS] ]]
+	then
+		# specify directory location or exit on 'cancel'
+
+		frobulator.ipt "Specify model file extension [ all / stl ]"
+
+		while true
+		do
+			frobulator.read extension_option
+
+			if [ -z "${extension_option}" ] || [[ ! "${extension_option}" =~ [all|stl] ]]
+			then
+				frobulator.wrn "Unrecognized model file extension."
+				frobulator.wrn "Try again."
+				echo
+			else
+				if [[ "${extension_option}" = "all" ]]
+				then
+					extensions_list=(
+						stl
+					)
+				else
+					extensions_list=(
+						${extension_option}
+					)
+				fi
+
+				break
+			fi
+		done
+	else
+		# set default to ldr file extension:
+		# mpd file extension officially deprecated in favor of ldr
+
+		frobulator.err "No file type specified."
+		echo
+
+		frobulator.fwd "Assuming defaults..."
+		echo
+
+		extension_option="mpd"
+
+		extensions_list=(
+			stl
+		)
+	fi
 fi
+
 
 if [ -z "${render_option}" ]
 then
@@ -231,7 +293,7 @@ fi
 
 # functions ////////////////////////////////////////////////////////////////////
 
-pew_pew_render () {
+f3d_render () {
 
 	# render model
 
@@ -286,11 +348,12 @@ then
 	do
 		models_list=( $(find ${directory} -type f -iname "*.${extension}" ! -iname "*instructions*") )
 
+		# set IFS
+
+		IFS=$'\n'
+
 		for model_path in ${models_list[@]}
 		do
-			# set IFS
-
-			IFS=' '
 
 			# get model file name from path
 
@@ -438,7 +501,7 @@ then
 			do
 				render_file="${model_name}-${view[$coordinates]}.${extension}"
 
-				pew_pew_render "${model_path}" "${coordinates}"
+				f3d_render "${model_path}" "${coordinates}"
 			done
 
 			# post rendering
@@ -461,10 +524,12 @@ then
 					"${thumbnail_directory}"/thumbnail."${extension}"
 			fi
 
-			# unset IFS
-
-			IFS=''
 		done
+
+		# reset IFS
+
+		IFS=''
+
 	done
 fi
 
