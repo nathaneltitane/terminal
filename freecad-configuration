@@ -55,6 +55,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+library_directory=$(pip show py-slvs | grep Location | cut -d ' ' -f 2)
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -80,3 +82,18 @@ then
 fi
 
 list=()
+
+list=(
+	py-slvs
+)
+
+for dependency in ${list[@]}
+do
+	frobulator.inf "Installing dependency" "[ ${dependency} ]"
+
+	frobulator.silence "pip install trimesh"
+done
+
+list=()
+
+cp "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
