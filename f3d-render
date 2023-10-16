@@ -306,6 +306,8 @@ f3d_render () {
 	model_path="${1}"
 	coordinates="${2}"
 
+	up="+Z"
+
 	if [[  -z "${height}" ]]
 	then
 		height="4096"
@@ -319,6 +321,7 @@ f3d_render () {
 	extension="png"
 
 	f3d																	\
+		--up "${up}"													\
 		--ssao															\
 		--fxaa															\
 		--tone-mapping													\
