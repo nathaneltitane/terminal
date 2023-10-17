@@ -70,7 +70,7 @@ list+=(
 
 if [ -d /media/internal/Printer/freecad/configuration ]
 then
-	frobulator.inf "Linking configuration."
+	frobulator.inf "Linking configuration"
 	echo
 
 	for configuration in ${list[@]}

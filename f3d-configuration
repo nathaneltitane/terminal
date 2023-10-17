@@ -61,7 +61,7 @@ frobulator.script "Setting up ${script#*-}"
 
 if [ -d /media/internal/Printer/f3d ]
 then
-	frobulator.inf "Linking configuration."
+	frobulator.inf "Linking configuration"
 	echo
 
 	frobulator.link /media/internal/Printer/f3d/configuration /usr/share/f3d f3d.conf config.json

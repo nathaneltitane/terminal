@@ -61,7 +61,7 @@ frobulator.script "Setting up ${script#*-}"
 
 if [ -d /media/internal/Printer/cura/configuration ]
 then
-	frobulator.inf "Linking configuration."
+	frobulator.inf "Linking configuration"
 	echo
 
 	frobulator.copy /media/internal/Printer/cura/configuration "${HOME}"/.config/cura/4.13/ cura.cfg

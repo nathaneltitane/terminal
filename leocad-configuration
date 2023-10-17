@@ -63,7 +63,7 @@ if [ -d /media/internal/Lego ]
 then
 	if [ -f /media/internal/Lego/leocad/leocad.conf ]
 	then
-		frobulator.inf "Linking configuration."
+		frobulator.inf "Linking configuration"
 		echo
 
 		frobulator.link /media/internal/Lego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
