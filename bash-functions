@@ -141,14 +141,14 @@ adb_vendor_ids () {
 
 	adb_set_environment
 
-	mkdir -p ${HOME}"/.android
+	mkdir -p "${HOME}"/.android
 
 	for id in {0..65535}
 	do
 		printf '0x%04x\n' "${id}"
 	done >> "{HOME}"/.android/adb_usb.ini
 
-	chmod -R 777 ${HOME}"/.android
+	chmod -R 777 "${HOME}"/.android
 
 	if [[ $(dpkg -l udev) ]]
 	then
