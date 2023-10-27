@@ -79,6 +79,11 @@ then
 	PATH="${HOME}/.local/bin:${PATH}"
 fi
 
+if [ -d "${PREFIX}"/bin ]
+then
+	PATH="${PREFIX}/bin:${PATH}"
+fi
+
 # user  ////////////////////////////////////////////////////////////////////////
 
 if [ "${TERMUX_VERSION}" ]
