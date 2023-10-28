@@ -111,19 +111,19 @@ reset="\001$(tput sgr 0)\002"
 
 unset PS1
 
-PS1+="${reset}[ "
-
 if [[ $(id -u -n) = "root" ]]
 then
-	PS1+="${red}${USER}"
+	prompt_color="${red}"
 
-elif [[ $(id -u -n) = "termux" ]] && [[ $(pidof proot) ]]
+elif [[ $(pidof proot) ]]
 then
-	PS1+="${magenta}${USER}"
+	prompt_color="${magenta}"
 else
-	PS1+="${green}${USER}"
+	prompt_color="${green}"
 fi
 
+PS1+="${reset}[ "
+PS1+="${prompt_color}${USER}"
 PS1+="${reset} ]"
 
 if [[ $(id -u -n) = "root" ]]
@@ -132,6 +132,8 @@ then
 else
 	PS1+="${white} >_ $ ${reset}"
 fi
+
+unset prompt_color
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
