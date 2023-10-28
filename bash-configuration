@@ -47,7 +47,7 @@ clear
 
 # configuration ////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ]
+if [ -n "${TERMUX_VERSION}" ]
 then
 	frobulator.fwd "Setting up..."
 	echo
@@ -90,7 +90,7 @@ fi
 
 # user  ////////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ]
+if [ -n "${TERMUX_VERSION}" ]
 then
 	if [ -z "${USER}" ]
 	then

@@ -2,7 +2,7 @@
 
 # login ////////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ]
+if [ -n "${TERMUX_VERSION}" ]
 then
 	frobulator.fwd "Logging in..."
 	echo
@@ -10,7 +10,7 @@ fi
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ]
+if [ -n "${TERMUX_VERSION}" ]
 then
 	if [[ $(cat "${HOME}"/.dextop/dextop-environment) = xfce ]]
 	then

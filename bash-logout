@@ -2,7 +2,7 @@
 
 # logout ///////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ]
+if [ -n "${TERMUX_VERSION}" ]
 then
 	frobulator.fwd "Logging out..."
 	echo
@@ -12,7 +12,7 @@ fi
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
-if [ "${TERMUX_VERSION}" ]
+if [ -n "${TERMUX_VERSION}" ]
 then
 	# automatic session stop
 
