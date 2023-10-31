@@ -152,4 +152,13 @@ frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-login         .bash_log
 frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
 frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
 
+if [[ $(id -u -n) = "root" ]]
+then
+	for item in ${list[@]}
+	do
+		chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
+
+		chmod 777 v"${HOME}"/.local/bin/"${item}"
+fi
+
 list=()
