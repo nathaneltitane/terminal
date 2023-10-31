@@ -373,13 +373,13 @@ colors () {
 
 hex () {
 
-	frobulator.require printf
+	IFS=' '
 
-	IFS='(,)'
-
-	read _ r g b <<< "${1}"
+	read r g b <<< "${@}"
 
 	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+
+	IFS=''
 }
 
 rgb () {
