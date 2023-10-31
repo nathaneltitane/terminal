@@ -613,7 +613,7 @@ inkscape-export () {
 				--batch-process							\
 				--export-area-page						\
 				--export-type="${export_type}"			\
-				--export-filename="${file::-4}"."${export_type}"
+				--export-filename="${file%.*}"."${export_type}"
 		done
 	done
 }
@@ -622,14 +622,28 @@ inkscape-export () {
 
 record () {
 
-	frobulator.require recordmydesktop
+	list=(
+		recordmydesktop
+		wmctrl
+	)
 
-	[ -f "${HOME}"/Videos ] && path="${HOME}"/Videos || path="${HOME}"
+	frobulator.require ${list[@]}
+
+	list=()
+
+	if [ -f "${HOME}"/Videos ]
+	then
+		path="${HOME}"/Videos
+	else
+		path="${HOME}"
+	fi
 
 	stamp="$(date +"%m-%d-%Y-%H-%M-%S")"
 	window_id="$(xwininfo | grep "Window id" | cut -d ' ' -f 4)"
 
-	wmctrl -i -R "${window_id}"
+	wmctrl		\
+		-i		\
+		-R		"${window_id}"
 
 	frobulator.wait 1
 
