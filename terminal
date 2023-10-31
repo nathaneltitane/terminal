@@ -158,7 +158,7 @@ then
 	do
 		chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
 
-		chmod 777 v"${HOME}"/.local/bin/"${item}"
+		chmod 777 "${HOME}"/.local/bin/"${item}"
 fi
 
 list=()
