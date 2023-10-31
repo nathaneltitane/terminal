@@ -282,11 +282,15 @@ address () {
 
 	frobulator.require curl
 
-	echo
-
-	curl -s -L ipinfo.io/ip
+	url="ipinfo.io/ip"
 
 	echo
+
+	curl -s -L "${url}"
+
+	echo
+
+	unset url
 }
 
 # audio ////////////////////////////////////////////////////////////////////////
@@ -685,6 +689,9 @@ weather () {
 	curl -s "${url}" | head -n -2
 
 	echo
+
+	unset url
+
 }
 
 # youtube //////////////////////////////////////////////////////////////////////
