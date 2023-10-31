@@ -660,7 +660,11 @@ record () {
 
 size () {
 
-	echo "W: $(tput cols) x H: $(tput lines)"
+	columns=$(tput cols)
+	lines=$(tput lines)
+
+	echo "Terminal size:"
+	echo "W: ${columns} x H: ${lines}"
 }
 
 # snippet //////////////////////////////////////////////////////////////////////
@@ -683,7 +687,8 @@ terminate () {
 
 	process_name="${1}"
 
-	if [[ $(command -v pgrep) ]] && [[ $(command -v pkill) ]]
+	if [[ $(command -v pgrep) ]] && \
+	   [[ $(command -v pkill) ]]
 	then
 		while [[ $(pgrep -f "${process_name}") ]]
 		do
@@ -727,7 +732,12 @@ youtube () {
 		path="${PWD}"
 	fi
 
-	cd "${path}" || exit 1
+	if [ -d "${path}" ]
+	then
+		cd "${path}"
+	else
+		exit 1
+	fi
 
 	"${HOME}"/.local/bin/yt-dlp																	\
 		--ignore-errors																			\
