@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# 'Usage: termux-reload-settings'
+#
+# 'Use without arguments to reload settings after modifying any of:'
+# '  ~/.termux/colors.properties'
+# '  ~/.termux/font.ttf '
+# '  ~/.termux/termux.properties'
+
+activity="com.termux.app.reload_style com.termux"
+
+# reload settings
+
+am broadcast			\
+	--user 0			\
+	-a "${activity}"	> /dev/null 2>&1

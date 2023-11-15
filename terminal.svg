@@ -13,7 +13,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="terminal.svg">
+   sodipodi:docname="shell.svg">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -76,6 +76,32 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <g
+       id="g872">
+      <path
+         id="path877"
+         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;paint-order:normal"
+         d="M 31.83143,195.3005 V 75.63284 l 103.63524,-59.833829 103.63524,59.833835 -1e-5,119.667664 -103.63523,59.83383 -51.38528,-29.66731"
+         sodipodi:nodetypes="ccccccc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+         d="m 152.4,201.89021 8.46666,3.57844 16.93334,-9.77647 8.46666,-13.3549 0,-8.46667 -8.46666,-3.57843 -16.93334,9.77647 -8.46666,-3.57844 v -8.46667 l 8.46666,-13.35489 16.93334,-9.77647 8.46666,3.57843"
+         id="path888"
+         sodipodi:nodetypes="cccccccccccc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 169.33334,135.46667 v 76.2"
+         id="path866"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 211.66667,176.13925 8.46666,-4.88823"
+         id="path902" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 211.66667,150.73925 8.46666,-4.88823"
+         id="path904" />
+    </g>
     <rect
        style="fill:#000000;stroke:none;stroke-width:12.7;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;paint-order:markers fill stroke"
        id="rect1981"
@@ -160,21 +186,5 @@
        height="16.933334"
        x="237.06667"
        y="279.40002" />
-    <g
-       id="g862">
-      <path
-         id="path877"
-         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;paint-order:normal"
-         d="M 31.83143,195.3005 V 75.63284 l 103.63524,-59.833829 103.63524,59.833835 -1e-5,119.667664 -103.63523,59.83383 -51.38528,-29.66731"
-         sodipodi:nodetypes="ccccccc" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
-         d="m 152.4,151.09021 25.4,2.26863 -25.4,31.59804"
-         id="path869" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:12.7;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
-         d="m 186.26666,199.27062 33.86667,-19.55293"
-         id="path874" />
-    </g>
   </g>
 </svg>
