@@ -188,10 +188,10 @@ then
 			frobulator.fwd "Welcome to Dextop" "[ Termux ]"
 			echo
 
-			frobulator.inf "Update utilities: 'dextop -u | dextop | shell | utility [utility name | all]'"
+			frobulator.inf "Update utilities: 'dextop -u | dextop | shell | utility [Utility Name | all]'"
 			echo
 
-			frobulator.inf "Launch session: 'container-session -o | -u [username] | -a [application]'"
+			frobulator.inf "Launch session: 'container-session -o | -u [User Name] | -a [Application]'"
 			echo
 		fi
 	fi
