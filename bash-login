@@ -46,11 +46,27 @@ then
 	then
 		:
 	else
-		if [[ $(cat "${HOME}"/.dextop/dextop-update) = "update" ]]
+		if [[ $(cat "${HOME}"/.dextop/dextop-update) = *update* ]]
 		then
-			dextop -u dextop
-			dextop -u shell
-			dextop -u utility all
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *dextop* ]]
+			then
+				dextop -u dextop
+			fi
+
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *shell* ]]
+			then
+				dextop -u shell
+			fi
+
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *utility* ]]
+			then
+				dextop -u utility all
+			fi
+
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *all* ]]
+			then
+				dextop -u all
+			fi
 
 			frobulator.clear
 		fi
