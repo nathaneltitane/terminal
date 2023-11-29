@@ -13,7 +13,7 @@ yes | sudo dpkg --add-architecture i386
 
 wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
 
-yes | sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ jammy main'
+yes | sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/debian/ bookworm main'
 
 sudo apt-get update
 sudo apt-get upgrade
@@ -45,11 +45,15 @@ curl -s -L https://raw.githubusercontent.com/Winetricks/winetricks/master/src/wi
 
 chmod +x "${HOME}"/.local/bin/winetricks
 
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q win10
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q allfonts
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dxvk
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q vcrun2019
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dotnet48
 WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml6
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q win10
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml4
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml3
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q ie8
 
 # vba 7.1
 
@@ -65,16 +69,6 @@ curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/
 
 WINEPREFIX="${wine_prefix}" msiexec /p "${HOME}"/Downloads/vba-patch.msp REINSTALL=ALL REINSTALLMODE=omus /qn
 
-exit
-
 # solidworks
 
-# curl -s -L https://dl-ak.solidworks.com/nonsecure/sw2022/sw2022_sp02.0_f/x64/220318.003-1-PGQH6ND3/SolidWorksSetup.exe > "${HOME}"/Downloads/solidworks.exe
-
-# unzip "${HOME}"/Downloads/solidworks.exe
-
-rfkill block 1
-
-# WINEPREFIX="${wine_prefix}" wine "${HOME}"/Downloads/sldim/sldIM.exe
-
-# rfkill unblock 1
+wine_prefix="${HOME}"/.wine ; WINEPREFIX="${wine_prefix}" ; wine "${HOME}"/Downloads/SOLIDWORKS 2021 SP05.1/setup.exe
