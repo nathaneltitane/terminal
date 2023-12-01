@@ -94,7 +94,7 @@ sudo nmcli 	\
 
 # sudo nmcli device status
 
-sudo virsh net-define << NETWORK
+sudo virsh net-define << 'NETWORK'
 <network>
 <name>nwbridge</name>
 <forward mode='bridge'/>
@@ -108,7 +108,7 @@ sudo virsh net-autostart nwbridge
 
 sudo usermod -aG libvirt $USER
 
-echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> ~/.bashrc
+echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> /home/"${USER}"/.bashrc
 
 sudo setfacl -R -b /var/lib/libvirt/images
 sudo setfacl -R -m u:$USER:rwX /var/lib/libvirt/images
