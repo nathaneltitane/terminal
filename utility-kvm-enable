@@ -113,6 +113,13 @@ sudo usermod 			\
 
 echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> /home/"${USER}"/.bashrc
 
-sudo setfacl -R -b /var/lib/libvirt/images
-sudo setfacl -R -m u:$USER:rwX /var/lib/libvirt/images
-sudo setfacl -m d:u:$USER:rwx /var/lib/libvirt/images
+sudo setfacl 			\
+	--recursive			\
+	--remove-all		/var/lib/libvirt/images
+
+sudo setfacl			\
+	--recursive			\
+	--modify			u:"${USER}":rwX /var/lib/libvirt/images
+
+sudo setfacl			\
+	--modify			d:u:"${USER}":rwx /var/lib/libvirt/images
