@@ -1,23 +1,43 @@
 #!/bin/bash
 
-sudo apt install qemu-system-x86 libvirt-daemon-system virtinst \
-	virt-manager virt-viewer ovmf swtpm qemu-utils guestfs-tools \
-	libosinfo-bin tuned tuned-utils
+list=(
+	aqemu
+	guestfs-tools
+	libosinfo-bin
+	libvirt-daemon-system
+	ovmf
+	qemu-system-x86
+	qemu-utils
+	swtpm
+	tuned
+	tuned-utils
+	virt-manager
+	virt-viewer
+	virtinst
+	)
+
+frobulator.install ${list[@]}
+
+list=()
 
 sudo systemctl enable libvirtd.service
 
 sudo nmcli connection add type bridge con-name bridge0 ifname bridge0
 
-sudo nmcli connection add type ethernet slave-type bridge \
-	con-name 'Bridge connection 1' ifname enp2s0 master bridge0
+sudo nmcli															\
+		connection add type ethernet slave-type bridge 				\
+		con-name 'Bridge Connection' ifname enp2s0 master bridge0
 
-sudo nmcli connection up bridge0
+sudo nmcli 	\
+		connection up bridge0
 
-sudo nmcli connection modify bridge0 connection.autoconnect-slaves 1
+sudo nmcli 	\
+		connection modify bridge0 connection.autoconnect-slaves 1
 
-sudo nmcli connection up bridge0
+sudo nmcli 	\
+		connection up bridge0
 
-sudo nmcli device status
+# sudo nmcli device status
 
 sudo virsh net-define << NETWORK
 <network>
@@ -28,9 +48,8 @@ sudo virsh net-define << NETWORK
 NETWORK
 
 sudo virsh net-start nwbridge
-sudo virsh net-autostart nwbridge
 
-rm nwbridge.xml
+sudo virsh net-autostart nwbridge
 
 sudo usermod -aG libvirt $USER
 
