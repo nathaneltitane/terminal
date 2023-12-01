@@ -83,13 +83,13 @@ sudo nmcli															\
 		connection add type ethernet slave-type bridge 				\
 		con-name 'Bridge Connection' ifname enp2s0 master bridge0
 
-sudo nmcli 	\
+sudo nmcli 															\
 		connection up bridge0
 
-sudo nmcli 	\
+sudo nmcli 															\
 		connection modify bridge0 connection.autoconnect-slaves 1
 
-sudo nmcli 	\
+sudo nmcli 															\
 		connection up bridge0
 
 # sudo nmcli device status
@@ -106,7 +106,10 @@ sudo virsh net-start nwbridge
 
 sudo virsh net-autostart nwbridge
 
-sudo usermod -aG libvirt $USER
+sudo usermod 			\
+	--append			\
+	--groups libvirt	\
+						"${USER}"
 
 echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> /home/"${USER}"/.bashrc
 
