@@ -56,8 +56,6 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 # defaults /////////////////////////////////////////////////////////////////////
 
 list=(
-
-list=(
 	aqemu
 	guestfs-tools
 	libosinfo-bin
