@@ -77,34 +77,55 @@ list=()
 
 sudo systemctl enable libvirtd.service
 
-sudo nmcli connection add type bridge con-name bridge0 ifname bridge0
+sudo virt-host-validate qemu
+
+sudo systemctl enable tuned
+
+sudo tuned-adm active
+
+sudo tuned-adm profile virtual-host
+
+sudo nmcli device status
 
 sudo nmcli															\
-		connection add type ethernet slave-type bridge 				\
-		con-name 'Bridge Connection' ifname enp2s0 master bridge0
+		connection add type bridge 									\
+		con-name bridge0 											\
+		ifname bridge0
+
+sudo nmcli															\
+		connection add type ethernet 								\
+		slave-type bridge 											\
+		con-name 'Bridge Connection' 								\
+		ifname enp2s0 												\
+		master bridge0
 
 sudo nmcli 															\
 		connection up bridge0
 
 sudo nmcli 															\
-		connection modify bridge0 connection.autoconnect-slaves 1
+		connection modify bridge0 									\
+		connection.autoconnect-slaves 1
 
 sudo nmcli 															\
 		connection up bridge0
 
 # sudo nmcli device status
 
-sudo virsh net-define << 'NETWORK'
+cat < /tmp/network-bridge << 'FILE'
 <network>
-<name>nwbridge</name>
+<name>bridge</name>
 <forward mode='bridge'/>
 <bridge name='bridge0'/>
 </network>
-NETWORK
+FILE
 
-sudo virsh net-start nwbridge
+sudo virsh net-define /tmp/network-bridge
 
-sudo virsh net-autostart nwbridge
+sudo virsh net-start bridge
+
+sudo virsh net-autostart bridge
+
+sudo rm -rf /tmp/network-bridge
 
 sudo usermod 			\
 	--append			\
