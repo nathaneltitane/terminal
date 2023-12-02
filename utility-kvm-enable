@@ -111,7 +111,7 @@ sudo nmcli 															\
 
 # sudo nmcli device status
 
-cat < /tmp/network-bridge << 'FILE'
+cat > /tmp/bridge << 'FILE'
 <network>
 <name>bridge</name>
 <forward mode='bridge'/>
@@ -119,13 +119,13 @@ cat < /tmp/network-bridge << 'FILE'
 </network>
 FILE
 
-sudo virsh net-define /tmp/network-bridge
+sudo virsh net-define /tmp/bridge
 
 sudo virsh net-start bridge
 
 sudo virsh net-autostart bridge
 
-sudo rm -rf /tmp/network-bridge
+sudo rm -rf /tmp/bridge
 
 sudo usermod 			\
 	--append			\
