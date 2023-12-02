@@ -109,7 +109,8 @@ sudo nmcli 															\
 sudo nmcli 															\
 		connection up bridge0
 
-# sudo nmcli device status
+sudo nmcli 															\
+		device status
 
 cat > /tmp/bridge << 'FILE'
 <network>
