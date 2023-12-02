@@ -126,7 +126,9 @@ sudo virsh net-start bridge
 
 sudo virsh net-autostart bridge
 
-sudo rm -rf /tmp/bridge
+sudo rm					\
+		--recursive		\
+		--force			 /tmp/bridge
 
 sudo usermod 			\
 	--append			\
