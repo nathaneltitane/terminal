@@ -10,6 +10,12 @@
 
 The Terminal repository is a  collection of shell scripts, templates, dotfiles and utilities to make your Linux-based system experience a breeze!
 
+### Note:
+
+All termux packages found in this repository are copied and uploaded diirectly from the official Termux GitHub repository.
+
+They are updated on a regular basis and are renamed solely for simpler referencing in the scripts and projects that call them.
+
 ### Uses:
 
 The following projects incorporate Terminal files in their usage:
