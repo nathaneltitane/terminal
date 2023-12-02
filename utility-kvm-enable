@@ -69,7 +69,7 @@ list=(
 	virt-manager
 	virt-viewer
 	virtinst
-	)
+)
 
 frobulator.install ${list[@]}
 
