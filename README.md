@@ -12,9 +12,9 @@ The Terminal repository is a  collection of shell scripts, templates, dotfiles a
 
 ### Note:
 
-All termux packages found in this repository are copied and uploaded diirectly from the official Termux GitHub repository.
+All packages available in this repository for Termux are directly sourced and uploaded from the official Termux GitHub repository.
 
-They are updated on a regular basis and are renamed solely for simpler referencing in the scripts and projects that call them.
+Regular updates are applied, and their names are modified exclusively for ease of reference in the scripts and projects that utilize them.
 
 ### Uses:
 
