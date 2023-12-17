@@ -91,19 +91,26 @@ list+=(
 	internal
 )
 
+# windows subsystem for linux
+
 if [ -d "/mnt/wsl*" ]
 then
 	frobulator.link /mnt/y /media/internal
 	frobulator.link /mnt/z /media/external
+
+# linux shared folders for chromeos
 
 elif [ -d /mnt/chromeos/removable ]
 then
 	frobulator.link /mnt/chromeos/removable/Internal /media/internal
 	frobulator.link /mnt/chromeos/removable/External /media/external
 fi
-#else
-#	frobulator.directory /media ${list[@]}
-#fi
+
+if [ ! -d /media/internal ] || \
+   [ ! -d /media/external ]
+then
+	frobulator.directory /media ${list[@]}
+fi
 
 list=()
 
