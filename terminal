@@ -73,6 +73,7 @@ storage_directory=/media
 list=(
 	git
 	hub
+	nano
 )
 
 frobulator.assess ${list[@]}
@@ -94,9 +95,15 @@ if [ -d "/mnt/wsl*" ]
 then
 	frobulator.link /mnt/y /media/internal
 	frobulator.link /mnt/z /media/external
-else
-	frobulator.directory /media ${list[@]}
+
+elif [ -d /mnt/chromeos/removable ]
+then
+	frobulator.link /mnt/chromeos/removable/Internal /media/internal
+	frobulator.link /mnt/chromeos/removable/External /media/external
 fi
+#else
+#	frobulator.directory /media ${list[@]}
+#fi
 
 list=()
 
@@ -159,6 +166,7 @@ then
 		chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
 
 		chmod 777 "${HOME}"/.local/bin/"${item}"
+	done
 fi
 
 list=()
