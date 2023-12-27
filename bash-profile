@@ -73,12 +73,12 @@ PATH=""
 
 # container
 
-[ -d /usr/local/sbin ] && PATH+="/usr/local/sbin:"
-[ -d /usr/local/bin ]  && PATH+="/usr/local/bin:"
-[ -d /usr/sbin ]       && PATH+="/usr/sbin:"
-[ -d /usr/bin ]        && PATH+="/usr/bin:"
-[ -d /sbin ]           && PATH+="/sbin:"
-[ -d /bin ]            && PATH+="/bin:"
+[ -d /usr/local/sbin ]       && PATH+="/usr/local/sbin:"
+[ -d /usr/local/bin ]        && PATH+="/usr/local/bin:"
+[ -d /usr/sbin ]             && PATH+="/usr/sbin:"
+[ -d /usr/bin ]              && PATH+="/usr/bin:"
+[ -d /sbin ]                 && PATH+="/sbin:"
+[ -d /bin ]                  && PATH+="/bin:"
 
 # termux
 
@@ -92,8 +92,8 @@ PATH=""
 
 # android
 
-[ -d /system/sbin ] && PATH+="/system/sbin:"
-[ -d /system/bin ]  && PATH+="/system/bin:"
+[ -d /system/sbin ]          && PATH+="/system/sbin:"
+[ -d /system/bin ]           && PATH+="/system/bin:"
 
 PATH="${PATH}"
 	
