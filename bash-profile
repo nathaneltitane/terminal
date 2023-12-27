@@ -69,21 +69,34 @@ fi
 
 # path /////////////////////////////////////////////////////////////////////////
 
-if [ -d "${HOME}"/bin ]
-then
-	PATH="${HOME}/bin:${PATH}"
-fi
+PATH=""
 
-if [ -d "${HOME}"/.local/bin ]
-then
-	PATH="${HOME}/.local/bin:${PATH}"
-fi
+# container
 
-if [ -d "${PREFIX}"/bin ]
-then
-	PATH="${PREFIX}/bin:${PATH}"
-fi
+[ -d /usr/local/sbin ] && PATH+="/usr/local/sbin:"
+[ -d /usr/local/bin ]  && PATH+="/usr/local/bin:"
+[ -d /usr/sbin ]       && PATH+="/usr/sbin:"
+[ -d /usr/bin ]        && PATH+="/usr/bin:"
+[ -d /sbin ]           && PATH+="/sbin:"
+[ -d /bin ]            && PATH+="/bin:"
 
+# termux
+
+[ -d "${HOME}"/.local/sbin ] && PATH+="${HOME}/.local/sbin:"
+[ -d "${HOME}"/.local/bin ]  && PATH+="${HOME}/.local/bin:"
+[ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
+[ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
+
+[ -d "${PREFIX}"/sbin ]      && PATH+="${PREFIX}/sbin:"
+[ -d "${PREFIX}"/bin ]       && PATH+="${PREFIX}/bin:"
+
+# android
+
+[ -d /system/sbin ] && PATH+="/system/sbin:"
+[ -d /system/bin ]  && PATH+="/system/bin:"
+
+PATH="${PATH}"
+	
 # user  ////////////////////////////////////////////////////////////////////////
 
 if [ -n "${TERMUX_VERSION}" ]

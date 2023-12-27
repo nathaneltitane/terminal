@@ -106,11 +106,11 @@ then
 	frobulator.link /mnt/chromeos/removable/External /media/external
 fi
 
-if [ ! -d /media/internal ] || \
-   [ ! -d /media/external ]
-then
-	frobulator.directory /media ${list[@]}
-fi
+#if [ ! -d /media/internal ] || \
+#   [ ! -d /media/external ]
+#then
+#	frobulator.directory /media ${list[@]}
+#fi
 
 list=()
 
