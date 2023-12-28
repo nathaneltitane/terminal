@@ -45,7 +45,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="08-29-2023"
+version="12-29-2023"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -113,7 +113,18 @@ frobulator.progress "build"
 
 # update binary
 
-frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
+if [[ ${?} = 0 ]]
+then
+	frobulator.cpt "Complete" "[ Build ]"
+	echo
+	
+	frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
+	
+else
+	frobulator.err "Build errors encountered:"
+	frobulator.nul "Consult log at ${log}"
+	echo
+fi
 
 # generate launcher
 
@@ -129,3 +140,6 @@ MimeType=application/vnd.leocad;application/x-ldraw;application/x-multi-part-ldr
 Categories=Graphics;3DGraphics;Education;
 Keywords=CAD;LEGO;LDraw;
 FILE
+
+frobulator.scs "Done"
+echo
