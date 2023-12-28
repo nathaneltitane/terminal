@@ -86,11 +86,6 @@ frobulator.file "${HOME}" .hushlogin
 
 # storage //////////////////////////////////////////////////////////////////////
 
-list+=(
-	external
-	internal
-)
-
 # windows subsystem for linux
 
 if [ -d "/mnt/wsl*" ]
@@ -99,19 +94,13 @@ then
 	frobulator.link /mnt /media z external
 fi
 
-# linux shared folders for chromeos
+# linux subsystem for chromeos
 
 if [ -d /mnt/chromeos/removable ]
 then
 	frobulator.link /mnt/chromeos/removable /media Internal internal
 	frobulator.link /mnt/chromeos/removable /media External external
 fi
-
-#if [ ! -d /media/internal ] || \
-#   [ ! -d /media/external ]
-#then
-#	frobulator.directory /media ${list[@]}
-#fi
 
 list=()
 
