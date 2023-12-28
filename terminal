@@ -95,15 +95,16 @@ list+=(
 
 if [ -d "/mnt/wsl*" ]
 then
-	frobulator.link /mnt/y /media/internal
-	frobulator.link /mnt/z /media/external
+	frobulator.link /mnt /media y internal
+	frobulator.link /mnt /media z external
+fi
 
 # linux shared folders for chromeos
 
-elif [ -d /mnt/chromeos/removable ]
+if [ -d /mnt/chromeos/removable ]
 then
-	frobulator.link /mnt/chromeos/removable/Internal /media/internal
-	frobulator.link /mnt/chromeos/removable/External /media/external
+	frobulator.link /mnt/chromeos/removable /media Internal internal
+	frobulator.link /mnt/chromeos/removable /media External external
 fi
 
 #if [ ! -d /media/internal ] || \
