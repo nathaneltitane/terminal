@@ -74,6 +74,7 @@ list=(
 	git
 	hub
 	nano
+	pip
 )
 
 frobulator.assess ${list[@]}
