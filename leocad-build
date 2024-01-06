@@ -83,7 +83,7 @@ list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
-frobulator.complete {
+frobulator.complete () {
 
 	# Number	Meaning			Example			Comments
 	#   0		
