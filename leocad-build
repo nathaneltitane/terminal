@@ -77,7 +77,7 @@ list+=(
 	qttools5-dev-tools
 )
 
-frobulator.install ${list[@]}
+# frobulator.install ${list[@]}
 
 list=()
 
@@ -87,7 +87,7 @@ frobulator.complete () {
 
 	# Number	Meaning			Example			Comments
 	#   0		
-	#   1		Catchall for general errors	let "var1 = 1/0"	Miscellaneous errors, such as "divide by zero" and other impermissible operations
+	#   1		Catchall for general errors 	 let "var1 = 1/0"	Miscellaneous errors, such as "divide by zero" and other impermissible operations
 	#   2		Misuse of shell builtins (according to Bash documentation)	empty_function() {}	Missing keyword or command, or permission problem (and diff return code on a failed binary file comparison).
 	# 126		Command invoked cannot execute	/dev/null	Permission problem or command is not an executable
 	# 127		"command not found"	illegal_command	Possible problem with $PATH or a typo
@@ -100,23 +100,22 @@ frobulator.complete () {
 
 	execute="${2}"
 
-	if [[ ${?} = 0 ]]
+	if [[ ! ${?} = 0 ]]
 	then
-		frobulator.cpt "Complete" "[ ${command} ]"
-		echo
-		
-		"${execute}"
-		
-	else
 		frobulator.err "Incomplete - errors encountered" "[ ${command} ]"
 		echo
 		
 		frobulator.wrn "Consult log for process details" "[ ${log} ]"
 		echo
+		
+		exit 1
+		
+	else
+		frobulator.cpt "Complete" "[ ${command} ]"
+		echo
 	fi
 
 }
-
 
 frobulator.temporary build_directory
 
@@ -148,7 +147,9 @@ frobulator.progress "build"
 
 # update binary
 
-frobulator.complete "Build" "frobulator.copy ${build_directory}/build/release /usr/bin ${application}"
+frobulator.complete "Build"
+
+frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
 
 # generate launcher
 
