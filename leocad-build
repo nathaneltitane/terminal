@@ -108,8 +108,10 @@ frobulator.complete {
 		"${execute}"
 		
 	else
-		frobulator.err "Errors encountered:"
-		frobulator.nul "Consult log at ${log}"
+		frobulator.err "Incomplete - errors encountered" "[ ${command} ]"
+		echo
+		
+		frobulator.wrn "Consult log for process details" "[ ${log} ]"
 		echo
 	fi
 
