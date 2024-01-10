@@ -38,6 +38,22 @@ shortcut.next-session=ctrl+2
 
 terminal-onclick-url-open=true
 
+# disable auto capitalization of extra keys text
+
+extra-keys-text-all-caps=false
+
+# disable hardware keyboard shortcuts
+
+disable-hardware-keyboard-shortcuts=false
+
+# set horizontal terminal margin
+
+terminal-margin-horizontal=3
+
+set vertical terminal margin
+
+terminal-margin-vertical=0
+
 # configure keyboard shortcut keys
 
 extra-keys=[																	\
