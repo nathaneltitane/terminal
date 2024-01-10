@@ -34,6 +34,10 @@ shortcut.previous-session=ctrl+1
 
 shortcut.next-session=ctrl+2
 
+# allow terminal url open on click/tap
+
+terminal-onclick-url-open=true
+
 # configure keyboard shortcut keys
 
 extra-keys=[																	\
