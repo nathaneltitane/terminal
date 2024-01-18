@@ -378,7 +378,7 @@ fi
 
 if [[ $(command -v find) && $(command -v wc) ]]
 then
-	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"
+	alias 'countd'="echo $(find ${PWD} -maxdepth 1 ! -path ${PWD} -type d | wc -l) directories under "
 fi
 
 if [[ $(command -v find) && $(command -v wc) ]]
@@ -388,7 +388,7 @@ fi
 
 if [[ $(command -v ls) ]]
 then
-	alias 'ls'='ls -a -h -l --group-directories-first'
+	alias 'list'='ls -a -h -l --group-directories-first'
 fi
 
 if [[ $(command -v mount) && $(command -v column) ]]
