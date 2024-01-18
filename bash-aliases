@@ -371,6 +371,11 @@ then
 	alias 'where'='echo ${PWD}'
 fi
 
+if [[ $(command -v htop) ]]
+then
+	alias 'top'='htop'
+fi
+
 if [[ $(command -v find) && $(command -v wc) ]]
 then
 	alias 'countd'="echo $(find . -type d | wc -l) directories [ ${PWD} ]"

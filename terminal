@@ -72,6 +72,7 @@ storage_directory=/media
 
 list=(
 	git
+	htop
 	hub
 	nano
 	pip
