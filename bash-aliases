@@ -373,7 +373,7 @@ fi
 
 if [[ $(command -v htop) ]]
 then
-	alias 'top'='htop'
+	alias 'top'='htop -s USER -t'
 fi
 
 if [[ $(command -v find) && $(command -v wc) ]]
