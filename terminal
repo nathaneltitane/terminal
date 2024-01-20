@@ -71,6 +71,7 @@ storage_directory=/media
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
+	apache2
 	git
 	htop
 	hub
