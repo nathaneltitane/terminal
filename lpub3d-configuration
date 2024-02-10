@@ -59,6 +59,11 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+if [[ $(command -v lpub3d24) ]]
+then
+    frobulator.link /usr/bin /usr/bin lpub3d24 lpub3d
+fi
+
 if [ -d /media/internal/Lego ]
 then
 	if [ -d /media/internal/Lego/lpub3d ]
@@ -70,7 +75,7 @@ then
 
 			frobulator.directory "${HOME}"/.config/"LPub3D Software"
 
-			frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf lpub3d24.conf
+			frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf
 		fi
 
 		if [ -f /media/internal/Lego/ldraw.zip ]
@@ -78,22 +83,42 @@ then
 			frobulator.inf "Generating library setup"
 			echo
 
-			frobulator.directory "${HOME}"/.local/share/"LPub3D Software" lpub3d24/libraries
+			frobulator.directory "${HOME}"/.local/share/"LPub3D Software" lpub3d/libraries
 
 			# official parts archive
 
-			frobulator.extract /media/internal/Lego/ldraw.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d24
+			frobulator.extract /media/internal/Lego/ldraw.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d
 
-			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldraw.zip complete.zip
+			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldraw.zip complete.zip
 
 			# unofficial parts archive
 
-			frobulator.extract /media/internal/Lego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/ldraw
+			frobulator.extract /media/internal/Lego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d/ldraw
 
-			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d24/libraries ldrawunf.zip lpub3dldrawunf.zip
+			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldrawunf.zip lpub3dldrawunf.zip
 
 			chmod -R 777 "${HOME}"/.local/share/"LPub3D Software"
 		fi
 
 	fi
 fi
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/lpub3d.desktop
+[Desktop Entry]
+Version=1.0
+Name=LPub3D
+GenericName=LDraw Editor
+Comment=An LDraw Building Instruction Editor
+Exec=lpub3d %f
+Terminal=false
+Type=Application
+Icon=lpub3d
+MimeType=application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;
+Categories=Graphics;3DGraphics;Publishing;Engineering;
+Keywords=;Building;CAD;CAI;Editor;Education;Instructions;LDraw;LEGO;Publishing;Renderer;Viewer;
+FILE
+
+frobulator.scs "Done"
+echo
