@@ -178,7 +178,7 @@ then
 
     echo 'gtk-icon-theme-name = "Breeze"'  > /etc/gtk-2.0/gtkrc
     echo 'gtk-theme-name = "Breeze"'      >> /etc/gtk-2.0/gtkrc
-    echo 'gtk-font-name = "Noto Sans 10"' >>  /etc/gtk-2.0/gtkrc
+    echo 'gtk-font-name = "Noto Sans 10"' >> /etc/gtk-2.0/gtkrc
 
     echo '[Settings]'                      > /etc/gtk-3.0/settings.ini
     echo 'gtk-cursor-theme-name = Breeze' >> /etc/gtk-3.0/settings.ini
