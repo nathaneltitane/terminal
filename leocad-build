@@ -67,6 +67,7 @@ list+=(
 	make
 	zip
 	zlib1g-dev
+	leocad
 	libqt5concurrent5
 	libqt5opengl5
 	libqt5opengl5-dev
