@@ -719,7 +719,7 @@ youtube () {
 
 	if [[ -z $(command -v yt-dlp) ]]
 	then
-		frobulator.download https://github.com/yt-dlp/yt-dlp/releases/download/2023.12.30/yt-dlp_linux "${HOME}"/.local/bin yt-dlp
+		frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp
 	fi
 
 	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
