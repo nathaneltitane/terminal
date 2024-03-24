@@ -59,6 +59,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+mv /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3.11/EXTERNALLY-MANAGED.old
+
 if [ -d /media/internal/Printer/cura/configuration ]
 then
 	frobulator.inf "Linking configuration"
