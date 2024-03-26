@@ -104,3 +104,6 @@ list=()
 
 frobulator.copy "${library_directory}" "${HOME}"/.local/freecad/usr/lib py_slvs
 echo
+
+frobulator.scs "Done"
+echo
