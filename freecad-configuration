@@ -83,6 +83,11 @@ fi
 
 list=()
 
+if [ -d /media/internal/Printer/freecad/macros ]
+then
+	frobulator.copy /media/internal/Printer/freecad "${HOME}"/.local/freecad macros
+fi
+
 list=(
 	py-slvs
 )
