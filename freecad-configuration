@@ -95,6 +95,7 @@ list=(
 for dependency in ${list[@]}
 do
 	frobulator.inf "Installing dependency" "[ ${dependency} ]"
+	echo
 
 	frobulator.silence "pip install py-slvs"
 done
@@ -102,3 +103,4 @@ done
 list=()
 
 frobulator.copy "${library_directory}" "${HOME}"/.local/freecad/usr/lib py_slvs
+echo
