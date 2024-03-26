@@ -45,7 +45,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="10-16-2023"
+version="03-26-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -101,4 +101,4 @@ done
 
 list=()
 
-cp -r "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
+frobulator.copy "${library_directory}" "${HOME}"/.local/freecad/usr/lib py_slvs
