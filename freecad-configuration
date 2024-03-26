@@ -91,7 +91,7 @@ for dependency in ${list[@]}
 do
 	frobulator.inf "Installing dependency" "[ ${dependency} ]"
 
-	frobulator.silence "pip install trimesh"
+	frobulator.silence "pip install py-slvs"
 done
 
 list=()
