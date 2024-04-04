@@ -59,8 +59,6 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-mv /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3.11/EXTERNALLY-MANAGED.old
-
 if [ -d /media/internal/Printer/cura/configuration ]
 then
 	frobulator.inf "Linking configuration"
@@ -77,7 +75,7 @@ for dependency in ${list[@]}
 do
 	frobulator.inf "Installing dependency" "[ ${dependency} ]"
 
-	frobulator.silence "pip install trimesh"
+	pip install trimesh > "${sink}" 2>&1
 done
 
 list=()

@@ -45,7 +45,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="03-26-2024"
+version="10-16-2023"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -83,11 +83,6 @@ fi
 
 list=()
 
-if [ -d /media/internal/Printer/freecad/macros ]
-then
-	frobulator.copy /media/internal/Printer/freecad "${HOME}"/.local/freecad macros
-fi
-
 list=(
 	py-slvs
 )
@@ -95,15 +90,10 @@ list=(
 for dependency in ${list[@]}
 do
 	frobulator.inf "Installing dependency" "[ ${dependency} ]"
-	echo
 
-	frobulator.silence "pip install py-slvs"
+	pip install py-slvs > "${sink}" 2>&1
 done
 
 list=()
 
-frobulator.copy "${library_directory}" "${HOME}"/.local/freecad/usr/lib py_slvs
-echo
-
-frobulator.scs "Done"
-echo
+cp "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
