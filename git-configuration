@@ -1,0 +1,15 @@
+[user]
+	name = nathaneltitane
+	email = nathanel.titane@gmail.com
+[color]
+	ui = auto
+[core]
+	editor = /usr/bin/nano -c
+[hub]
+	protocol = https
+[credential]
+	helper = store
+[pull]
+	rebase = false
+[safe]
+	directory = /media/internal/Git

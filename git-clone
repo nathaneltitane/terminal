@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+url="https://github.com/"
+username="nathaneltitane"
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="01-06-2023"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+echo
+
+# variables ////////////////////////////////////////////////////////////////////
+
+storage_directory=/media
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# storage //////////////////////////////////////////////////////////////////////
+
+frobulator.inf "Setting up" "[ git ]"
+echo
+
+storage="${storage_directory}"/internal
+
+if [ -d "${storage}" ]
+then
+	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+
+	chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+
+	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+
+	chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+fi
+
+# repositories /////////////////////////////////////////////////////////////////
+list+=(
+	dextop
+	frobulator
+	l2cu
+	legolinux
+	nathaneltitane
+	pewpewprints
+	terminal
+)
+
+for project in ${list[@]}
+do
+	if [[ -d "${project}" ]]
+	then
+		frobulator.delete "${project}"
+	fi
+
+	frobulator.inf "Cloning" "[ ${project} ]"
+	echo
+
+	git clone --depth 1 "${url}"/"${username}"/"${project}"
+
+	echo
+
+done
+
+list=()
