@@ -52,7 +52,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="01-20-2023"
+version="05-01-2023"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -202,3 +202,27 @@ fi
 
 frobulator.scs 'Done'
 echo
+
+# applications /////////////////////////////////////////////////////////////////
+
+frobulator.inf "Setting up" "[ themes ]"
+echo
+
+if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+then
+
+	list=(
+		cura
+		dolphin
+		kwin-wayland
+		krename
+		konsole
+		kate
+		puddletag
+	)
+
+	frobulator.assess ${list[@]}
+
+	list=()
+
+fi
