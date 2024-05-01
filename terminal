@@ -71,7 +71,6 @@ storage_directory=/media
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
-	apache2
 	git
 	htop
 	hub
@@ -124,6 +123,13 @@ then
 
 	chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
 fi
+
+# python ///////////////////////////////////////////////////////////////////////
+
+frobulator.inf "Setting up" "[ python ]"
+echo
+
+frobulator.delete "/usr/lib/python3.11" EXTERNALLY-MANAGED
 
 # shell ////////////////////////////////////////////////////////////////////////
 
