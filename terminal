@@ -214,10 +214,10 @@ then
 	list=(
 		cura
 		dolphin
-		kwin-wayland
-		krename
-		konsole
 		kate
+		konsole
+		krename
+		kwin-wayland
 		puddletag
 	)
 
