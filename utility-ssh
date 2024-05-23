@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="05-22-2024"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+frobulator.install openssh-server
+
+frobulator.silence "service ssh restart" &
+
+frobulator.process "Starting service"
+
+# authorized keys file check
+
+frobulator.fwd "Copying keys..."
+echo
+
+if [ -f "${PREFIX}"/media/internal/.ssh/authorized_keys ]
+then
+	:
+else
+	frobulator.file "${PREFIX}"/media/internal/.ssh authorized_keys
+fi
+
+if [ -d "${HOME}"/.ssh ]
+then
+	rm						\
+			--recursive		\
+			--force 		"${HOME}"/.ssh
+
+	cp 						\
+			--recursive		\
+			--force			"${PREFIX}"/media/internal/.ssh "${HOME}"/.ssh
+
+else
+	cp 						\
+			--recursive		\
+			--force			"${PREFIX}"/media/internal/.ssh "${HOME}"/.ssh
+fi
+
+# set permissions
+
+frobulator.fwd "Setting permissions..."
+echo
+
+list=(
+	"${HOME}"/.ssh
+	"${PREFIX}"/media/internal/.ssh
+	)
+
+for directory in ${directories_list[@]}
+do
+	# ownership
+
+	sudo chown "${USER}" "${directory}"
+	sudo chown "${USER}" "${directory}"/*
+	sudo chown "${USER}" "${directory}"/.keys/
+	sudo chown "${USER}" "${directory}"/.keys/*
+
+	# permissions
+
+	sudo chmod 700 "${directory}"
+	sudo chmod 755 "${directory}"/known_hosts
+	sudo chmod 400 "${directory}"/.keys/*
+	sudo chmod 600 "${directory}"/config
+	sudo chmod 600 "${directory}"/authorized_keys
+done
+
+list=()
