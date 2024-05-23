@@ -286,7 +286,9 @@ address () {
 
 	echo
 
-	curl -s -L "${url}"
+	curl			\
+		--silent	\
+		--location	"${url}"
 
 	echo
 
@@ -373,11 +375,15 @@ colors () {
 
 hex () {
 
+	# set IFS
+
 	IFS=' '
 
 	read r g b <<< "${@}"
 
 	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+
+	# unset IFS
 
 	IFS=''
 }
