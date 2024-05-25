@@ -219,7 +219,10 @@ then
 	# install
 
 	list=(
-		breeze*
+		breeze
+		breeze-cursor-theme
+		breeze-icon-theme
+		breeze-gtk-theme
 		cura
 		dolphin
 		kate
