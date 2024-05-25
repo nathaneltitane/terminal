@@ -216,6 +216,8 @@ echo
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
 
+	# install
+
 	list=(
 		breeze*
 		cura
@@ -230,6 +232,8 @@ then
 	frobulator.assess ${list[@]}
 
 	list=()
+
+	# uninstall
 
 	list=(
 		vim
