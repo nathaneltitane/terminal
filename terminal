@@ -236,6 +236,17 @@ then
 
 	list=()
 
+	#remove
+
+	list=(
+		org.kde.dolphin.desktop
+		org.kde.konsole.desktop
+	)
+
+	frobulator.delete /usr/share/applications ${list[@]}
+
+	list=()
+
 	# uninstall
 
 	list=(
