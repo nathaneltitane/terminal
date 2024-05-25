@@ -78,7 +78,6 @@ frobulator.upgrade
 
 list=(
 	git
-	htop
 	hub
 	nano
 	pip
@@ -218,16 +217,25 @@ if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
 
 	list=(
+		breeze*
 		cura
 		dolphin
 		kate
 		konsole
+		konqueror
 		krename
-		kwin-wayland
 		puddletag
 	)
 
 	frobulator.assess ${list[@]}
+
+	list=()
+
+	list=(
+		vim
+	)
+
+	frobulator.remove ${list[@]}
 
 	list=()
 
