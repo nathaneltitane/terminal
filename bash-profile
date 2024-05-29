@@ -150,8 +150,6 @@ unset prompt_color
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
-if [ -n "${TERMUX_VERSION}" ]
-then
 
 	# interface ////////////////////////////////////////////////////////////////
 
@@ -209,4 +207,3 @@ then
 
 		frobulator.write ${ticker} "${HOME}"/.dextop/dextop-ticker
 	fi
-fi
