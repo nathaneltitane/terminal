@@ -165,12 +165,13 @@ then
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
+
+		ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
+
 		if [[ $(pidof proot) ]]
 		then
 			frobulator.fwd "Welcome to Dextop" "[ ${distribution_name} ]"
 			echo
-
-			ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
 
 			if [[ ${ticker} != 0 ]]
 			then
@@ -193,13 +194,6 @@ then
 				fi
 			fi
 
-			ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
-			ticker=$(( ${ticker} + 1 ))
-
-			echo "${ticker}" > "${HOME}"/.dextop/dextop-ticker
-
-			frobulator.write ${ticker} "${HOME}"/.dextop/dextop-ticker
-
 		else
 			frobulator.fwd "Welcome to Dextop" "[ Termux ]"
 			echo
@@ -212,5 +206,10 @@ then
 			frobulator.nul "'container-session -o | -u [User Name] | -a [Application]'"
 			echo
 		fi
+
+			ticker=$(( ${ticker} + 1 ))
+
+			echo "${ticker}" > "${HOME}"/.dextop/dextop-ticker
+
 	fi
 fi
