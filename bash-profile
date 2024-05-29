@@ -172,6 +172,8 @@ then
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
 
+		# get session count
+
 		ticker=$(echo $(cat "${HOME}"/.dextop/dextop-ticker))
 
 		if [[ $(pidof proot) ]]
@@ -212,6 +214,10 @@ then
 			frobulator.nul "'container-session -o | -u [User Name] | -a [Application]'"
 			echo
 		fi
+
+		# increment session count
+
+		ticker=$(( ${ticker} + 1 ))
 
 		echo ${ticker} > "${HOME}"/.dextop/dextop-ticker
 	fi
