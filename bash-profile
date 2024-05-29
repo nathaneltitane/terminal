@@ -96,7 +96,7 @@ PATH=""
 [ -d /system/bin ]           && PATH+="/system/bin:"
 
 PATH="${PATH}"
-	
+
 # user  ////////////////////////////////////////////////////////////////////////
 
 if [ -n "${TERMUX_VERSION}" ]
