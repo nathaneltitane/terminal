@@ -161,6 +161,12 @@ then
 		echo
 	fi
 
+	if [[ $(pidof com.termux.x11)  ]]
+	then
+		frobulator.fwd "Session" "[ ${session_interface} ]"
+		echo
+	fi
+
 	# welcome //////////////////////////////////////////////////////////////////
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
