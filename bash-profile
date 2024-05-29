@@ -193,7 +193,10 @@ then
 				fi
 			fi
 
+			ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
 			ticker=$(( ${ticker} + 1 ))
+
+			echo "${ticker}" > "${HOME}"/.dextop/dextop-ticker
 
 			frobulator.write ${ticker} "${HOME}"/.dextop/dextop-ticker
 
