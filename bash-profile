@@ -207,9 +207,6 @@ then
 			echo
 		fi
 
-			ticker=$(( ${ticker} + 1 ))
-
-			echo "${ticker}" > "${HOME}"/.dextop/dextop-ticker
-
+		frobulator.write ${ticker} "${HOME}"/.dextop/dextop-ticker
 	fi
 fi
