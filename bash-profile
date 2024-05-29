@@ -213,6 +213,6 @@ then
 			echo
 		fi
 
-		frobulator.write ${ticker} "${HOME}"/.dextop dextop-ticker
+		echo ${ticker} > "${HOME}"/.dextop/dextop-ticker
 	fi
 fi
