@@ -134,7 +134,9 @@ fi
 frobulator.inf "Setting up" "[ python ]"
 echo
 
-frobulator.delete "/usr/lib/python3.11/EXTERNALLY-MANAGED"
+python_directory="/usr/lib/python3.11"
+
+frobulator.delete "${python_directory}" EXTERNALLY-MANAGED
 
 # shell ////////////////////////////////////////////////////////////////////////
 
