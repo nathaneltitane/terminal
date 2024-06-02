@@ -81,6 +81,7 @@ list=(
 	hub
 	nano
 	pip
+	python3-pip
 )
 
 frobulator.assess ${list[@]}
