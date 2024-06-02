@@ -253,7 +253,9 @@ then
 	# uninstall
 
 	list=(
+		uxterm
 		vim
+		xterm
 	)
 
 	frobulator.purge ${list[@]}
