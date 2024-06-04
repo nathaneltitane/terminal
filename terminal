@@ -228,7 +228,9 @@ then
 		breeze-gtk-theme
 		cura
 		dolphin
+		gwenview
 		kate
+		kcharselect
 		konsole
 		konqueror
 		krename
