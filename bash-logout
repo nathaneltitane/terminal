@@ -12,38 +12,43 @@ fi
 
 # dextop ///////////////////////////////////////////////////////////////////////
 
-if [ -n "${TERMUX_VERSION}" ]
+# automatic session stop
+
+if [[ $(cat "${HOME}"/.dextop/dextop-logout) = "logout" ]]
 then
-	# automatic session stop
+	# audio
 
-	if [[ $(cat "${HOME}"/.dextop/dextop-logout) = "logout" ]]
+	if [[ $(pidof pulseaudio) ]]
 	then
-		# audio
+		pulseaudio --kill
+	fi
 
-		if [[ $(pidof pulseaudio) ]]
-		then
-			pulseaudio --kill
-		fi
+	#framebuffer
 
-		#framebuffer
+	if [[ $(pidof Xvfb) ]]
+	then
+		container-session -x
+	fi
 
-		if [[ $(pidof Xvfb) ]]
-		then
-			container-session -x
-		fi
+	# vnc
 
-		# vnc
+	if [[ $(pidof x11vnc) ]]
+	then
+		container-session -x
+	fi
 
-		if [[ $(pidof x11vnc) ]]
-		then
-			container-session -x
-		fi
+	# x11
 
-		# x11
+	if [[ $(pidof app_process / com.termux.x11.Loader) ]]
+	then
+		container-session -x
+	fi
 
-		if [[ $(pidof app_process / com.termux.x11.Loader) ]]
-		then
-			container-session -x
-		fi
+	if [[ $(pidof com.termux.x11) ]]
+	then
+		am broadcast						\
+			--user 0						\
+			-a com.termux.x11.ACTION_STOP	\
+			-p com.termux.x11
 	fi
 fi
