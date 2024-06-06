@@ -48,7 +48,7 @@ then
 
 		if [[ $(pidof com.termux.x11) ]]
 		then
-			termux_x11_activity="com.termux.x11,ACTION_STOP"
+			termux_x11_activity="com.termux.x11.ACTION_STOP"
 
 			display_activity="${termux_x11_activity}"
 
