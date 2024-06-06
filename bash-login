@@ -116,7 +116,7 @@ then
 		:
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
-	    then
+		then
 			if [[ $(pidof proot) ]]
 			then
 				if [ -f "${HOME}"/.vnc/selection ]
@@ -125,7 +125,24 @@ then
 				else
 					container-session -o
 				fi
+			else
+				container-session -o
+
+				termux_x11_activity="com.termux.x11/.MainActivity"
+
+				display_activity="${termux_x11_activity}"
+
+				# start termux:x11 intent
+
+				unset intent_command
+
+				intent_command+="am start"
+				intent_command+=" --user 0"
+				intent_command+=" -n ${display_activity}"
+
+				frobulator.silence "${intent_command}"
 			fi
+
 		fi
 	fi
 fi
