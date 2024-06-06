@@ -624,6 +624,21 @@ inkscape-export () {
 	done
 }
 
+# preview //////////////////////////////////////////////////////////////////////
+
+preview () {
+
+	count="${1}"
+
+	file="${2}"
+
+	if [[ $(command -v cat) ]] && \
+	   [[ $(command -v head) ]]
+	then
+		cat "${file}" | head -n "${count}"
+	fi
+}
+
 # record ///////////////////////////////////////////////////////////////////////
 
 record () {
