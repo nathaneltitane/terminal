@@ -83,7 +83,7 @@ then
 		echo 'autospawn = no'               >> /etc/pulse/client.conf
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
-	    then
+		then
 			if [[ $(command -v pulseaudio) ]]
 			then
 				if [[ $(pidof pulseaudio) ]]
