@@ -97,7 +97,7 @@ then
 						--daemonize=true		\
 						--exit-idle-time=-1
 
-					# initialize tcp connection protocol
+					# initialize transmission control protocol
 
 					pacmd								\
 						load-module						\
