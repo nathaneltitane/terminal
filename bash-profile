@@ -153,7 +153,7 @@ unset prompt_color
 if [ -n "${TERMUX_VERSION}" ]
 then
 
-	# welcome //////////////////////////////////////////////////////////////////
+	# welcome
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
