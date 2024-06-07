@@ -122,6 +122,21 @@ then
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 		then
+
+			# interface
+
+			if [[ $(pidof x11vnc)  ]]
+			then
+				frobulator.fwd "Session" "[ ${session_interface} ]"
+				echo
+			fi
+
+			if [[ $(pidof com.termux.x11)  ]]
+			then
+				frobulator.fwd "Session" "[ ${session_interface} ]"
+				echo
+			fi
+
 			if [[ $(pidof proot) ]]
 			then
 				if [ -f "${HOME}"/.vnc/selection ]

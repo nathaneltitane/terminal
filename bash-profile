@@ -153,20 +153,6 @@ unset prompt_color
 if [ -n "${TERMUX_VERSION}" ]
 then
 
-	# interface ////////////////////////////////////////////////////////////////
-
-	if [[ $(pidof x11vnc)  ]]
-	then
-		frobulator.fwd "Session" "[ ${session_interface} ]"
-		echo
-	fi
-
-	if [[ $(pidof com.termux.x11)  ]]
-	then
-		frobulator.fwd "Session" "[ ${session_interface} ]"
-		echo
-	fi
-
 	# welcome //////////////////////////////////////////////////////////////////
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
