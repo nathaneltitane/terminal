@@ -635,7 +635,17 @@ preview () {
 	if [[ $(command -v cat) ]] && \
 	   [[ $(command -v head) ]]
 	then
+		frobulator.inf "Previewing file" "[ ${count} lines // ${file} ]"
+		echo
+
+		frobulator.separate
+
 		cat "${file}" | head -n "${count}"
+
+		echo
+
+		frobulator.separate
+
 	fi
 }
 
