@@ -114,6 +114,11 @@ then
 	if [[ $(pidof x11vnc) ]]
 	then
 		:
+
+	elif [[ $(pidof com.termux.x11) ]]
+	then
+		:
+
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 		then
@@ -125,10 +130,9 @@ then
 				else
 					container-session -o
 				fi
-			else
-				container-session -o
 			fi
 
+			container-session -o
 		fi
 	fi
 fi
