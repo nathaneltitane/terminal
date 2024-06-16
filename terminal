@@ -78,6 +78,7 @@ frobulator.upgrade
 
 list=(
 	git
+	htop
 	hub
 	nano
 	pip
@@ -241,7 +242,7 @@ then
 
 	list=()
 
-	#remove
+	# remove
 
 	list=(
 		org.kde.dolphin.desktop
