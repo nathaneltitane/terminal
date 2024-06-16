@@ -103,10 +103,6 @@ list=()
 
 	list=()
 
-# home /////////////////////////////////////////////////////////////////////////
-
-frobulator.file "${HOME}" .hushlogin
-
 # storage //////////////////////////////////////////////////////////////////////
 
 # windows subsystem for linux
@@ -119,13 +115,44 @@ fi
 
 # linux subsystem for chromeos
 
-if [ -d /mnt/chromeos/removable ]
+if [ -d /mnt/chromeos/GoogleDrive ]
 then
-	frobulator.link /mnt/chromeos/removable /media Internal internal
-	frobulator.link /mnt/chromeos/removable /media External external
+
+	if [ -d /mnt/chromeos/GoogleDrive ]
+	then
+		frobulator.link /mnt/chromeos/ /media GoogleDrive Drive
+	fi
+
+	if [ -d /mnt/chromeos/removable ]
+	then
+		frobulator.link /mnt/chromeos/removable /media Internal internal
+		frobulator.link /mnt/chromeos/removable /media External external
+	fi
+
 fi
 
 list=()
+
+# home /////////////////////////////////////////////////////////////////////////
+
+frobulator.file "${HOME}" .hushlogin
+
+# generate home directory structure
+
+directories_list+=(
+	Desktop
+	Documents
+	Downloads
+	Music
+	Pictures
+	Public
+	Templates
+	Videos
+)
+
+frobulator.directory "${HOME}" ${directories_list[@]}
+
+directories_list=()
 
 # git //////////////////////////////////////////////////////////////////////////
 
