@@ -167,6 +167,8 @@ directories_list+=(
 
 frobulator.directory "${HOME}" ${directories_list[@]}
 
+frobulator.directory /mnt/chromeos/MyFiles ${directories_list[@]}
+
 directories_list=()
 
 # git //////////////////////////////////////////////////////////////////////////
