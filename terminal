@@ -136,7 +136,17 @@ then
 
 fi
 
-list=()
+# android subsystem for chromeos
+
+if [ -d /opt/google/containers/android ]
+then
+
+	if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
+	then
+		frobulator.link /opt/google/containers/android/rootfs/android-data/data/media /media 0 Android
+	fi
+
+fi
 
 # home /////////////////////////////////////////////////////////////////////////
 
