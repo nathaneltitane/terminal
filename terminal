@@ -115,12 +115,17 @@ fi
 
 # linux subsystem for chromeos
 
-if [ -d /mnt/chromeos/GoogleDrive ]
+if [ -d /mnt/chromeos ]
 then
 
 	if [ -d /mnt/chromeos/GoogleDrive ]
 	then
 		frobulator.link /mnt/chromeos/ /media GoogleDrive Drive
+	fi
+
+	if [ -d /mnt/chromeos/MyFiles ]
+	then
+		frobulator.link /mnt/chromeos/MyFiles "${HOME}" Downloads Downloads
 	fi
 
 	if [ -d /mnt/chromeos/removable ]
