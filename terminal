@@ -76,6 +76,8 @@ frobulator.upgrade
 
 # requirements /////////////////////////////////////////////////////////////////
 
+# install
+
 list=(
 	git
 	htop
@@ -88,6 +90,18 @@ list=(
 frobulator.assess ${list[@]}
 
 list=()
+
+# remove
+
+	#remove
+
+	list=(
+		htop.desktop
+	)
+
+	frobulator.delete /usr/share/applications ${list[@]}
+
+	list=()
 
 # home /////////////////////////////////////////////////////////////////////////
 
