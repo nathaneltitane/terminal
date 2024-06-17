@@ -93,15 +93,13 @@ list=()
 
 # remove
 
-	#remove
+list=(
+	htop.desktop
+)
 
-	list=(
-		htop.desktop
-	)
+frobulator.delete /usr/share/applications ${list[@]}
 
-	frobulator.delete /usr/share/applications ${list[@]}
-
-	list=()
+list=()
 
 # storage //////////////////////////////////////////////////////////////////////
 
