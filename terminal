@@ -118,7 +118,7 @@ then
 
 	if [ -d /mnt/chromeos/GoogleDrive ]
 	then
-		frobulator.link /mnt/chromeos/ /media GoogleDrive Drive
+		frobulator.link /mnt/chromeos /media GoogleDrive Drive
 	fi
 
 	if [ -d /mnt/chromeos/MyFiles ]
