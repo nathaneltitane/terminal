@@ -62,8 +62,6 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-storage_directory=/media
-
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -117,7 +115,7 @@ fi
 if [ -d /mnt/chromeos ]
 then
 
-	if [ -d /mnt/chromeos/GoogleDrive ]
+	if [ -d /mnt/chromeos/[gG][oO][oO][gG][lL][eE][dD][rR][iI][vV][eE] ]
 	then
 		frobulator.link /mnt/chromeos /media GoogleDrive Drive
 	fi
@@ -177,7 +175,7 @@ directories_list=()
 frobulator.inf "Setting up" "[ git ]"
 echo
 
-storage="${storage_directory}"/internal
+storage=/media/internal
 
 if [ -d "${storage}" ]
 then
