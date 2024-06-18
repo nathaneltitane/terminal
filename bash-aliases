@@ -455,3 +455,8 @@ if [[ $(command -v wget) ]]
 then
 	alias 'wget'='wget -c'
 fi
+
+if [[ $(command -v tree) ]]
+then
+	alias 'hierarchy'='tree -L ${1}'
+fi
