@@ -104,7 +104,7 @@ list=()
 
 # windows subsystem for linux
 
-if [ -d "/mnt/wsl*" ]
+if [ -d /mnt/wsl* ]
 then
 	frobulator.link /mnt /media y internal
 	frobulator.link /mnt /media z external
@@ -115,7 +115,7 @@ fi
 if [ -d /mnt/chromeos ]
 then
 
-	if [ -d /mnt/chromeos/[gG][oO][oO][gG][lL][eE][dD][rR][iI][vV][eE] ]
+	if [ -d /mnt/chromeos/GoogleDrive ]
 	then
 		frobulator.link /mnt/chromeos /media GoogleDrive Drive
 	fi
@@ -127,8 +127,8 @@ then
 
 	if [ -d /mnt/chromeos/removable ]
 	then
-		frobulator.link /mnt/chromeos/removable /media Internal internal
-		frobulator.link /mnt/chromeos/removable /media External external
+		frobulator.link /mnt/chromeos/removable /media Internal Internal
+		frobulator.link /mnt/chromeos/removable /media External External
 	fi
 
 fi
@@ -163,10 +163,6 @@ directories_list+=(
 )
 
 frobulator.directory "${HOME}" ${directories_list[@]}
-
-# linux subsystem for chromeos
-
-frobulator.directory /mnt/chromeos/MyFiles ${directories_list[@]}
 
 directories_list=()
 
