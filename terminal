@@ -85,6 +85,7 @@ list=(
 	nano
 	pip
 	python3-pip
+	tree
 )
 
 frobulator.assess ${list[@]}
