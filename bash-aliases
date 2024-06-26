@@ -462,5 +462,10 @@ fi
 
 if [[ $(command -v tree) ]]
 then
-	alias 'hierarchy'='tree -L'
+	alias 'treed'='tree -a -d -L'
+fi
+
+if [[ $(command -v tree) ]]
+then
+	alias 'treef'='tree -a -L'
 fi
