@@ -403,7 +403,7 @@ fi
 
 if [[ $(command -v netstat) ]]
 then
-	alias 'ports'='netstat -t -u -l -a -n -p'
+	alias 'ports'='netstat -t -u -l -a -n -p 2> /dev/null'
 fi
 
 if [[ $(command -v pgrep) ]]
