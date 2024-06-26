@@ -378,7 +378,7 @@ fi
 
 if [[ $(command -v find) && $(command -v wc) ]]
 then
-	alias 'countd'="echo $(find ${PWD} -maxdepth 1 ! -path ${PWD} -type d | wc -l) directories under ${PWD}"
+	alias 'countd'="echo $(find ${PWD} -maxdepth 1 -type d | wc -l) directories under ${PWD}"
 fi
 
 if [[ $(command -v find) && $(command -v wc) ]]
