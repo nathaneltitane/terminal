@@ -458,5 +458,10 @@ fi
 
 if [[ $(command -v tree) ]]
 then
-	alias 'hierarchy'='tree -L ${1}'
+	alias 'hierarchy'='tree -L'
+fi
+
+if [[ $(command -v cp) ]]
+then
+	alias 'copy'='cp -r -f'
 fi
