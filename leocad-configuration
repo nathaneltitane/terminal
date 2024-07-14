@@ -59,13 +59,13 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [ -d /media/internal/Lego ]
+if [ -d /media/[iI]nternal/[lL]ego ]
 then
-	if [ -f /media/internal/Lego/leocad/leocad.conf ]
+	if [ -f /media/[iI]nternal/[lL]ego/leocad/leocad.conf ]
 	then
 		frobulator.inf "Linking configuration"
 		echo
 
-		frobulator.link /media/internal/Lego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+		frobulator.link /media/[iI]nternal/[lL]ego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
 	fi
 fi

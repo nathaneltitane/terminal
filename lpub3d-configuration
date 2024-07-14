@@ -64,21 +64,21 @@ then
     frobulator.link /usr/bin /usr/bin lpub3d24 lpub3d
 fi
 
-if [ -d /media/internal/Lego ]
+if [ -d /media/[iI]nternal/[lL]ego ]
 then
-	if [ -d /media/internal/Lego/lpub3d ]
+	if [ -d /media/[iI]nternal/[lL]ego/lpub3d ]
 	then
-		if [ -f /media/internal/Lego/lpub3d/lpub3d.conf ]
+		if [ -f /media/[iI]nternal/[lL]ego/lpub3d/lpub3d.conf ]
 		then
 			frobulator.inf "Linking configuration"
 			echo
 
 			frobulator.directory "${HOME}"/.config/"LPub3D Software"
 
-			frobulator.link /media/internal/Lego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf
+			frobulator.link /media/[iI]nternal/[lL]ego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf
 		fi
 
-		if [ -f /media/internal/Lego/ldraw.zip ]
+		if [ -f /media/[iI]nternal/[lL]ego/ldraw.zip ]
 		then
 			frobulator.inf "Generating library setup"
 			echo
@@ -87,15 +87,15 @@ then
 
 			# official parts archive
 
-			frobulator.extract /media/internal/Lego/ldraw.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d
+			frobulator.extract /media/[iI]nternal/[lL]ego/ldraw.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d
 
-			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldraw.zip complete.zip
+			frobulator.link /media/[iI]nternal/[lL]ego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldraw.zip complete.zip
 
 			# unofficial parts archive
 
-			frobulator.extract /media/internal/Lego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d/ldraw
+			frobulator.extract /media/[iI]nternal/[lL]ego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d/ldraw
 
-			frobulator.link /media/internal/Lego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldrawunf.zip lpub3dldrawunf.zip
+			frobulator.link /media/[iI]nternal/[lL]ego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldrawunf.zip lpub3dldrawunf.zip
 
 			chmod -R 777 "${HOME}"/.local/share/"LPub3D Software"
 		fi
