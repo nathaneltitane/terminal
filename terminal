@@ -82,6 +82,7 @@ list=(
 	hub
 	nano
 	pip
+	puddletag
 	python3-pip
 	tree
 )
@@ -149,22 +150,27 @@ fi
 
 frobulator.file "${HOME}" .hushlogin
 
-# generate home directory structure
 
-directories_list+=(
-	Desktop
-	Documents
-	Downloads
-	Music
-	Pictures
-	Public
-	Templates
-	Videos
-)
+if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+then
+	# generate home directory structure
 
-frobulator.directory "${HOME}" ${directories_list[@]}
+	directories_list+=(
+		Desktop
+		Documents
+		Downloads
+		Music
+		Pictures
+		Public
+		Templates
+		Videos
+	)
 
-directories_list=()
+	frobulator.directory "${HOME}" ${directories_list[@]}
+
+	directories_list=()
+
+fi
 
 # git //////////////////////////////////////////////////////////////////////////
 
@@ -186,12 +192,16 @@ fi
 
 # python ///////////////////////////////////////////////////////////////////////
 
-frobulator.inf "Setting up" "[ python ]"
-echo
 
-python_directory="/usr/lib/python3.11"
+if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+then
+	frobulator.inf "Setting up" "[ python ]"
+	echo
 
-frobulator.delete "${python_directory}" EXTERNALLY-MANAGED
+	python_directory="/usr/lib/python3.11"
+
+	frobulator.delete "${python_directory}" EXTERNALLY-MANAGED
+fi
 
 # shell ////////////////////////////////////////////////////////////////////////
 
@@ -243,7 +253,6 @@ list=()
 
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
-
 	frobulator.inf "Setting up" "[ themes ]"
 	echo
 
@@ -260,18 +269,16 @@ then
 	echo '[Qt]'                             > /etc/xdg/Trolltech.conf
 	echo 'style=Breeze'                    >> /etc/xdg/Trolltech.conf
 
+	frobulator.scs 'Done'
+	echo
 fi
-
-frobulator.scs 'Done'
-echo
 
 # applications /////////////////////////////////////////////////////////////////
 
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
-
-frobulator.inf "Setting up" "[ applications ]"
-echo
+	frobulator.inf "Setting up" "[ applications ]"
+	echo
 
 	# install
 
@@ -316,7 +323,6 @@ echo
 	frobulator.purge ${list[@]}
 
 	list=()
-
 fi
 
 frobulator.scs 'Done'
