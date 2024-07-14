@@ -241,11 +241,11 @@ list=()
 
 # themes ///////////////////////////////////////////////////////////////////////
 
-frobulator.inf "Setting up" "[ themes ]"
-echo
-
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
+
+	frobulator.inf "Setting up" "[ themes ]"
+	echo
 
 	echo 'gtk-icon-theme-name = "Breeze"'  > /etc/gtk-2.0/gtkrc
 	echo 'gtk-theme-name = "Breeze"'      >> /etc/gtk-2.0/gtkrc
@@ -267,12 +267,10 @@ echo
 
 # applications /////////////////////////////////////////////////////////////////
 
-
-
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
 
-frobulator.inf "Setting up" "[ themes ]"
+frobulator.inf "Setting up" "[ applications ]"
 echo
 
 	# install
@@ -320,3 +318,6 @@ echo
 	list=()
 
 fi
+
+frobulator.scs 'Done'
+echo
