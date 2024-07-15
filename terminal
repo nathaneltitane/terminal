@@ -85,6 +85,8 @@ list=(
 	puddletag
 	python3-pip
 	tree
+	mesa-utils
+	vulkan-tools
 )
 
 frobulator.assess ${list[@]}
