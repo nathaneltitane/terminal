@@ -87,6 +87,7 @@ list=(
 	tree
 	mesa-utils
 	vulkan-tools
+	wayland-utils
 )
 
 frobulator.assess ${list[@]}
