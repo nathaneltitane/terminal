@@ -59,12 +59,12 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [ -d /media/internal/Printer/cura/configuration ]
+if [ -d /media/[iI]nternal/[pP]rinter/cura/configuration ]
 then
 	frobulator.inf "Linking configuration"
 	echo
 
-	frobulator.copy /media/internal/Printer/cura/configuration "${HOME}"/.config/cura/4.13/ cura.cfg
+	frobulator.copy /media/[iI]nternal/[pP]rinter/cura/configuration "${HOME}"/.config/cura/4.13/ cura.cfg
 fi
 
 list=(
@@ -79,3 +79,6 @@ do
 done
 
 list=()
+
+frobulator.scs "Done"
+echo
