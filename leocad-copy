@@ -37,7 +37,7 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -45,32 +45,27 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="09-23-2022"
+version="07-15-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
+frobulator.script "Setting up ${script#*-}"
+
 # variables ////////////////////////////////////////////////////////////////////
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-install_list=(
-	wmctrl
-)
-
-frobulator.install ${install_list[@]}
-
 # functions ////////////////////////////////////////////////////////////////////
 
-# set position
+if [ -f /media/[iI]nternal/[lL]ego/leocad ]
+then
+	frobulator.inf "Copying binary"
+	echo
 
-wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
-wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350
-wmctrl -r "Preview — LeoCAD"       -e 0,1660,0000,0450,0350
-wmctrl -r "Properties — LeoCAD"    -e 0,1660,0350,0450,0370
-wmctrl -r "Parts — LeoCAD"         -e 0,1660,0720,0900,0360
-wmctrl -r "Timeline — LeoCAD"      -e 0,2110,0000,0450,0720
+	frobulator.copy /media/[iI]nternal/[lL]ego/ /usr/bin leocad
+fi
 
 frobulator.scs "Done"
 echo

@@ -69,3 +69,6 @@ then
 		frobulator.link /media/[iI]nternal/[lL]ego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
 	fi
 fi
+
+frobulator.scs "Done"
+echo
