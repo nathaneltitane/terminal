@@ -73,3 +73,6 @@ echo
 chmod -R 777 "${web_development_directory}"
 
 chown -R "${USER}":"${USER}" "${web_development_directory}"
+
+frobulator.scs "Done"
+echo
