@@ -96,4 +96,4 @@ done
 
 list=()
 
-cp "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
+cp -r "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
