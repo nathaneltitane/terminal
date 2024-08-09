@@ -83,6 +83,16 @@ fi
 
 list=()
 
+if [ -d /media/internal/Printer/freecad/macros ]
+then
+	frobulator.inf "Linking macros"
+	echo
+
+		frobulator.link /media/internal/Printer/freecad "${HOME}"/.config/f macros
+	done
+fi
+
+
 list=(
 	py-slvs
 )
@@ -97,3 +107,22 @@ done
 list=()
 
 cp -r "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
+
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/lpub3d.desktop
+[Desktop Entry]
+Version=1.0
+Name=FreeCAD Link Branch
+Exec=/home/nathanel/.local/freecad/freecad-run
+Icon=/home/nathanel/.local/freecad/freecad.png
+Type=Application
+Categories=Engineering;
+Comment=Feature based Parametric Modeler
+Terminal=false
+StartupNotify=true
+NoDisplay=false
+MimeType=application/x-extension-fcstd;
+FILE
+
