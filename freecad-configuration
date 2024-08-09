@@ -111,10 +111,10 @@ cp -r "${library_directory}"/py_slvs "${HOME}"/.local/freecad/usr/lib/py_slvs
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/lpub3d.desktop
+cat <<- 'FILE' > /home/"${USER}"/.local/share/applications/freecad.desktop
 [Desktop Entry]
 Version=1.0
-Name=FreeCAD Link Branch
+Name=FreeCAD
 Exec=/home/nathanel/.local/freecad/freecad-run
 Icon=/home/nathanel/.local/freecad/freecad.png
 Type=Application
@@ -125,4 +125,3 @@ StartupNotify=true
 NoDisplay=false
 MimeType=application/x-extension-fcstd;
 FILE
-
