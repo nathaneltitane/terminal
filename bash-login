@@ -44,7 +44,7 @@ then
 
 	# update
 
-	if [[ $(pidof proot) ]]
+	if [[ $(pgrep proot) ]]
 	then
 		:
 	else
@@ -76,7 +76,7 @@ then
 
 	# audio
 
-	if [[ $(pidof proot) ]]
+	if [[ $(pgrep proot) ]]
 	then
 		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
 		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
@@ -86,7 +86,7 @@ then
 		then
 			if [[ $(command -v pulseaudio) ]]
 			then
-				if [[ $(pidof pulseaudio) ]]
+				if [[ $(pgrep pulseaudio) ]]
 				then
 					:
 				else
@@ -111,7 +111,7 @@ then
 
 	# automatic session start
 
-	if [[ $(pidof com.termux.x11) ]]
+	if [[ $(pgrep com.termux.x11) ]]
 	then
 		:
 	else
@@ -120,20 +120,15 @@ then
 
 			# interface
 
-			if [[ $(pidof com.termux.x11)  ]]
+			if [[ $(pgrep com.termux.x11)  ]]
 			then
 				frobulator.fwd "Session" "[ ${session_interface} ]"
 				echo
 			fi
 
-			if [[ $(pidof proot) ]]
+			if [[ $(pgrep proot) ]]
 			then
-				if [ -f "${HOME}"/.vnc/selection ]
-				then
-					echo $(cat "${HOME}"/.vnc/selection) | container-session -o
-				else
-					container-session -o
-				fi
+				container-session -o
 			fi
 
 			container-session -o

@@ -20,19 +20,12 @@ then
 	then
 		# audio
 
-		if [[ $(pidof pulseaudio) ]]
+		if [[ $(pgrep pulseaudio) ]]
 		then
 			pulseaudio --kill
 		fi
 
-		# x11
-
-		if [[ $(pidof app_process / com.termux.x11.Loader) ]]
-		then
-			container-session -x
-		fi
-
-		if [[ $(pidof com.termux.x11) ]]
+		if [[ $(pgrep com.termux.x11) ]]
 		then
 			container-session -x
 		fi
