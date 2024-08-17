@@ -180,7 +180,7 @@ then
 		virgl_test_server &
 	fi
 
-	if [[ $(pgrep termux-x11) ]]
+	if [[ $(pgrep com.termux.x11) ]]
 	then
 		:
 	else
@@ -192,7 +192,6 @@ fi
 
 if [ -n "${TERMUX_VERSION}" ]
 then
-
 	# welcome
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
