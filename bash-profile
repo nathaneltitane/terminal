@@ -148,6 +148,46 @@ fi
 
 unset prompt_color
 
+# display///////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	if [ -z "${DISPLAY}" ]
+	then
+		DISPLAY=":0"
+
+		export DISPLAY="${DISPLAY}"
+	fi
+
+	if [ -z "${DISPLAY_DRIVER}" ]
+	then
+		DISPLAY_DRIVER="virpipe"
+
+		export "${DISPLAY_DRIVER}"
+	fi
+
+	if [ -z "${GALLIUM_DRIVER}" ]
+	then
+		GALLIUM_DRIVER="${DISPLAY_DRIVER}"
+
+		export "${GALLIUM_DRIVER}"
+	fi
+
+	if [[ $(pgrep virgl_test_server) ]]
+	then
+		:
+	else
+		virgl_test_server &
+	fi
+
+	if [[ $(pgrep termux-x11) ]]
+	then
+		:
+	else
+		termux-x11 ${DISPLAY} &
+	fi
+fi
+
 # dextop ///////////////////////////////////////////////////////////////////////
 
 if [ -n "${TERMUX_VERSION}" ]
