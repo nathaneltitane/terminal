@@ -184,7 +184,7 @@ then
 	then
 		:
 	else
-		termux-x11 ${DISPLAY} &
+		termux-x11 "${DISPLAY}" &
 	fi
 fi
 
