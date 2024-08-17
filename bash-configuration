@@ -60,6 +60,11 @@ then
 	return
 fi
 
+if [ -z "${TERM}" ]
+then
+	TERM="xterm-256color"
+fi
+
 # options //////////////////////////////////////////////////////////////////////
 
 shopt -s checkwinsize
