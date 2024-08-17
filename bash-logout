@@ -25,20 +25,6 @@ then
 			pulseaudio --kill
 		fi
 
-		#framebuffer
-
-		if [[ $(pidof Xvfb) ]]
-		then
-			container-session -x
-		fi
-
-		# vnc
-
-		if [[ $(pidof x11vnc) ]]
-		then
-			container-session -x
-		fi
-
 		# x11
 
 		if [[ $(pidof app_process / com.termux.x11.Loader) ]]

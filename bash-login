@@ -111,25 +111,14 @@ then
 
 	# automatic session start
 
-	if [[ $(pidof x11vnc) ]]
+	if [[ $(pidof com.termux.x11) ]]
 	then
 		:
-
-	elif [[ $(pidof com.termux.x11) ]]
-	then
-		:
-
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 		then
 
 			# interface
-
-			if [[ $(pidof x11vnc)  ]]
-			then
-				frobulator.fwd "Session" "[ ${session_interface} ]"
-				echo
-			fi
 
 			if [[ $(pidof com.termux.x11)  ]]
 			then
