@@ -217,7 +217,7 @@ then
 		echo
 
 		frobulator.inf "Update utilities:"
-		frobulator.nul "'dextop -u | dextop | shell | utility [Utility Name | all]'"
+		frobulator.nul "'dextop -u | dextop | shell [Shell Name | all] | utility [Utility Name | all] | all'"
 		echo
 
 		frobulator.inf "Launch session:"
