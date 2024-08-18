@@ -20,14 +20,18 @@ then
 	then
 		# audio
 
-		if [[ $(pgrep pulseaudio) ]]
+		if [[ $(pgrep -f pulseaudio) ]]
 		then
 			pulseaudio --kill
 		fi
 
-		if [[ $(pgrep com.termux.x11) ]]
+		if [[ $(pgrep -f com.termux.x11) ]]
 		then
 			container-session -x
+
+			kill -9 $(pgrep -f com.termux.x11)
+
+			kill -9 $(pgrep -f virgl_test_server)
 		fi
 	fi
 fi

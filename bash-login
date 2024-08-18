@@ -44,7 +44,7 @@ then
 
 	# update
 
-	if [[ $(pgrep proot) ]]
+	if [[ $(pgrep -f proot) ]]
 	then
 		:
 	else
@@ -76,7 +76,7 @@ then
 
 	# audio
 
-	if [[ $(pgrep proot) ]]
+	if [[ $(pgrep -f proot) ]]
 	then
 		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
 		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
@@ -86,7 +86,7 @@ then
 		then
 			if [[ $(command -v pulseaudio) ]]
 			then
-				if [[ $(pgrep pulseaudio) ]]
+				if [[ $(pgrep -f pulseaudio) ]]
 				then
 					:
 				else
@@ -111,7 +111,7 @@ then
 
 	# automatic session start
 
-	if [[ $(pgrep com.termux.x11) ]]
+	if [[ $(pgrep -f com.termux.x11) ]]
 	then
 		:
 	else
@@ -120,13 +120,13 @@ then
 
 			# interface
 
-			if [[ $(pgrep com.termux.x11)  ]]
+			if [[ $(pgrep -f com.termux.x11)  ]]
 			then
 				frobulator.fwd "Session" "[ ${session_interface} ]"
 				echo
 			fi
 
-			if [[ $(pgrep proot) ]]
+			if [[ $(pgrep -f proot) ]]
 			then
 				container-session -o
 			fi
