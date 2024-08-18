@@ -176,7 +176,7 @@ then
 	then
 		:
 	else
-		"${TERMUX_X11_ACCELERATION}" &
+		"${TERMUX_X11_ACCELERATOR}" &
 	fi
 
 	if [[ $(pgrep -f "${TERMUX_X11_APPLICATION}") ]]
