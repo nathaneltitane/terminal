@@ -200,6 +200,12 @@ then
 
 		ticker=$(echo $(cat "${HOME}"/.dextop/dextop-ticker))
 
+		# load desktop environment
+
+		frobulator.silence "dbus-launch --exit-with-session ${session} &"
+
+		# load welcome message
+
 		if [[ $(pgrep -f proot) ]]
 		then
 			frobulator.fwd "Welcome to Dextop" "[ ${distribution_name} ]"
