@@ -152,6 +152,18 @@ unset prompt_color
 
 if [ -n "${TERMUX_VERSION}" ]
 then
+	TERMUX_X11_SERVER="termux-x11"
+	TERMUX_X11_DRIVER="virpipe"
+	TERMUX_X11_ACCELERATOR="virgl_test_server"
+
+	GALLIUM_DRIVER="${TERMUX_X11_DRIVER}"
+
+	export TERMUX_X11_SERVER="${TERMUX_X11_SERVER}"
+	export TERMUX_X11_DRIVER="${TERMUX_X11_DRIVER}"
+	export TERMUX_X11_ACCELERATOR="${TERMUX_X11_ACCELERATOR}"
+
+	export GALLIUM_DRIVER="${GALLIUM_DRIVER}"
+
 	if [ -z "${DISPLAY}" ]
 	then
 		DISPLAY=":0"
@@ -159,32 +171,18 @@ then
 		export DISPLAY="${DISPLAY}"
 	fi
 
-	if [ -z "${DISPLAY_DRIVER}" ]
-	then
-		DISPLAY_DRIVER="virpipe"
-
-		export "${DISPLAY_DRIVER}"
-	fi
-
-	if [ -z "${GALLIUM_DRIVER}" ]
-	then
-		GALLIUM_DRIVER="${DISPLAY_DRIVER}"
-
-		export "${GALLIUM_DRIVER}"
-	fi
-
 	if [[ $(pgrep -f virgl_test_server) ]]
 	then
 		:
 	else
-		virgl_test_server &
+		"${TERMUX_X11_ACCELERATION}" &
 	fi
 
 	if [[ $(pgrep -f com.termux.x11) ]]
 	then
 		:
 	else
-		termux-x11 "${DISPLAY}" &
+		"${TERMUX_X11_SERVER}" "${DISPLAY}" &
 	fi
 fi
 
