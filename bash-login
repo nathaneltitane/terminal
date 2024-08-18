@@ -111,27 +111,22 @@ then
 
 	# automatic session start
 
-	if [[ $(pgrep -f com.termux.x11) ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
-		:
-	else
-		if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
+
+		# interface
+
+		if [[ $(pgrep -f com.termux.x11)  ]]
 		then
+			frobulator.fwd "Session" "[ ${session_interface} ]"
+			echo
+		fi
 
-			# interface
-
-			if [[ $(pgrep -f com.termux.x11)  ]]
-			then
-				frobulator.fwd "Session" "[ ${session_interface} ]"
-				echo
-			fi
-
-			if [[ $(pgrep -f proot) ]]
-			then
-				container-session -o
-			fi
-
+		if [[ $(pgrep -f proot) ]]
+		then
 			container-session -o
 		fi
+
+		container-session -o
 	fi
 fi

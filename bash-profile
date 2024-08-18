@@ -205,12 +205,8 @@ then
 			frobulator.fwd "Welcome to Dextop" "[ ${distribution_name} ]"
 			echo
 
-			if [[ ${ticker} -ne 0 ]]
+			if [[ ${ticker} -eq 0 ]]
 			then
-				frobulator.inf "You have already logged in - display selection has been saved."
-				frobulator.inf "Automatic session launch on shell login is enabled."
-				echo
-			else
 				frobulator.wrn "This is your first login:"
 				frobulator.wrn "Run 'container-session -o' to launch session [ ${session_interface} ]."
 				echo
