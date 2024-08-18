@@ -191,6 +191,16 @@ fi
 
 if [ -n "${TERMUX_VERSION}" ]
 then
+	if [ -z "${environment}" ]
+	then
+		environement="$(cat ${HOME}/.dextop/dextop-environment)"
+	fi
+
+	if [ -z "${session}" ]
+	then
+		session="$(cat ${HOME}/.dextop/dextop-session)"
+	fi
+
 	# welcome
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
