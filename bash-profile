@@ -152,6 +152,7 @@ unset prompt_color
 
 if [ -n "${TERMUX_VERSION}" ]
 then
+	TERMUX_X11_APPLICATION="com.termux.x11"
 	TERMUX_X11_SERVER="termux-x11"
 	TERMUX_X11_DRIVER="virpipe"
 	TERMUX_X11_ACCELERATOR="virgl_test_server"
@@ -171,14 +172,14 @@ then
 		export DISPLAY="${DISPLAY}"
 	fi
 
-	if [[ $(pgrep -f virgl_test_server) ]]
+	if [[ $(pgrep -f "${TERMUX_X11_ACCELERATOR}") ]]
 	then
 		:
 	else
 		"${TERMUX_X11_ACCELERATION}" &
 	fi
 
-	if [[ $(pgrep -f com.termux.x11) ]]
+	if [[ $(pgrep -f "${TERMUX_X11_APPLICATION}") ]]
 	then
 		:
 	else
