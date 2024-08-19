@@ -351,3 +351,13 @@ if [ -f "${HOME}"/.bash_login ]
 then
 	. "${HOME}"/.bash_login
 fi
+
+# profile //////////////////////////////////////////////////////////////////////
+
+if [[ $(pgrep -f proot) ]]
+then
+	if [ -f "${HOME}"/.bash_profile ]
+	then
+		. "${HOME}"/.bash_profile
+	fi
+fi
