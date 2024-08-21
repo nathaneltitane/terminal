@@ -28,7 +28,11 @@ The following projects incorporate Terminal files in their usage:
 
 [GNU/Bash](https://github.com/gitGNU/gnu_bash) as the shell environment on top of which the scripts function.
 
-### Projects:
+### Reports:
+
+[Submit bug report or feature request](https://github.com/nathaneltitane/terminal/issues)
+
+### Other Projects:
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/nathaneltitane/dextop?style=for-the-badge&logo=gnubash&logoColor=ffffff&label=DEXTOP)](https://github.com/nathaneltitane/dextop)
 
@@ -39,10 +43,6 @@ The following projects incorporate Terminal files in their usage:
 [![GitHub Repo stars](https://img.shields.io/github/stars/nathaneltitane/legolinux?style=for-the-badge&logo=gnubash&logoColor=ffffff&label=LEGO//LINUX)](https://github.com/nathaneltitane/legolinux)
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/nathaneltitane/nathaneltitane?style=for-the-badge&logo=gnubash&logoColor=ffffff&label=NATHANEL+TITANE)](https://github.com/nathaneltitane/nathaneltitane)
-
-### Reports:
-
-[Submit bug report or feature request](https://github.com/nathaneltitane/terminal/issues)
 
 ---
 
