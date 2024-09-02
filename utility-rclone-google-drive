@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="08-31-2024"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+list=(
+	rclone
+	rclone-browser
+)
+
+frobulator.require "${list[@]}"
+
+list=()
+
+if [ -d /media/[iI]nternal/[rR][cC]lone ]
+then
+	if [ -f /media/[iI]nternal/[rR][cC]lone/rclone.conf ]
+	then
+		frobulator.inf "Linking configuration"
+		echo
+
+		frobulator.directory "${HOME}"/.config/rclone
+
+		frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
+	fi
+fi
+
+cat <<- 'FILE' > /usr/bin/rclone-google-drive
+#!/bin/bash
+
+synchronization_option="bisync"
+cloud_server_directory="Google:"
+local_server_directory="/media/internal"
+
+exclude="/Music/**"
+compare="size,modtime,checksum"
+lock="2m"
+resolve="newer"
+streams="12"
+
+local_directories_list=( $(find "${local_server_directory}" -mindepth 1 -maxdepth 1 -type d ! -iname "*.Trash*" -exec basename {} \;) )
+
+for directory in ${local_directories_list[@]}
+do
+	rclone 																													\
+		"${synchronization_option}" "${cloud_server_directory}"/"${directory}" "${local_server_directory}"/"${directory}"	\
+			--exclude="${exclude}"																							\
+			--compare "${compare}"																							\
+			--slow-hash-sync-only																							\
+			--resilient																										\
+			--max-lock "${lock}"																							\
+			--conflict-resolve "${resolve}"																					\
+			--drive-skip-gdocs																								\
+			--fix-case																										\
+			--multi-thread-streams "${streams}"																				\
+			--recover																										\
+			--resilient																										\
+			--verbose
+done
+
+local_directories_list=()
+FILE
+
+chmod +x "${HOME}"/.local/bin/rclone-google-drive
+
+frobulator.directory "${HOME}" .config/systemd/user
+
+# timer
+
+cat <<- 'FILE' > "${HOME}"/.config/systemd/user/rclone-google-drive.timer
+[Unit]
+Description=RClone Google Drive synchronization
+
+[Timer]
+OnCalendar=*:0/05
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+FILE
+
+# service
+
+cat <<- 'FILE' > "${HOME}"/.config/systemd/user/rclone-google-drive.service
+[Unit]
+Description=Synchronize Google Drive using RClone every 5 minutes
+
+[Service]
+ExecStart=/usr/bin/bash /usr/bin/rclone-google-drive
+FILE
+
+systemctl enable --user rclone-google-drive.timer
+systemctl start --user rclone-google-drive.timer
+
+if [[ $(systemctl list-timers --user | grep -o rclone-google-drive) ]]
+then
+	echo "Service activation successful"
+	echo
+fi
+
+frobulator.cpt "Complete" "[ Service Launch ]"
+
+frobulator.scs "Done"
