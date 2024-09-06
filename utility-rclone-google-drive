@@ -55,6 +55,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+service=rclone-google-drive
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -218,9 +220,9 @@ FILE
 systemctl enable --user rclone-google-drive.timer
 systemctl start --user rclone-google-drive.timer
 
-if [[ $(systemctl list-timers --user | grep -o rclone-google-drive) ]]
+if [[ $(systemctl list-timers --user | grep -o "${service}") ]]
 then
-	echo "Service activation successful"
+	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
 else
 	echo "Error"
