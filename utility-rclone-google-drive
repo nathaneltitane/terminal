@@ -57,6 +57,8 @@ frobulator.script "Setting up ${script#*-}"
 
 service="rclone-google-drive"
 
+service_interval="5"
+
 cloud_service="google drive"
 
 cloud_server_directory="Google:"
@@ -185,7 +187,7 @@ FILE
 
 # permissions
 
-chmod +x "${HOME}"/.local/bin/"${service}"
+chmod +x /usr/bin/"${service}"
 
 # service
 
