@@ -99,6 +99,8 @@ fi
 cat <<- FILE > /usr/bin/"${service}"
 #!/bin/bash
 
+set -x
+
 # variables ////////////////////////////////////////////////////////////////////
 
 cloud_server_directory="${cloud_server_directory}"
@@ -137,7 +139,7 @@ ${TAB}transfer_command+=" --multi-thread-streams \${streams}"
 ${TAB}transfer_command+=" --progress"
 ${TAB}transfer_command+=" --verbose"
 
-${TAB}exec  \${transfer_command}
+${TAB}exec \${transfer_command}
 }
 
 # batch directory management
@@ -148,10 +150,14 @@ ${TAB}${TAB}-mindepth 1						\\
 ${TAB}${TAB}-maxdepth 1						\\
 ${TAB}${TAB}-type d							\\
 ${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB}${TAB}! -iname "Git"					\\
-${TAB}${TAB}! -iname "Music"				\\
+${TAB}${TAB}! -iname "*Git*"				\\
+${TAB}${TAB}! -iname "*Music*"				\\
 ${TAB}${TAB}-exec basename {} \;)
 )
+
+IFS=\$'\\n'
+
+echo \${server_directories_list[@]}
 
 # copy /////////////////////////////////////////////////////////////////////////
 
@@ -175,17 +181,6 @@ done
 echo "Synchronizing"
 echo
 
-server_directories_list=(
-${TAB}\$(find "\${local_server_directory}"	\\
-${TAB}${TAB}-mindepth 1						\\
-${TAB}${TAB}-maxdepth 1						\\
-${TAB}${TAB}-type d							\\
-${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB}${TAB}! -iname "Git"					\\
-${TAB}${TAB}! -iname "Music"				\\
-${TAB}${TAB}-exec basename {} \;)
-)
-
 for server_directory in \${server_directories_list[@]}
 do
 ${TAB}echo "\${server_directory}"
@@ -194,7 +189,13 @@ ${TAB}echo
 ${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 done
 
+# unset directory list
+
 server_directories_list=()
+
+# unset IFS
+
+IFS=''
 
 # individual directory management
 
