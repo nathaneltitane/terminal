@@ -37,13 +37,15 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
+frobulator.escalate
+
 # script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="08-31-2024"
+version="09-04-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -53,9 +55,18 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+service="rclone-google-drive"
+
+cloud_service="google drive"
+
+cloud_server_directory="Google:"
+local_server_directory="/media/internal"
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
 
 list=(
 	rclone
@@ -65,6 +76,8 @@ list=(
 frobulator.require "${list[@]}"
 
 list=()
+
+# configuration
 
 if [ -d /media/[iI]nternal/[rR][cC]lone ]
 then
@@ -79,49 +92,108 @@ then
 	fi
 fi
 
-cat <<- 'FILE' > /usr/bin/rclone-google-drive
+# script
+
+cat <<- "FILE" > /usr/bin/"${service}"
 #!/bin/bash
 
-synchronization_option="bisync"
-cloud_server_directory="Google:"
-local_server_directory="/media/internal"
+# variables ////////////////////////////////////////////////////////////////////
 
-exclude="/Music/**"
-compare="size,modtime,checksum"
-lock="2m"
-resolve="newer"
-streams="12"
+cloud_server_directory="${cloud_server_directory}"
+local_server_directory="${cloud_server_directory}"
 
-local_directories_list=( $(find "${local_server_directory}" -mindepth 1 -maxdepth 1 -type d ! -iname "*.Trash*" -exec basename {} \;) )
+# functions ////////////////////////////////////////////////////////////////////
 
-for directory in ${local_directories_list[@]}
+rclone_transfer () {
+
+	streams="16"
+
+	synchronization_option="\${1}"
+
+	source="\${2}"
+	destination="\${3}"
+
+	exclude="\${4}"
+
+	unset transfer_command
+
+	transfer_command+="rclone"
+	transfer_command+=" \${synchronization_option}"
+	transfer_command+=" \${source}"
+	transfer_command+=" \${destination}"
+	transfer_command+=" --create-empty-src-dirs"
+	transfer_command+=" --drive-skip-gdocs"
+
+	if [ ! -z "\${4}" ]
+	then
+		exclude="/\${exclude}/**"
+
+		transfer_command+=" --exclude \${exclude}"
+	fi
+
+	transfer_command+=" --multi-thread-streams \${streams}"
+	transfer_command+=" --progress"
+	transfer_command+=" --verbose"
+
+	exec  \${transfer_command}
+}
+
+# copy /////////////////////////////////////////////////////////////////////////
+
+# "${cloud_service}" >>> local machine
+
+echo "Copying"
+echo
+
+rclone_transfer copy "\${cloud_server_directory}/" "\${local_server_directory}/" Music
+
+synchronization_option="sync"
+
+# synchronize //////////////////////////////////////////////////////////////////
+
+# local machine >>> "${cloud_service}"
+
+echo "Synchronizing"
+echo
+
+server_directories_list=(
+	\$(find "${local_server_directory}"	\
+		-mindepth 1						\
+		-maxdepth 1						\
+		-type d							\
+		! -iname "*.Trash*"				\
+		! -iname "Git"					\
+		! -iname "Music"				\
+			-exec basename {} \;)
+)
+
+for server_directory in \${server_directories_list[@]}
 do
-	rclone 																													\
-		"${synchronization_option}" "${cloud_server_directory}"/"${directory}" "${local_server_directory}"/"${directory}"	\
-			--exclude="${exclude}"																							\
-			--compare "${compare}"																							\
-			--slow-hash-sync-only																							\
-			--resilient																										\
-			--max-lock "${lock}"																							\
-			--conflict-resolve "${resolve}"																					\
-			--drive-skip-gdocs																								\
-			--fix-case																										\
-			--multi-thread-streams "${streams}"																				\
-			--recover																										\
-			--resilient																										\
-			--verbose
+	echo "\${server_directory}"
+	echo
+
+	rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 done
 
-local_directories_list=()
+echo "Music"
+echo
+
+rclone_transfer sync "/media/nathanel/Samsung T7/Music/STEYOYOKE" "\${cloud_server_directory}/Music/STEYOYOKE"
+
+rclone_transfer sync "/media/nathanel/Samsung T7/Music/INNER SYMPHONY" "\${cloud_server_directory}/Music/INNER SYMPHONY"
 FILE
 
-chmod +x "${HOME}"/.local/bin/rclone-google-drive
+# permissions
+
+chmod +x "${HOME}"/.local/bin/"${service}"
+
+# service
 
 frobulator.directory "${HOME}" .config/systemd/user
 
-# timer
+# service timer
 
-cat <<- 'FILE' > "${HOME}"/.config/systemd/user/rclone-google-drive.timer
+cat <<- 'FILE' > "${HOME}"/.config/systemd/user/"${service}".timer
 [Unit]
 Description=RClone Google Drive synchronization
 
@@ -133,25 +205,38 @@ Persistent=true
 WantedBy=timers.target
 FILE
 
-# service
+# service desciptor
 
-cat <<- 'FILE' > "${HOME}"/.config/systemd/user/rclone-google-drive.service
+cat <<- "FILE" > "${HOME}"/.config/systemd/user/"${service}".service
 [Unit]
 Description=Synchronize Google Drive using RClone every 5 minutes
 
 [Service]
-ExecStart=/usr/bin/bash /usr/bin/rclone-google-drive
+ExecStart=/usr/bin/bash /usr/bin/"${service}"
 FILE
 
-systemctl enable --user rclone-google-drive.timer
-systemctl start --user rclone-google-drive.timer
+# service activation
 
-if [[ $(systemctl list-timers --user | grep -o rclone-google-drive) ]]
+systemctl enable --user "${service}".timer &
+
+frobulator.process "Enabling Service${marker_elp}"
+
+systemctl start --user "${service}".timer &
+
+frobulator.process "Starting Service${marker_elp}"
+
+# service process verification
+
+if [[ $(systemctl list-timers --user | grep -o "${service}") ]]
 then
-	echo "Service activation successful"
+	frobulator.inf "Service activation success" "[ ${service} ]"
 	echo
-fi
+else
+	frobulator.err "Service activation failed" "[ ${service} ]"
+	echo
 
-frobulator.cpt "Complete" "[ Service Launch ]"
+	exit 1
+
+fi
 
 frobulator.scs "Done"
