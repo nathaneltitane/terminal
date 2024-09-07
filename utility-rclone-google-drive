@@ -99,8 +99,6 @@ fi
 cat <<- FILE > /usr/bin/"${service}"
 #!/bin/bash
 
-set -x
-
 # variables ////////////////////////////////////////////////////////////////////
 
 cloud_server_directory="${cloud_server_directory}"
@@ -109,6 +107,8 @@ local_server_directory="${local_server_directory}"
 # functions ////////////////////////////////////////////////////////////////////
 
 rclone_transfer () {
+
+${TAB}rclone=$(command -v rclone)
 
 ${TAB}streams="16"
 
@@ -121,7 +121,7 @@ ${TAB}exclude="\${4}"
 
 ${TAB}unset transfer_command
 
-${TAB}transfer_command+="rclone"
+${TAB}transfer_command+="\${rclone}"
 ${TAB}transfer_command+=" \${synchronization_option}"
 ${TAB}transfer_command+=" \${source}"
 ${TAB}transfer_command+=" \${destination}"
@@ -139,10 +139,14 @@ ${TAB}transfer_command+=" --multi-thread-streams \${streams}"
 ${TAB}transfer_command+=" --progress"
 ${TAB}transfer_command+=" --verbose"
 
-${TAB}exec \${transfer_command}
+${TAB}eval \${transfer_command}
 }
 
 # batch directory management
+
+# set IFS
+
+IFS=\$'\\n'
 
 server_directories_list=(
 ${TAB}\$(find "\${local_server_directory}"	\\
@@ -155,35 +159,26 @@ ${TAB}${TAB}! -iname "*Music*"				\\
 ${TAB})
 )
 
-# copy /////////////////////////////////////////////////////////////////////////
+# unset IFS
 
-# ${cloud_service} >>> local machine
-
-echo "Copying"
-echo
+IFS=''
 
 for server_directory in \${server_directories_list[@]}
 do
 ${TAB}server_directory=\${server_directory##*/}
 
-${TAB}echo "\${server_directory}"
+${TAB}# copy:
+${TAB}# ${cloud_service} >>> local machine
+
+${TAB}echo "Copying: " "\${server_directory}"
 ${TAB}echo
 
 ${TAB}rclone_transfer copy "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
-done
 
-# synchronize //////////////////////////////////////////////////////////////////
+${TAB}# synchronize:
+${TAB}# local machine >>> ${cloud_service}
 
-# local machine >>> ${cloud_service}
-
-echo "Synchronizing"
-echo
-
-for server_directory in \${server_directories_list[@]}
-do
-${TAB}server_directory=\${server_directory##*/}
-
-${TAB}echo "\${server_directory}"
+${TAB}echo "Synchronizing: " "\${server_directory}"
 ${TAB}echo
 
 ${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
