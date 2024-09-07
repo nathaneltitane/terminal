@@ -152,12 +152,8 @@ ${TAB}${TAB}-type d							\\
 ${TAB}${TAB}! -iname "*.Trash*"				\\
 ${TAB}${TAB}! -iname "*Git*"				\\
 ${TAB}${TAB}! -iname "*Music*"				\\
-${TAB}${TAB}-exec basename {} \;)
+${TAB})
 )
-
-IFS=\$'\\n'
-
-echo \${server_directories_list[@]}
 
 # copy /////////////////////////////////////////////////////////////////////////
 
@@ -168,6 +164,8 @@ echo
 
 for server_directory in \${server_directories_list[@]}
 do
+${TAB}server_directory=\${server_directory##*/}
+
 ${TAB}echo "\${server_directory}"
 ${TAB}echo
 
@@ -183,6 +181,8 @@ echo
 
 for server_directory in \${server_directories_list[@]}
 do
+${TAB}server_directory=\${server_directory##*/}
+
 ${TAB}echo "\${server_directory}"
 ${TAB}echo
 
