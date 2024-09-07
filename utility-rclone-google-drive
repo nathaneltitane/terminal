@@ -198,6 +198,11 @@ server_directories_list=()
 
 # individual directory management
 
+echo "Git"
+echo
+
+rclone_transfer sync "/media/internal/Git" "\${cloud_server_directory}/Git"
+
 echo "Music"
 echo
 
