@@ -159,13 +159,13 @@ echo "Synchronizing"
 echo
 
 server_directories_list=(
-	\$(find "${local_server_directory}"	\
-		-mindepth 1						\
-		-maxdepth 1						\
-		-type d							\
-		! -iname "*.Trash*"				\
-		! -iname "Git"					\
-		! -iname "Music"				\
+	\$(find "${local_server_directory}"	\\
+		-mindepth 1						\\
+		-maxdepth 1						\\
+		-type d							\\
+		! -iname "*.Trash*"				\\
+		! -iname "Git"					\\
+		! -iname "Music"				\\
 			-exec basename {} \;)
 )
 
