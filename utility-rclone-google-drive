@@ -193,10 +193,6 @@ done
 
 server_directories_list=()
 
-# unset IFS
-
-IFS=''
-
 # individual directory management
 
 echo "Git"
