@@ -108,36 +108,36 @@ local_server_directory="${local_server_directory}"
 
 rclone_transfer () {
 
-	streams="16"
+${TAB}streams="16"
 
-	synchronization_option="\${1}"
+${TAB}synchronization_option="\${1}"
 
-	source="\${2}"
-	destination="\${3}"
+${TAB}source="\${2}"
+${TAB}destination="\${3}"
 
-	exclude="\${4}"
+${TAB}exclude="\${4}"
 
-	unset transfer_command
+${TAB}unset transfer_command
 
-	transfer_command+="rclone"
-	transfer_command+=" \${synchronization_option}"
-	transfer_command+=" \${source}"
-	transfer_command+=" \${destination}"
-	transfer_command+=" --create-empty-src-dirs"
-	transfer_command+=" --drive-skip-gdocs"
+${TAB}transfer_command+="rclone"
+${TAB}transfer_command+=" \${synchronization_option}"
+${TAB}transfer_command+=" \${source}"
+${TAB}transfer_command+=" \${destination}"
+${TAB}transfer_command+=" --create-empty-src-dirs"
+${TAB}transfer_command+=" --drive-skip-gdocs"
 
-	if [ ! -z "\${4}" ]
-	then
-		exclude="/\${exclude}/**"
+${TAB}if [ ! -z "\${4}" ]
+${TAB}then
+${TAB}${TAB}exclude="/\${exclude}/**"
 
-		transfer_command+=" --exclude \${exclude}"
-	fi
+${TAB}${TAB}transfer_command+=" --exclude \${exclude}"
+${TAB}fi
 
-	transfer_command+=" --multi-thread-streams \${streams}"
-	transfer_command+=" --progress"
-	transfer_command+=" --verbose"
+${TAB}transfer_command+=" --multi-thread-streams \${streams}"
+${TAB}transfer_command+=" --progress"
+${TAB}transfer_command+=" --verbose"
 
-	exec  \${transfer_command}
+${TAB}exec  \${transfer_command}
 }
 
 # copy /////////////////////////////////////////////////////////////////////////
@@ -171,10 +171,10 @@ ${TAB}${TAB}-exec basename {} \;)
 
 for server_directory in \${server_directories_list[@]}
 do
-	echo "\${server_directory}"
-	echo
+${TAB}echo "\${server_directory}"
+${TAB}echo
 
-	rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
+${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 done
 
 echo "Music"
