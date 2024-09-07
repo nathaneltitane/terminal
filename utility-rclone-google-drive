@@ -140,6 +140,19 @@ ${TAB}transfer_command+=" --verbose"
 ${TAB}exec  \${transfer_command}
 }
 
+# batch directory management
+
+server_directories_list=(
+${TAB}\$(find "\${local_server_directory}"	\\
+${TAB}${TAB}-mindepth 1						\\
+${TAB}${TAB}-maxdepth 1						\\
+${TAB}${TAB}-type d							\\
+${TAB}${TAB}! -iname "*.Trash*"				\\
+${TAB}${TAB}! -iname "Git"					\\
+${TAB}${TAB}! -iname "Music"				\\
+${TAB}${TAB}-exec basename {} \;)
+)
+
 # copy /////////////////////////////////////////////////////////////////////////
 
 # ${cloud_service} >>> local machine
@@ -147,9 +160,13 @@ ${TAB}exec  \${transfer_command}
 echo "Copying"
 echo
 
-rclone_transfer copy "\${cloud_server_directory}/" "\${local_server_directory}/" Music
+for server_directory in \${server_directories_list[@]}
+do
+${TAB}echo "\${server_directory}"
+${TAB}echo
 
-synchronization_option="sync"
+${TAB}rclone_transfer copy "\${cloud_server_directory}/" "\${local_server_directory}/"
+done
 
 # synchronize //////////////////////////////////////////////////////////////////
 
@@ -159,7 +176,7 @@ echo "Synchronizing"
 echo
 
 server_directories_list=(
-${TAB}\$(find "${local_server_directory}"	\\
+${TAB}\$(find "\${local_server_directory}"	\\
 ${TAB}${TAB}-mindepth 1						\\
 ${TAB}${TAB}-maxdepth 1						\\
 ${TAB}${TAB}-type d							\\
@@ -176,6 +193,10 @@ ${TAB}echo
 
 ${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 done
+
+server_directories_list=()
+
+# individual directory management
 
 echo "Music"
 echo
