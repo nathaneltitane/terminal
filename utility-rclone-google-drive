@@ -165,7 +165,7 @@ do
 ${TAB}echo "\${server_directory}"
 ${TAB}echo
 
-${TAB}rclone_transfer copy "\${cloud_server_directory}/" "\${local_server_directory}/"
+${TAB}rclone_transfer copy "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
 done
 
 # synchronize //////////////////////////////////////////////////////////////////
