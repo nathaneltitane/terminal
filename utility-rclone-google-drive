@@ -193,14 +193,20 @@ server_directories_list=()
 echo "Git"
 echo
 
-rclone_transfer sync "/media/internal/Git" "\${cloud_server_directory}/Git"
+local_server_directory="${local_server_directory}"
+
+rclone_transfer sync "\${local_server_directory}/Git" "\${cloud_server_directory}/Git"
 
 echo "Music"
 echo
 
-rclone_transfer sync "/media/nathanel/Samsung T7/Music/STEYOYOKE" "\${cloud_server_directory}/Music/STEYOYOKE"
+local_server_directory="/media/nathanel/Samsung${SPC}T7"
 
-rclone_transfer sync "/media/nathanel/Samsung T7/Music/INNER SYMPHONY" "\${cloud_server_directory}/Music/INNER SYMPHONY"
+rclone_transfer sync "\${local_server_directory}/Music/STEYOYOKE" "\${cloud_server_directory}/Music/STEYOYOKE"
+
+local_server_directory="/media/nathanel/Samsung${SPC}T7"
+
+rclone_transfer sync "\${local_server_directory}/Music/INNER SYMPHONY" "\${cloud_server_directory}/Music/INNER SYMPHONY"
 FILE
 
 # permissions
