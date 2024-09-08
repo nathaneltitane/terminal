@@ -206,7 +206,7 @@ rclone_transfer sync "\${local_server_directory}/Music/STEYOYOKE" "\${cloud_serv
 
 local_server_directory="/media/nathanel/Samsung${SPC}T7"
 
-rclone_transfer sync "\${local_server_directory}/Music/INNER SYMPHONY" "\${cloud_server_directory}/Music/INNER SYMPHONY"
+rclone_transfer sync "\${local_server_directory}/Music/INNER${SPC}SYMPHONY" "\${cloud_server_directory}/Music/INNER SYMPHONY"
 FILE
 
 # permissions
