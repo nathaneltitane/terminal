@@ -246,7 +246,7 @@ FILE
 
 # service activation
 
-if [[ $(status --user "${service_timer}" | grep -o "running") ]]
+if [[ $(systemctl status --user "${service_timer}") ]]
 then
 	service_actions_list=(
 		disable
@@ -255,25 +255,31 @@ then
 	)
 
 	service_action_message="Stopping service"
-else
-	service_actions_list=(
-		enable
-		start
-	)
-
-	service_action_message="Starting service"
 fi
+
+service_actions_list=()
+
+service_actions_list=(
+	enable
+	start
+)
+
+service_action_message="Starting service"
 
 for service_action in ${service_actions_list[@]}
 do
-	systemctl "${service_action}" --user "${service_timer}" &
-done
+	systemctl "${service_action}" --user "${service_timer}" > "${sink}" 2>&1 &
 
-frobulator.process "${service_action_message}"
+	frobulator.process "${service_action_message}"
+
+	systemctl --user daemon-reload > "${sink}" 2>&1 &
+
+	frobulator.process "Reloading"
+done
 
 # service process verification
 
-if [[ $(status --user "${service_service}" | grep -o "running") ]]
+if [[ $(systemctl status --user "${service_service}" | grep "active") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
