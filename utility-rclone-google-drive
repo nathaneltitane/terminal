@@ -55,6 +55,9 @@ frobulator.script "Setting up ${script#*-}"
 
 service="rclone-google-drive"
 
+service_timer="${service}.timer"
+service_service="${service}.service"
+
 service_interval="5"
 
 cloud_service="google drive"
@@ -219,7 +222,7 @@ frobulator.directory "${HOME}" .config/systemd/user
 
 # service timer
 
-cat <<- 'FILE' > "${HOME}"/.config/systemd/user/"${service}".timer
+cat <<- 'FILE' > "${HOME}"/.config/systemd/user/"${service_timer}"
 [Unit]
 Description=RClone Google Drive synchronization
 
@@ -233,27 +236,44 @@ FILE
 
 # service desciptor
 
-cat <<- FILE > "${HOME}"/.config/systemd/user/"${service}".service
+cat <<- FILE > "${HOME}"/.config/systemd/user/"${service_service}"
 [Unit]
 Description=Synchronize Google Drive using RClone every 5 minutes
 
 [Service]
-ExecStart="${HOME}"/.local/bin/bash "${HOME}"/.local/bin/${service}
+ExecStart=${SHELL} ${HOME}/.local/bin/${service}
 FILE
 
 # service activation
 
-systemctl enable --user "${service}".timer &
+if [[ $(status --user "${service_timer}" | grep -o "running") ]]
+then
+	service_actions_list=(
+		disable
+		stop
 
-frobulator.process "Enabling Service${marker_elp}"
+	)
 
-systemctl start --user "${service}".timer &
+	service_action_message="Stopping service"
+else
+	service_actions_list=(
+		enable
+		start
+	)
 
-frobulator.process "Starting Service${marker_elp}"
+	service_action_message="Starting service"
+fi
+
+for service_action in ${service_actions_list[@]}
+do
+	systemctl "${service_action}" --user "${service_timer}" &
+done
+
+frobulator.process "${service_action_message}"
 
 # service process verification
 
-if [[ $(systemctl list-timers --user | grep -o "${service}") ]]
+if [[ $(status --user "${service_service}" | grep -o "running") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
@@ -262,7 +282,6 @@ else
 	echo
 
 	exit 1
-
 fi
 
 frobulator.scs "Done"
