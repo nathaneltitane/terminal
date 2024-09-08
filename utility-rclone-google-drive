@@ -37,15 +37,13 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-frobulator.escalate
-
 # script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="09-04-2024"
+version="09-09-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -96,7 +94,7 @@ fi
 
 # script
 
-cat <<- FILE > /usr/bin/"${service}"
+cat <<- FILE > "${HOME}"/.local/bin/"${service}"
 #!/bin/bash
 
 # variables ////////////////////////////////////////////////////////////////////
@@ -213,7 +211,7 @@ FILE
 
 # permissions
 
-chmod +x /usr/bin/"${service}"
+chmod +x "${HOME}"/.local/bin/"${service}"
 
 # service
 
@@ -221,7 +219,7 @@ frobulator.directory "${HOME}" .config/systemd/user
 
 # service timer
 
-cat <<- 'FILE' > /etc/systemd/system/"${service}".timer
+cat <<- 'FILE' > "${HOME}"/.config/systemd/user/"${service}".timer
 [Unit]
 Description=RClone Google Drive synchronization
 
@@ -235,29 +233,29 @@ FILE
 
 # service desciptor
 
-cat <<- FILE > /etc/systemd/system/"${service}".service
+cat <<- FILE > "${HOME}"/.config/systemd/user/"${service}".service
 [Unit]
 Description=Synchronize Google Drive using RClone every 5 minutes
 
 [Service]
-ExecStart=/usr/bin/bash /usr/bin/${service}
+ExecStart="${HOME}"/.local/bin/bash "${HOME}"/.local/bin/${service}
 FILE
 
 # service activation
 
-sudo systemctl enable "${service}".timer &
+systemctl enable --user "${service}".timer &
 
 frobulator.process "Enabling Service${marker_elp}"
 
-sudo systemctl start "${service}".timer &
+systemctl start --user "${service}".timer &
 
 frobulator.process "Starting Service${marker_elp}"
 
 # service process verification
 
-if [[ $(sudo systemctl list-timers | grep -o "${service}") ]]
+if [[ $(systemctl list-timers --user | grep -o "${service}") ]]
 then
-	frobulator.inf "Service activation success" "[ ${service} ]"
+	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
 else
 	frobulator.err "Service activation failed" "[ ${service} ]"
