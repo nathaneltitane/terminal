@@ -73,7 +73,7 @@ then
 			frobulator.inf "Linking configuration"
 			echo
 
-			frobulator.directory "${HOME}"/.config/"LPub3D Software"
+			frobulator.directory "${HOME}" .config/"LPub3D Software"
 
 			frobulator.link /media/[iI]nternal/[lL]ego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf
 		fi
