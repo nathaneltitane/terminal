@@ -88,7 +88,7 @@ then
 		frobulator.inf "Linking configuration"
 		echo
 
-		frobulator.directory "${HOME}"/.config/rclone
+		frobulator.directory "${HOME}" .config/rclone
 
 		frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
 	fi
