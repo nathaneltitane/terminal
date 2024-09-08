@@ -190,14 +190,14 @@ server_directories_list=()
 
 # individual directory management
 
-echo "Git"
+echo "Synchronizing: " "Git"
 echo
 
 local_server_directory="${local_server_directory}"
 
 rclone_transfer sync "\${local_server_directory}/Git" "\${cloud_server_directory}/Git"
 
-echo "Music"
+echo "Synchronizing: " "Music"
 echo
 
 local_server_directory="/media/nathanel/Samsung${SPC}T7"
