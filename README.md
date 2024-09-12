@@ -1,6 +1,6 @@
 ![terminal](https://raw.githubusercontent.com/nathaneltitane/terminal/main/terminal.svg)
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=2WZT7PCW3XDX6)
+[![Donate](https://img.shields.io/badge/Buy_Me_A_Coffee-2f343f.svg?style=for-the-badge&logo=buymeacoffee&label=Donate)](https://buymeacoffee.com/nathaneltitane)
 
 [[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 01-21-2023 ]
 
@@ -50,4 +50,4 @@ The following projects incorporate Terminal files in their usage:
 
 ### Enjoying Terminal? Buy me a coffee to show your appreciation!
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-000000.svg?style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=2WZT7PCW3XDX6)
+[![Donate](https://img.shields.io/badge/Buy_Me_A_Coffee-2f343f.svg?style=for-the-badge&logo=buymeacoffee&label=Donate)](https://buymeacoffee.com/nathaneltitane)
