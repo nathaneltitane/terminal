@@ -43,7 +43,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="09-09-2024"
+version="11-09-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -168,6 +168,14 @@ for server_directory in \${server_directories_list[@]}
 do
 ${TAB}server_directory=\${server_directory##*/}
 
+${TAB}# synchronize:
+${TAB}# local machine >>> ${cloud_service}
+
+${TAB}echo "Synchronizing: " "\${server_directory}"
+${TAB}echo
+
+${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
+
 ${TAB}# copy:
 ${TAB}# ${cloud_service} >>> local machine
 
@@ -176,13 +184,6 @@ ${TAB}echo
 
 ${TAB}rclone_transfer copy "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
 
-${TAB}# synchronize:
-${TAB}# local machine >>> ${cloud_service}
-
-${TAB}echo "Synchronizing: " "\${server_directory}"
-${TAB}echo
-
-${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 done
 
 # unset directory list
