@@ -324,6 +324,18 @@ then
 	alias 'pfilter'='ps -a -u -x | grep -i'
 fi
 
+# session //////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v exit) ]]
+then
+	alias 'exit'='exit > /dev/null 2>&1'
+fi
+
+if [[ $(command -v logout) ]]
+then
+	alias 'logout'='logout > /dev/null 2>&1'
+fi
+
 # commands /////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v chgrp) ]]
@@ -468,16 +480,4 @@ fi
 if [[ $(command -v tree) ]]
 then
 	alias 'treef'='tree -a -p -L'
-fi
-
-# session //////////////////////////////////////////////////////////////////////
-
-if [[ $(command -v exit) ]]
-then
-	alias 'exit'='exit > /dev/null 2>&1'
-fi
-
-if [[ $(command -v logout) ]]
-then
-	alias 'logout'='logout > /dev/null 2>&1'
 fi
