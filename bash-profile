@@ -157,16 +157,9 @@ then
 	TERMUX_X11_DRIVER="virpipe"
 	TERMUX_X11_ACCELERATOR="virgl_test_server"
 
-	export TERMUX_X11_APPLICATION="${TERMUX_X11_APPLICATION}"
-	export TERMUX_X11_SERVER="${TERMUX_X11_SERVER}"
-	export TERMUX_X11_DRIVER="${TERMUX_X11_DRIVER}"
-	export TERMUX_X11_ACCELERATOR="${TERMUX_X11_ACCELERATOR}"
-
 	if [ -z "${DISPLAY}" ]
 	then
 		DISPLAY=":0"
-
-		export DISPLAY="${DISPLAY}"
 	fi
 
 	if [[ $(pgrep -f "${TERMUX_X11_ACCELERATOR}") ]]
@@ -182,6 +175,15 @@ then
 	else
 		"${TERMUX_X11_SERVER}" "${DISPLAY}" &
 	fi
+
+	# export variables
+
+	export DISPLAY="${DISPLAY}"
+
+	export TERMUX_X11_APPLICATION="${TERMUX_X11_APPLICATION}"
+	export TERMUX_X11_SERVER="${TERMUX_X11_SERVER}"
+	export TERMUX_X11_DRIVER="${TERMUX_X11_DRIVER}"
+	export TERMUX_X11_ACCELERATOR="${TERMUX_X11_ACCELERATOR}"
 fi
 
 # dextop ///////////////////////////////////////////////////////////////////////
