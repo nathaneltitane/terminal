@@ -280,7 +280,7 @@ then
 	alias 'status'='apt-cache stats'
 fi
 
-# stystem //////////////////////////////////////////////////////////////////////
+# system ///////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v sudo) && $(command -v systemctl) ]]
 then
@@ -324,7 +324,7 @@ then
 	alias 'pfilter'='ps -a -u -x | grep -i'
 fi
 
-# commands  ////////////////////////////////////////////////////////////////////
+# commands /////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v chgrp) ]]
 then
@@ -468,4 +468,16 @@ fi
 if [[ $(command -v tree) ]]
 then
 	alias 'treef'='tree -a -p -L'
+fi
+
+# session //////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v exit) ]]
+then
+	alias 'exit'='exit > /dev/null 2>&1'
+fi
+
+if [[ $(command -v logout) ]]
+then
+	alias 'logout'='logout > /dev/null 2>&1'
 fi
