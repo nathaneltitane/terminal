@@ -198,7 +198,7 @@ then
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
-		# load interface
+		# load session interface
 
 		frobulator.fwd "Session" "[ ${session_interface} ]"
 		echo
