@@ -501,5 +501,4 @@ then
 	alias 'dta'='bash dextop -u termux all'
 
 	alias 'dua'='bash dextop -u utility all'
-
 fi
