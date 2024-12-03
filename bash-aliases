@@ -481,3 +481,25 @@ if [[ $(command -v tree) ]]
 then
 	alias 'treef'='tree -a -p -L'
 fi
+
+# dextop ///////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	alias 'daa'='bash dextop -u additions all'
+
+	alias 'dda'='bash dextop -u all'
+
+	alias 'ddu'='curl -s -L run.dxtp.app > "${HOME}"/.local/bin/dextop'
+
+	alias 'dfa'='curl -s -L run.dxtp.app > "${HOME}"/.local/bin/dextop && bash dextop -u all'
+
+	alias 'dpa'='bash dextop -u preferences all'
+
+	alias 'dsa'='bash dextop -u shell all'
+
+	alias 'dta'='bash dextop -u termux all'
+
+	alias 'dua'='bash dextop -u utility all'
+
+fi
