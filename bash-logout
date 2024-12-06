@@ -29,9 +29,8 @@ then
 		then
 			container-session -x
 
-			kill -9 $(pgrep -f com.termux.x11)
+			pkill -f com.termux.x11
 
-			kill -9 $(pgrep -f virgl_test_server)
-		fi
+			pkill -f virgl
 	fi
 fi
