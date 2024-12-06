@@ -219,10 +219,10 @@ then
 			frobulator.wrn "Run 'container-session -o' to launch session [ ${session_interface} ]."
 			echo
 		fi
+	else
+		frobulator.fwd "Welcome to Dextop" "[ Termux ]"
+		echo
 	fi
-
-	frobulator.fwd "Welcome to Dextop" "[ Termux ]"
-	echo
 
 	frobulator.inf "Update utilities:"
 	frobulator.nul "'dextop -u | dextop | shell [Shell Name | all] | utility [Utility Name | all] | all'"
