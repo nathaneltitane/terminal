@@ -748,13 +748,17 @@ youtube () {
 		exit 1
 	fi
 
+	format="bestaudio"
+	audio_format="mp3"
+	audio_quality="160k"
+
 	"${HOME}"/.local/bin/yt-dlp																	\
 		--ignore-errors																			\
 		--yes-playlist																			\
 		--extract-audio																			\
-		--format			bestaudio															\
-		--audio-format		mp3																	\
-		--audio-quality		160K																\
+		--format			"${format}"															\
+		--audio-format		"${audio_format}"													\
+		--audio-quality		"${audio_quality}"													\
 		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
 																								"${url}"
 }
@@ -763,24 +767,28 @@ youtube () {
 
 findf () {
 
+	type="f"
+
 	if [[ $(command -v find) ]]
 	then
-		find			\
-			"${PWD}"	\
-			-type f		\
-			-iname		"*${1}*"
+		find					\
+			"${PWD}"			\
+			-type "${type}"		\
+			-iname				"*${1}*"
 	fi
 
 }
 
 findd () {
 
+	type="d"
+
 	if [[ $(command -v find) ]]
 	then
-		find			\
-			"${PWD}"	\
-			-type d		\
-			-iname		"*${1}*"
+		find					\
+			"${PWD}"			\
+			-type "${type}"		\
+			-iname				"*${1}*"
 	fi
 
 }
