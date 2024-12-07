@@ -636,7 +636,7 @@ record () {
 		wmctrl
 	)
 
-	frobulator.require ${list[@]}
+	(frobulator.require ${list[@]})
 
 	list=()
 
@@ -728,7 +728,7 @@ youtube () {
 
 	if [[ -z $(command -v yt-dlp) ]]
 	then
-		frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp
+		(frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp)
 	fi
 
 	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
