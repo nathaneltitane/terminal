@@ -701,7 +701,7 @@ terminate () {
 	then
 		while [[ $(pgrep -f "${process_name}") ]]
 		do
-			pkill "${process_name}"
+			pkill -f "${process_name}"
 		done
 	fi
 }
