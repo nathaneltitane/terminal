@@ -504,4 +504,7 @@ then
 
 		alias 'dua'='bash dextop -u utility all'
 	fi
+
+	alias 'mail'='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
+	alias 'email'='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
 fi

@@ -758,3 +758,29 @@ youtube () {
 		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
 																								"${url}"
 }
+
+# find /////////////////////////////////////////////////////////////////////////
+
+ffind () {
+
+	if [[ $(command -v find) ]]
+	then
+		find			\
+			"${PWD}"	\
+			-type f		\
+			-iname		"*${1}*"
+	fi
+
+}
+
+dfind () {
+
+	if [[ $(command -v find) ]]
+	then
+		find			\
+			"${PWD}"	\
+			-type d		\
+			-iname		"*${1}*"
+	fi
+
+}
