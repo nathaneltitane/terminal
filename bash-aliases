@@ -505,6 +505,14 @@ then
 		alias 'dua'='bash dextop -u utility all'
 	fi
 
-	alias 'mail'='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
-	alias 'email'='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
+	if [ "$(command -v am)" ]
+	then
+		alias {'dextop-mail','email','mail'}='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
+
+		alias {'dextop-browser','browser','link','web'}='am start --user 0 -a android.intent.action.VIEW -d https: > /dev/null 2>&1'
+
+		alias {'dextop-message','message','text','sms'}='am start --user 0 -a android.intent.action.VIEW -d sms: > /dev/null 2>&1'
+
+		alias {'dextop-files','file'}='am start --user 0 -a android.intent.action.VIEW -d file: > /dev/null 2>&1'
+	fi
 fi
