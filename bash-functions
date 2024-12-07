@@ -761,7 +761,7 @@ youtube () {
 
 # find /////////////////////////////////////////////////////////////////////////
 
-ffind () {
+findf () {
 
 	if [[ $(command -v find) ]]
 	then
@@ -773,7 +773,7 @@ ffind () {
 
 }
 
-dfind () {
+findd () {
 
 	if [[ $(command -v find) ]]
 	then
