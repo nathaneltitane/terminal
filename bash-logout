@@ -25,6 +25,8 @@ then
 			pulseaudio --kill
 		fi
 
+		# display
+
 		if [[ $(pgrep -f com.termux.x11) ]]
 		then
 			container-session -x
