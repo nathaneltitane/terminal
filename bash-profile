@@ -194,18 +194,6 @@ then
 
 	ticker=$(echo $(cat "${HOME}"/.dextop/dextop-ticker))
 
-	# automatic session start
-
-	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
-	then
-		# load session interface
-
-		frobulator.fwd "Session" "[ ${session_interface} ]"
-		echo
-
-		container-session -o
-	fi
-
 	# load welcome message
 
 	if [[ $(pgrep -f proot) ]]
@@ -238,4 +226,15 @@ then
 
 	echo ${ticker} > "${HOME}"/.dextop/dextop-ticker
 
+	# automatic session start
+
+	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
+	then
+		# load session interface
+
+		frobulator.fwd "Session" "[ ${session_interface} ]"
+		echo
+
+		container-session -o
+	fi
 fi
