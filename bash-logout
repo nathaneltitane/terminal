@@ -32,5 +32,6 @@ then
 			pkill -f com.termux.x11
 
 			pkill -f virgl
+		fi
 	fi
 fi
