@@ -14,11 +14,16 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	# session
 
-	if [[ $(cat "${HOME}"/.dextop/dextop-environment) = xfce ]]
+	if [[ $(cat "${HOME}"/.dextop/dextop-environment) ]]
 	then
-		session_interface="XFCE"
-	else
-		session_interface="CONSOLE"
+		# extract session interface information
+
+		session_interface=$(cat "${HOME}"/.dextop/dextop-environment)
+
+		# format session interface information:
+		# capitalize
+
+		session_interface=${session_interface^^}
 	fi
 
 	if [ -f /etc/os-release ]
