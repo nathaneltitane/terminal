@@ -27,7 +27,7 @@
 [ Window Layout ]    Move floating window                                       Modifier + Mouse
 
                      Toggle [f]ullscreen windows                                Modifier + F
-                     Toggle floating windows                                    Modifier + W
+                     Toggle floating [w]indows                                  Modifier + W
                      Change [w]indow focus - tiling / floating                  Modifier + Shift + W
 
 [ Container Layout ] Change container layout  - [s]plit                         Modifier + S
@@ -72,4 +72,4 @@
 
 [ Session ]         [R]eload i3 configuration                                   Modifier + R
                     [R]estart i3                                                Modifier + Shift + R
-                    [E]xit i3                                                   Modifier + Shift + E
+                    [E]xit i3                                                   Modifier + Shift + S
