@@ -24,9 +24,18 @@ order += "ethernet eth0"
 order += "wireless wlan0"
 order += "battery 0"
 
+# battery entry files:
+# /sys/class/power_supply/battery/status
+# /sys/class/power_supply/battery/health
+# /sys/class/power_supply/battery/present
+# /sys/class/power_supply/battery/capacity
+# /sys/class/power_supply/battery/voltage
+# /sys/class/power_supply/battery/temp
+# /sys/class/power_supply/battery/technology
+
 battery 0 {
 	format = "[ %status ]"
-	path = "/sys/class/power_supply/battery/uevent"
+	path = "/sys/class/power_supply/battery/capacity"
 	last_full_capacity = true
 	threshold_type = percentage
 	low_threshold = 15
