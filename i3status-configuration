@@ -24,6 +24,10 @@ order += "memory"
 # order += "wireless wlan0"
 # order += "battery 0"
 
+tztime local {
+	format = "[ %Y-%m-%d + %H:%M:%S ]"
+}
+
 cpu_temperature 0 {
 	format = "[ T° 0 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone0/temp"
@@ -72,10 +76,6 @@ memory {
 	format = "[ RAM %used • %available ]"
 	format_degraded = "MEMORY < %available"
 	threshold_degraded = "1G"
-}
-
-tztime local {
-	format = "[ %Y-%m-%d + %H:%M:%S ]"
 }
 
 # ethernet eth0 {
