@@ -20,69 +20,47 @@ order += "cpu_temperature 6"
 order += "cpu_temperature 7"
 order += "disk /"
 order += "memory"
-order += "ethernet eth0"
-order += "wireless wlan0"
-order += "battery 0"
-
-# battery entry files:
-# /sys/class/power_supply/battery/status
-# /sys/class/power_supply/battery/health
-# /sys/class/power_supply/battery/present
-# /sys/class/power_supply/battery/capacity
-# /sys/class/power_supply/battery/voltage
-# /sys/class/power_supply/battery/temp
-# /sys/class/power_supply/battery/technology
-
-battery 0 {
-	format = "[ %status ]"
-	path = "/sys/class/power_supply/battery/capacity"
-	last_full_capacity = true
-	threshold_type = percentage
-	low_threshold = 15
-	format_down = " X "
-	status_chr = " >>> "
-	status_bat = "  B "
-	status_unk = " ? "
-	status_full = " F "
-}
+# order += "ethernet eth0"
+# order += "wireless wlan0"
+# order += "battery 0"
 
 cpu_temperature 0 {
-	format = "[ T° 0 • %degrees °C ]"
+	format = "[ T° 0 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone0/temp"
 }
 
 cpu_temperature 1 {
-	format = "[ T° 1 • %degrees °C ]"
+	format = "[ T° 1 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone1/temp"
 }
 
 cpu_temperature 2 {
-	format = "[ T° 2 • %degrees °C ]"
+	format = "[ T° 2 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone2/temp"
 }
 
 cpu_temperature 3 {
-	format = "[ T° 3 • %degrees °C ]"
+	format = "[ T° 3 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone3/temp"
 }
 
 cpu_temperature 4 {
-	format = "[ T° 4 • %degrees °C ]"
+	format = "[ T° 4 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone4/temp"
 }
 
 cpu_temperature 5 {
-	format = "[ T° 5 • %degrees °C ]"
+	format = "[ T° 5 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone5/temp"
 }
 
 cpu_temperature 6 {
-	format = "[ T° 6 • %degrees °C ]"
+	format = "[ T° 6 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone6/temp"
 }
 
 cpu_temperature 7 {
-	format = "[ T° 7 • %degrees °C ]"
+	format = "[ T° 7 • %degrees°C ]"
 	path = "/sys/class/thermal/thermal_zone7/temp"
 }
 
@@ -96,11 +74,38 @@ memory {
 	threshold_degraded = "1G"
 }
 
-wireless wlan0 {
-	format_up = "[ W • %essid • %frequency • %quality • %bitrate + %ip ]"
-	format_down = "[ W • X ]"
-}
-
 tztime local {
 	format = "[ %Y-%m-%d + %H:%M:%S ]"
 }
+
+# ethernet eth0 {
+# 	format_up = "[ E • %essid • %frequency • %quality • %bitrate + %ip ]"
+# 	format_down = "[ E • X ]"
+# }
+
+# wireless wlan0 {
+# 	format_up = "[ W • %essid • %frequency • %quality • %bitrate + %ip ]"
+# 	format_down = "[ W • X ]"
+# }
+
+# battery entry files:
+# /sys/class/power_supply/battery/status
+# /sys/class/power_supply/battery/health
+# /sys/class/power_supply/battery/present
+# /sys/class/power_supply/battery/capacity
+# /sys/class/power_supply/battery/voltage
+# /sys/class/power_supply/battery/temp
+# /sys/class/power_supply/battery/technology
+
+# battery 0 {
+# 	format = "[ %status ]"
+# 	path = "/sys/class/power_supply/battery/capacity"
+# 	last_full_capacity = true
+# 	threshold_type = percentage
+# 	low_threshold = 15
+# 	format_down = " X "
+# 	status_chr = " >>> "
+# 	status_bat = "  B "
+# 	status_unk = " ? "
+# 	status_full = " F "
+# }
