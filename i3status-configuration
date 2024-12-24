@@ -96,17 +96,11 @@ memory {
 	threshold_degraded = "1G"
 }
 
-ethernet eth0 {
-	format_up = "[ E • %essid • %frequency • %quality • %bitrate + %ip ]"
-	format_down = "[ E • X ]"
-}
-
 wireless wlan0 {
 	format_up = "[ W • %essid • %frequency • %quality • %bitrate + %ip ]"
 	format_down = "[ W • X ]"
 }
 
 tztime local {
-	format = "%time"
-	format_time = "[ %Y-%m-%d + %H:%M:%S ]"
+	format = "[ %Y-%m-%d + %H:%M:%S ]"
 }
