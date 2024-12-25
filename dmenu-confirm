@@ -7,7 +7,7 @@ lines=15
 prompt="${1}"
 execute="${2}"
 
-selection_menu=$(echo -e "NO\NYES" | dmenu -i -l "$lines" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+selection_menu=$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
 
 [ "${selection_menu}" == "YES" ] && "${execute}"
 

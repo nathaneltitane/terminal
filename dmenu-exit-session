@@ -5,12 +5,12 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 lines=15
 prompt="EXIT SESSION?"
 
-while [ "$selection" != "CANCEL" -a "$selection" != "LOGOUT" -a "$selection" != "POWEROFF" -a "$selection" != "REBOOT" ]
+while [ "${selection}" != "CANCEL" -a "${selection}" != "LOGOUT" -a "${selection}" != "POWEROFF" -a "${selection}" != "REBOOT" ]
 do
 	selection=$(echo -e 'CANCEL\nLOGOUT' | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
 
-	[ -z "$selection" ] && exit
+	[ -z "${selection}" ] && exit
 done
 
-[ "$selection" = "CANCEL" ] && exit
-[ "$selection" = "LOGOUT" ] && i3-msg exit
+[ "${selection}" = "CANCEL" ] && exit
+[ "${selection}" = "LOGOUT" ] && i3-msg exit
