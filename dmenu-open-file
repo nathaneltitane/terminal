@@ -5,4 +5,4 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 lines=15
 prompt="OPEN DIRECTORY"
 
-find $HOME -type f -maxdepth 1 -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e ranger --selectfile
+find "${HOME}" -type f -maxdepth 1 -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e ranger --selectfile
