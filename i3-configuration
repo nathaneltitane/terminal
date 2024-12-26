@@ -161,9 +161,9 @@ bindsym $modifier+l $execute $lookup
 
 bindsym $modifier+t $execute $terminal
 
-# kill application
+# kill focused application
 
-bindsym $modifier+x xkill
+bindsym $modifier+x kill
 
 # bindings - windows ///////////////////////////////////////////////////////////
 
