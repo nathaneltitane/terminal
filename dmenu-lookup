@@ -1,0 +1,7 @@
+#!/bin/bash
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+prompt="LOOKUP //"
+
+dmenu_run -b -i -p  "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'

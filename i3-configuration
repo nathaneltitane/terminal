@@ -38,28 +38,6 @@ set $file_manager ranger
 
 set $image "${HOME}/Pictures/.background.png"
 
-set $launcher							\
-		i3-dmenu-desktop				\
-			--dmenu=					\
-				"dmenu					\
-					-b					\
-					-i					\
-					-p  'Launch // '	\
-					-nb '#000000'		\
-					-nf '#FFFFFF'		\
-					-sb '#666666'		\
-					-sf '#000000'"
-
-set $lookup								\
-		"dmenu_run						\
-			-b							\
-			-i							\
-			-p  'Lookup // '			\
-			-nb '#000000'				\
-			-nf '#FFFFFF'				\
-			-sb '#666666'				\
-			-sf '#000000'"
-
 set $status i3status
 
 set $editor i3-sensible-editor
@@ -151,11 +129,11 @@ bindsym $modifier+e $execute dmenu-kill-process
 
 # open launcher
 
-bindsym $modifier+space $execute $launcher
+bindsym $modifier+space $execute dmenu-launch
 
 # open lookup
 
-bindsym $modifier+l $execute $lookup
+bindsym $modifier+l $execute dmenu-lookup
 
 # open terminal
 
