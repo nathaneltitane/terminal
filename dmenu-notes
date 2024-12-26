@@ -1,0 +1,62 @@
+#!/usr/bin/bash
+
+lines=15
+prompt="Notes:"
+
+terminal="i3-sensible-terminal"
+editor="nano"
+
+notes_directory="${HOME}"/.notes
+
+if [[ ! -d "${notes_directory}" ]]
+then
+    mkdir -p "${notes_directory}"
+fi
+
+list="$(find -L ${notes_directory} -maxdepth 1 -type f | sed 's|^'${notes_directory}/'||' | sort )"
+
+selection="$(echo -e "$list" | dmenu dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+slugger () {
+
+    echo ${@} | tr -d '[:punct:]'     \
+              | sed -e "s/ /-/g"      \
+                    -e "s/[áàãâ]/a/g" \
+                    -e "s/[éê]/e/g"   \
+                    -e "s/[íÍ]/i/g"   \
+                    -e "s/[óõô]/o/g"  \
+                    -e "s/[úü]/u/g"   \
+                    -e "s/[ç]/c/g"
+}
+
+note_create () {
+
+    filename="$(slugger "${1,,}")"
+
+    note="${notes_directory}/${file_name}.md"
+
+    title="${1,,}"
+
+    echo -e "# ${title^}\n\n" > "${note}"
+
+    notify-send -i "Notes""New note <b>${file_name}.md</b> created under '${notes_directory}'"
+}
+
+note_open () {
+
+    note_selection="${notes_directory}/${selection}"
+
+    if [[ ! -f "${note_selection}" ]]
+    then
+        note_create "${selection}"
+    else
+        note="${note_selection}"
+    fi
+
+    eval "$(${terminal} -T "Notes" -e ${editor} ${note})"
+}
+
+if [[ ! -z "${selection}" ]]
+then
+    note_open
+fi
