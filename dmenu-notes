@@ -40,7 +40,9 @@ note_create () {
 
     title="${1,,}"
 
-    echo -e "# ${title^}\n\n" > "${note}"
+    title=${title^^}
+
+    echo -e "# ${title}\n\n" > "${note}"
 
     notify-send -i "Notes" "New note" "Note <b>$file_name.md</b> was created under '${notes_directory}'"
 }
