@@ -1,12 +1,10 @@
 #!/usr/bin/bash
 
-colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=30
 
-processes="ps all"
 prompt="Type to search - select to terminate:"
 
-selection="$("${processes}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
+selection="$(ps all | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
 
 if [[ ! -z "${selection}" ]]
 then

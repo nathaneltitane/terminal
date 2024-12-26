@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 
-colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 prompt="Notes:"
 

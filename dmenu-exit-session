@@ -2,7 +2,6 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 prompt="EXIT SESSION?"
 
