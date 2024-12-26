@@ -10,9 +10,9 @@ if [[ ! -z "${selection}" ]]
 then
 	prompt="${selection} will be terminated. Proceed?"
 
-    answer="$(echo -e "Yes\nNo" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+    answer="$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
-    if [[ "${answer}" == "Yes" ]]
+    if [[ "${answer}" == "YES" ]]
     then
         process_selection="$(awk '{print $1}' <<< "${selection}")"
 
