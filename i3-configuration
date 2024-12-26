@@ -38,14 +38,26 @@ set $file_manager ranger
 
 set $image "${HOME}/Pictures/.background.png"
 
-set $launcher				\
-		"dmenu_run			\
-			-b				\
-			-i				\
-			-p  'Run // '	\
-			-nb '#000000'	\
-			-nf '#FFFFFF'	\
-			-sb '#666666'	\
+set $launcher							\
+		i3-dmenu-desktop				\
+			--dmenu=					\
+				"dmenu					\
+					-b					\
+					-i					\
+					-p  'Launch // '	\
+					-nb '#000000'		\
+					-nf '#FFFFFF'		\
+					-sb '#666666'		\
+					-sf '#000000'"
+
+set $lookup								\
+		"dmenu_run						\
+			-b							\
+			-i							\
+			-p  'Lookup // '			\
+			-nb '#000000'				\
+			-nf '#FFFFFF'				\
+			-sb '#666666'				\
 			-sf '#000000'"
 
 set $status i3status
@@ -134,6 +146,10 @@ bindsym $modifier+n $execute dmenu-notes
 # open launcher
 
 bindsym $modifier+space $execute $launcher
+
+# open lookup
+
+bindsym $modifier+l $execute $lookup
 
 # open terminal
 

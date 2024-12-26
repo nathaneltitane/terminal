@@ -12,6 +12,8 @@
 
 [ Launcher ]         Open launcher                                              Modifier + Space
 
+[ Lookup ]           Open file [l]ookup                                         Modifier + L
+
 [ Terminal ]         Open [t]erminal                                            Modifier + T
 
 [ Kill Application ] Kill application instance                                  Modifier + X
