@@ -163,7 +163,7 @@ bindsym $modifier+t $execute $terminal
 
 # kill application
 
-bindsym $modifier+x kill
+bindsym $modifier+x xkill
 
 # bindings - windows ///////////////////////////////////////////////////////////
 
