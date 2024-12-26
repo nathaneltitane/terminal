@@ -2,13 +2,13 @@
 
 lines=15
 
-prompt="Type to search and select process to kill"
+prompt="Type to search - select to terminate:"
 
 selection="$(ps -a -u "${USER}" | dmenu -i -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
 
 if [[ ! -z "${selection}" ]]
 then
-	prompt="${selection} will be killed, are you sure?"
+	prompt="${selection} will be terminated. Proceed?"
 
     answer="$(echo -e "Yes\nNo" | dmenu -i -p"${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
