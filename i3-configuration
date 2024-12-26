@@ -62,6 +62,8 @@ set $lookup								\
 
 set $status i3status
 
+set $editor i3-sensible-editor
+set $pager i3-sensible-pager
 set $terminal i3-sensible-terminal
 
 set $workspace1 "1"
