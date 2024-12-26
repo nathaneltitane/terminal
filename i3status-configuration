@@ -1,9 +1,9 @@
 general {
 	output_format = "i3bar"
-	color_bad = '#ff0000'
-	color_degraded = '#ebcb8b'
-	color_good = '#2f343f'
-	color_separator = '#ffffff'
+	color_bad = '#FF0000'
+	color_degraded = '#EBCB8B'
+	color_good = '#2F343F'
+	color_separator = '#FFFFFF'
 	colors = true
 	interval = 5
 	markup = pango
@@ -73,7 +73,7 @@ disk "/" {
 }
 
 memory {
-	format = "[ RAM %used • %available ]"
+	format = "[ RAM %used • %available ]    "
 	format_degraded = "MEMORY < %available"
 	threshold_degraded = "1G"
 }
