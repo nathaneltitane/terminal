@@ -50,7 +50,7 @@ set $launcher				\
 
 set $status i3status
 
-set $terminal termux
+set $terminal i3-sensible-terminal
 
 set $workspace1 "1"
 set $workspace2 "2"
@@ -126,6 +126,10 @@ bindsym $modifier+g $execute dmenu-change-background
 # open file manager
 
 bindsym $modifier+m $execute dmenu-open-file-manager
+
+# take note
+
+bindsym $modifier+n $execute dmenu-notes
 
 # open launcher
 
