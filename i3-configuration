@@ -33,8 +33,6 @@ set $modifier	Mod1
 
 set $windows	Mod4
 
-set $editor i3-sensible-editor
-
 set $execute exec --no-startup-id
 
 set $file_manager ranger
@@ -45,9 +43,11 @@ set $launcher i3-dmenu-desktop
 
 set $lookup dmenu_run
 
-set $pager i3-sensible-pager
-
 set $status i3status
+
+set $editor i3-sensible-editor
+
+set $pager i3-sensible-pager
 
 set $terminal i3-sensible-terminal
 
