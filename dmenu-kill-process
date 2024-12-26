@@ -1,16 +1,17 @@
 #!/usr/bin/bash
 
+colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 
 prompt="Type to search - select to terminate:"
 
-selection="$(ps -a -u "${USER}" | dmenu -i -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
+selection="$(ps -a -u "${USER}" | dmenu -i -p "${prompt}" "${colors}" | awk '{print $1" "$4}')"
 
 if [[ ! -z "${selection}" ]]
 then
 	prompt="${selection} will be terminated. Proceed?"
 
-    answer="$(echo -e "Yes\nNo" | dmenu -i -p"${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+    answer="$(echo -e "Yes\nNo" | dmenu -i -p"${prompt}" "${colors}")"
 
     if [[ "${answer}" == "Yes" ]]
     then

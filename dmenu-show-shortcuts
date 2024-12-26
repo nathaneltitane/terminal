@@ -2,7 +2,8 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
+colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=60
 prompt="SHORTCUTS"
 
-cat $(command -v i3-dmenu-shortcuts) | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
+cat $(command -v i3-dmenu-shortcuts) | dmenu -i -l "${lines}" -p "${prompt}" "${colors}"

@@ -2,12 +2,13 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
+colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 prompt="EXIT SESSION?"
 
 while [ "${selection}" != "CANCEL" -a "${selection}" != "LOGOUT" -a "${selection}" != "POWEROFF" -a "${selection}" != "REBOOT" ]
 do
-	selection=$(echo -e 'CANCEL\nLOGOUT' | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+	selection=$(echo -e 'CANCEL\nLOGOUT' | dmenu -i -l "${lines}" -p "${prompt}" "${colors}")
 
 	[ -z "${selection}" ] && exit
 done

@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 prompt="Notes:"
 
@@ -15,7 +16,7 @@ fi
 
 list="$(find -L ${notes_directory} -maxdepth 1 -type f | sed 's|^'${notes_directory}/'||' | sort )"
 
-selection="$(echo -e "$list" | dmenu dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+selection="$(echo -e "$list" | dmenu dmenu -i -l "${lines}" -p "${prompt}" "${colors}")"
 
 slugger () {
 

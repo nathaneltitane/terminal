@@ -2,12 +2,13 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
+colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 prompt="SELECTION"
 
 selections="1\n2\n\3\n4"
 
-selection_menu=$(echo -e "${selections}" | dmenu -i -l "${lines} -p "${prompt}  -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+selection_menu=$(echo -e "${selections}" | dmenu -i -l "${lines}" -p "${prompt}"  "${colors}")
 
 case "${selection_menu}" in
 	1)
