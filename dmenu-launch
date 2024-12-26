@@ -1,12 +1,13 @@
 #!/bin/bash
 
-i3-dmenu-desktop			\
-	--dmenu=				\
-		"dmenu				\
-			-b				\
-			-i				\
-			-p 'LAUNCH //'	\
-			-nb '#000000'	\
-			-nf '#FFFFFF'	\
-			-sb '#666666'	\
-			-sf '#000000'"
+i3-dmenu-desktop				\
+	--dmenu="					\
+			dmenu				\
+				-b				\
+				-i				\
+				-p 'LAUNCH //'	\
+				-nb '#000000'	\
+				-nf '#FFFFFF'	\
+				-sb '#666666'	\
+				-sf '#000000'	\
+			"
