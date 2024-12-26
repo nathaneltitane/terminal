@@ -4,32 +4,32 @@
 
 if [[ -f "${HOME}"/.bash_aliases ]]
 then
-	alias 'ba'='. "${HOME}"/.bash_aliases'
+	alias 'sa'='. "${HOME}"/.bash_aliases'
 fi
 
 if [[ -f "${HOME}"/.bash_funtions ]]
 then
-	alias 'ba'='. "${HOME}"/.bash_functions'
+	alias 'sf'='. "${HOME}"/.bash_functions'
 fi
 
 if [[ -f "${HOME}"/.bashrc ]]
 then
-	alias 'bc'='. "${HOME}"/.bashrc'
+	alias 'sc'='. "${HOME}"/.bashrc'
 fi
 
 if [[ -f "${HOME}"/.bash_login ]]
 then
-	alias 'bi'='. "${HOME}"/.bash_login'
+	alias 'si'='. "${HOME}"/.bash_login'
 fi
 
 if [[ -f "${HOME}"/.bash_logout ]]
 then
-	alias 'bo'='. "${HOME}"/.bash_logout'
+	alias 'so'='. "${HOME}"/.bash_logout'
 fi
 
 if [[ -f "${HOME}"/.bash_profile ]]
 then
-	alias 'bp'='. "${HOME}"/.bash_profile'
+	alias 'sp'='. "${HOME}"/.bash_profile'
 fi
 
 # directories //////////////////////////////////////////////////////////////////
