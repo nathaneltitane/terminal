@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+
+lines=15
+
+prompt="Type to search and select process to kill"
+
+selection="$(ps -a -u "${USER}" | dmenu -i -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
+
+if [[ ! -z "${selection}" ]]
+then
+	prompt="${selection} will be killed, are you sure?"
+
+    answer="$(echo -e "Yes\nNo" | dmenu -i -p"${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+    if [[ "${answer}" == "Yes" ]]
+    then
+        process_selection="$(awk '{print $1}' <<< "${selection}")"
+
+        kill -9 "${process_selection}"
+    fi
+fi
