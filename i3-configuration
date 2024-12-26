@@ -147,7 +147,7 @@ bindsym $modifier+n $execute dmenu-notes
 
 # search / terminate process
 
-bindsym $modifier+s $execute dmenu-kill-process
+bindsym $modifier+e $execute dmenu-kill-process
 
 # open launcher
 
