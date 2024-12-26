@@ -6,4 +6,4 @@ colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
 lines=15
 prompt="OPEN DIRECTORY"
 
-find "${HOME}" -maxdepth 1 -type f -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" "${colors}" | xargs -r st -e ranger --selectfile
+find "${HOME}" -maxdepth 1 -type f -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r st -e ranger --selectfile

@@ -6,13 +6,13 @@ lines=30
 processes="ps all"
 prompt="Type to search - select to terminate:"
 
-selection="$("${processes}" | dmenu -i -p "${prompt}" "${colors}" | awk '{print $1" "$4}')"
+selection="$("${processes}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
 
 if [[ ! -z "${selection}" ]]
 then
 	prompt="${selection} will be terminated. Proceed?"
 
-    answer="$(echo -e "Yes\nNo" | dmenu -i -l "${lines}" -p "${prompt}" "${colors}")"
+    answer="$(echo -e "Yes\nNo" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
     if [[ "${answer}" == "Yes" ]]
     then
