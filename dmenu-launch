@@ -1,5 +1,12 @@
 #!/bin/bash
 
-prompt="LAUNCH //"
-
-i3-dmenu-desktop --dmenu="dmenu -b -i -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
+i3-dmenu-desktop			\
+	--dmenu=				\
+		"dmenu				\
+			-b				\
+			-i				\
+			-p 'LAUNCH //'	\
+			-nb '#000000'	\
+			-nf '#FFFFFF'	\
+			-sb '#666666'	\
+			-sf '#000000'"
