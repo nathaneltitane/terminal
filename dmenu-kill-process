@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 colors="-nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'"
-lines=15
+lines=30
 
 processes="ps all"
 prompt="Type to search - select to terminate:"
@@ -12,7 +12,7 @@ if [[ ! -z "${selection}" ]]
 then
 	prompt="${selection} will be terminated. Proceed?"
 
-    answer="$(echo -e "Yes\nNo" | dmenu -i -p"${prompt}" "${colors}")"
+    answer="$(echo -e "Yes\nNo" | dmenu -i -l "${lines}" -p "${prompt}" "${colors}")"
 
     if [[ "${answer}" == "Yes" ]]
     then
