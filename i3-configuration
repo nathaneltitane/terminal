@@ -73,7 +73,7 @@ set $workspace6 "6"
 set $workspace7 "7"
 set $workspace8 "8"
 
-# startup #
+# startup //////////////////////////////////////////////////////////////////////
 
 # background
 
@@ -83,7 +83,7 @@ $execute feh --bg-fill $image
 
 # $execute i3lock --color 000000
 
-# settings #
+# settings /////////////////////////////////////////////////////////////////////
 
 # colors
 
@@ -125,7 +125,7 @@ floating_maximum_size -1 x -1
 
 floating_modifier $modifier
 
-# bindings #
+# bindings - applications///////////////////////////////////////////////////////
 
 # show shortcuts
 
@@ -143,6 +143,10 @@ bindsym $modifier+m $execute dmenu-open-file-manager
 
 bindsym $modifier+n $execute dmenu-notes
 
+# search / terminate process
+
+bindsym $modifier+s $execute dmenu-kill-process
+
 # open launcher
 
 bindsym $modifier+space $execute $launcher
@@ -159,7 +163,7 @@ bindsym $modifier+t $execute $terminal
 
 bindsym $modifier+x kill
 
-# windows #
+# bindings - windows ///////////////////////////////////////////////////////////
 
 # change focus
 
@@ -187,7 +191,7 @@ bindsym $modifier+w floating toggle
 
 bindsym $modifier+Shift+w focus mode_toggle
 
-# containers #
+# bindings - containers ////////////////////////////////////////////////////////
 
 # change container layout  - [s]plit / stac[k] / ta[b]
 
@@ -255,7 +259,7 @@ mode "resize" {
 	bindsym $modifier+z mode "default"
 }
 
-# workspaces #
+# bindings - workspaces ////////////////////////////////////////////////////////
 
 # switch to workspace [n]
 
@@ -279,7 +283,7 @@ bindsym $modifier+Shift+6 move container to workspace number $workspace6
 bindsym $modifier+Shift+7 move container to workspace number $workspace7
 bindsym $modifier+Shift+8 move container to workspace number $workspace8
 
-# session #
+# bindings - session ///////////////////////////////////////////////////////////
 
 # i3 session - reload configuration
 
@@ -293,7 +297,7 @@ bindsym $modifier+Shift+r restart
 
 bindsym $modifier+Shift+e $execute dmenu-exit-session
 
-# bar #
+# bar //////////////////////////////////////////////////////////////////////////
 
 bar {
 	status_command i3status
