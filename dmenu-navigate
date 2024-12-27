@@ -5,8 +5,11 @@ path_selection="${HOME}"
 history_file="${HOME}"/.local/bin/.dmenu-navigate-history
 history_entry_count=3
 
+terminal="i3-sensible-terminal"
+file_manager="ranger"
+
 command_open='xdg-open'
-command_open_terminal='i3-sensible-terminal'
+command_open_terminal="${terminal} -e ${file_manager}"
 
 lines=50
 prompt="${path_selection}"
