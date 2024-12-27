@@ -8,6 +8,7 @@
 #
 # author: andreasl
 
+
 configuration_directory="${XDG_CONFIG_HOME:-$HOME/.config}/edm"
 
 mkdir -p "$configuration_directory"
@@ -50,9 +51,12 @@ write_selection_to_history_file () {
     printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
 }
 
+lines=50
+prompt="${path_selection}"
+
 while :
 do
-	dmenu_result="$(printf '%s\n' "${selections[@]}" | dmenu -F -i -p "${path_selection}" -l 50 "${@}")" || exit 1
+	dmenu_result="$(printf '%s\n' "${selections[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
 
 	if [ "${dmenu_result}" == '[ Open Terminal Here ]' ]
 	then
