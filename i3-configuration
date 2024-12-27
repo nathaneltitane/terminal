@@ -37,7 +37,7 @@ set $execute exec --no-startup-id
 
 set $file_manager ranger
 
-set $image "${HOME}/.dextop/dextop-grey.png"
+set $image "${HOME}"/.dextop/dextop-grey.svg
 
 set $launcher i3-dmenu-desktop
 
