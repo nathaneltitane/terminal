@@ -5,9 +5,6 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 lines=15
 prompt="CHANGE BACKGROUND"
 
-background_directory="${HOME}/Pictures"
-background_file="${background_directory}/.background.png"
-
 selection="$(find "${HOME}" -type f -type f -iname "*.jpg" -o -iname "*.png" -o -iname "*.svg" | xargs -r0 | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
 feh --bg-center "${selection}"
