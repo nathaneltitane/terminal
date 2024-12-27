@@ -5,8 +5,8 @@ path_selection="${HOME}"
 history_file="${HOME}"/.local/bin/.dmenu-navigate-history
 history_entry_count=3
 
-open_command='xdg-open'
-open_command_terminal='i3-sensible-terminal'
+command_open='xdg-open'
+command_open_terminal='i3-sensible-terminal'
 
 lines=50
 prompt="${path_selection}"
@@ -34,7 +34,7 @@ do
 
 	if [ "${navigation}" == '[ Open Terminal Here ]' ]
 	then
-		"${open_command_terminal}" "${path_selection}"
+		"${command_open_terminal}" "${path_selection}"
 
 		history_write "${path_selection}"
 
@@ -44,7 +44,7 @@ do
 
 	elif [[ "${navigation}" =~ ^(https?|ftps): ]]
 	then
-		"${open_command}" "${navigation}"
+		"${command_open}" "${navigation}"
 
 		history_write "${navigation}"
 
@@ -54,7 +54,7 @@ do
 
 	if [ -f "${path_selection}" ] || [ "${navigation}" = '.' ]
 	then
-		"${open_command}" "${path_selection}"
+		"${command_open}" "${path_selection}"
 
 		history_write "${path_selection}"
 
