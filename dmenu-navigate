@@ -9,8 +9,10 @@ history_entry_count=3
 history_file="${HOME}"/.local/bin/.dmenu-navigate-history
 
 file_manager="ranger"
-list="ls -a"
 terminal="i3-sensible-terminal"
+
+list="ls -a"
+read="cat"
 
 command_open () {
 
@@ -40,7 +42,10 @@ selections=(
 	'[ Open Terminal Here ]'
 	'[ Open Visual Terminal Here ]'
 	"$(${list} "${path_selection}")"
-	"$(cat "${history_file}")"
+	''
+	'[ History ]  ↴'
+	''
+	"$(${read} "${history_file}")"
 )
 
 while :
