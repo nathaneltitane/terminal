@@ -6,12 +6,12 @@ history_file="${HOME}"/.local/bin/.dmenu-navigate-history
 history_entry_count=3
 
 open_command='xdg-open'
-open_command_terminal='i3-sensible-terminal --working-directory'
+open_command_terminal='i3-sensible-terminal'
 
 lines=50
 prompt="${path_selection}"
 
-write_selection_to_history_file () {
+history_write () {
 
     sed -i "\:${1}:d" "${history_file}"
 
@@ -36,7 +36,7 @@ do
 	then
 		"${open_command_terminal}" "${path_selection}"
 
-		write_selection_to_history_file "${path_selection}"
+		history_write "${path_selection}"
 
 	elif [[ "${navigation}" == '/'* ]]
 	then
@@ -46,7 +46,7 @@ do
 	then
 		"${open_command}" "${navigation}"
 
-		write_selection_to_history_file "${navigation}"
+		history_write "${navigation}"
 
 	else
 		path_selection="$(realpath "${path_selection}/${navigation}")"
@@ -56,7 +56,7 @@ do
 	then
 		"${open_command}" "${path_selection}"
 
-		write_selection_to_history_file "${path_selection}"
+		history_write "${path_selection}"
 
 	elif [ -d "${path_selection}" ]
 	then
