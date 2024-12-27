@@ -1,85 +1,99 @@
 #!/bin/bash
 
-# call dmenu on the given array of choices, effectively acting as a simple file explorer.
-# if the selected choice is a folder, recursively open dmenu with the folder's contents as choices.
+# call dmenu on the given array of selections, effectively acting as a simple file explorer.
+# if the selected choice is a folder, recursively open dmenu with the folder's contents as selections.
 # if the selection is not a folder - or the current folder, denoted as '.' - attempt to open it with
 # xdg-open or a tool configured via .edmrc-file and write the selection to a history file.
 # the script can also open a terminal at the selected path.
 #
 # author: andreasl
 
-config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/edm"
-mkdir -p "$config_dir"
+configuration_directory="${XDG_CONFIG_HOME:-$HOME/.config}/edm"
 
-define_standard_settings() {
+mkdir -p "$configuration_directory"
 
-    selected_path="$HOME"
-    history_file="${config_dir}/history"
-    max_history_entries=3
+define_standard_settings () {
 
-    choices=(
-        '<open terminal here>'
+    path_selection="${HOME}"
+
+    history_file="${configuration_directory}/history"
+    history_entry_count=3
+
+    selections=(
+        '[ Open Terminal Here ]'
         '.'
         '..'
-        "$(ls "$selected_path")"
-        "$(cat "$history_file")"
+        "$(ls "${path_selection}")"
+        "$(cat "${history_file}")"
     )
 
-    if [ "$(uname)" == "Darwin" ]; then
+    if [ "$(uname)" == "Darwin" ]
+    then
         open_command='open'
         open_terminal_command='open -a Terminal'
     else
         open_command='xdg-open'
-        open_terminal_command='gnome-terminal --working-directory'
+        open_terminal_command='i3-sensible-terminal --working-directory'
     fi
 }
 
 define_standard_settings
 
-source "${config_dir}/edmrc" 2>/dev/null
+source "${configuration_directory}/edmrc" 2> /dev/null
 
-write_selection_to_history_file() {
+write_selection_to_history_file () {
 
-    sed -i "\:${1}:d" "$history_file"
-    printf '%s\n' "$1" >> "$history_file"
-    printf '%s\n' "$(tail -n "$max_history_entries" "$history_file")" > "$history_file"
+    sed -i "\:${1}:d" "${history_file}"
+
+    printf '%s\n' "$1" >> "${history_file}"
+
+    printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
 }
 
 while :
 do
-	dmenu_result="$(printf '%s\n' "${choices[@]}" | dmenu -F -i -p "$selected_path" -l 50 "$@")" || exit 1
+	dmenu_result="$(printf '%s\n' "${selections[@]}" | dmenu -F -i -p "${path_selection}" -l 50 "${@}")" || exit 1
 
-	if [ "$dmenu_result" == '<open terminal here>' ]
+	if [ "${dmenu_result}" == '[ Open Terminal Here ]' ]
 	then
-		$open_terminal_command "$selected_path"
-		write_selection_to_history_file "$selected_path"
+		$open_terminal_command "${path_selection}"
+
+		write_selection_to_history_file "${path_selection}"
+
 		exit 0
 
-	elif [[ $dmenu_result == '/'* ]]
+	elif [[ "${dmenu_result}" == '/'* ]]
 	then
-		selected_path="$dmenu_result"
+		path_selection="${dmenu_result}"
 
-	elif [[ $dmenu_result =~ ^(https?|ftps): ]]
+	elif [[ "${dmenu_result}" =~ ^(https?|ftps): ]]
 	then
-		"$open_command" "$dmenu_result"
-		write_selection_to_history_file "$dmenu_result"
+		"${open_command}" "${dmenu_result}"
+
+		write_selection_to_history_file "${dmenu_result}"
 
 		exit 0
 	else
-		selected_path="$(realpath "${selected_path}/${dmenu_result}")"
+		path_selection="$(realpath "${path_selection}/${dmenu_result}")"
 	fi
 
-	if [ -f "$selected_path" ] || [ "$dmenu_result" = '.' ]
+	if [ -f "${path_selection}" ] || [ "${dmenu_result}" = '.' ]
 	then
-		"$open_command" "$selected_path"
-		write_selection_to_history_file "$selected_path"
+		"${open_command}" "${path_selection}"
+
+		write_selection_to_history_file "${path_selection}"
 
 		exit 0
 
-	elif [ -d "$selected_path" ]
+	elif [ -d "${path_selection}" ]
 	then
-		choices=( '<open terminal here>' '.' '..' "$(ls "$selected_path")")
+		selections=(
+			'[ Open Terminal Here ]'
+			'.'
+			'..'
+			"$(ls "${path_selection}")"
+		)
 	else
-		selected_path="$(dirname "$selected_path")"
+		path_selection="$(dirname "${path_selection}")"
 	fi
 done
