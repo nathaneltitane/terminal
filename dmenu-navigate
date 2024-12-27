@@ -30,10 +30,10 @@ define_standard_settings () {
     if [ "$(uname)" == "Darwin" ]
     then
         open_command='open'
-        open_terminal_command='open -a Terminal'
+        open_command_terminal='open -a Terminal'
     else
         open_command='xdg-open'
-        open_terminal_command='i3-sensible-terminal --working-directory'
+        open_command_terminal='i3-sensible-terminal --working-directory'
     fi
 }
 
@@ -56,7 +56,7 @@ do
 
 	if [ "${dmenu_result}" == '[ Open Terminal Here ]' ]
 	then
-		$open_terminal_command "${path_selection}"
+		"${open_command_terminal}" "${path_selection}"
 
 		write_selection_to_history_file "${path_selection}"
 
