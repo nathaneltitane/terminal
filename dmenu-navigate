@@ -1,41 +1,15 @@
 #!/bin/bash
 
-# call dmenu on the given array of selections, effectively acting as a simple file explorer.
-# if the selected choice is a folder, recursively open dmenu with the folder's contents as selections.
-# if the selection is not a folder - or the current folder, denoted as '.' - attempt to open it with
-# xdg-open or a tool configured via .edmrc-file and write the selection to a history file.
-# the script can also open a terminal at the selected path.
-#
-# author: andreasl
+path_selection="${HOME}"
 
+history_file="${HOME}"/.local/bin/.dmenu-navigate-history
+history_entry_count=3
 
-configuration_directory="${XDG_CONFIG_HOME:-$HOME/.config}/edm"
+open_command='xdg-open'
+open_command_terminal='i3-sensible-terminal --working-directory'
 
-mkdir -p "$configuration_directory"
-
-define_standard_settings () {
-
-    path_selection="${HOME}"
-
-    history_file="${configuration_directory}/history"
-    history_entry_count=3
-
-    selections=(
-        '[ Open Terminal Here ]'
-        '.'
-        '..'
-        "$(ls "${path_selection}")"
-        "$(cat "${history_file}")"
-    )
-
-	open_command='xdg-open'
-	open_command_terminal='i3-sensible-terminal --working-directory'
-
-}
-
-define_standard_settings
-
-source "${configuration_directory}/edmrc" 2> /dev/null
+lines=50
+prompt="${path_selection}"
 
 write_selection_to_history_file () {
 
@@ -46,8 +20,13 @@ write_selection_to_history_file () {
     printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
 }
 
-lines=50
-prompt="${path_selection}"
+selections=(
+	'[ Open Terminal Here ]'
+	'.'
+	'..'
+	"$(ls "${path_selection}")"
+	"$(cat "${history_file}")"
+)
 
 while :
 do
