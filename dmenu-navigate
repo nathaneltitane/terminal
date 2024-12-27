@@ -38,8 +38,6 @@ do
 
 		write_selection_to_history_file "${path_selection}"
 
-		exit 0
-
 	elif [[ "${navigation}" == '/'* ]]
 	then
 		path_selection="${navigation}"
@@ -50,7 +48,6 @@ do
 
 		write_selection_to_history_file "${navigation}"
 
-		exit 0
 	else
 		path_selection="$(realpath "${path_selection}/${navigation}")"
 	fi
@@ -60,8 +57,6 @@ do
 		"${open_command}" "${path_selection}"
 
 		write_selection_to_history_file "${path_selection}"
-
-		exit 0
 
 	elif [ -d "${path_selection}" ]
 	then
