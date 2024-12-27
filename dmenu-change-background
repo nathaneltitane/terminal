@@ -8,4 +8,4 @@ prompt="CHANGE BACKGROUND"
 background_directory="${HOME}/Pictures"
 background_file="${background_directory}/.background.png"
 
-ln -s -f "$(find "${background_directory}" -type f | xargs -r0 | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')" "${background_file}" && feh --bg-fill "${background_file}"
+ln -s -f "$(find "${HOME}" -type f -type f -iname "*.jpg" -o -iname "*.png" -o -iname "*.svg" | xargs -r0 | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')" "${background_file}" && feh --bg-center "${background_file}"
