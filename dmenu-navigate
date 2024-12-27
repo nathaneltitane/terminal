@@ -28,14 +28,9 @@ define_standard_settings () {
         "$(cat "${history_file}")"
     )
 
-    if [ "$(uname)" == "Darwin" ]
-    then
-        open_command='open'
-        open_command_terminal='open -a Terminal'
-    else
-        open_command='xdg-open'
-        open_command_terminal='i3-sensible-terminal --working-directory'
-    fi
+	open_command='xdg-open'
+	open_command_terminal='i3-sensible-terminal --working-directory'
+
 }
 
 define_standard_settings
