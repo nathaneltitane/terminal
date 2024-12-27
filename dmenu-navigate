@@ -30,9 +30,9 @@ selections=(
 
 while :
 do
-	dmenu_result="$(printf '%s\n' "${selections[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
+	navigation="$(printf '%s\n' "${selections[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
 
-	if [ "${dmenu_result}" == '[ Open Terminal Here ]' ]
+	if [ "${navigation}" == '[ Open Terminal Here ]' ]
 	then
 		"${open_command_terminal}" "${path_selection}"
 
@@ -40,22 +40,22 @@ do
 
 		exit 0
 
-	elif [[ "${dmenu_result}" == '/'* ]]
+	elif [[ "${navigation}" == '/'* ]]
 	then
-		path_selection="${dmenu_result}"
+		path_selection="${navigation}"
 
-	elif [[ "${dmenu_result}" =~ ^(https?|ftps): ]]
+	elif [[ "${navigation}" =~ ^(https?|ftps): ]]
 	then
-		"${open_command}" "${dmenu_result}"
+		"${open_command}" "${navigation}"
 
-		write_selection_to_history_file "${dmenu_result}"
+		write_selection_to_history_file "${navigation}"
 
 		exit 0
 	else
-		path_selection="$(realpath "${path_selection}/${dmenu_result}")"
+		path_selection="$(realpath "${path_selection}/${navigation}")"
 	fi
 
-	if [ -f "${path_selection}" ] || [ "${dmenu_result}" = '.' ]
+	if [ -f "${path_selection}" ] || [ "${navigation}" = '.' ]
 	then
 		"${open_command}" "${path_selection}"
 
