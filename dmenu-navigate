@@ -22,8 +22,8 @@ history_write () {
 
 selections=(
 	'[ Open Terminal Here ]'
-	'.'
 	'..'
+	'.'
 	"$(ls "${path_selection}")"
 	"$(cat "${history_file}")"
 )
@@ -62,8 +62,8 @@ do
 	then
 		selections=(
 			'[ Open Terminal Here ]'
-			'.'
 			'..'
+			'.'
 			"$(ls "${path_selection}")"
 		)
 	else
