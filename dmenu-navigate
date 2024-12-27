@@ -19,17 +19,17 @@ selections_terminal_label='[ Open Terminal Here ]'
 selections_terminal_visual_label='[ Open Visual Terminal Here ]'
 selections_history_label='[ History ]  ↴'
 
-command_open () {
+handler_open () {
 
 	xdg-open "${@}"
 }
 
-command_open_terminal () {
+terminal_open () {
 
 	"${terminal}" --working-directory="${@}"
 }
 
-command_open_terminal_visual () {
+terminal_open_visual () {
 
 	"${terminal}" --command="${file_manager} ${@}"
 }
@@ -59,13 +59,13 @@ do
 
 	if [ "${navigation}" == '[ Open Terminal Here ]' ]
 	then
-		command_open_terminal "${path_selection}"
+		terminal_open "${path_selection}"
 
 		history_write "${path_selection}"
 
 	elif [ "${navigation}" == '[ Open Visual Terminal Here ]' ]
 	then
-		command_open_terminal_visual "${path_selection}"
+		terminal_open_visual "${path_selection}"
 
 		history_write "${path_selection}"
 
@@ -75,7 +75,7 @@ do
 
 	elif [[ "${navigation}" =~ ^(https?|ftps): ]]
 	then
-		command_open "${navigation}"
+		handler_open "${navigation}"
 
 		history_write "${navigation}"
 
@@ -85,7 +85,7 @@ do
 
 	if [ -f "${path_selection}" ] || [ "${navigation}" = '.' ]
 	then
-		command_open "${path_selection}"
+		handler_open "${path_selection}"
 
 		history_write "${path_selection}"
 
