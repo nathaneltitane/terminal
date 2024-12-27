@@ -112,7 +112,7 @@ floating_maximum_size -1 x -1
 
 floating_modifier $modifier
 
-# bindings - applications///////////////////////////////////////////////////////
+# bindings - applications //////////////////////////////////////////////////////
 
 # show shortcuts
 
@@ -141,6 +141,10 @@ bindsym $modifier+space $execute dmenu-launch
 # open lookup
 
 bindsym $modifier+l $execute dmenu-lookup
+
+# navigate filesystem
+
+bindsym $modifier+a $execute dmenu-navigate
 
 # open terminal
 
