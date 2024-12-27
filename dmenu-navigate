@@ -1,18 +1,25 @@
 #!/bin/bash
 
-path_selection="${HOME}"
+lines=50
 
-history_file="${HOME}"/.local/bin/.dmenu-navigate-history
+path_selection="${HOME}"
+prompt="${path_selection}"
+
 history_entry_count=3
+history_file="${HOME}"/.local/bin/.dmenu-navigate-history
 
 terminal="i3-sensible-terminal"
 file_manager="ranger"
 
-command_open='xdg-open'
-command_open_terminal="${terminal} -e ${file_manager}"
+command_open () {
 
-lines=50
-prompt="${path_selection}"
+	xdg-open "${@}"
+}
+
+command_open_terminal () {
+
+	"${terminal}" -e "${file_manager} ${@}"
+}
 
 history_write () {
 
@@ -37,7 +44,7 @@ do
 
 	if [ "${navigation}" == '[ Open Terminal Here ]' ]
 	then
-		"${command_open_terminal}" "${path_selection}"
+		command_open_terminal "${path_selection}"
 
 		history_write "${path_selection}"
 
@@ -47,7 +54,7 @@ do
 
 	elif [[ "${navigation}" =~ ^(https?|ftps): ]]
 	then
-		"${command_open}" "${navigation}"
+		command_open "${navigation}"
 
 		history_write "${navigation}"
 
@@ -57,7 +64,7 @@ do
 
 	if [ -f "${path_selection}" ] || [ "${navigation}" = '.' ]
 	then
-		"${command_open}" "${path_selection}"
+		command_open "${path_selection}"
 
 		history_write "${path_selection}"
 
