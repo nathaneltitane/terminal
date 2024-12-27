@@ -1,6 +1,6 @@
 #!/bin/bash
 
-lines=50
+lines=60
 
 path_selection="${HOME}"
 prompt="${path_selection}"
@@ -8,8 +8,9 @@ prompt="${path_selection}"
 history_entry_count=3
 history_file="${HOME}"/.local/bin/.dmenu-navigate-history
 
-terminal="i3-sensible-terminal"
 file_manager="ranger"
+list="ls -a"
+terminal="i3-sensible-terminal"
 
 command_open () {
 
@@ -32,9 +33,7 @@ history_write () {
 
 selections=(
 	'[ Open Terminal Here ]'
-	'..'
-	'.'
-	"$(ls "${path_selection}")"
+	"$(${list} "${path_selection}")"
 	"$(cat "${history_file}")"
 )
 
@@ -72,9 +71,7 @@ do
 	then
 		selections=(
 			'[ Open Terminal Here ]'
-			'..'
-			'.'
-			"$(ls "${path_selection}")"
+			"$(${list} "${path_selection}")"
 		)
 	else
 		path_selection="$(dirname "${path_selection}")"
