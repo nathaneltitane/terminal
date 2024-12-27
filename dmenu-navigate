@@ -19,7 +19,12 @@ command_open () {
 
 command_open_terminal () {
 
-	"${terminal}" -e "${file_manager} ${@}"
+	"${terminal}" --working-directory="${@}"
+}
+
+command_open_terminal_visual () {
+
+	"${terminal}" --command="${file_manager} ${@}"
 }
 
 history_write () {
@@ -33,6 +38,7 @@ history_write () {
 
 selections=(
 	'[ Open Terminal Here ]'
+	'[ Open Visual Terminal Here ]'
 	"$(${list} "${path_selection}")"
 	"$(cat "${history_file}")"
 )
@@ -44,6 +50,12 @@ do
 	if [ "${navigation}" == '[ Open Terminal Here ]' ]
 	then
 		command_open_terminal "${path_selection}"
+
+		history_write "${path_selection}"
+
+	elif [ "${navigation}" == '[ Open Visual Terminal Here ]' ]
+	then
+		command_open_terminal_visual "${path_selection}"
 
 		history_write "${path_selection}"
 
@@ -71,6 +83,7 @@ do
 	then
 		selections=(
 			'[ Open Terminal Here ]'
+			'[ Open Visual Terminal Here ]'
 			"$(${list} "${path_selection}")"
 		)
 	else
