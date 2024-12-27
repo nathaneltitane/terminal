@@ -14,6 +14,11 @@ terminal="i3-sensible-terminal"
 list="ls -a"
 read="cat"
 
+selections_line_empty_label=''
+selections_terminal_label='[ Open Terminal Here ]'
+selections_terminal_visual_label='[ Open Visual Terminal Here ]'
+selections_history_label='[ History ]  ↴'
+
 command_open () {
 
 	xdg-open "${@}"
@@ -39,12 +44,12 @@ history_write () {
 }
 
 selections=(
-	'[ Open Terminal Here ]'
-	'[ Open Visual Terminal Here ]'
+	"${selections_terminal_label}"
+	"${selections_terminal_visual_label}"
 	"$(${list} "${path_selection}")"
-	''
-	'[ History ]  ↴'
-	''
+	"${selections_line_empty_label}"
+	"${selections_history_label}"
+	"${selections_line_empty_label}"
 	"$(${read} "${history_file}")"
 )
 
@@ -87,8 +92,8 @@ do
 	elif [ -d "${path_selection}" ]
 	then
 		selections=(
-			'[ Open Terminal Here ]'
-			'[ Open Visual Terminal Here ]'
+			"${selections_terminal_label}"
+			"${selections_terminal_visual_label}"
 			"$(${list} "${path_selection}")"
 		)
 	else
