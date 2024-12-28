@@ -291,7 +291,7 @@ bindsym $modifier+Shift+e $execute dmenu-exit-session
 # bar //////////////////////////////////////////////////////////////////////////
 
 bar {
-	status_command i3status
+	status_command i3-status
 
 	font pango:Sans Regular 10
 
