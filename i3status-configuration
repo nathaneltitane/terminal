@@ -20,9 +20,9 @@ order += "cpu_temperature 6"
 order += "cpu_temperature 7"
 order += "disk /"
 order += "memory"
-# order += "ethernet eth0"
-# order += "wireless wlan0"
-# order += "battery 0"
+order += "ethernet eth0"
+order += "wireless wlan0"
+order += "battery 0"
 
 tztime local {
 	format = "[ %Y-%m-%d + %H:%M:%S ]"
@@ -78,34 +78,34 @@ memory {
 	threshold_degraded = "1G"
 }
 
-# ethernet eth0 {
-# 	format_up = "[ E • %essid • %frequency • %quality • %bitrate + %ip ]"
-# 	format_down = "[ E • X ]"
-# }
+ethernet eth0 {
+	format_up = "[ E • %essid • %frequency • %quality • %bitrate + %ip ]"
+	format_down = "[ E • X ]"
+}
 
-# wireless wlan0 {
-# 	format_up = "[ W • %essid • %frequency • %quality • %bitrate + %ip ]"
-# 	format_down = "[ W • X ]"
-# }
+wireless wlan0 {
+	format_up = "[ W • %essid • %frequency • %quality • %bitrate + %ip ]"
+	format_down = "[ W • X ]"
+}
 
-# battery entry files:
-# /sys/class/power_supply/battery/status
-# /sys/class/power_supply/battery/health
-# /sys/class/power_supply/battery/present
-# /sys/class/power_supply/battery/capacity
-# /sys/class/power_supply/battery/voltage
-# /sys/class/power_supply/battery/temp
-# /sys/class/power_supply/battery/technology
+battery entry files:
+/sys/class/power_supply/battery/status
+/sys/class/power_supply/battery/health
+/sys/class/power_supply/battery/present
+/sys/class/power_supply/battery/capacity
+/sys/class/power_supply/battery/voltage
+/sys/class/power_supply/battery/temp
+/sys/class/power_supply/battery/technology
 
-# battery 0 {
-# 	format = "[ %status ]"
-# 	path = "/sys/class/power_supply/battery/capacity"
-# 	last_full_capacity = true
-# 	threshold_type = percentage
-# 	low_threshold = 15
-# 	format_down = " X "
-# 	status_chr = " >>> "
-# 	status_bat = "  B "
-# 	status_unk = " ? "
-# 	status_full = " F "
-# }
+battery 0 {
+	format = "[ %status ]"
+	path = "/sys/class/power_supply/battery/capacity"
+	last_full_capacity = true
+	threshold_type = percentage
+	low_threshold = 15
+	format_down = " X "
+	status_chr = " >>> "
+	status_bat = "  B "
+	status_unk = " ? "
+	status_full = " F "
+}
