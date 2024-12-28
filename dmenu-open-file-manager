@@ -3,4 +3,4 @@
 terminal="i3-sensible-terminal"
 file_manager="ranger"
 
-"${terminal}" -e "${file_manager}"
+"${terminal}" --command="${file_manager}
