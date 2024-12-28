@@ -38,11 +38,11 @@ terminal_open_visual () {
 
 history_write () {
 
-    sed -i "\:${1}:d" "${history_file}"
+	sed -i "\:${1}:d" "${history_file}"
 
-    printf '%s\n' "$1" >> "${history_file}"
+	printf '%s\n' "$1" >> "${history_file}"
 
-    printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
+	printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
 }
 
 selections=(
