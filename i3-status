@@ -1,0 +1,86 @@
+#!/bin/bash
+
+indent="    "
+separator=" // "
+
+timer_increment=0
+
+calculate () {
+
+	value="${1}"
+	decimal="${2}"
+
+	denominator=$(( 10 ** ${decimal} ))
+
+	return=$(( ${value}/${denominator} ))
+}
+
+values () {
+
+	timer=$(date +%s)
+	interval=$(( $timer - $timer_increment ))
+
+	date=$(date +"%F")
+	time=$(date +"%r")
+
+	# battery - uevent
+
+	battery_capacity_uevent=$(cat /sys/class/power_supply/battery/uevent    | grep -i 'capacity=' | cut -d '=' -f 2)
+	battery_health_uevent=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'health='   | cut -d '=' -f 2)
+	battery_status_uevent=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'status='   | cut -d '=' -f 2)
+	battery_temperature_uevent=$(cat /sys/class/power_supply/battery/uevent | grep -i 'temp='     | cut -d '=' -f 2)
+
+	# battery - system
+
+	battery_charge_utg_control=$(cat /sys/class/power_supply/battery/charge_utg_control)
+	battery_charge_uno_control=$(cat /sys/class/power_supply/battery/charge_uno_control)
+	battery_charge_now=$(cat /sys/class/power_supply/battery/charge_now)
+	battery_charge_full_design=$(cat /sys/class/power_supply/battery/charge_full_design)
+	battery_charge_full=$(cat /sys/class/power_supply/battery/charge_full)
+	battery_charge_counter=$(cat /sys/class/power_supply/battery/charge_counter)
+	battery_charge_counter_shadow=$(cat /sys/class/power_supply/battery/charge_counter_shadow)
+	battery_time_online=$(cat /sys/class/power_supply/battery/online)
+	battery_time_to_full=$(cat /sys/class/power_supply/battery/time_to_full_now)
+	battery_power_now=$(cat /sys/class/power_supply/battery/power_now)
+	battery_power_average=$(cat /sys/class/power_supply/battery/power_avg)
+	battery_current_now=$(cat /sys/class/power_supply/battery/current_now)
+	battery_current_average=$(cat /sys/class/power_supply/battery/current_avg)
+	battery_voltage_now=$(cat /sys/class/power_supply/battery/voltage_now)
+	battery_voltage_average=$(cat /sys/class/power_supply/battery/voltage_avg)
+	battery_present=$(cat /sys/class/power_supply/battery/present)
+	battery_charge_type=$(cat /sys/class/power_supply/battery/charge_type)
+	battery_capacity=$(cat /sys/class/power_supply/battery/capacity)
+	battery_status=$(cat /sys/class/power_supply/battery/status)
+	battery_health=$(cat /sys/class/power_supply/battery/health)
+	battery_present=$(cat /sys/class/power_supply/battery/present)
+	battery_voltage=$(cat /sys/class/power_supply/battery/voltage)
+	battery_temperature=$(cat /sys/class/power_supply/battery/temp)
+	battery_technology=$(cat /sys/class/power_supply/battery/technology)
+
+	# parse values
+
+	battery_temperature_unit="°C"
+	battery_temperature=$(( ${battery_temperature} / 10 ))
+
+	battery_charge_unit="Wh"
+	battery_charge_counter=$(( ${battery_charge_counter} / 100000 ))
+
+	# system
+
+	[ "$HOSTNAME" = "localhost" ] && HOSTANME="Android"
+
+	[ -z "${USER}" ] && USER="termux"
+
+	# increment timer
+
+	timer_increment=$timer
+}
+
+# generate status feed
+
+i3status | while :
+do
+	values
+
+	echo -e "${time}${separator}${date}${separator}${battery_capacity_uevent}${indent}"
+done
