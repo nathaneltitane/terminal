@@ -1,9 +1,9 @@
 #!/bin/bash
 
-lines=60
-
 path_selection="${HOME}"
-prompt="${path_selection}"
+
+lines=60
+prompt="CURRENT DIRECTORY // ${path_selection}"
 
 history_entry_count=3
 history_file="${HOME}"/.local/bin/.dmenu-navigate-history
@@ -20,6 +20,26 @@ selections_separator_label='////////////////////////////////////////////////////
 selections_history_label='[ History ]  ↴'
 selections_terminal_label='[ Open Terminal Here ]'
 selections_terminal_visual_label='[ Open Visual Terminal Here ]'
+
+selections_header=(
+	"${selections_terminal_label}"
+	"${selections_terminal_visual_label}"
+	"${selections_separator_label}"
+)
+
+selections_footer=(
+	"${selections_empty_label}"
+	"${selections_history_label}"
+	"${selections_empty_label}"
+)
+
+selections_directory=(
+	"$(${list} "${path_selection}")"
+)
+
+selections_history=(
+	"$(${read} "${history_file}")"
+)
 
 handler_open () {
 
@@ -47,17 +67,14 @@ history_write () {
 	printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
 }
 
+
 selections_parse () {
 
-	selections=(
-		"${selections_terminal_label}"
-		"${selections_terminal_visual_label}"
-		"${selections_separator_label}"
-		"$(${list} "${path_selection}")"
-		"${selections_empty_label}"
-		"${selections_history_label}"
-		"${selections_empty_label}"
-		"$(${read} "${history_file}")"
+	selections+=(
+		"${selections_header[@]}"
+		"${selections_directory[@]}"
+		"${selections_footer[@]}"
+		"${selections_history[@]}"
 	)
 
 	IFS=$"\n"
@@ -68,6 +85,8 @@ selections_parse () {
 	done
 
 	IFS=""
+
+	selections=()
 }
 
 while :
@@ -108,10 +127,9 @@ do
 
 	elif [ -d "${path_selection}" ]
 	then
-		selections=(
-			"${selections_terminal_label}"
-			"${selections_terminal_visual_label}"
-			"$(${list} "${path_selection}")"
+		selections+=(
+			"${selections_header[@]}"
+			"${selections_directory[@]}"
 		)
 	else
 		path_selection="$(dirname "${path_selection}")"
