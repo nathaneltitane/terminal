@@ -45,20 +45,32 @@ history_write () {
 	printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
 }
 
-selections=(
-	"${selections_terminal_label}"
-	"${selections_terminal_visual_label}"
-	"${selections_separator_label}"
-	"$(${list} "${path_selection}")"
-	"${selections_empty_label}"
-	"${selections_history_label}"
-	"${selections_empty_label}"
-	"$(${read} "${history_file}")"
-)
+selections_parse () {
+
+	selections=(
+		"${selections_terminal_label}"
+		"${selections_terminal_visual_label}"
+		"${selections_separator_label}"
+		"$(${list} "${path_selection}")"
+		"${selections_empty_label}"
+		"${selections_history_label}"
+		"${selections_empty_label}"
+		"$(${read} "${history_file}")"
+	)
+
+	IFS=$"\n"
+
+	for selection in "${selections[@]}"
+	do
+		echo "${selection}"
+	done
+
+	IFS=""
+}
 
 while :
 do
-	navigation="$(printf '%s\n' "${selections[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
+	navigation="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
 
 	if [ "${navigation}" == '[ Open Terminal Here ]' ]
 	then
