@@ -15,6 +15,15 @@ calculate () {
 	return=$(( ${value}/${denominator} ))
 }
 
+uevent_parse () {
+
+	uevent="${1}"
+	uevent_directory="${2}"
+
+	cat "${uevent_directory}" | grep -i "${uevent}\=" | cut -d '=' -f 2
+
+}
+
 values () {
 
 	timer=$(date +%s)
@@ -25,10 +34,21 @@ values () {
 
 	# battery - uevent
 
-	battery_capacity_uevent=$(cat /sys/class/power_supply/battery/uevent    | grep -i 'capacity=' | cut -d '=' -f 2)
-	battery_health_uevent=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'health='   | cut -d '=' -f 2)
-	battery_status_uevent=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'status='   | cut -d '=' -f 2)
-	battery_temperature_uevent=$(cat /sys/class/power_supply/battery/uevent | grep -i 'temp='     | cut -d '=' -f 2)
+	battery_name_uevent=$(uevent_parse name /sys/class/power_supply/battery/uevent)
+	battery_status_uevent=$(uevent_parse status /sys/class/power_supply/battery/uevent)
+	battery_charge_type_uevent=$(uevent_parse charge_type /sys/class/power_supply/battery/uevent)
+	battery_health_uevent=$(uevent_parse health /sys/class/power_supply/battery/uevent)
+	battery_present_uevent=$(uevent_parse present /sys/class/power_supply/battery/uevent)
+	battery_online_uevent=$(uevent_parse online /sys/class/power_supply/battery/uevent)
+	battery_technology_uevent=$(uevent_parse technology /sys/class/power_supply/battery/uevent)
+	battery_voltage_now_uevent=$(uevent_parse voltage_now /sys/class/power_supply/battery/uevent)
+	battery_voltage_average_uevent=$(uevent_parse voltage_avg /sys/class/power_supply/battery/uevent)
+	battery_current_now_uevent=$(uevent_parse current_now /sys/class/power_supply/battery/uevent)
+	battery_current_average_uevent=$(uevent_parse current_avg /sys/class/power_supply/battery/uevent)
+
+
+	battery_capacity_uevent=$(uevent_parse capacity /sys/class/power_supply/battery/uevent)
+	battery_temperature_uevent=$(uevent_parse temp /sys/class/power_supply/battery/uevent)
 
 	# battery - system
 
@@ -58,6 +78,15 @@ values () {
 	battery_technology=$(cat /sys/class/power_supply/battery/technology)
 
 	# parse values
+
+	if [[ "${battery_present}" = "0" ]]
+	then
+		battery_present="no"
+
+	elif [[ "${battery_present}" = "1" ]]
+	then
+		battery_present="yes"
+	fi
 
 	battery_temperature_unit="°C"
 	battery_temperature=$(( ${battery_temperature} / 10 ))
