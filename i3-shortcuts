@@ -16,9 +16,11 @@
 
 [ Lookup ]           Open file [l]ookup                                         Modifier + L
 
-[ Process ]          Serach / terminate proc[e]ss                               Modifier + E
+[ Process ]          Search / terminate proc[e]ss                               Modifier + E
 
 [ Terminal ]         Open [t]erminal                                            Modifier + T
+
+[ Manuals ]          System manuals [q]uery                                     Modifier + Q
 
 [ Kill Application ] Kill focused application instance                          Modifier + X
 

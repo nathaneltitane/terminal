@@ -3,6 +3,7 @@
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=15
+separator=" // "
 prompt="EXIT SESSION?"
 
 while [ "${selection}" != "CANCEL" -a "${selection}" != "LOGOUT" -a "${selection}" != "POWEROFF" -a "${selection}" != "REBOOT" ]

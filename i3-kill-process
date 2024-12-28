@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
 lines=30
-
-prompt="TYPE TO SEARCH - SELECT TO TERMINATE // "
+separator=" // "
+prompt="TYPE TO SEARCH - SELECT TO TERMINATE${separator}"
 
 selection="$(ps all | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
 
