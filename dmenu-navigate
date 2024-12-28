@@ -14,7 +14,8 @@ terminal="i3-sensible-terminal"
 list="ls -a"
 read="cat"
 
-selections_line_empty_label=''
+selections_empty_label=''
+selections_separator_label='////////////////////////////////////////////////////////////////////////////////'
 selections_terminal_label='[ Open Terminal Here ]'
 selections_terminal_visual_label='[ Open Visual Terminal Here ]'
 selections_history_label='[ History ]  ↴'
@@ -46,10 +47,11 @@ history_write () {
 selections=(
 	"${selections_terminal_label}"
 	"${selections_terminal_visual_label}"
+	"${selections_separator_label}"
 	"$(${list} "${path_selection}")"
-	"${selections_line_empty_label}"
+	"${selections_empty_label}"
 	"${selections_history_label}"
-	"${selections_line_empty_label}"
+	"${selections_empty_label}"
 	"$(${read} "${history_file}")"
 )
 
