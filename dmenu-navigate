@@ -14,14 +14,6 @@ terminal="i3-sensible-terminal"
 list="ls -a"
 read="cat"
 
-label_selections_empty=''
-label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
-
-label_selections_working_directory="DIRECTORY // ${path_selection}"
-label_selections_history='[ History ]  ↴'
-label_selections_terminal='[ Open Terminal Here ]'
-label_selections_terminal_visual='[ Open Visual Terminal Here ]'
-
 handler_open () {
 
 	xdg-open "${@}"
@@ -50,6 +42,14 @@ history_write () {
 
 
 selections_parse () {
+
+	label_selections_empty=''
+	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
+
+	label_selections_working_directory="DIRECTORY // ${working_directory}"
+	label_selections_history='[ History ]  ↴'
+	label_selections_terminal='[ Open Terminal Here ]'
+	label_selections_terminal_visual='[ Open Visual Terminal Here ]'
 
 	selections=(
 		"${label_selections_working_directory}"
@@ -114,6 +114,8 @@ do
 
 	elif [ -d "${path_selection}" ]
 	then
+		working_directory="${path_selection}"
+
 		selections=(
 			"${label_selections_working_directory}"
 			"${label_selections_empty}"
