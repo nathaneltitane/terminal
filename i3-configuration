@@ -39,7 +39,7 @@ set $file_manager ranger
 
 set $image "${HOME}"/.dextop/dextop-grey.svg
 
-set $launcher i3-dmenu-desktop
+set $launcher i3-i3-desktop
 
 set $lookup dmenu_run
 
@@ -116,35 +116,35 @@ floating_modifier $modifier
 
 # show shortcuts
 
-bindsym $modifier+Shift+i $execute dmenu-show-shortcuts
+bindsym $modifier+Shift+i $execute i3-show-shortcuts
 
 # change background image
 
-bindsym $modifier+g $execute dmenu-change-background
+bindsym $modifier+g $execute i3-change-background
 
 # open file manager
 
-bindsym $modifier+m $execute dmenu-open-file-manager
+bindsym $modifier+m $execute i3-open-file-manager
 
 # take note
 
-bindsym $modifier+n $execute dmenu-notes
+bindsym $modifier+n $execute i3-notes
 
 # search / terminate process
 
-bindsym $modifier+e $execute dmenu-kill-process
+bindsym $modifier+e $execute i3-kill-process
 
 # open launcher
 
-bindsym $modifier+space $execute dmenu-launch
+bindsym $modifier+space $execute i3-launch
 
 # open lookup
 
-bindsym $modifier+l $execute dmenu-lookup
+bindsym $modifier+l $execute i3-lookup
 
 # navigate filesystem
 
-bindsym $modifier+a $execute dmenu-navigate
+bindsym $modifier+a $execute i3-navigate
 
 # open terminal
 
@@ -286,7 +286,7 @@ bindsym $modifier+Shift+r restart
 
 # i3 session - exit
 
-bindsym $modifier+Shift+e $execute dmenu-exit-session
+bindsym $modifier+Shift+e $execute i3-exit-session
 
 # bar //////////////////////////////////////////////////////////////////////////
 
