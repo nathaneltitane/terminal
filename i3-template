@@ -3,11 +3,31 @@
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=15
-prompt="SELECTION // "
+separator=" // "
+prompt="PROMPT${separator}"
 
-selections="1\n2\n\3\n4"
+selections_parse () {
 
-selection_menu=$(echo -e "${selections}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+	selections=(
+		1
+		2
+		3
+		4
+	)
+
+	IFS=$"\n"
+
+	for selection in "${selections[@]}"
+	do
+		echo "${selection}"
+	done
+
+	IFS=""
+
+	selections=()
+}
+
+selection_menu=$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
 
 case "${selection_menu}" in
 	1)
