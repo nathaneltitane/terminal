@@ -52,7 +52,8 @@ values () {
 	battery_temperature_uevent=$(uevent_parse temp /sys/class/power_supply/battery/uevent)
 	battery_temperature_ambient_uevent=$(uevent_parse temp_ambient /sys/class/power_supply/battery/uevent)
 	battery_power_now_uevent=$(uevent_parse power_now /sys/class/power_supply/battery/uevent)
-	battery_power_average=$(uevent_parse power_average /sys/class/power_supply/battery/uevent)
+	battery_power_average_uevent=$(uevent_parse power_average /sys/class/power_supply/battery/uevent)
+	battery_time_to_full_uevent=$(uevent_parse time_to_full /sys/class/power_supply/battery/uevent)
 
 
 
