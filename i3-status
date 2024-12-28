@@ -27,7 +27,7 @@ uevent_parse () {
 values () {
 
 	timer=$(date +%s)
-	interval=$(( $timer - $timer_increment ))
+	timer_interval=$(( $timer - $timer_increment ))
 
 	date=$(date +"%F")
 	time=$(date +"%r")
@@ -45,10 +45,16 @@ values () {
 	battery_voltage_average_uevent=$(uevent_parse voltage_avg /sys/class/power_supply/battery/uevent)
 	battery_current_now_uevent=$(uevent_parse current_now /sys/class/power_supply/battery/uevent)
 	battery_current_average_uevent=$(uevent_parse current_avg /sys/class/power_supply/battery/uevent)
-
-
+	battery_charge_full_design_uevent=$(uevent_parse charge_full_design /sys/class/power_supply/battery/uevent)
+	battery_charge_full_uevent=$(uevent_parse charge_full /sys/class/power_supply/battery/uevent)
+	battery_charge_now_uevent=$(uevent_parse charge_now /sys/class/power_supply/battery/uevent)
 	battery_capacity_uevent=$(uevent_parse capacity /sys/class/power_supply/battery/uevent)
 	battery_temperature_uevent=$(uevent_parse temp /sys/class/power_supply/battery/uevent)
+	battery_temperature_ambient_uevent=$(uevent_parse temp_ambient /sys/class/power_supply/battery/uevent)
+	battery_power_now_uevent=$(uevent_parse power_now /sys/class/power_supply/battery/uevent)
+	battery_power_average=$(uevent_parse power_average /sys/class/power_supply/battery/uevent)
+
+
 
 	# battery - system
 
@@ -96,13 +102,19 @@ values () {
 
 	# system
 
-	[ "$HOSTNAME" = "localhost" ] && HOSTANME="Android"
+	if [ "$HOSTNAME" = "localhost" ]
+	then
+		HOSTANME="Android"
+	fi
 
-	[ -z "${USER}" ] && USER="termux"
+	if [ -z "${USER}" ]
+	then
+		USER="termux"
+	fi
 
 	# increment timer
 
-	timer_increment=$timer
+	timer_increment=${timer}
 }
 
 # generate status feed
