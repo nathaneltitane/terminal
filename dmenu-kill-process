@@ -2,13 +2,13 @@
 
 lines=30
 
-prompt="Type to search - select to terminate:"
+prompt="TYPE TO SEARCH - SELECT TO TERMINATE // "
 
 selection="$(ps all | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
 
 if [[ ! -z "${selection}" ]]
 then
-	prompt="${selection} will be terminated. Proceed?"
+	prompt="SELECTION >>> ${selection} // TERMINATE?"
 
     answer="$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 

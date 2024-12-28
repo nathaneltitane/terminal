@@ -3,6 +3,6 @@
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=60
-prompt="SHORTCUTS"
+prompt="SHORTCUTS // "
 
 cat $(command -v i3-dmenu-shortcuts) | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'

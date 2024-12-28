@@ -6,6 +6,6 @@ terminal="i3-sensible-terminal"
 file_manager="ranger"
 
 lines=15
-prompt="OPEN DIRECTORY"
+prompt="OPEN DIRECTORY // "
 
 find "${HOME}" -maxdepth 1 -type d -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r "${terminal}" -e "${file_manager}"

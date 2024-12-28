@@ -10,7 +10,7 @@ then
     mkdir -p "${notes_directory}"
 fi
 
-prompt="Notes //"
+prompt="NOTES // "
 
 list="$(find -L ${notes_directory} -maxdepth 1 -type f | sed 's|^"${notes_directory}/""||' | sort)"
 

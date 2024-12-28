@@ -3,7 +3,7 @@
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=15
-prompt="SELECTION"
+prompt="SELECTION // "
 
 selections="1\n2\n\3\n4"
 
