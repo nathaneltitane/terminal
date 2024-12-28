@@ -56,7 +56,7 @@ selections_parse () {
 		"${label_selections_empty}"
 		"${label_selections_terminal}"
 		"${label_selections_terminal_visual}"
-		"${label_selections_separator}"
+		"${label_selections_empty}"
 		"$(${list} "${path_selection}")"
 		"${label_selections_empty}"
 		"${label_selections_history}"
@@ -119,7 +119,7 @@ do
 			"${label_selections_empty}"
 			"${label_selections_terminal}"
 			"${label_selections_terminal_visual}"
-			"${label_selections_separator}"
+			"${label_selections_empty}"
 			"$(${list} "${path_selection}")"
 		)
 	else
