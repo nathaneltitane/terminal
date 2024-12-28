@@ -93,7 +93,8 @@ values () {
 	battery_voltage_average=$(system_event_parse voltage_avg /sys/class/power_supply/battery)
 	battery_voltage_now=$(system_event_parse voltage_now /sys/class/power_supply/battery)
 
-	# parse values
+	# parse values:
+	# set units and format into human readable values
 
 	if [[ "${battery_present}" = "0" ]]
 	then
