@@ -21,26 +21,6 @@ selections_history_label='[ History ]  ↴'
 selections_terminal_label='[ Open Terminal Here ]'
 selections_terminal_visual_label='[ Open Visual Terminal Here ]'
 
-selections_header=(
-	"${selections_terminal_label}"
-	"${selections_terminal_visual_label}"
-	"${selections_separator_label}"
-)
-
-selections_footer=(
-	"${selections_empty_label}"
-	"${selections_history_label}"
-	"${selections_empty_label}"
-)
-
-selections_directory=(
-	"$(${list} "${path_selection}")"
-)
-
-selections_history=(
-	"$(${read} "${history_file}")"
-)
-
 handler_open () {
 
 	xdg-open "${@}"
@@ -70,11 +50,15 @@ history_write () {
 
 selections_parse () {
 
-	selections+=(
-		"${selections_header[@]}"
-		"${selections_directory[@]}"
-		"${selections_footer[@]}"
-		"${selections_history[@]}"
+	selections=(
+		"${selections_terminal_label}"
+		"${selections_terminal_visual_label}"
+		"${selections_separator_label}"
+		"$(${list} "${path_selection}")"
+		"${selections_empty_label}"
+		"${selections_history_label}"
+		"${selections_empty_label}"
+		"$(${read} "${history_file}")"
 	)
 
 	IFS=$"\n"
@@ -127,9 +111,11 @@ do
 
 	elif [ -d "${path_selection}" ]
 	then
-		selections+=(
-			"${selections_header[@]}"
-			"${selections_directory[@]}"
+		selections=(
+			"${selections_terminal_label}"
+			"${selections_terminal_visual_label}"
+			"${selections_separator_label}"
+			"$(${list} "${path_selection}")"
 		)
 	else
 		path_selection="$(dirname "${path_selection}")"
