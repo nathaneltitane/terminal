@@ -14,12 +14,13 @@ terminal="i3-sensible-terminal"
 list="ls -a"
 read="cat"
 
-selections_empty_label=''
-selections_separator_label='////////////////////////////////////////////////////////////////////////////////'
+label_selections_empty=''
+label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
 
-selections_history_label='[ History ]  ↴'
-selections_terminal_label='[ Open Terminal Here ]'
-selections_terminal_visual_label='[ Open Visual Terminal Here ]'
+label_selections_working_directory="DIRECTORY // ${path_selection}"
+label_selections_history='[ History ]  ↴'
+label_selections_terminal='[ Open Terminal Here ]'
+label_selections_terminal_visual='[ Open Visual Terminal Here ]'
 
 handler_open () {
 
@@ -51,13 +52,15 @@ history_write () {
 selections_parse () {
 
 	selections=(
-		"${selections_terminal_label}"
-		"${selections_terminal_visual_label}"
-		"${selections_separator_label}"
+		"${label_selections_working_directory}"
+		"${label_selections_empty}"
+		"${label_selections_terminal}"
+		"${label_selections_terminal_visual}"
+		"${label_selections_separator}"
 		"$(${list} "${path_selection}")"
-		"${selections_empty_label}"
-		"${selections_history_label}"
-		"${selections_empty_label}"
+		"${label_selections_empty}"
+		"${label_selections_history}"
+		"${label_selections_empty}"
 		"$(${read} "${history_file}")"
 	)
 
@@ -112,9 +115,11 @@ do
 	elif [ -d "${path_selection}" ]
 	then
 		selections=(
-			"${selections_terminal_label}"
-			"${selections_terminal_visual_label}"
-			"${selections_separator_label}"
+			"${label_selections_working_directory}"
+			"${label_selections_empty}"
+			"${label_selections_terminal}"
+			"${label_selections_terminal_visual}"
+			"${label_selections_separator}"
 			"$(${list} "${path_selection}")"
 		)
 	else
