@@ -12,5 +12,12 @@ do
 	[ -z "${selection}" ] && exit
 done
 
-[ "${selection}" = "CANCEL" ] && exit
-[ "${selection}" = "LOGOUT" ] && i3-msg exit
+if [ "${selection}" = "CANCEL" ]
+then
+	exit
+fi
+
+if [ "${selection}" = "LOGOUT" ]
+then
+	i3-msg exit
+fi
