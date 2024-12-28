@@ -43,6 +43,8 @@ history_write () {
 
 selections_parse () {
 
+	working_directory="${path_selection}"
+
 	label_selections_empty=''
 	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
 
@@ -114,8 +116,6 @@ do
 
 	elif [ -d "${path_selection}" ]
 	then
-		working_directory="${path_selection}"
-
 		selections=(
 			"${label_selections_working_directory}"
 			"${label_selections_empty}"
