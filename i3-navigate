@@ -3,10 +3,11 @@
 path_selection="${HOME}"
 
 lines=60
-prompt="CURRENT DIRECTORY // ${path_selection}"
+prompt="CURRENT DIRECTORY${separator}${path_selection}"
+separator=" // "
 
 history_entry_count=3
-history_file="${HOME}"/.local/bin/.dmenu-navigate-history
+history_file="${HOME}"/.local/bin/.i3-navigate-history
 
 file_manager="ranger"
 terminal="i3-sensible-terminal"
@@ -48,7 +49,7 @@ selections_parse () {
 	label_selections_empty=''
 	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
 
-	label_selections_working_directory="DIRECTORY // ${working_directory}"
+	label_selections_working_directory="DIRECTORY${separator}${working_directory}"
 	label_selections_history='[ History ]  ↴'
 	label_selections_terminal='[ Open Terminal Here ]'
 	label_selections_terminal_visual='[ Open Visual Terminal Here ]'
