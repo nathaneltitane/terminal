@@ -94,4 +94,13 @@ shortcuts="
 
 "
 
-echo ${shortcuts} | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
+shortcuts_parse () {
+
+    while read -r line
+    do
+        echo "${line}"
+
+    done <<< "${shortcuts}"
+}
+
+shortcuts_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
