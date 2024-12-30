@@ -100,7 +100,7 @@ shortcuts_parse () {
 
     while read line
     do
-        if [[ ! "${line}" =~ ^\[] ]]
+        if [[ ! "${line}" =~ ^\[ ]]
         then
             line="${indent}${line}"
         fi
