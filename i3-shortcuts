@@ -22,7 +22,7 @@
 
 [ Terminal ]         Open [t]erminal                                            Modifier + T
 
-[ Terminate ]        Kill focused application instance                          Modifier + X
+[ Terminate ]        Terminate focused application instance                     Modifier + X
 
 [ Window Focus ]     Change focus [up]                                          Modifier + Up
                      Change focus [left]                                        Modifier + Left
