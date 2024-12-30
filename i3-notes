@@ -18,7 +18,7 @@ list="$(find -L ${notes_directory} -maxdepth 1 -type f | sed 's|^"${notes_direct
 
 selection="$(echo -e "${list}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
-slugger () {
+note_slugger () {
 
 echo ${@} | tr -d '[:punct:]'   \
         | sed -e "s/ /-/g"      \
@@ -34,7 +34,7 @@ note_create () {
 
     extension="md"
 
-    file_name="$(slugger "${1,,}")"
+    file_name="$(note_slugger "${1,,}")"
 
     file_name="${file_name}.${extension}"
 
