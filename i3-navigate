@@ -81,35 +81,35 @@ selections_parse () {
 
 while :
 do
-	navigation="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
+	selection="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
 
-	if [ "${navigation}" == '[ Open Terminal Here ]' ]
+	if [ "${selection}" == '[ Open Terminal Here ]' ]
 	then
 		terminal_open "${path_selection}"
 
 		history_write "${path_selection}"
 
-	elif [ "${navigation}" == '[ Open Visual Terminal Here ]' ]
+	elif [ "${selection}" == '[ Open Visual Terminal Here ]' ]
 	then
 		terminal_open_visual "${path_selection}"
 
 		history_write "${path_selection}"
 
-	elif [[ "${navigation}" == '/'* ]]
+	elif [[ "${selection}" == '/'* ]]
 	then
-		path_selection="${navigation}"
+		path_selection="${selection}"
 
-	elif [[ "${navigation}" =~ ^(https?|ftps): ]]
+	elif [[ "${selection}" =~ ^(https?|ftps): ]]
 	then
-		handler_open "${navigation}"
+		handler_open "${selection}"
 
-		history_write "${navigation}"
+		history_write "${selection}"
 
 	else
-		path_selection="$(realpath "${path_selection}/${navigation}")"
+		path_selection="$(realpath "${path_selection}/${selection}")"
 	fi
 
-	if [ -f "${path_selection}" ] || [ "${navigation}" = '.' ]
+	if [ -f "${path_selection}" ] || [ "${selection}" = '.' ]
 	then
 		handler_open "${path_selection}"
 
