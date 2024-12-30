@@ -1,26 +1,26 @@
-[ Modifiers ]        Modifier                                                   Alt-Left Key
+[ Modifier ]         Modifier                                                   Alt-Left Key
 
 [ Bar ]              Show bar                                                   Modifier
-
-[ Shortcuts ]        Show shortcuts [i]nformation                               Modifier + Shift + I
-
-[ Background ]       Change back[g]round image                                  Modifier + G
-
-[ Files ]            Open file manager                                          Modifier + M
-
-[ Navigation ]       N[a]vigate filesystem                                      Modifier + A
-
-[ Notes ]            Open / take [n]otes                                        Modifier + N
 
 [ Launcher ]         Open launcher                                              Modifier + Space
 
 [ Lookup ]           Open file [l]ookup                                         Modifier + L
 
+[ Shortcuts ]        Show shortcuts [i]nformation                               Modifier + Shift + I
+
+[ Backgrounds ]      Change back[g]round image                                  Modifier + G
+
+[ Files ]            Open file manager                                          Modifier + M
+
+[ Manuals ]          System manuals [q]uery                                     Modifier + Q
+
+[ Navigation ]       N[a]vigate filesystem                                      Modifier + A
+
+[ Notes ]            Open / take [n]otes                                        Modifier + N
+
 [ Processes ]        Search / terminate proc[e]ss                               Modifier + E
 
 [ Terminal ]         Open [t]erminal                                            Modifier + T
-
-[ Manuals ]          System manuals [q]uery                                     Modifier + Q
 
 [ Terminate ]        Kill focused application instance                          Modifier + X
 
