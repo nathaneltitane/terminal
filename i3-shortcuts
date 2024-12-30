@@ -6,9 +6,9 @@
 
 [ Background ]       Change back[g]round image                                  Modifier + G
 
-[ File Manager ]     Open file manager                                          Modifier + M
+[ Files ]            Open file manager                                          Modifier + M
 
-[ Navigate ]         N[a]vigate filesystem                                      Modifier + A
+[ Navigation ]       N[a]vigate filesystem                                      Modifier + A
 
 [ Notes ]            Open / take [n]otes                                        Modifier + N
 
@@ -16,13 +16,13 @@
 
 [ Lookup ]           Open file [l]ookup                                         Modifier + L
 
-[ Process ]          Search / terminate proc[e]ss                               Modifier + E
+[ Processes ]        Search / terminate proc[e]ss                               Modifier + E
 
 [ Terminal ]         Open [t]erminal                                            Modifier + T
 
 [ Manuals ]          System manuals [q]uery                                     Modifier + Q
 
-[ Kill Application ] Kill focused application instance                          Modifier + X
+[ Terminate ]        Kill focused application instance                          Modifier + X
 
 [ Window Focus ]     Change focus [up]                                          Modifier + Up
                      Change focus [left]                                        Modifier + Left
