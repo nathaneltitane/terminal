@@ -7,7 +7,7 @@ separator=" // "
 prompt="CURRENT DIRECTORY${separator}${path_selection}"
 
 history_entry_count=3
-history_file="${HOME}"/.local/bin/.i3-navigate-history
+history_file="${HOME}"/.local/bin/.i3-navigation-history
 
 file_manager="ranger"
 terminal="i3-sensible-terminal"
