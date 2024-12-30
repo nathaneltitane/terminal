@@ -5,6 +5,8 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 lines=60
 prompt="SHORTCUTS // "
 
+indent='                        '
+
 shortcuts='
 [ Modifier ]            Modifier                                                Alt-Left Key
 
@@ -96,8 +98,13 @@ shortcuts='
 
 shortcuts_parse () {
 
-    while read -r line
+    while read line
     do
+        if [[ ! "${line}" =~ ^\[] ]]
+        then
+            line="${indent}${line}"
+        fi
+
         echo "${line}"
 
     done <<< "${shortcuts}"
