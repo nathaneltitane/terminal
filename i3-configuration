@@ -39,7 +39,7 @@ set $file_manager ranger
 
 set $image "${HOME}"/.dextop/dextop-grey.svg
 
-set $launcher i3-i3-desktop
+set $launcher i3-dmenu-desktop
 
 set $lookup dmenu_run
 
@@ -114,7 +114,7 @@ floating_modifier $modifier
 
 # bindings - applications //////////////////////////////////////////////////////
 
-# launcher
+# launch
 
 bindsym $modifier+space $execute i3-launch
 

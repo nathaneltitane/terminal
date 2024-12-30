@@ -5,12 +5,12 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 lines=60
 prompt="SHORTCUTS // "
 
-shortcuts="
+shortcuts='
 [ Modifier ]         Modifier                                                   Alt-Left Key
 
 [ Bar ]              Show bar                                                   Modifier
 
-[ Launcher ]         Open launcher                                              Modifier + Space
+[ Launch ]           Open launcher                                              Modifier + Space
 
 [ Lookup ]           Open file [l]ookup                                         Modifier + L
 
@@ -92,7 +92,7 @@ shortcuts="
                     [R]estart i3                                                Modifier + Shift + R
                     [E]xit i3                                                   Modifier + Shift + E
 
-"
+'
 
 shortcuts_parse () {
 
