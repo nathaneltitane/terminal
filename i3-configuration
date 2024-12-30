@@ -291,7 +291,7 @@ bindsym $modifier+Shift+r restart
 
 # i3 session - exit
 
-bindsym $modifier+Shift+e $execute i3-exit-session
+bindsym $modifier+Shift+e $execute i3-exit
 
 # bar //////////////////////////////////////////////////////////////////////////
 
