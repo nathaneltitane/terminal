@@ -114,43 +114,48 @@ floating_modifier $modifier
 
 # bindings - applications //////////////////////////////////////////////////////
 
-# show shortcuts
-
-bindsym $modifier+Shift+i $execute i3-show-shortcuts
-
-# change background image
-
-bindsym $modifier+g $execute i3-change-background
-
-# open file manager
-
-bindsym $modifier+m $execute i3-open-file-manager
-
-# take note
-
-bindsym $modifier+n $execute i3-notes
-
-# search / terminate process
-
-bindsym $modifier+e $execute i3-kill-process
-
-# open launcher
+# launcher
 
 bindsym $modifier+space $execute i3-launch
 
-# open lookup
+# lookup
 
 bindsym $modifier+l $execute i3-lookup
 
-# navigate filesystem
+# shortcuts
 
-bindsym $modifier+a $execute i3-navigate
+bindsym $modifier+Shift+i $execute i3-shortcuts
 
-# open terminal
+# backgrounds
+
+bindsym $modifier+g $execute i3-backgrounds
+
+# files
+
+bindsym $modifier+m $execute i3-file-manager
+
+# manuals
+
+bindsym $modifier+q $execute i3-manuals
+
+
+# navigation
+
+bindsym $modifier+a $execute i3-navigation
+
+# notes
+
+bindsym $modifier+n $execute i3-notes
+
+# processes
+
+bindsym $modifier+e $execute i3-processes
+
+# terminal
 
 bindsym $modifier+t $execute $terminal
 
-# kill focused application
+# terminate
 
 bindsym $modifier+x kill
 
