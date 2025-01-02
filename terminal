@@ -181,18 +181,24 @@ fi
 frobulator.inf "Setting up" "[ git ]"
 echo
 
-storage=/media/internal
+storage_list=(
+	/media/[aA]ndroid
+	/media/[iI]nternal
+)
 
-if [ -d "${storage}" ]
-then
-	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+for storage in ${storage_list[@]}
+	do
+	if [ -d "${storage}" ]
+	then
+		frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
 
-	chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+		chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
 
-	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+		frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
-	chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
-fi
+		chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+	fi
+done
 
 # python ///////////////////////////////////////////////////////////////////////
 

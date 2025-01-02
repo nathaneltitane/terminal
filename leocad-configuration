@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
@@ -63,16 +65,24 @@ directories_list=(
 	[aA]ndroid
 	[iI]nternal
 )
+
 for directory in ${directories_list[@]}
 do
 	if [ -d /media/${directory}/[lL]ego ]
 	then
+	dir=$(echo $directory)
 		if [ -f /media/${directory}/[lL]ego/leocad/leocad.conf ]
 		then
 			frobulator.inf "Linking configuration"
 			echo
 
 			frobulator.link /media/${directory}/[lL]ego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+
+			echo "sed"
+			echo
+			echo
+			echo
+			sed -i -e "s|media.*|media/${directory}/|g" /media/${directory}/[lL]ego/leocad/leocad.conf
 		fi
 	fi
 done
