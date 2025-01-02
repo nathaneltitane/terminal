@@ -59,16 +59,23 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [ -d /media/[iI]nternal/[lL]ego ]
-then
-	if [ -f /media/[iI]nternal/[lL]ego/leocad/leocad.conf ]
+directories_list=(
+	[aA]ndroid
+	[iI]nternal
+)
+for directory in ${directories_list[@]}
+do
+	if [ -d /media/${directory}/[lL]ego ]
 	then
-		frobulator.inf "Linking configuration"
-		echo
+		if [ -f /media/${directory}/[lL]ego/leocad/leocad.conf ]
+		then
+			frobulator.inf "Linking configuration"
+			echo
 
-		frobulator.link /media/[iI]nternal/[lL]ego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+			frobulator.link /media/${directory}/[lL]ego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+		fi
 	fi
-fi
+done
 
 frobulator.scs "Done"
 echo
