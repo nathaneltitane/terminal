@@ -142,13 +142,13 @@ fi
 
 image_select () {
 
-	# list distributions for setup
+	# list distributions
 
 	if [ -z "${distribution_name}"     ] || \
 	   [ -z "${distribution_version}"  ] || \
 	   [ -z "${distribution_codename}" ]
 	then
-		frobulator.msg "Select distribution version to setup."
+		frobulator.msg "Select distribution version to generate."
 		echo
 
 		# list supported distribution versions
@@ -495,7 +495,7 @@ image_archive () {
 
 	unset command_image_archive
 
-	command_archive="
+	command_image_archive="
 		tar --create								\
 			--file="${archive}"						\
 				--use-compress-program='xz -9'		\
@@ -505,17 +505,7 @@ image_archive () {
 
 	frobulator.log ${command_image_archive}
 
-}
-
-image_copy () {
-
-	unset command_image_copy
-
-	command_archive_copy="
-		cp "${build_directory}"/"${archive}" "${HOME}"/"${archive}"
-	"
-
-	frobulator.log ${command_image_copy}
+	cp "${build_directory}"/"${archive}" "${HOME}"/"${archive}"
 
 }
 
@@ -557,7 +547,3 @@ frobulator.progress "build"
 image_archive &
 
 frobulator.progress "archive"
-
-image_copy &
-
-frobulator.progress "copy"
