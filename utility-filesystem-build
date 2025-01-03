@@ -287,6 +287,186 @@ image_select () {
 	fi
 }
 
+image_handle () {
+
+	frobulator.continue
+
+	# handle manual input:
+	# validate input selections
+	# set container image name and version
+
+	case "${distribution_name}"
+	in
+		[dD][eE][bB][iI][aA][nN]| \
+		[fF][eE][dD][oO][rR][aA]| \
+		[uU][bB][uU][nN][tT][uU])
+			distribution_name="${distribution_name,,}"
+
+			frobulator.scs "Supported distribution name."
+			echo
+		;;
+
+		"")
+			distribution_name="debian"
+
+			frobulator.err "Empty distribution name."
+			echo
+
+			frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+			echo
+		;;
+
+
+		*)
+			distribution_name="debian"
+
+			frobulator.err "Unsupported distribution name."
+			echo
+
+			frobulator.wrn "Defaulting" "[ ${distribution_name} ]"
+			echo
+		;;
+	esac
+
+	case "${distribution_name}" in
+	debian)
+
+		case "${distribution_version}"
+		in
+			10)
+				distribution_version=10
+			;;
+
+			11)
+				distribution_version=11
+			;;
+
+			12)
+				distribution_version=12
+			 ;;
+
+			 "")
+				distribution_version=12
+
+				frobulator.err "Distribution version not specified."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+
+			 *)
+				distribution_version=12
+
+				frobulator.err "Unsupported distribution version."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+		esac
+	;;
+
+	fedora)
+
+		case "${distribution_version}"
+		in
+			33)
+				distribution_version=39
+			;;
+
+			34)
+				distribution_version=40
+			;;
+
+			35)
+				distribution_version=41
+			 ;;
+
+			 "")
+				distribution_version=41
+
+				frobulator.err "Distribution version not specified."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+
+			 *)
+				distribution_version=35
+
+				frobulator.err "Unsupported distribution version."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+		esac
+	;;
+
+	ubuntu)
+
+		case "${distribution_version}"
+		in
+			18*04|18*04*)
+				distribution_version="18.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			20*04|20*04*)
+				distribution_version="20.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			22*04|22*04*)
+				distribution_version="22.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			24*04|24*04*)
+				distribution_version="24.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			"")
+				distribution_version="${distribution_version}"
+
+				frobulator.err "Distribution version not specified."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			 *)
+				distribution_version="${distribution_version}"
+
+				frobulator.err "Unsupported distribution version."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+		esac
+	;;
+
+	esac
+
+	frobulator.complete "${script} : ${FUNCNAME}"
+
+}
+
 image_compile () {
 
 	variant="minbase"
