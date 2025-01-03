@@ -456,7 +456,9 @@ image_handle () {
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
 				echo
 			;;
+
 		esac
+
 	;;
 
 	esac
