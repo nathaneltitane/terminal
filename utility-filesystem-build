@@ -466,15 +466,23 @@ image_handle () {
 
 }
 
-image_compile () {
+image_build () {
 
 	variant="minbase"
 
-	debootstrap									\
-		--foreign								\
-		--arch="${distribution_architecture}"	\
-		--variant="${variant}"					\
-												"${distribution_codename}" "${build_directory}" "${distribution_url}"
+	parameters="${distribution_codename} ${build_directory} ${distribution_url}"
+
+	unset command_image_build
+
+	command_image_build="
+		debootstrap									\
+			--foreign								\
+			--arch="${distribution_architecture}"	\
+			--variant="${variant}"					\
+													"${parameters}"
+	"
+
+	frobulator.log ${command_image_build}
 
 }
 
@@ -485,13 +493,30 @@ image_archive () {
 
 	cd "${build_directory}"
 
-	tar --create								\
-		--file="${archive}"						\
-			--use-compress-program='xz -9'		\
-			--exclude='debootstrap' 			\
-												*
+	unset command_image_archive
 
-	cp "${build_directory}"/"${archive}" "${HOME}"/"${archive}"
+	command_archive="
+		tar --create								\
+			--file="${archive}"						\
+				--use-compress-program='xz -9'		\
+				--exclude='debootstrap' 			\
+													*
+	"
+
+	frobulator.log ${command_image_archive}
+
+}
+
+image_copy () {
+
+	unset command_image_copy
+
+	command_archive_copy="
+		cp "${build_directory}"/"${archive}" "${HOME}"/"${archive}"
+	"
+
+	frobulator.log ${command_image_copy}
+
 }
 
 # requirements /////////////////////////////////////////////////////////////////
@@ -525,7 +550,14 @@ build_directory=${frobulator_return[@]}
 
 frobulator.trap "${build_directory}"
 
-image_compile
+image_build &
 
-image_archive
+frobulator.progress "build"
 
+image_archive &
+
+frobulator.progress "archive"
+
+image_copy &
+
+frobulator.progress "copy"
