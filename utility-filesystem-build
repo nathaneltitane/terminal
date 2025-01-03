@@ -31,7 +31,6 @@ fi
 
 . "${HOME}"/.local/bin/frobulator
 
-
 # superuser ////////////////////////////////////////////////////////////////////
 
 export self_arguments="${@}"
