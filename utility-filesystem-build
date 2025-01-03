@@ -163,7 +163,7 @@ image_select () {
 			ubuntu	18.04	bionic
 			ubuntu	20.04	focal
 			ubuntu	22.04	jammy
-			ubuntu	24.04	noble
+		#	ubuntu	24.04	noble - NOT YET AVAILABLE
 		)
 
 		versions=(
