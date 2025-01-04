@@ -22,12 +22,12 @@ handler_open () {
 
 terminal_open () {
 
-	"${terminal}" --working-directory="${@}"
+	"${terminal}" -e "${@}"
 }
 
 terminal_open_visual () {
 
-	"${terminal}" --command="${file_manager} ${@}"
+	"${terminal}" -e "${file_manager} ${@}"
 }
 
 history_write () {
