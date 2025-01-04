@@ -33,4 +33,4 @@ prompt="SELECT DISPLAY METHOD${separator}"
 
 display="$(printf '%s\n' "${display_options_list[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
-feh --bg-"${display}" "${selection}"
+feh --no-fehbg --bg-"${display}" "${selection}"
