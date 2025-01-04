@@ -36,9 +36,42 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="12-28-2024"
+version="01-03-2025"
 
 # usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+i3_list+=(
+	i3
+	i3status
+)
+
+i3_addons_list+=(
+	dmenu
+	feh
+	rofi
+	stterm
+)
+
+# install #
+
+install_list+=(
+	${i3_list[@]}
+	${i3_addons[@]}
+)
+
+frobulator.install ${install_list[@]}
+
+install_list=()
 
 # load interface files
 
@@ -61,7 +94,6 @@ interface_list+=(
 	i3-template
 	i3-terminate
 )
-
 
 frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
 
