@@ -149,7 +149,7 @@ bindsym $modifier+n $execute i3-notes
 
 # processes
 
-bindsym $modifier+e $execute i3-terminate
+bindsym $modifier+e $execute i3-processes
 
 # terminal
 
