@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [[ -z $(command -v frobulator) ]]
@@ -62,6 +60,7 @@ i3_addons_list+=(
 	feh
 	rofi
 	stterm
+	qiv
 )
 
 # install #
