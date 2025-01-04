@@ -97,9 +97,10 @@ interface_list+=(
 
 frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
 
+interface_list=()
+
 # link configuration files
 
 frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3          i3-configuration          config
 frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3status    i3status-configuration    config
 
-interface_list=()
