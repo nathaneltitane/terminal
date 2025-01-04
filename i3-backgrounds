@@ -4,8 +4,33 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=60
 separator=" // "
-prompt="CHANGE BACKGROUND${separator}"
+prompt="CHANGE BACKGROUND IMAGE${separator}"
 
-selection="$(find "${HOME}" -maxdepth 2 -type f -iname "*.jpg" -o -iname "*.png" -o -iname "*.svg" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+images="$(find "${HOME}"						\
+			-maxdepth 2							\
+			-type f								\
+			-iname "*.jpg"						\
+			-o -iname "*.png"					\
+			-o -iname "*.svg"					\
+				-not -path "*.cache*"			\
+				-not -path "*.config*"			\
+				-not -path "*thumbnails*" | sort
+		)"
 
-feh --bg-center "${selection}"
+
+display_options_list=(
+	center
+	fill
+	scale
+	tile
+	zoom
+)
+
+selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+lines=5
+prompt="SELECT DISPLAY METHOD${separator}"
+
+display="$(printf '%s\n' "${display_options_list[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+feh --bg-"${display}" "${selection}"
