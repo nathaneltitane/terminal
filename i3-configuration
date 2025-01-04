@@ -136,7 +136,7 @@ bindsym $modifier+m $execute i3-file-manager
 
 # manuals
 
-bindsym $modifier+q $execute i3-manuals
+bindsym $modifier+q $execute i3-manual
 
 
 # navigation
