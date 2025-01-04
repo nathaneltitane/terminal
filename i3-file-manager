@@ -11,7 +11,8 @@ then
 elif [[ $(command -v gnome-terminal) ]] || \
      [[ $(command -v konsole)        ]] || \
      [[ $(command -v xfce4-terminal) ]] || \
-     [[ $(command -v xterm) ]]
+     [[ $(command -v uxterm)         ]] || \
+     [[ $(command -v xterm)          ]]
 then
 	"${terminal}" -e "${file_manager}"
 fi
