@@ -9,4 +9,4 @@ separator=" // "
 
 prompt="MANUALS${separator}"
 
-man -k all | sed 's/[)(]//g' | sed 's/[0-9]//g' | awk -F "- " '{printf "%-40s%s\n", $1,$2}' | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r "${terminal}" -e man
+man -k all | tr [:upper:] [:lower:] | sed 's/[)(]//g' | sed 's/[0-9]//g' | awk -F "- " '{printf "%-40s%s\n", $1,$2}' | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r "${terminal}" -e man
