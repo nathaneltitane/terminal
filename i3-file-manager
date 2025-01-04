@@ -3,16 +3,4 @@
 terminal="i3-sensible-terminal"
 file_manager="ranger"
 
-if [[ $(command -v stterm) ]] || \
-   [[ $(command -v st)     ]]
-then
-	"${terminal}" "${file_manager}"
-
-elif [[ $(command -v gnome-terminal) ]] || \
-     [[ $(command -v konsole)        ]] || \
-     [[ $(command -v xfce4-terminal) ]] || \
-     [[ $(command -v uxterm)         ]] || \
-     [[ $(command -v xterm)          ]]
-then
-	"${terminal}" -e "${file_manager}"
-fi
+"${terminal}" -e "${file_manager}"
