@@ -2,10 +2,10 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-lines=15
+lines=60
 separator=" // "
 prompt="CHANGE BACKGROUND${separator}"
 
-selection="$(find "${HOME}" -type f -type f -iname "*.jpg" -o -iname "*.png" -o -iname "*.svg" | xargs -r0 | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+selection="$(find "${HOME}" -maxdepth 2 -type f -iname "*.jpg" -o -iname "*.png" -o -iname "*.svg" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
 feh --bg-center "${selection}"
