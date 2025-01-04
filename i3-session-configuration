@@ -50,6 +50,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+# requirements /////////////////////////////////////////////////////////////////
+
 i3_list+=(
 	i3
 	i3status
@@ -62,8 +64,6 @@ i3_addons_list+=(
 	stterm
 	qiv
 )
-
-# install #
 
 install_list+=(
 	${i3_list[@]}
