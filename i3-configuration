@@ -64,7 +64,7 @@ set $workspace8 "8"
 
 # background
 
-$execute feh --bg-center $image
+$execute feh --no-fehbg --bg-center $image
 
 # lock screen
 
