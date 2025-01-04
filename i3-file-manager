@@ -3,4 +3,13 @@
 terminal="i3-sensible-terminal"
 file_manager="ranger"
 
-"${terminal}" --command="${file_manager}
+if [[ $(command -v st) ]]
+then
+	"${terminal}" "${file_manager}"
+
+elif [[ $(command -v gnome-terminal) ]] || \
+     [[ $(command -v konsole)        ]] || \
+     [[ $(command -v xfce4-terminal) ]]
+then
+	"${terminal}" -e "${file_manager}"
+fi
