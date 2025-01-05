@@ -70,7 +70,7 @@ install_list+=(
 	${i3_addons_list[@]}
 )
 
-# frobulator.install ${install_list[@]}
+frobulator.install ${install_list[@]}
 
 install_list=()
 
@@ -94,7 +94,6 @@ interface_list+=(
  	i3-shortcuts
  	i3-status
 	i3-template
-	poop
 )
 
 frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
