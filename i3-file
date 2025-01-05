@@ -6,7 +6,7 @@ terminal="i3-sensible-terminal"
 file_manager="ranger"
 
 separator=" // "
-font_name="Sans Regular"
+font_name="Monospace"
 font_size=10
 font="${font_name}:size=${font_size}"
 

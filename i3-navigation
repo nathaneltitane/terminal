@@ -3,7 +3,7 @@
 navigation_selection="${HOME}"
 
 separator=" // "
-font_name="Sans Regular"
+font_name="Monospace"
 font_size=10
 font="${font_name}:size=${font_size}"
 
