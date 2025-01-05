@@ -163,6 +163,23 @@ status_cpu_temperature () {
     done
 }
 
+status_memory_information () {
+
+	total_memory=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+
+	used_memory=$(grep MemTotal /proc/meminfo | awk '{print $2}') - $(grep MemFree /proc/meminfo | awk '{print $2}')
+
+	free_memory=$(grep MemFree /proc/meminfo | awk '{print $2}')
+
+	# Calculate memory usage percentage
+	memory_usage_percentage=$(echo "scale=2; ($used_memory / $total_memory) * 100" | bc)
+
+	status+="Total Memory: ${total_memory}KB${joiner}"
+	status+="Used Memory: ${used_memory}KB (${memory_usage_percentage}%)${joiner}"
+	status+="Free Memory: ${free_memory}KB${separator}"
+}
+
+
 status_network_information () {
 
 	network_interface=$(ip route | grep '^default')
