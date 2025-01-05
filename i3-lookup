@@ -4,6 +4,10 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=15
 separator=" // "
+font_name="Sans Regular"
+font_size=10
+font="${font_name}:size=${font_size}"
+
 prompt="LOOKUP${separator}"
 
 dmenu_run -b -i -p  "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'

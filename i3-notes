@@ -12,11 +12,15 @@ fi
 
 lines=15
 separator=" // "
+font_name="Sans Regular"
+font_size=10
+font="${font_name}:size=${font_size}"
+
 prompt="NOTES${separator}"
 
 list="$(find -L ${notes_directory} -maxdepth 1 -type f | sed 's|^"${notes_directory}/""||' | sort)"
 
-selection="$(echo -e "${list}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+selection="$(echo -e "${list}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
 note_slugger () {
 

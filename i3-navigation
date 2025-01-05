@@ -4,6 +4,10 @@ path_selection="${HOME}"
 
 lines=60
 separator=" // "
+font_name="Sans Regular"
+font_size=10
+font="${font_name}:size=${font_size}"
+
 prompt="CURRENT DIRECTORY${separator}${path_selection}"
 
 history_entry_count=3
@@ -81,7 +85,7 @@ selections_parse () {
 
 while :
 do
-	selection="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
+	selection="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
 
 	if [ "${selection}" == '[ Open Terminal Here ]' ]
 	then

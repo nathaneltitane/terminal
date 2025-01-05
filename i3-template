@@ -4,6 +4,10 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=15
 separator=" // "
+font_name="Sans Regular"
+font_size=10
+font="${font_name}:size=${font_size}"
+
 prompt="PROMPT${separator}"
 
 selections_parse () {
@@ -27,7 +31,7 @@ selections_parse () {
 	selections=()
 }
 
-selection_menu=$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+selection_menu=$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
 
 case "${selection_menu}" in
 	1)

@@ -4,6 +4,10 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 lines=60
 separator=" // "
+font_name="Sans Regular"
+font_size=10
+font="${font_name}:size=${font_size}"
+
 prompt="CHANGE BACKGROUND IMAGE${separator}"
 
 images="$(find "${HOME}"						\
@@ -26,11 +30,11 @@ display_options_list=(
 	zoom
 )
 
-selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
 lines=5
 prompt="SELECT DISPLAY METHOD${separator}"
 
-display="$(printf '%s\n' "${display_options_list[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+display="$(printf '%s\n' "${display_options_list[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
 feh --no-fehbg --bg-"${display}" "${selection}"

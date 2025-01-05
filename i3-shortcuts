@@ -110,4 +110,4 @@ shortcuts_parse () {
     done <<< "${shortcuts}"
 }
 
-shortcuts_parse | dmenu -i -l "${lines}" -p "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
+shortcuts_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
