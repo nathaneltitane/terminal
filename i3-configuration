@@ -29,6 +29,10 @@
 
 # variables ////////////////////////////////////////////////////////////////////
 
+set $font_name	Monospace
+
+set $font_size	10
+
 set $modifier	Mod1
 
 set $windows	Mod4
@@ -91,7 +95,7 @@ client.background                        #000000
 
 # fonts
 
-font pango:Sans Regular 10
+font pango:$font_name $font_size
 
 # windows
 
@@ -298,7 +302,7 @@ bindsym $modifier+Shift+e $execute i3-exit
 bar {
 	status_command i3-status
 
-	font pango:Sans Regular 10
+	font pango:$font_name $font_size
 
 	binding_mode_indicator yes
 
