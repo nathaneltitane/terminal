@@ -1,6 +1,6 @@
 #!/bin/bash
 
-path_selection="${HOME}"
+navigation_selection="${HOME}"
 
 separator=" // "
 font_name="Sans Regular"
@@ -8,7 +8,7 @@ font_size=10
 font="${font_name}:size=${font_size}"
 
 lines=60
-prompt="CURRENT DIRECTORY${separator}${path_selection}"
+prompt="NAVIGATION${separator}"
 
 history_entry_count=3
 history_file="${HOME}"/.local/bin/.i3-navigation-history
@@ -48,7 +48,7 @@ history_write () {
 
 selections_parse () {
 
-	working_directory="${path_selection}"
+	working_directory="${navigation_selection}"
 
 	label_selections_empty=''
 	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
@@ -64,7 +64,7 @@ selections_parse () {
 		"${label_selections_terminal}"
 		"${label_selections_terminal_visual}"
 		"${label_selections_empty}"
-		"$(${list} "${path_selection}")"
+		"$(${list} "${navigation_selection}")"
 		"${label_selections_empty}"
 		"${label_selections_history}"
 		"${label_selections_empty}"
@@ -89,19 +89,19 @@ do
 
 	if [ "${selection}" == '[ Open Terminal Here ]' ]
 	then
-		terminal_open "${path_selection}"
+		terminal_open "${navigation_selection}"
 
-		history_write "${path_selection}"
+		history_write "${navigation_selection}"
 
 	elif [ "${selection}" == '[ Open Visual Terminal Here ]' ]
 	then
-		terminal_open_visual "${path_selection}"
+		terminal_open_visual "${navigation_selection}"
 
-		history_write "${path_selection}"
+		history_write "${navigation_selection}"
 
 	elif [[ "${selection}" == '/'* ]]
 	then
-		path_selection="${selection}"
+		navigation_selection="${selection}"
 
 	elif [[ "${selection}" =~ ^(https?|ftps): ]]
 	then
@@ -110,16 +110,16 @@ do
 		history_write "${selection}"
 
 	else
-		path_selection="$(realpath "${path_selection}/${selection}")"
+		navigation_selection="$(realpath "${navigation_selection}/${selection}")"
 	fi
 
-	if [ -f "${path_selection}" ] || [ "${selection}" = '.' ]
+	if [ -f "${navigation_selection}" ] || [ "${selection}" = '.' ]
 	then
-		handler_open "${path_selection}"
+		handler_open "${navigation_selection}"
 
-		history_write "${path_selection}"
+		history_write "${navigation_selection}"
 
-	elif [ -d "${path_selection}" ]
+	elif [ -d "${navigation_selection}" ]
 	then
 		selections=(
 			"${label_selections_working_directory}"
@@ -127,9 +127,9 @@ do
 			"${label_selections_terminal}"
 			"${label_selections_terminal_visual}"
 			"${label_selections_empty}"
-			"$(${list} "${path_selection}")"
+			"$(${list} "${navigation_selection}")"
 		)
 	else
-		path_selection="$(dirname "${path_selection}")"
+		navigation_selection="$(dirname "${navigation_selection}")"
 	fi
 done
