@@ -176,7 +176,7 @@ status_network_information () {
 			network_interface_device="${network_interface_device^^}"
 
 		status+="INTERFACE ${network_interface_device}${joiner}"
-		status+="GATEWAY ${network_interface_gateway}"
+		status+="GATEWAY ${network_interface_gateway}${joiner}"
 		status+="IP ${network_interface_address}${separator}"
 	else
 		status+="Network: Disconnected${separator}"
@@ -194,7 +194,7 @@ status_feed () {
 		status_cpu_temperature
 		status_network_information
 
-		echo -e "${status}"
+		echo -e "${status}${indent}"
 
 		unset status
 
