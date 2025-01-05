@@ -2,12 +2,12 @@
 
 path_selection="${HOME}"
 
-lines=60
 separator=" // "
 font_name="Sans Regular"
 font_size=10
 font="${font_name}:size=${font_size}"
 
+lines=60
 prompt="CURRENT DIRECTORY${separator}${path_selection}"
 
 history_entry_count=3

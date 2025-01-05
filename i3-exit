@@ -2,12 +2,12 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-lines=15
 separator=" // "
 font_name="Sans Regular"
 font_size=10
 font="${font_name}:size=${font_size}"
 
+lines=15
 prompt="EXIT SESSION?"
 
 while [ "${selection}" != "CANCEL" -a "${selection}" != "LOGOUT" -a "${selection}" != "POWEROFF" -a "${selection}" != "REBOOT" ]

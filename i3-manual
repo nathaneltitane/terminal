@@ -4,12 +4,12 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 terminal="i3-sensible-terminal"
 
-lines=15
 separator=" // "
 font_name="Sans Regular"
 font_size=10
 font="${font_name}:size=${font_size}"
 
+lines=15
 prompt="MANUALS${separator}"
 
 man -k all | tr [:upper:] [:lower:] | sed 's/[)(]//g' | sed 's/[0-9]//g' | awk -F "- " '{printf "%-40s%s\n", $1,$2}' | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r "${terminal}" -e man

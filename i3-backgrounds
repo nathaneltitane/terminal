@@ -2,12 +2,12 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-lines=60
 separator=" // "
 font_name="Sans Regular"
 font_size=10
 font="${font_name}:size=${font_size}"
 
+lines=60
 prompt="CHANGE BACKGROUND IMAGE${separator}"
 
 images="$(find "${HOME}"						\
