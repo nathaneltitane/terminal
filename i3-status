@@ -55,7 +55,7 @@
 # battery_voltage_now_uevent=$(uevent_parse voltage_now /sys/class/power_supply/battery/uevent)
 
 
-indent="    "
+indent="	"
 separator=" // "
 joiner=" > "
 
@@ -82,6 +82,139 @@ calculate () {
 	scale=$(bc <<< "scale=2; ${value} / ${decimal_factor}")
 
 	echo "${scale}"
+}
+
+convert_memory() {
+
+	local value="${1}"
+	local unit_from="${2}"
+	local unit_to="${3}"
+
+	case "$unit_from"
+	in
+		KB)
+			case "$unit_to"
+			in
+				KB)
+					echo "$value"
+				;;
+
+				MB)
+					echo "$value / 1024" | bc -l
+				;;
+
+				GB)
+					echo "$value / 1024 / 1024" | bc -l
+				;;
+
+				TB)
+					echo "$value / 1024 / 1024 / 1024" | bc -l
+				;;
+
+				*)
+					echo "Invalid unit_to: $unit_to"
+
+					exit 1
+				;;
+
+			esac
+
+			;;
+
+		MB)
+			case "$unit_to"
+			in
+				KB)
+					echo "$value * 1024" | bc -l
+				;;
+
+				MB)
+					echo "$value"
+				;;
+
+				GB)
+					echo "$value / 1024" | bc -l
+				;;
+
+				TB)
+					echo "$value / 1024 / 1024" | bc -l
+				;;
+
+				*)
+					echo "Invalid unit_to: $unit_to"
+
+					exit 1
+				;;
+
+			esac
+
+			;;
+
+		GB)
+			case "$unit_to"
+			in
+				KB)
+					echo "$value * 1024 * 1024" | bc -l
+				;;
+
+				MB)
+					echo "$value * 1024" | bc -l
+				;;
+
+				GB)
+					echo "$value"
+				;;
+
+				TB)
+					echo "$value / 1024" | bc -l
+				;;
+
+				*)
+					echo "Invalid unit_to: $unit_to"
+
+					exit 1
+				;;
+
+			esac
+
+			;;
+
+		TB)
+			case "$unit_to"
+			in
+			KB)
+				echo "$value * 1024 * 1024 * 1024" | bc -l
+			;;
+
+			MB)
+				echo "$value * 1024 * 1024" | bc -l
+			;;
+
+			GB)
+				echo "$value * 1024" | bc -l
+			;;
+
+			TB)
+				echo "$value"
+			;;
+
+			*)
+				echo "Invalid unit_to: $unit_to"
+
+				exit 1
+			;;
+
+			esac
+
+			;;
+
+		*)
+			echo "Invalid unit_from: $unit_from"
+
+			exit 1
+		;;
+
+	esac
 }
 
 uevent_parse () {
@@ -143,40 +276,47 @@ status_battery () {
 
 status_cpu_temperature () {
 
-    cpu_count=$(nproc)
+	cpu_count=$(nproc)
 
-    for (( i=0 ; i<${cpu_count} ; i++ ))
-    do
-        cpu_temperature_path="/sys/class/thermal/thermal_zone${i}/temp"
+	for (( i=0 ; i<${cpu_count} ; i++ ))
+	do
+		cpu_temperature_path="/sys/class/thermal/thermal_zone${i}/temp"
 
-        if [ -f "${cpu_temperature_path}" ]
-        then
-            cpu_temperature_raw=$(cat "${cpu_temperature_path}")
-            cpu_temperature_celsius=$(calculate "${cpu_temperature_raw}" 1000)
+		if [ -f "${cpu_temperature_path}" ]
+		then
+			cpu_temperature_raw=$(cat "${cpu_temperature_path}")
+			cpu_temperature_celsius=$(calculate "${cpu_temperature_raw}" 1000)
 
 			battery_temperature_unit="°C"
 
-            status+="CPU${i} ${cpu_temperature_celsius}${cpu_temperature_unit}${separator}"
+			status+="CPU${i} ${cpu_temperature_celsius}${cpu_temperature_unit}${separator}"
 		else
 			status+="CPU N/A${separator}"
-        fi
-    done
+		fi
+	done
 }
 
 status_memory_information () {
 
-	total_memory=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+	memory_total=$(grep -i 'memtotal' /proc/meminfo | awk '{print $2}')
 
-	used_memory=$(grep MemTotal /proc/meminfo | awk '{print $2}') - $(grep MemFree /proc/meminfo | awk '{print $2}')
+	echo $memory_total
 
-	free_memory=$(grep MemFree /proc/meminfo | awk '{print $2}')
+	memory_total=$(convert_memory "$memory_total" "KB" "GB")
 
-	# Calculate memory usage percentage
-	memory_usage_percentage=$(echo "scale=2; ($used_memory / $total_memory) * 100" | bc)
+	echo $memory_total
 
-	status+="Total Memory: ${total_memory}KB${joiner}"
-	status+="Used Memory: ${used_memory}KB (${memory_usage_percentage}%)${joiner}"
-	status+="Free Memory: ${free_memory}KB${separator}"
+	echo $memory_total
+
+	memory_free=$(grep -i 'memfree' /proc/meminfo | awk '{print $2}')
+
+	#memory_used=$(( ${memory_total} - ${memory_free} ))
+
+	memory_used_percentage=$(echo "scale=2; ($memory_used / $memory_total) * 100" | bc)
+
+	status+="TOTAL MEMORY: ${total_memory}KB${joiner}"
+	status+="USED MEMORY: ${used_memory}KB (${memory_usage_percentage}%)${joiner}"
+	status+="FREE MEMORY: ${free_memory}KB${separator}"
 }
 
 
@@ -209,6 +349,7 @@ status_feed () {
 		status_date
 		status_battery
 		status_cpu_temperature
+		status_memory_information
 		status_network_information
 
 		echo -e "${status}${indent}"
