@@ -1,60 +1,5 @@
 #!/bin/bash
 
-# battery - system
-
-# battery_capacity=$(system_event_parse capacity /sys/class/power_supply/battery)
-# battery_charge_counter=$(system_event_parse charge_counter /sys/class/power_supply/battery)
-# battery_charge_counter_shadow=$(system_event_parse charge_counter_shadow /sys/class/power_supply/battery)
-# battery_charge_full=$(system_event_parse charge_full /sys/class/power_supply/battery)
-# battery_charge_full_design=$(system_event_parse charge_full_design /sys/class/power_supply/battery)
-# battery_charge_now=$(system_event_parse charge_now /sys/class/power_supply/battery)
-# battery_charge_type=$(system_event_parse charge_type /sys/class/power_supply/battery)
-# battery_charge_uno_control=$(system_event_parse charge_uno_control /sys/class/power_supply/battery)
-# battery_charge_utg_control=$(system_event_parse charge_utg_control /sys/class/power_supply/battery)
-# battery_current_average=$(system_event_parse current_avg /sys/class/power_supply/battery)
-# battery_current_now=$(system_event_parse current_now /sys/class/power_supply/battery)
-# battery_health=$(system_event_parse health /sys/class/power_supply/battery)
-# battery_power_average=$(system_event_parse power_avg /sys/class/power_supply/battery)
-# battery_power_now=$(system_event_parse power_now /sys/class/power_supply/battery)
-# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
-# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
-# battery_status=$(system_event_parse status /sys/class/power_supply/battery)
-# battery_technology=$(system_event_parse technology /sys/class/power_supply/battery)
-# battery_temperature=$(system_event_parse temp /sys/class/power_supply/battery)
-# battery_time_online=$(system_event_parse online /sys/class/power_supply/battery)
-# battery_time_to_full=$(system_event_parse time_to_full_now /sys/class/power_supply/battery)
-# battery_voltage=$(system_event_parse voltage /sys/class/power_supply/battery)
-# battery_voltage_average=$(system_event_parse voltage_avg /sys/class/power_supply/battery)
-# battery_voltage_now=$(system_event_parse voltage_now /sys/class/power_supply/battery)
-
-# battery - uevent
-
-# battery_capacity_uevent=$(uevent_parse capacity /sys/class/power_supply/battery/uevent)
-# battery_charge_counter_shadow_uevent=$(uevent_parse charge_counter_shadow /sys/class/power_supply/battery/uevent)
-# battery_charge_counter_uevent=$(uevent_parse charge_counter /sys/class/power_supply/battery/uevent)
-# battery_charge_full_design_uevent=$(uevent_parse charge_full_design /sys/class/power_supply/battery/uevent)
-# battery_charge_full_uevent=$(uevent_parse charge_full /sys/class/power_supply/battery/uevent)
-# battery_charge_now_uevent=$(uevent_parse charge_now /sys/class/power_supply/battery/uevent)
-# battery_charge_otg_control_uevent=$(uevent_parse charge_otg_control /sys/class/power_supply/battery/uevent)
-# battery_charge_type_uevent=$(uevent_parse charge_type /sys/class/power_supply/battery/uevent)
-# battery_charge_uno_control_uevent=$(uevent_parse charge_uno_control /sys/class/power_supply/battery/uevent)
-# battery_current_average_uevent=$(uevent_parse current_avg /sys/class/power_supply/battery/uevent)
-# battery_current_now_uevent=$(uevent_parse current_now /sys/class/power_supply/battery/uevent)
-# battery_health_uevent=$(uevent_parse health /sys/class/power_supply/battery/uevent)
-# battery_name_uevent=$(uevent_parse name /sys/class/power_supply/battery/uevent)
-# battery_online_uevent=$(uevent_parse online /sys/class/power_supply/battery/uevent)
-# battery_power_average_uevent=$(uevent_parse power_average /sys/class/power_supply/battery/uevent)
-# battery_power_now_uevent=$(uevent_parse power_now /sys/class/power_supply/battery/uevent)
-# battery_present_uevent=$(uevent_parse present /sys/class/power_supply/battery/uevent)
-# battery_status_uevent=$(uevent_parse status /sys/class/power_supply/battery/uevent)
-# battery_technology_uevent=$(uevent_parse technology /sys/class/power_supply/battery/uevent)
-# battery_temperature_ambient_uevent=$(uevent_parse temp_ambient /sys/class/power_supply/battery/uevent)
-# battery_temperature_uevent=$(uevent_parse temp /sys/class/power_supply/battery/uevent)
-# battery_time_to_full_uevent=$(uevent_parse time_to_full /sys/class/power_supply/battery/uevent)
-# battery_voltage_average_uevent=$(uevent_parse voltage_avg /sys/class/power_supply/battery/uevent)
-# battery_voltage_now_uevent=$(uevent_parse voltage_now /sys/class/power_supply/battery/uevent)
-
-
 indent="	"
 separator=" // "
 joiner=" > "
@@ -264,6 +209,60 @@ status_host () {
 }
 
 status_battery () {
+
+	# battery - system
+
+	# battery_capacity=$(system_event_parse capacity /sys/class/power_supply/battery)
+	# battery_charge_counter=$(system_event_parse charge_counter /sys/class/power_supply/battery)
+	# battery_charge_counter_shadow=$(system_event_parse charge_counter_shadow /sys/class/power_supply/battery)
+	# battery_charge_full=$(system_event_parse charge_full /sys/class/power_supply/battery)
+	# battery_charge_full_design=$(system_event_parse charge_full_design /sys/class/power_supply/battery)
+	# battery_charge_now=$(system_event_parse charge_now /sys/class/power_supply/battery)
+	# battery_charge_type=$(system_event_parse charge_type /sys/class/power_supply/battery)
+	# battery_charge_uno_control=$(system_event_parse charge_uno_control /sys/class/power_supply/battery)
+	# battery_charge_utg_control=$(system_event_parse charge_utg_control /sys/class/power_supply/battery)
+	# battery_current_average=$(system_event_parse current_avg /sys/class/power_supply/battery)
+	# battery_current_now=$(system_event_parse current_now /sys/class/power_supply/battery)
+	# battery_health=$(system_event_parse health /sys/class/power_supply/battery)
+	# battery_power_average=$(system_event_parse power_avg /sys/class/power_supply/battery)
+	# battery_power_now=$(system_event_parse power_now /sys/class/power_supply/battery)
+	# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
+	# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
+	# battery_status=$(system_event_parse status /sys/class/power_supply/battery)
+	# battery_technology=$(system_event_parse technology /sys/class/power_supply/battery)
+	# battery_temperature=$(system_event_parse temp /sys/class/power_supply/battery)
+	# battery_time_online=$(system_event_parse online /sys/class/power_supply/battery)
+	# battery_time_to_full=$(system_event_parse time_to_full_now /sys/class/power_supply/battery)
+	# battery_voltage=$(system_event_parse voltage /sys/class/power_supply/battery)
+	# battery_voltage_average=$(system_event_parse voltage_avg /sys/class/power_supply/battery)
+	# battery_voltage_now=$(system_event_parse voltage_now /sys/class/power_supply/battery)
+
+	# battery - uevent
+
+	# battery_capacity_uevent=$(uevent_parse capacity /sys/class/power_supply/battery/uevent)
+	# battery_charge_counter_shadow_uevent=$(uevent_parse charge_counter_shadow /sys/class/power_supply/battery/uevent)
+	# battery_charge_counter_uevent=$(uevent_parse charge_counter /sys/class/power_supply/battery/uevent)
+	# battery_charge_full_design_uevent=$(uevent_parse charge_full_design /sys/class/power_supply/battery/uevent)
+	# battery_charge_full_uevent=$(uevent_parse charge_full /sys/class/power_supply/battery/uevent)
+	# battery_charge_now_uevent=$(uevent_parse charge_now /sys/class/power_supply/battery/uevent)
+	# battery_charge_otg_control_uevent=$(uevent_parse charge_otg_control /sys/class/power_supply/battery/uevent)
+	# battery_charge_type_uevent=$(uevent_parse charge_type /sys/class/power_supply/battery/uevent)
+	# battery_charge_uno_control_uevent=$(uevent_parse charge_uno_control /sys/class/power_supply/battery/uevent)
+	# battery_current_average_uevent=$(uevent_parse current_avg /sys/class/power_supply/battery/uevent)
+	# battery_current_now_uevent=$(uevent_parse current_now /sys/class/power_supply/battery/uevent)
+	# battery_health_uevent=$(uevent_parse health /sys/class/power_supply/battery/uevent)
+	# battery_name_uevent=$(uevent_parse name /sys/class/power_supply/battery/uevent)
+	# battery_online_uevent=$(uevent_parse online /sys/class/power_supply/battery/uevent)
+	# battery_power_average_uevent=$(uevent_parse power_average /sys/class/power_supply/battery/uevent)
+	# battery_power_now_uevent=$(uevent_parse power_now /sys/class/power_supply/battery/uevent)
+	# battery_present_uevent=$(uevent_parse present /sys/class/power_supply/battery/uevent)
+	# battery_status_uevent=$(uevent_parse status /sys/class/power_supply/battery/uevent)
+	# battery_technology_uevent=$(uevent_parse technology /sys/class/power_supply/battery/uevent)
+	# battery_temperature_ambient_uevent=$(uevent_parse temp_ambient /sys/class/power_supply/battery/uevent)
+	# battery_temperature_uevent=$(uevent_parse temp /sys/class/power_supply/battery/uevent)
+	# battery_time_to_full_uevent=$(uevent_parse time_to_full /sys/class/power_supply/battery/uevent)
+	# battery_voltage_average_uevent=$(uevent_parse voltage_avg /sys/class/power_supply/battery/uevent)
+	# battery_voltage_now_uevent=$(uevent_parse voltage_now /sys/class/power_supply/battery/uevent)
 
 	if [[ -f /sys/class/power_supply/battery ]]
 	then
