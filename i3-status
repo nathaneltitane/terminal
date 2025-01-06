@@ -371,6 +371,4 @@ status_feed () {
 	done
 }
 
-#status_feed
-
-status_memory_information
+status_feed
