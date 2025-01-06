@@ -359,11 +359,17 @@ status_feed () {
 	i3status | while :
 	do
 		status_host
+
 		status_time
+
 		status_date
+
 		status_battery
+
 		status_cpu_temperature
+
 		status_memory_information
+
 		status_network_information
 
 		echo -e "${status}${indent}"
