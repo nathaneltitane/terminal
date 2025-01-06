@@ -278,8 +278,6 @@ status_battery () {
 
 		status+="BATTERY ${battery_capacity}${battery_capacity_unit}${separator}"
 		status+="TEMPERATURE ${battery_temperature}${battery_temperature_unit}${separator}"
-	else
-		status+="CPU N/A${separator}"
 	fi
 
 }
@@ -300,8 +298,6 @@ status_cpu_temperature () {
 			cpu_temperature_unit="°C"
 
 			status+="CPU${i} ${cpu_temperature}${cpu_temperature_unit}${separator}"
-		else
-			status+="CPU N/A${separator}"
 		fi
 	done
 
