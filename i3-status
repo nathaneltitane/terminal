@@ -293,7 +293,7 @@ status_cpu_temperature () {
 		if [ -f "${cpu_temperature_path}" ]
 		then
 			cpu_temperature=$(cat "${cpu_temperature_path}")
-			cpu_temperature=$(calculate "${cpu_temperature_raw}" 1000)
+			cpu_temperature=$(calculate "${cpu_temperature}" 1000)
 
 			cpu_temperature_unit="°C"
 
@@ -332,7 +332,7 @@ status_memory_information () {
 
 status_network_information () {
 
-	network_interface=$(ip route | grep '^default')
+	network_interface=$(ip route | grep 'default')
 
 	if [[ -n "${network_interface}" ]]
 	then
