@@ -361,4 +361,4 @@ status_feed () {
 	done
 }
 
-status_feed x
+status_feed
