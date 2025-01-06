@@ -292,12 +292,12 @@ status_cpu_temperature () {
 
 		if [ -f "${cpu_temperature_path}" ]
 		then
-			cpu_temperature_raw=$(cat "${cpu_temperature_path}")
-			cpu_temperature_celsius=$(calculate "${cpu_temperature_raw}" 1000)
+			cpu_temperature=$(cat "${cpu_temperature_path}")
+			cpu_temperature=$(calculate "${cpu_temperature_raw}" 1000)
 
-			battery_temperature_unit="°C"
+			cpu_temperature_unit="°C"
 
-			status+="CPU${i} ${cpu_temperature_celsius}${cpu_temperature_unit}${separator}"
+			status+="CPU${i} ${cpu_temperature}${cpu_temperature_unit}${separator}"
 		else
 			status+="CPU N/A${separator}"
 		fi
