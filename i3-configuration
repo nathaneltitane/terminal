@@ -295,9 +295,9 @@ set $mode_gaps_inner         Inner Gaps:      +|-|0 (local), Shift + +|-|0 (glob
 set $mode_gaps_horizontal    Horizontal Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_vertical      Vertical Gaps:   +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_top           Top Gaps:        +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_right         Right Gaps:      +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_bottom        Bottom Gaps:     +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_left          Left Gaps:       +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_bottom        Bottom Gaps:     +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_right         Right Gaps:      +|-|0 (local), Shift + +|-|0 (global)
 
 bindsym $mod+Shift+p mode "$mode_gaps"
 
@@ -340,7 +340,7 @@ mode "$mode_gaps_inner" {
         bindsym Escape      mode "default"
 }
 
-mode "$mode_gaps_horiz" {
+mode "$mode_gaps_horizontal" {
         bindsym plus        gaps horizontal current plus 5
         bindsym minus       gaps horizontal current minus 5
         bindsym 0           gaps horizontal current set 0
@@ -353,7 +353,7 @@ mode "$mode_gaps_horiz" {
         bindsym Escape      mode "default"
 }
 
-mode "$mode_gaps_verti" {
+mode "$mode_gaps_vertical" {
         bindsym plus        gaps vertical current plus 5
         bindsym minus       gaps vertical current minus 5
         bindsym 0           gaps vertical current set 0
@@ -379,14 +379,14 @@ mode "$mode_gaps_top" {
         bindsym Escape      mode "default"
 }
 
-mode "$mode_gaps_right" {
-        bindsym plus        gaps right current plus 5
-        bindsym minus       gaps right current minus 5
-        bindsym 0           gaps right current set 0
+mode "$mode_gaps_left" {
+        bindsym plus        gaps left current plus 5
+        bindsym minus       gaps left current minus 5
+        bindsym 0           gaps left current set 0
 
-        bindsym Shift+plus  gaps right all plus 5
-        bindsym Shift+minus gaps right all minus 5
-        bindsym Shift+0     gaps right all set 0
+        bindsym Shift+plus  gaps left all plus 5
+        bindsym Shift+minus gaps left all minus 5
+        bindsym Shift+0     gaps left all set 0
 
         bindsym Return      mode "$mode_gaps"
         bindsym Escape      mode "default"
@@ -405,14 +405,14 @@ mode "$mode_gaps_bottom" {
         bindsym Escape      mode "default"
 }
 
-mode "$mode_gaps_left" {
-        bindsym plus        gaps left current plus 5
-        bindsym minus       gaps left current minus 5
-        bindsym 0           gaps left current set 0
+mode "$mode_gaps_right" {
+        bindsym plus        gaps right current plus 5
+        bindsym minus       gaps right current minus 5
+        bindsym 0           gaps right current set 0
 
-        bindsym Shift+plus  gaps left all plus 5
-        bindsym Shift+minus gaps left all minus 5
-        bindsym Shift+0     gaps left all set 0
+        bindsym Shift+plus  gaps right all plus 5
+        bindsym Shift+minus gaps right all minus 5
+        bindsym Shift+0     gaps right all set 0
 
         bindsym Return      mode "$mode_gaps"
         bindsym Escape      mode "default"
