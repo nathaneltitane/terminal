@@ -82,13 +82,18 @@ calculate () {
 	scale=$(bc <<< "scale=2; ${value} / ${decimal_factor}")
 
 	echo "${scale}"
+
+	unset value
 }
 
-convert_memory() {
+memory_convert () {
 
 	value="${1}"
+
 	unit_from="${2}"
 	unit_to="${3}"
+
+	memory_unit="${unit_to}"
 
 	case "${unit_from}"
 	in
@@ -100,15 +105,15 @@ convert_memory() {
 				;;
 
 				MB)
-					echo "${value} / 1024" | bc -l
+					echo "${value} / 1024" | bc
 				;;
 
 				GB)
-					echo "${value} / 1024 / 1024" | bc -l
+					echo "${value} / 1024 / 1024" | bc
 				;;
 
 				TB)
-					echo "${value} / 1024 / 1024 / 1024" | bc -l
+					echo "${value} / 1024 / 1024 / 1024" | bc
 				;;
 
 				*)
@@ -182,27 +187,27 @@ convert_memory() {
 		TB)
 			case "${unit_to}"
 			in
-			KB)
-				echo "${value} * 1024 * 1024 * 1024" | bc -l
-			;;
+				KB)
+					echo "${value} * 1024 * 1024 * 1024" | bc -l
+				;;
 
-			MB)
-				echo "${value} * 1024 * 1024" | bc -l
-			;;
+				MB)
+					echo "${value} * 1024 * 1024" | bc -l
+				;;
 
-			GB)
-				echo "${value} * 1024" | bc -l
-			;;
+				GB)
+					echo "${value} * 1024" | bc -l
+				;;
 
-			TB)
-				echo "${value}"
-			;;
+				TB)
+					echo "${value}"
+				;;
 
-			*)
-				echo "Invalid unit_to: ${unit_to}"
+				*)
+					echo "Invalid unit_to: ${unit_to}"
 
-				exit 1
-			;;
+					exit 1
+				;;
 
 			esac
 
@@ -215,6 +220,9 @@ convert_memory() {
 		;;
 
 	esac
+
+	unset value
+
 }
 
 uevent_parse () {
@@ -298,17 +306,27 @@ status_cpu_temperature () {
 
 status_memory_information () {
 
+	memory_unit="GB"
+
 	memory_total=$(grep -i 'memtotal' /proc/meminfo | awk '{print $2}')
-	memory_free=$(grep -i 'memfree' /proc/meminfo | awk '{print $2}')
+	memory_available=$(grep -i 'memavailable' /proc/meminfo | awk '{print $2}')
 
-	memory_used=$((${memory_total} - ${memory_free}))
+	memory_used=$((${memory_total} - ${memory_available}))
 
-	memory_free_percentage=$(echo "scale=2; ($memory_free / $memory_total) * 100" | bc)
-	memory_used_percentage=$(echo "scale=2; ($memory_used / $memory_total) * 100" | bc)
+	memory_total=$(memory_convert ${memory_total} KB "${memory_unit}")
+	memory_available=$(memory_convert ${memory_available} KB "${memory_unit}")
+	memory_used=$(memory_convert ${memory_used} KB "${memory_unit}")
 
-	status+="TOTAL MEMORY: ${total_memory}KB${joiner}"
-	status+="USED MEMORY: ${used_memory}KB (${memory_usage_percentage}%)${joiner}"
-	status+="FREE MEMORY: ${free_memory}KB${separator}"
+	memory_unit="${memory_unit^^}"
+
+	memory_available_percentage=$(echo "scale=2; (${memory_available} / ${memory_total}) * 100" | bc)
+	memory_used_percentage=$(echo "scale=2; (${memory_used} / ${memory_total}) * 100" | bc)
+
+	memory_unit_percentage="%"
+
+	status+="MEMORY TOTAL ${memory_total}${memory_unit}${joiner}"
+	status+="MEMORY USED ${memory_used}${memory_unit} [ ${memory_used_percentage}${memory_unit_percentage} ]${joiner}"
+	status+="MEMORY AVAILABLE ${memory_available}${memory_unit}${separator}"
 }
 
 
@@ -318,11 +336,11 @@ status_network_information () {
 
 	if [[ -n "${network_interface}" ]]
 	then
-			network_interface_device=$(ip route | grep '^default' | cut -d ' ' -f 5)
-			network_interface_gateway=$(ip route | grep '^default' | cut -d ' ' -f 3)
-			network_interface_address=$(ip route | grep '^default' | cut -d ' ' -f 9)
+		network_interface_device=$(ip route | grep '^default' | cut -d ' ' -f 5)
+		network_interface_gateway=$(ip route | grep '^default' | cut -d ' ' -f 3)
+		network_interface_address=$(ip route | grep '^default' | cut -d ' ' -f 9)
 
-			network_interface_device="${network_interface_device^^}"
+		network_interface_device="${network_interface_device^^}"
 
 		status+="INTERFACE ${network_interface_device}${joiner}"
 		status+="GATEWAY ${network_interface_gateway}${joiner}"
@@ -353,4 +371,6 @@ status_feed () {
 	done
 }
 
-status_feed
+#status_feed
+
+status_memory_information
