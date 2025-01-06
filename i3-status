@@ -86,33 +86,33 @@ calculate () {
 
 convert_memory() {
 
-	local value="${1}"
-	local unit_from="${2}"
-	local unit_to="${3}"
+	value="${1}"
+	unit_from="${2}"
+	unit_to="${3}"
 
-	case "$unit_from"
+	case "${unit_from}"
 	in
 		KB)
-			case "$unit_to"
+			case "${unit_to}"
 			in
 				KB)
-					echo "$value"
+					echo "${value}"
 				;;
 
 				MB)
-					echo "$value / 1024" | bc -l
+					echo "${value} / 1024" | bc -l
 				;;
 
 				GB)
-					echo "$value / 1024 / 1024" | bc -l
+					echo "${value} / 1024 / 1024" | bc -l
 				;;
 
 				TB)
-					echo "$value / 1024 / 1024 / 1024" | bc -l
+					echo "${value} / 1024 / 1024 / 1024" | bc -l
 				;;
 
 				*)
-					echo "Invalid unit_to: $unit_to"
+					echo "Invalid unit_to: ${unit_to}"
 
 					exit 1
 				;;
@@ -122,26 +122,26 @@ convert_memory() {
 			;;
 
 		MB)
-			case "$unit_to"
+			case "${unit_to}"
 			in
 				KB)
-					echo "$value * 1024" | bc -l
+					echo "${value} * 1024" | bc -l
 				;;
 
 				MB)
-					echo "$value"
+					echo "${value}"
 				;;
 
 				GB)
-					echo "$value / 1024" | bc -l
+					echo "${value} / 1024" | bc -l
 				;;
 
 				TB)
-					echo "$value / 1024 / 1024" | bc -l
+					echo "${value} / 1024 / 1024" | bc -l
 				;;
 
 				*)
-					echo "Invalid unit_to: $unit_to"
+					echo "Invalid unit_to: ${unit_to}"
 
 					exit 1
 				;;
@@ -151,26 +151,26 @@ convert_memory() {
 			;;
 
 		GB)
-			case "$unit_to"
+			case "${unit_to}"
 			in
 				KB)
-					echo "$value * 1024 * 1024" | bc -l
+					echo "${value} * 1024 * 1024" | bc -l
 				;;
 
 				MB)
-					echo "$value * 1024" | bc -l
+					echo "${value} * 1024" | bc -l
 				;;
 
 				GB)
-					echo "$value"
+					echo "${value}"
 				;;
 
 				TB)
-					echo "$value / 1024" | bc -l
+					echo "${value} / 1024" | bc -l
 				;;
 
 				*)
-					echo "Invalid unit_to: $unit_to"
+					echo "Invalid unit_to: ${unit_to}"
 
 					exit 1
 				;;
@@ -180,26 +180,26 @@ convert_memory() {
 			;;
 
 		TB)
-			case "$unit_to"
+			case "${unit_to}"
 			in
 			KB)
-				echo "$value * 1024 * 1024 * 1024" | bc -l
+				echo "${value} * 1024 * 1024 * 1024" | bc -l
 			;;
 
 			MB)
-				echo "$value * 1024 * 1024" | bc -l
+				echo "${value} * 1024 * 1024" | bc -l
 			;;
 
 			GB)
-				echo "$value * 1024" | bc -l
+				echo "${value} * 1024" | bc -l
 			;;
 
 			TB)
-				echo "$value"
+				echo "${value}"
 			;;
 
 			*)
-				echo "Invalid unit_to: $unit_to"
+				echo "Invalid unit_to: ${unit_to}"
 
 				exit 1
 			;;
@@ -209,7 +209,7 @@ convert_memory() {
 			;;
 
 		*)
-			echo "Invalid unit_from: $unit_from"
+			echo "Invalid unit_from: ${unit_from}"
 
 			exit 1
 		;;
@@ -299,19 +299,11 @@ status_cpu_temperature () {
 status_memory_information () {
 
 	memory_total=$(grep -i 'memtotal' /proc/meminfo | awk '{print $2}')
-
-	echo $memory_total
-
-	memory_total=$(convert_memory "$memory_total" "KB" "GB")
-
-	echo $memory_total
-
-	echo $memory_total
-
 	memory_free=$(grep -i 'memfree' /proc/meminfo | awk '{print $2}')
 
-	#memory_used=$(( ${memory_total} - ${memory_free} ))
+	memory_used=$((${memory_total} - ${memory_free}))
 
+	memory_free_percentage=$(echo "scale=2; ($memory_free / $memory_total) * 100" | bc)
 	memory_used_percentage=$(echo "scale=2; ($memory_used / $memory_total) * 100" | bc)
 
 	status+="TOTAL MEMORY: ${total_memory}KB${joiner}"
