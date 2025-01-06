@@ -59,8 +59,6 @@ indent="	"
 separator=" // "
 joiner=" > "
 
-x
-
 decimal_calculate () {
 
 	value="${1}"
