@@ -295,7 +295,7 @@ status_cpu_temperature () {
 		if [ -f "${cpu_temperature_path}" ]
 		then
 			cpu_temperature=$(cat "${cpu_temperature_path}")
-			cpu_temperature=$(calculate "${cpu_temperature}" 1000)
+			cpu_temperature=$(decimal_calculate "${cpu_temperature}" 1000)
 
 			cpu_temperature_unit="°C"
 
