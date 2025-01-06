@@ -10,6 +10,8 @@
 
 # [ A ]                                                 [ B ]              [ C ]
 
+# esc                                                   Escape              0x1b
+# enter                                                 Return              0x0d
 # shift right                                           Shift_R             0x3e
 # shift left                                            Shift_L             0x32
 # lock                                                  Caps_Lock           0x42
