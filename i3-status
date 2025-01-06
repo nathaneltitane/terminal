@@ -59,22 +59,7 @@ indent="	"
 separator=" // "
 joiner=" > "
 
-status_date () {
-
-	#current_date=$(date +"%F")
-	current_date=$(date +"%m-%d-%Y")
-
-	status+="${current_date}${separator}"
-}
-
-status_time () {
-
-	current_time=$(date +"%r")
-
-	status+="${current_time}${separator}"
-}
-
-calculate () {
+decimal_calculate () {
 
 	value="${1}"
 	decimal_factor="${2}"
@@ -231,6 +216,7 @@ uevent_parse () {
 	uevent_directory="${2}"
 
 	cat "${uevent_directory}" | grep -i "${uevent_name}=" | cut -d '=' -f 2
+
 }
 
 system_event_parse () {
@@ -239,10 +225,25 @@ system_event_parse () {
 	system_event_directory="${2}"
 
 	cat "${system_event_directory}/${system_event_name}"
+
+}
+
+status_date () {
+
+	#current_date=$(date +"%F")
+	current_date=$(date +"%m-%d-%Y")
+
+	status+="${current_date}${separator}"
+}
+
+status_time () {
+
+	current_time=$(date +"%r")
+
+	status+="${current_time}${separator}"
 }
 
 status_host () {
-
 
 	if [ "$HOSTNAME" = "localhost" ]
 	then
@@ -259,6 +260,7 @@ status_host () {
 	USER="${USER^^}"
 
 	status+="${USER}${joiner}${HOSTNAME}${separator}"
+
 }
 
 status_battery () {
@@ -270,7 +272,7 @@ status_battery () {
 		battery_capacity_unit="%"
 
 		battery_temperature=$(system_event_parse temp /sys/class/power_supply/battery)
-		battery_temperature=$(calculate "${battery_temperature}" 10)
+		battery_temperature=$(decimal_calculate "${battery_temperature}" 10)
 
 		battery_temperature_unit="°C"
 
@@ -279,6 +281,7 @@ status_battery () {
 	else
 		status+="CPU N/A${separator}"
 	fi
+
 }
 
 status_cpu_temperature () {
@@ -301,6 +304,7 @@ status_cpu_temperature () {
 			status+="CPU N/A${separator}"
 		fi
 	done
+
 }
 
 status_memory_information () {
@@ -326,6 +330,7 @@ status_memory_information () {
 	status+="MEMORY TOTAL ${memory_total}${memory_unit}${joiner}"
 	status+="MEMORY USED ${memory_used}${memory_unit} [ ${memory_used_percentage}${memory_unit_percentage} ]${joiner}"
 	status+="MEMORY AVAILABLE ${memory_available}${memory_unit}${separator}"
+
 }
 
 
