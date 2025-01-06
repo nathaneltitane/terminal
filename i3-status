@@ -243,21 +243,20 @@ system_event_parse () {
 
 status_host () {
 
+
 	if [ "$HOSTNAME" = "localhost" ]
 	then
 		HOSTNAME="Android"
-		HOSTNAME="${HOSTNAME^^}"
-	else
-		HOSTNAME="${HOSTNAME^^}"
 	fi
 
 	if [ -z "${USER}" ]
 	then
 		USER="termux"
-		USER="${USER^^}"
-	else
-		USER="${USER^^}"
 	fi
+
+	HOSTNAME="${HOSTNAME^^}"
+
+	USER="${USER^^}"
 
 	status+="${USER}${joiner}${HOSTNAME}${separator}"
 }
