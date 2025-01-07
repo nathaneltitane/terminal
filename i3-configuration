@@ -310,6 +310,7 @@ mode "$mode_gaps" {
         bindsym r      mode "$mode_gaps_right"
         bindsym b      mode "$mode_gaps_bottom"
         bindsym l      mode "$mode_gaps_left"
+
         bindsym Return mode "$mode_gaps"
         bindsym Escape mode "default"
 }
