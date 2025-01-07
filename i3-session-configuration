@@ -85,6 +85,7 @@ install_list=()
 # load interface files
 
 interface_list+=(
+poop
 	i3-configuration
 	i3status-configuration
 	i3-backgrounds
