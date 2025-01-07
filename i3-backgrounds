@@ -21,7 +21,6 @@ images="$(find "${HOME}"						\
 				-not -path "*thumbnails*" | sort
 		)"
 
-
 display_options_list=(
 	center
 	fill
