@@ -88,7 +88,6 @@ install_list=()
 
 interface_list+=(
 	i3-configuration
-	poop
  	i3status-configuration
 	i3-backgrounds
 	i3-confirm
