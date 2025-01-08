@@ -91,7 +91,6 @@ interface_list+=(
 	i3-confirm
 	i3-directory
 	i3-exit
-		poop
 	i3-file
 	i3-file-manager
 	i3-launch
@@ -103,7 +102,6 @@ interface_list+=(
  	i3-shortcuts
  	i3-status
 	i3-template
-
 )
 
 frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
