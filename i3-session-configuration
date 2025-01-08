@@ -34,7 +34,7 @@ fi
 
 export self_arguments="${@}"
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -78,20 +78,20 @@ install_list+=(
 	${i3_addons_list[@]}
 )
 
-frobulator.install ${install_list[@]}
+# frobulator.install ${install_list[@]}
 
 install_list=()
 
 # load interface files
 
 interface_list+=(
-poop
 	i3-configuration
 	i3status-configuration
 	i3-backgrounds
 	i3-confirm
 	i3-directory
 	i3-exit
+		poop
 	i3-file
 	i3-file-manager
 	i3-launch
@@ -103,6 +103,7 @@ poop
  	i3-shortcuts
  	i3-status
 	i3-template
+
 )
 
 frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
@@ -111,6 +112,6 @@ interface_list=()
 
 # link configuration files
 
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3          i3-configuration          config
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3status    i3status-configuration    config
+# frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3          i3-configuration          config
+# frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3status    i3status-configuration    config
 
