@@ -80,7 +80,7 @@ install_list+=(
 	${i3_addons_list[@]}
 )
 
-# frobulator.install ${install_list[@]}
+frobulator.install ${install_list[@]}
 
 install_list=()
 
