@@ -36,7 +36,7 @@ fi
 
 export self_arguments="${@}"
 
-# frobulator.escalate
+frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -112,6 +112,6 @@ interface_list=()
 
 # link configuration files
 
-# frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3          i3-configuration          config
-# frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3status    i3status-configuration    config
+frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3          i3-configuration          config
+frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3status    i3status-configuration    config
 
