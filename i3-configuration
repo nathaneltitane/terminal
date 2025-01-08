@@ -118,6 +118,16 @@ floating_maximum_size -1 x -1
 
 floating_modifier $modifier
 
+# gaps
+
+gaps inner      10px
+gaps outer      10px
+
+gaps horizontal 10px
+gaps vertical   10px
+
+smart_gaps inverse_outer
+
 # bindings - applications //////////////////////////////////////////////////////
 
 # launch
@@ -299,7 +309,7 @@ set $mode_gaps_left          Left Gaps:       +|-|0 (local), Shift + +|-|0 (glob
 set $mode_gaps_bottom        Bottom Gaps:     +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_right         Right Gaps:      +|-|0 (local), Shift + +|-|0 (global)
 
-bindsym $mod+Shift+p mode "$mode_gaps"
+bindsym $mod+Shift+p   mode "$mode_gaps"
 
 mode "$mode_gaps" {
         bindsym o      mode "$mode_gaps_outer"
