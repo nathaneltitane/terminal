@@ -87,23 +87,24 @@ install_list=()
 # load interface files
 
 interface_list+=(
-	i3-configuration
-	i3status-configuration
-	i3-backgrounds
-	i3-confirm
-	i3-directory
-	i3-exit
-	i3-file
-	i3-file-manager
-	i3-launch
-	i3-lookup
-	i3-manual
-	i3-navigation
-	i3-notes
-	i3-processes
- 	i3-shortcuts
- 	i3-status
-	i3-template
+#	i3-configuration
+	poop
+ 	i3status-configuration
+# 	i3-backgrounds
+# 	i3-confirm
+# 	i3-directory
+# 	i3-exit
+# 	i3-file
+# 	i3-file-manager
+# 	i3-launch
+# 	i3-lookup
+# 	i3-manual
+# 	i3-navigation
+# 	i3-notes
+# 	i3-processes
+#  	i3-shortcuts
+#  	i3-status
+# 	i3-template
 )
 
 frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
