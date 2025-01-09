@@ -21,8 +21,6 @@ shortcuts='
 
 [ Lookup ]              Open file [l]ookup                                      Modifier + L
 
-[ Gaps ]                Enter [g]aps management mode                            Modifier + Shift + G
-
 [ Shortcuts ]           Show shortcuts [i]nformation                            Modifier + Shift + I
 
 [ Backgrounds ]         Change back[g]round image                               Modifier + G
@@ -88,7 +86,9 @@ shortcuts='
                         Move container to workspace [7]                         Modifier + Shift + 7
                         Move container to workspace [8]                         Modifier + Shift + 8
 
-[ Resize Mode ]         Enter resi[z]e mode                                     Modifier + Z
+[ Gaps ]                Enter [g]aps management mode                            Modifier + Shift + G
+
+[ Resize Mode ]         Enter tile resi[z]e mode                                Modifier + Z
 
                         Resize - reset window to configured size                Modifier + Shift + Z
                         Resize - shrink window height by 10 px                  Up
