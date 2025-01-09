@@ -324,7 +324,7 @@ status_memory_information () {
 
 	status+="MEMORY TOTAL ${memory_total}${memory_unit}${joiner}"
 	status+="MEMORY USED ${memory_used}${memory_unit} [ ${memory_used_percentage}${memory_unit_percentage} ]${joiner}"
-	status+="MEMORY AVAILABLE ${memory_available}${memory_unit}${separator}"
+	status+="MEMORY AVAILABLE ${memory_available}${memory_unit} [ ${memory_available_percentage}${memory_unit_percentage} ]${separator}"
 
 }
 
