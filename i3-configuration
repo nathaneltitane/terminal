@@ -459,7 +459,7 @@ bar {
 
 	separator_symbol " // "
 
-	tray_output VNC-0
+	tray_output primary
 	tray_padding 0
 
 	workspace_buttons yes
