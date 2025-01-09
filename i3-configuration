@@ -299,27 +299,28 @@ bindsym $modifier+Shift+8 move container to workspace number $workspace8
 
 # bindings - gaps //////////////////////////////////////////////////////////////
 
-set $mode_gaps               Gaps:            (o)uter, (i)nner, (h)orizontal, (v)ertical, (t)op, (r)ight, (b)ottom, (l)eft
-set $mode_gaps_outer         Outer Gaps:      +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_inner         Inner Gaps:      +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_horizontal    Horizontal Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_vertical      Vertical Gaps:   +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_top           Top Gaps:        +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_left          Left Gaps:       +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_bottom        Bottom Gaps:     +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_right         Right Gaps:      +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps               Gaps:            [o]uter / [i]nner / [h]orizontal / [v]ertical / [t]op / [l]eft / [b]ottom / [r]ight
 
-bindsym $mod+Shift+p   mode "$mode_gaps"
+set $mode_gaps_outer         Outer Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_inner         Inner Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_horizontal    Horizontal Gaps: + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_vertical      Vertical Gaps:   + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_top           Top Gaps:        + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_left          Left Gaps:       + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_bottom        Bottom Gaps:     + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_right         Right Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
+
+bindsym $modifier+Shift+p mode "$mode_gaps"
 
 mode "$mode_gaps" {
         bindsym o      mode "$mode_gaps_outer"
         bindsym i      mode "$mode_gaps_inner"
-        bindsym h      mode "$mode_gaps_horiz"
-        bindsym v      mode "$mode_gaps_verti"
+        bindsym h      mode "$mode_gaps_horizontal"
+        bindsym v      mode "$mode_gaps_vertical"
         bindsym t      mode "$mode_gaps_top"
-        bindsym r      mode "$mode_gaps_right"
-        bindsym b      mode "$mode_gaps_bottom"
         bindsym l      mode "$mode_gaps_left"
+        bindsym b      mode "$mode_gaps_bottom"
+        bindsym r      mode "$mode_gaps_right"
 
         bindsym Return mode "$mode_gaps"
         bindsym Escape mode "default"
