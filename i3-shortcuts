@@ -2,16 +2,6 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
-
-lines=60
-prompt="SHORTCUTS${separator}"
-
-indent='                        '
-
 shortcuts='
 [ Modifier ]            Modifier                                                Alt-Left Key
 
@@ -102,6 +92,16 @@ shortcuts='
                         [E]xit i3                                               Modifier + Shift + E
 
 '
+
+separator=" // "
+font_name="Monospace"
+font_size=10
+font="${font_name}:size=${font_size}"
+
+lines=$(echo "${shortcuts}" | wc -l)
+prompt="SHORTCUTS${separator}"
+
+indent='                        '
 
 shortcuts_parse () {
 
