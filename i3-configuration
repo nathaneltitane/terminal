@@ -310,7 +310,7 @@ set $mode_gaps_left          Left Gaps:       + | - | 0 [local] / Shift + + | - 
 set $mode_gaps_bottom        Bottom Gaps:     + | - | 0 [local] / Shift + + | - | 0 [global]
 set $mode_gaps_right         Right Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
 
-bindsym $modifier+Shift+p mode "$mode_gaps"
+bindsym $modifier+Shift+g mode "$mode_gaps"
 
 mode "$mode_gaps" {
         bindsym o      mode "$mode_gaps_outer"
