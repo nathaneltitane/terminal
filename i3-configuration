@@ -175,6 +175,10 @@ bindsym $modifier+t $execute $terminal
 
 bindsym $modifier+x kill
 
+# kill
+
+bindsym $modifier+Shift+x xkill
+
 # bindings - windows ///////////////////////////////////////////////////////////
 
 # change focus
