@@ -29,6 +29,8 @@ shortcuts='
 
 [ Terminate ]           Terminate focused application instance                  Modifier + X
 
+[ Terminate ]           Kill application instance                               Modifier + Shift + X
+
 [ Window Focus ]        Change focus [up]                                       Modifier + Up
                         Change focus [left]                                     Modifier + Left
                         Change focus [down]                                     Modifier + Down
