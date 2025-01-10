@@ -468,21 +468,20 @@ bar {
 	strip_workspace_numbers no
 
 	colors {
+        # A - border
+        # B - background
+        # C - text
 
-	# A - border
-	# B - background
-	# C - text
+        # color class                                    [  A  ] [  B  ] [  C  ]
 
-	# color class                                        [  A  ] [  B  ] [  C  ]
+        background                                               #000000
+        statusline                                               #FFFFFF
+        separator                                                #666666
 
-	background                                                   #000000
-	statusline                                                   #FFFFFF
-	separator                                                    #666666
-
-	focused_workspace                                    #000000 #000000 #FFFFFF
-	active_workspace                                     #666666 #FFFFFF #FFFFFF
-	inactive_workspace                                   #000000 #000000 #666666
-	urgent_workspace                                     #000000 #000000 #FF0000
-	binding_mode                                         #000000 #000000 #815FA3
+        focused_workspace                                #000000 #000000 #FFFFFF
+        active_workspace                                 #666666 #FFFFFF #FFFFFF
+        inactive_workspace                               #000000 #000000 #666666
+        urgent_workspace                                 #000000 #000000 #FF0000
+        binding_mode                                     #000000 #000000 #815FA3
 	}
 }
