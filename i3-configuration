@@ -467,6 +467,7 @@ bar {
 
 	workspace_buttons yes
 	workspace_min_width 20
+
 	strip_workspace_name no
 	strip_workspace_numbers no
 
