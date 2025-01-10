@@ -154,7 +154,6 @@ bindsym $modifier+m $execute i3-file-manager
 
 bindsym $modifier+q $execute i3-manual
 
-
 # navigation
 
 bindsym $modifier+a $execute i3-navigation
