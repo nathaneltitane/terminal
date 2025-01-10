@@ -66,6 +66,17 @@ set $workspace6 "6"
 set $workspace7 "7"
 set $workspace8 "8"
 
+set $mode_gaps            Gaps:            [o]uter / [i]nner / [h]orizontal / [v]ertical / [t]op / [l]eft / [b]ottom / [r]ight
+
+set $mode_gaps_outer      Outer Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_inner      Inner Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_horizontal Horizontal Gaps: + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_vertical   Vertical Gaps:   + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_top        Top Gaps:        + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_left       Left Gaps:       + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_bottom     Bottom Gaps:     + | - | 0 [local] / Shift + + | - | 0 [global]
+set $mode_gaps_right      Right Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
+
 # startup //////////////////////////////////////////////////////////////////////
 
 # background
@@ -238,7 +249,7 @@ bindsym $modifier+Shift+a move absolute position center
 
 bindsym $modifier+Shift+m move position mouse
 
-# resize mode #
+# bindings - resize mode ///////////////////////////////////////////////////////
 
 # window resize:
 # bindings are activated when entering resize mode
@@ -303,17 +314,6 @@ bindsym $modifier+Shift+8 move container to workspace number $workspace8
 # gaps management:
 # bindings are activated when entering resize mode
 # mouse can also be used
-
-set $mode_gaps               Gaps:            [o]uter / [i]nner / [h]orizontal / [v]ertical / [t]op / [l]eft / [b]ottom / [r]ight
-
-set $mode_gaps_outer         Outer Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_inner         Inner Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_horizontal    Horizontal Gaps: + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_vertical      Vertical Gaps:   + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_top           Top Gaps:        + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_left          Left Gaps:       + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_bottom        Bottom Gaps:     + | - | 0 [local] / Shift + + | - | 0 [global]
-set $mode_gaps_right         Right Gaps:      + | - | 0 [local] / Shift + + | - | 0 [global]
 
 bindsym $modifier+Shift+g mode "$mode_gaps"
 
