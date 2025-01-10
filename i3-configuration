@@ -240,9 +240,9 @@ bindsym $modifier+Shift+m move position mouse
 
 # resize mode #
 
-# window resize
+# window resize:
 # bindings are activated when entering resize mode
-# the mouse can also be used
+# mouse can also be used
 
 # enter resi[z]e mode
 
@@ -299,6 +299,10 @@ bindsym $modifier+Shift+7 move container to workspace number $workspace7
 bindsym $modifier+Shift+8 move container to workspace number $workspace8
 
 # bindings - gaps //////////////////////////////////////////////////////////////
+
+# gaps management:
+# bindings are activated when entering resize mode
+# mouse can also be used
 
 set $mode_gaps               Gaps:            [o]uter / [i]nner / [h]orizontal / [v]ertical / [t]op / [l]eft / [b]ottom / [r]ight
 
