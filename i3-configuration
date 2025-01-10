@@ -430,6 +430,7 @@ mode "$mode_gaps_right" {
         bindsym Return      mode "$mode_gaps"
         bindsym Escape      mode "default"
 }
+
 # bindings - session ///////////////////////////////////////////////////////////
 
 # i3 session - reload configuration
