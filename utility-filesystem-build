@@ -163,7 +163,7 @@ image_select () {
 			ubuntu	18.04	bionic
 			ubuntu	20.04	focal
 			ubuntu	22.04	jammy
-		#	ubuntu	24.04	noble - NOT YET AVAILABLE
+			ubuntu	24.04	noble
 		)
 
 		versions=(
@@ -430,12 +430,12 @@ image_handle () {
 				echo
 			;;
 
-#			24*04|24*04*)
-#				distribution_version="24.04"
-#
-#				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
-#				echo
-#			;;
+			24*04|24*04*)
+				distribution_version="24.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
 
 			"")
 				distribution_version="${distribution_version}"
