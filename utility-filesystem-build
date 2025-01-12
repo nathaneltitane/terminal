@@ -314,7 +314,6 @@ image_handle () {
 			echo
 		;;
 
-
 		*)
 			distribution_name="debian"
 
@@ -324,6 +323,7 @@ image_handle () {
 			frobulator.wrn "Defaulting" "[ ${distribution_name} ]"
 			echo
 		;;
+
 	esac
 
 	case "${distribution_name}" in
@@ -353,7 +353,6 @@ image_handle () {
 				echo
 			;;
 
-
 			 *)
 				distribution_version=12
 
@@ -363,6 +362,7 @@ image_handle () {
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
 				echo
 			;;
+
 		esac
 	;;
 
@@ -392,7 +392,6 @@ image_handle () {
 				echo
 			;;
 
-
 			 *)
 				distribution_version=35
 
@@ -402,6 +401,7 @@ image_handle () {
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
 				echo
 			;;
+
 		esac
 	;;
 
