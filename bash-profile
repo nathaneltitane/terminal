@@ -217,7 +217,7 @@ then
 	echo
 
 	frobulator.inf "Launch session:"
-	frobulator.nul "'container-session -o | -u [User Name] | -d [Base Directory] | -a [Application]'"
+	frobulator.nul "'container-session -o | -u [User Name] | -d [Directory] | -a [Application]'"
 	echo
 
 	# increment session login count
@@ -241,7 +241,7 @@ then
 
 		session_level="${session_level^}"
 
-		frobulator.fwd "${session_level} Session" "[ ${session_interface} ]"
+		frobulator.fwd "${session_level} level session" "[ ${session_interface} ]"
 		echo
 
 		container-session
