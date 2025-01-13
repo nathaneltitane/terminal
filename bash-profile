@@ -203,7 +203,7 @@ then
 		session_tilte="${distribution}"
 	fi
 
-	frobulator.fwd "Login ${ticker} - Welcome to Dextop" "[ ${session_tilte} ]"
+	frobulator.fwd "Login ${ticker} - Welcome to Dextop" "[ ${session_title} ]"
 	echo
 
 	frobulator.inf "Launch graphical session:"
