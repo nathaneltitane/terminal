@@ -200,7 +200,7 @@ then
 
 	if [[ $(pgrep -f proot) ]]
 	then
-		session_tilte="${distribution_name}"
+		session_tilte="${distribution}"
 	fi
 
 	frobulator.fwd "Login ${ticker} - Welcome to Dextop" "[ ${session_tilte} ]"
@@ -224,6 +224,8 @@ then
 	ticker=$(( ${ticker} + 1 ))
 
 	echo ${ticker} > "${HOME}"/.dextop/dextop-ticker
+
+	sleep 1
 
 	# automatic session start
 
