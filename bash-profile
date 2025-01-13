@@ -194,30 +194,29 @@ then
 
 	ticker=$(echo $(cat "${HOME}"/.dextop/dextop-ticker))
 
+	session_title="termux"
+
 	# load welcome message
 
 	if [[ $(pgrep -f proot) ]]
 	then
-		frobulator.fwd "Welcome to Dextop" "[ ${distribution_name} ]"
-		echo
-
-		if [[ ${ticker} -eq 0 ]]
-		then
-			frobulator.wrn "This is your first login:"
-			frobulator.wrn "Run 'container-session -o' to launch session [ ${session_interface} ]."
-			echo
-		fi
-	else
-		frobulator.fwd "Welcome to Dextop" "[ Termux ]"
-		echo
+		session_tilte="${distribution_name}"
 	fi
+
+	frobulator.fwd "Login ${ticker} - Welcome to Dextop" "[ ${session_tilte} ]"
+	echo
+
+	frobulator.wrn "Run 'container-session -o' to launch graphical session [ ${session_interface} ]."
+	echo
+
+	sleep 1
 
 	frobulator.inf "Update utilities:"
 	frobulator.nul "'dextop -u | dextop | shell [Shell Name | all] | utility [Utility Name | all] | all'"
 	echo
 
 	frobulator.inf "Launch session:"
-	frobulator.nul "'container-session -o | -u [User Name] | -d [Directory] | -a [Application]'"
+	frobulator.nul "'container-session -o | -u [User Name] | -d [Directory] | -f [Application]'"
 	echo
 
 	# increment session login count

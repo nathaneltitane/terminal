@@ -30,7 +30,10 @@ then
 	then
 		. /etc/os-release
 
-		distribution_name="${NAME}"
+		distribution_id="${ID}"
+		distribution_version_id="${VERSION_ID}"
+
+		distribution_label="${distribution_id} ${distribution_version_id}"
 	fi
 
 	# settings
