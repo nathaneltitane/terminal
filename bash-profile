@@ -205,7 +205,7 @@ then
 
 	session_title="${session_title^}"
 
-	frobulator.fwd "Login ${ticker} - Welcome to Dextop" "[ ${session_title} ]"
+	frobulator.fwd "Login ${ticker} >>> Welcome to Dextop" "[ ${session_title} ]"
 	echo
 
 	frobulator.inf "Graphical session:"
@@ -228,6 +228,9 @@ then
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
+		frobulator.wrn "Automatic session start enabled"
+		echo
+
 		session_level="termux"
 
 		if [[ $(pgrep -f proot) ]]
@@ -239,7 +242,7 @@ then
 
 		session_level="${session_level^}"
 
-		frobulator.fwd "Loading${session_level} level session${marker_elp}" "[ ${session_interface} ]"
+		frobulator.cpt "Loading ${session_level} level session" "[ ${session_interface} ]"
 		echo
 
 		container-session -o
