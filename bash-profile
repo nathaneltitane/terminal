@@ -230,24 +230,20 @@ then
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
+		session_level="termux"
+
 		if [[ $(pgrep -f proot) ]]
 		then
-			if [[ $(pgrep -f com.termux.x11) ]]
-			then
-				:
-			else
-				frobulator.fwd "Container Session" "[ ${session_interface} ]"
-				echo
-
-				container-session -o
-			fi
-		else
-			# load session interface
-
-			frobulator.fwd "Termux Session" "[ ${session_interface} ]"
-			echo
-
-			container-session -o
+			session_level="container"
 		fi
+
+		# load session interface
+
+		session_level="${session_level^}"
+
+		frobulator.fwd "${session_level} Session" "[ ${session_interface} ]"
+		echo
+
+		container-session
 	fi
 fi
