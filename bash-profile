@@ -206,15 +206,10 @@ then
 	frobulator.fwd "Login ${ticker} - Welcome to Dextop" "[ ${session_tilte} ]"
 	echo
 
-	frobulator.wrn "Launch graphical session:"
-	frobultor.nul "'container-session -o'"
-	echo
-
-	sleep 1
-
 	frobulator.inf "Launch graphical session:"
 	frobulator.nul "'container-session -o | -u [User Name] | -d [Directory] | -f [Application]'"
 	echo
+
 	frobulator.inf "Update utilities:"
 	frobulator.nul "'dextop -u shell [Shell Name | all] | utility [Utility Name | all]'"
 	echo
