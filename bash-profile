@@ -192,7 +192,7 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	# get session login count
 
-	ticker=$(echo $(cat "${HOME}"/.dextop/dextop-ticker))
+	ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
 
 	session_title="termux"
 
