@@ -50,7 +50,7 @@ image_encode () {
 	then
 		# disable line wrap
 
-		base64 -w0
+		base64 "-w 0"
 	else
 		base64
 	fi
@@ -62,13 +62,13 @@ image_decode () {
 
 	if [[ "${transcoder_version}" =~ fourmilab ]]
 	then
-		transcoder_argument=-d
+		transcoder_argument="-d"
 
 	elif [[ "${transcoder_version}" =~ GNU ]]
 	then
-		transcoder_argument=-di
+		transcoder_argument="-d -i"
 	else
-		transcoder_argument=-D
+		transcoder_argument="-D"
 	fi
 
 	base64 "${transcoder_argument}"
@@ -86,6 +86,16 @@ image_decode () {
 # legacy: 1 to send one giant control sequence, 0 to send many small control sequences.
 
 image_print () {
+
+	="${1}"
+	="${2}"
+	="${3}"
+	="${4}"
+	="${5}"
+	="${6}"
+	="${7}"
+	="${8}"
+	="${9}"
 
 	printf '\n'
 
@@ -139,7 +149,8 @@ image_print () {
 	else
 		image_st_print
 
-		# Split into 200-byte chunks. This helps it get through tmux.
+		# split into 200-byte chunks
+		# helps image get through 'tmux'
 
 		parts=$(printf "%s" "${3}" | fold -w 200)
 
@@ -179,7 +190,7 @@ error () {
 
 check_dependency () {
 
-	if ! (builtin command -V "${1}" >/dev/null 2>&1)
+	if ! (builtin command -V "${1}" > /dev/null 2>&1)
 	then
 		error "missing dependency: can't find ${1}"
 
@@ -187,7 +198,8 @@ check_dependency () {
 	fi
 }
 
-# verify that value is in the image sizing unit format: N / Npx / N% / auto
+# verify image sizing unit format:
+# N / Npx / N% / auto
 
 image_size_unit () {
 
@@ -263,7 +275,7 @@ do
 			legacy=1
 			;;
 		-f | --file)
-			has_stdin=f
+			has_stdin="false"
 			is_url="false"
 			;;
 		-u | --url)
