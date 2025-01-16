@@ -1,0 +1,371 @@
+#!/bin/bash
+
+set -o pipefail
+
+# 'tmux' requires unrecognized osc sequences
+# to be wrapped with dcs tmux <sequence> st,
+# and for all escs in <sequence> to be replaced with esc esc.
+# 'tmux' only accepts esc backslash for st.
+# use 'term' instead of 'tmux' to get through ssh.
+
+image_osc_print () {
+
+	# 'tmux' escape workaround
+
+	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
+	then
+		printf "\033Ptmux;\033\033]"
+	else
+		printf "\033]"
+	fi
+}
+
+image_st_print () {
+
+	# 'tmux' escape workaround
+
+	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
+	then
+		printf "\a\033\\"
+	else
+		printf "\a"
+	fi
+}
+
+transcoder_verify () {
+
+	if [ -z "${transcoder_version+x}" ]
+	then
+		transcoder_version=$(base64 --version 2>&1)
+
+		export transcoder_version
+	fi
+}
+
+image_encode () {
+
+	transcoder_verify
+
+	if [[ "${transcoder_version}" =~ GNU ]]
+	then
+		# disable line wrap
+
+		base64 -w0
+	else
+		base64
+	fi
+}
+
+image_decode () {
+
+	transcoder_verify
+
+	if [[ "${transcoder_version}" =~ fourmilab ]]
+	then
+		transcoder_argument=-d
+
+	elif [[ "${transcoder_version}" =~ GNU ]]
+	then
+		transcoder_argument=-di
+	else
+		transcoder_argument=-D
+	fi
+
+	base64 "${transcoder_argument}"
+}
+
+# image_print filename inline base64contents print_filename width height preserve_aspect_ratio
+# filename: filename to convey to client
+# inline: 0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
+# base64contents: base64-encoded contents
+# print_filename: 0 or 1, if set to 1, print the filename after outputting the image
+# width: set output width of the image in character cells, pixels or percent
+# height: set output height of the image in character cells, pixels or percent
+# preserve_aspect_ratio: 0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
+# file: empty string or file type like "application/json" or ".js".
+# legacy: 1 to send one giant control sequence, 0 to send many small control sequences.
+
+image_print () {
+
+	printf '\n'
+
+	# send metadata to begin transfer
+
+	image_osc_print
+
+	printf "1337;"
+
+	if [[ "${9}" -eq 1 ]]
+	then
+		printf "File"
+	else
+		printf "MultipartFile"
+	fi
+
+	printf "=inline=%s" "${2}"
+
+	printf ";size=%d" $(printf "%s" "${3}" | image_decode | wc -c)
+
+	if [ -n "${1}" ]
+	then
+		printf ";name=%s" "$(printf "%s" "${1}" | image_encode)"
+	fi
+
+	if [ -n "${5}" ]
+	then
+		printf ";width=%s" "${5}"
+	fi
+
+	if [ -n "${6}" ]
+	then
+		printf ";height=%s" "${6}"
+	fi
+
+	if [ -n "${7}" ]
+	then
+		printf ";preserveAspectRatio=%s" "${7}"
+	fi
+
+	if [ -n "${8}" ]
+	then
+		printf ";type=%s" "${8}"
+	fi
+
+	if [[ "${9}" -eq 1 ]]
+	then
+		printf ":%s" "${3}"
+
+		image_st_print
+	else
+		image_st_print
+
+		# Split into 200-byte chunks. This helps it get through tmux.
+
+		parts=$(printf "%s" "${3}" | fold -w 200)
+
+		# Send each part.
+
+		for part in "${parts}"
+		do
+			image_osc_print
+
+			printf '1337;FilePart=%s' "${part}"
+
+			image_st_print
+		done
+
+		# Indicate completion
+
+		image_osc_print
+
+		printf '1337;FileEnd'
+
+		image_st_print
+	fi
+
+	printf '\n'
+
+	[ "${4}" == "1" ] && echo "${1}"
+
+	image_display="true"
+}
+
+
+error () {
+	echo "${@}" >&2
+}
+
+
+
+check_dependency () {
+
+	if ! (builtin command -V "${1}" >/dev/null 2>&1)
+	then
+		error "missing dependency: can't find ${1}"
+
+		exit 1
+	fi
+}
+
+# verify that value is in the image sizing unit format: N / Npx / N% / auto
+
+image_size_unit () {
+
+	size_unit="${1}"
+
+	if [[ ! "${size_unit}" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
+	then
+		error "Invalid image sizing unit - '${1}'"
+
+		return 1
+	fi
+}
+
+# check for stdin
+
+if [ -t 0 ]
+then
+	has_stdin=false
+else
+	has_stdin=true
+fi
+
+# Show help if no arguments and no stdin.
+
+if [ "${has_stdin}" = "false" ] && [ $# -eq 0 ]
+then
+	exit
+fi
+
+check_dependency curl
+
+check_dependency base64
+
+check_dependency wc
+
+file_type=""
+
+legacy=0
+
+# look for command line flags
+
+while [ $# -gt 0 ]
+do
+	case "${1}"
+	in
+		-h | --help)
+			show_help
+			exit
+			;;
+		-p | --print)
+			print_filename=1
+			;;
+		-n | --no-print)
+			print_filename=0
+			;;
+		-W | --width)
+			image_size_unit "$2"
+			width="${2}"
+			shift
+			;;
+		-H |--height)
+			image_size_unit "$2"
+			height="${2}"
+			shift
+			;;
+		-r | --preserve-aspect-ratio)
+			preserve_aspect_ratio=1
+			;;
+		-s | --stretch)
+			preserve_aspect_ratio=0
+			;;
+		-l | --legacy)
+			legacy=1
+			;;
+		-f | --file)
+			has_stdin=f
+			is_url="false"
+			;;
+		-u | --url)
+
+			has_stdin=f
+			is_url="true"
+			;;
+		-t |  --type)
+			file_type="${2}"
+			shift
+			;;
+		-*)
+			echo
+			echo -n -e "Usage: ${0} [-p] [-n] [-W width] [-H height] [-r] [-s] [-u] [-t file-type] [-f] filename ..."
+			echo -n -e "	   cat filename | ${0} [-W width] [-H height] [-r] [-s]"
+			echo
+			echo -n -e "Display images inline in the iTerm2 using Inline Images Protocol"
+			echo
+			echo -n -e "Options:"
+			echo
+			echo -n -e "	-h, --help					 Display help message"
+			echo -n -e "	-p, --print					Enable printing of filename or URL after each image"
+			echo -n -e "	-n, --no-print				 Disable printing of filename or URL after each image"
+			echo -n -e "	-u, --url					  Interpret following filename arguments as remote URLs"
+			echo -n -e "	-f, --file					 Interpret following filename arguments as regular Files"
+			echo -n -e "	-t, --type file-type		   Provides a type hint"
+			echo -n -e "	-r, --preserve-aspect-ratio	When scaling image preserve its original aspect ratio"
+			echo -n -e "	-s, --stretch				  Stretch image to specified width and height (this option is opposite to -r)"
+			echo -n -e "	-W, --width N				  Set image width to N character cells, pixels or percent (see below)"
+			echo -n -e "	-H, --height N				 Set image height to N character cells, pixels or percent (see below)"
+			echo -n -e "	-l, --legacy				   Use legacy protocol that sends the whole image in a single control sequence"
+			echo
+			echo -n -e "	If you don't specify width or height an appropriate value will be chosen automatically."
+			echo -n -e "	The width and height are given as word 'auto' or number N followed by a unit:"
+			echo -n -e "		N	  character cells"
+			echo -n -e "		Npx	pixels"
+			echo -n -e "		N%	 percent of the session's width or height"
+			echo -n -e "		auto   the image's inherent size will be used to determine an appropriate dimension"
+			echo
+			echo -n -e "	If a type is provided, it is used as a hint to disambiguate."
+			echo -n -e "	The file type can be a mime type like text/markdown, a language name like Java, or a file extension like .c"
+			echo -n -e "	The file type can usually be inferred from the extension or its contents. -t is most useful when"
+			echo -n -e "	a filename is not available, such as whe input comes from a pipe."
+			echo -n -e
+			echo -n -e "Examples:"
+			echo
+			echo -n -e "	$ ${0} -W 250px -H 250px -s avatar.png"
+			echo -n -e "	$ cat graph.png | ${0} -W 100%"
+			echo -n -e "	$ ${0} -p -W 500px -u http://host.tld/path/to/image.jpg -W 80 -f image.png"
+			echo -n -e "	$ cat url_list.txt | xargs ${0} -p -W 40 -u"
+			echo -n -e "	$ ${0} -t application/json config.json"
+			echo
+
+			exit 1
+
+			;;
+		*)
+			if [ "${is_url}" == "true" ]
+			then
+				url="${1}"
+
+				exit_code="${?}"
+
+				encoded_image=$(curl -f -s "${url}" | image_encode) || {
+
+					error "Could not retrieve image from URL ${url}, error_code: ${exit_code}"
+
+					exit 2
+
+				}
+
+			elif [ -r "${url}" ]
+			then
+				encoded_image=$(cat "${url}" | image_encode)
+			else
+				error "${0}: ${url}: No such file or directory"
+
+				exit 2
+			fi
+
+			has_stdin="false"
+
+			image_print "${url}" 1 "${encoded_image}" "${print_filename}" "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
+
+		;;
+
+	esac
+
+	shift
+
+done
+
+# read and print stdin
+
+if [ "${has_stdin}" = "true" ]
+then
+	image_print "" 1 "$(cat | image_encode)" 0 "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
+fi
+
+if [ "${image_display}" != "true" ]
+then
+	error "No image provided. Check command line options."
+
+	exit 1
+fi

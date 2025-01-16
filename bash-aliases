@@ -487,6 +487,7 @@ fi
 if [ "$(command -v ollama)" ]
 then
 	ollama_model=$(ollama list | grep llama | cut -d ':' -f 1)
+
 	if [ -n "${ollama_model}" ]
 	then
 		alias 'llama'="ollama run ${ollama_model}"
