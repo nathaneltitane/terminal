@@ -102,6 +102,10 @@ do
 
 		-f | --file)
 			option="file"
+
+			file="${2}"
+
+			shift
 		;;
 
 		-u | --url)
@@ -118,6 +122,10 @@ do
 
 		-l | --legacy)
 			option="legacy"
+
+			legacy="${2}"
+
+			shift
 		;;
 
 		-h | --help)
@@ -262,12 +270,12 @@ image_missing () {
 
 image_parse () {
 
-	# image_parse filename inline base64contents print_filename width height preserve_aspect_ratio
+	# image_parse filename inline encoding print_filename width height preserve_aspect_ratio file_type legacy
 
 	# $1 filename:                 filename to convey to client
 	# $2 inline:                   0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
-	# $3 base64contents:           base64-encoded contents
-	# $4  print_filename:          0 or 1, if set to 1, print the filename after outputting the image
+	# $3 encoding:                 base64-encoded contents
+	# $4 print_filename:          0 or 1, if set to 1, print the filename after outputting the image
 	# $5 width:                    set output width of the image in character cells, pixels or percent
 	# $6 height:                   set output height of the image in character cells, pixels or percent
 	# $7 preserve_aspect_ratio:    0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
@@ -363,12 +371,16 @@ image_print () {
 
 	if [ "${stdin_present}" = "true" ]
 	then
-		image_parse "${1}" ${inline} "${encoding}" ${print_filename} "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
+		image=""
+		inline="1"
+		encoding=$(cat | base64 -w 0)
 
 	elif [ "${stdin_present}" = "false" ]
 	then
-        image_parse "${1}" 1 "$encoded_image" "$print_filename" "$width" "$height" "$preserve_aspect_ratio" "$file_type" "$legacy"
+		inline="1"
 	fi
+
+	image_parse "${image}" "${inline}" "${encoding}" ${print_filename} "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
 
 }
 
@@ -427,21 +439,23 @@ fi
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-file_type=""
-
 stdin_present="false"
 
-image_display="false"
+image="${file}"
 
 inline="1"
 
 print_filename="0"
 
-legacy="0"
+preserve_aspect_ratio="1"
+
+file_type=""
+
+legacy="1"
 
 is_url="false"
 
-preserve_aspect_ratio="1"
+image_display="false"
 
 # variables ////////////////////////////////////////////////////////////////////
 
