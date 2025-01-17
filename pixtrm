@@ -91,15 +91,6 @@ do
 			option="stretch"
 		;;
 
-
-		-f | --file)
-			option="file"
-
-			file="${2}"
-
-			shift
-		;;
-
 		-u | --url)
 			option="url"
 		;;
@@ -120,16 +111,22 @@ do
 			shift
 		;;
 
+		-f | --file)
+			option="file"
+
+			file="${2}"
+
+			shift
+		;;
+
 		-h | --help)
 			echo
-			echo -e "Usage: ${script} [-n] [-w width] [-h height] [-s] [-u] [-t file-type] [-f] filename [-l]"
-			echo -e "       cat filename | ${script} [-w width] [-h height] [-s]"
+			echo -e "Usage: ${script} -n | -h [Height] -w [Width] | -i | -s | -u | -t [File Type] | [-l] | -f [File]"
 			echo
 			echo -e "Display images using Inline Images Protocol"
 			echo
 			echo -e "Options:"
 			echo
-
 			echo -e "-u, --url        interpret following filename arguments as remote urls"
 			echo -e "-f, --file       interpret following filename arguments as local files"
 			echo -e "-t, --type       provide a type hint to disambiguate parsing/processing"
@@ -143,17 +140,27 @@ do
 			echo -e "If width or height are not specified, an appropriate value will be chosen automatically."
 			echo -e "Width and height are given as 'auto' or numeric digit n, defined as the number of terminal character cells."
 			echo
+			echo -e "    n      character cells"
+			echo -e "    npx    pixels"
+			echo -e "    n%     percent of the session's width or height"
+			echo
+			echo -e "    auto   the imagesize will be used to determine the appropriate dimension dimension"
+			echo
 			echo -e "The file type can be a mime type (i.e.: text/markdown), a language name (i.e: Java), or a file extension i.e.: (.sh)"
 			echo -e "The file type can usually be inferred from the extension or its contents."
 			echo -e "The type option is most useful when a filename is not available, such as whe input comes from a pipe."
 			echo
 			echo -e "Usage examples:"
 			echo
-			echo -e "${script} -w 250px -h 250px -s image.png"
-			echo -e "cat image.png | ${script} -w 100%"
-			echo -e "${script} -p -w 500px -u http://host.url/path/to/image.gif -w 80 -f image.png"
-			echo -e "cat url-list.txt | xargs ${script} -p -w 40 -u"
-			echo -e "${script} -t application/json config.json"
+			echo -e "    ${script} -w 250px -h 250px -s image.png"
+			echo
+			echo -e "    cat image.png | ${script} -w 75%"
+			echo
+			echo -e "    ${script} -p -w 500px -u http://host.url/path/to/image.gif -w 80 -f image.png"
+			echo
+			echo -e "    cat url-list.txt | xargs ${script} -p -w 40 -u"
+			echo
+			echo -e "    ${script} -t application/json config.json"
 			echo
 
 			exit
@@ -161,7 +168,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ${script} [-p] [-n] [-w width] [-h height] [-s] [-u] [-t file-type] [-f] filename [-l]"
+			echo -e "Usage: ${script} -n | -h [Height] -w [Width] | -i | -s | -u | -t [File Type] | [-l] | -f [File]"
 			echo
 			echo -e "${script}: Unknown option '${1}'"
 			echo -e "Type './${script} --help' for help and usage information."
