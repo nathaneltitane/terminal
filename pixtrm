@@ -194,8 +194,6 @@ done
 
 # functions ////////////////////////////////////////////////////////////////////
 
-# set -o pipefail
-
 image_osc () {
 
 	# osc - opening sequence characters
@@ -357,7 +355,8 @@ image_parse () {
 
 	if [ "${4}" == "1" ]
 	then
-		echo "${1}"
+		echo "Image: ${1}"
+		echo
 	fi
 }
 
@@ -377,6 +376,22 @@ image_print () {
 	image_parse "${image}" "${inline}" "${encoding}" "${name}" "${width}" "${height}" "${ratio}" "${file_type}" "${legacy}"
 
 }
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+stdin="${stdin}"
+
+image="${file}"
+
+inline="1"
+
+name="0"
+
+legacy="1"
+
+file_type=""
+
+url="false"
 
 # options //////////////////////////////////////////////////////////////////////
 
@@ -428,22 +443,6 @@ if [[ "${option}" = "legacy" ]]
 then
 	legacy="1"
 fi
-
-# defaults /////////////////////////////////////////////////////////////////////
-
-stdin="${stdin}"
-
-image="${file}"
-
-inline="1"
-
-file_type=""
-
-legacy="1"
-
-url="false"
-
-name="0"
 
 # variables ////////////////////////////////////////////////////////////////////
 
