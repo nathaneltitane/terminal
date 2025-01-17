@@ -277,6 +277,16 @@ image_parse () {
 	# ${9} block:       1 - parse and send as one monolithic block/control sequence
 	#                   0 - parse and send as multiple 200-byte block/control sequences
 
+	image="${1}"
+	inline="${2}"
+	encoding="${3}"
+	name="${4}"
+	width="${5}"
+	height="${6}"
+	ratio="${7}"
+	type="${8}"
+	block="${9}"
+
 	echo
 
 	# open sequence - begin transfer
@@ -285,42 +295,42 @@ image_parse () {
 
 	printf "1337;"
 
-	if [[ "${9}" -eq 1 ]]
+	if [[ "${block}" -eq 1 ]]
 	then
 		printf "File"
 	else
 		printf "MultipartFile"
 	fi
 
-	printf "=inline=%s" "${2}"
+	printf "=inline=%s" "${inline}"
 
-	printf ";size=%d" $(printf "%s" "${3}" | base64 -d -i | wc -c)
+	printf ";size=%d" $(printf "%s" "${encoding}" | base64 -d -i | wc -c)
 
-	if [ -n "${1}" ]
+	if [ -n "${image}" ]
 	then
-		printf ";name=%s" "$(printf "%s" "${1}" | base64 -w 0)"
+		printf ";name=%s" "$(printf "%s" "${image}" | base64 -w 0)"
 	fi
 
-	if [ -n "${5}" ]
+	if [ -n "${width}" ]
 	then
-		printf ";width=%s" "${5}"
+		printf ";width=%s" "${width}"
 	fi
 
-	if [ -n "${6}" ]
+	if [ -n "${height}" ]
 	then
-		printf ";height=%s" "${6}"
+		printf ";height=%s" "${height}"
 	fi
 
-	if [ -n "${7}" ]
+	if [ -n "${ratio}" ]
 	then
-		printf ";preserveAspectRatio=%s" "${7}"
+		printf ";preserveAspectRatio=%s" "${ratio}"
 	fi
 
-	[ -n "${8}" ] && printf ";type=%s" "${8}"
+	[ -n "${type}" ] && printf ";type=%s" "${type}"
 
-	if [[ "${9}" -eq 1 ]]
+	if [[ "${block}" -eq 1 ]]
 	then
-		printf ":%s" "${3}"
+		printf ":%s" "${encoding}"
 
 		image_tsc
 	else
@@ -333,7 +343,7 @@ image_parse () {
 
 		split=$(fold -w ${bytes})
 
-		parts=$(printf "%s" "${3}" | ${split})
+		parts=$(printf "%s" "${encoding}" | ${split})
 
 		# load byte stream
 
@@ -357,9 +367,9 @@ image_parse () {
 
 	echo
 
-	if [ "${4}" == "1" ]
+	if [ "${name}" = "1" ]
 	then
-		echo "Image: ${1}"
+		echo "Image: ${image}"
 		echo
 	fi
 }
