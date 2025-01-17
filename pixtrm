@@ -93,13 +93,17 @@ do
 		-f | --file)
 			option="file"
 
-			file="${2}"
+			image="${2}"
 
 			shift
 		;;
 		
 		-u | --url)
 			option="url"
+
+			image="${2}"
+
+			shift
 		;;
 
 		-t | --type)
@@ -264,7 +268,7 @@ image_parse () {
 	# ${7} ratio:       0 - fill specified height or width value to maximum terminal output
 	#                   1 - fill specified height or width value to maximum terminal output without deformation
 
-	# ${8} file:        file type hint
+	# ${8} type:        file type hint
 	#                   "" - empty value [Default]
 	#                   mimetype  - ex.: application/json
 	#					name      - ex.: Python
@@ -380,8 +384,6 @@ image_print () {
 # defaults /////////////////////////////////////////////////////////////////////
 
 input="${input}"
-
-image="${file}"
 
 inline="1"
 
