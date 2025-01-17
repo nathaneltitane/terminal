@@ -122,7 +122,7 @@ do
 
 		-h | --help)
 			echo
-			echo -e "Usage: ${script} [-p] [-n] [-w width] [-h height] [-s] [-u] [-t file-type] [-f] filename [-l]"
+			echo -e "Usage: ${script} [-n] [-w width] [-h height] [-s] [-u] [-t file-type] [-f] filename [-l]"
 			echo -e "       cat filename | ${script} [-w width] [-h height] [-s]"
 			echo
 			echo -e "Display images using Inline Images Protocol"
@@ -132,7 +132,7 @@ do
 
 			echo -e "-u, --url        interpret following filename arguments as remote urls"
 			echo -e "-f, --file       interpret following filename arguments as local files"
-			echo -e "-t, --type       provide a type hint"
+			echo -e "-t, --type       provide a type hint to disambiguate parsing/processing"
 			echo -e "-s, --stretch    stretch image to specified width and height"
 			echo -e "-w, --width      set image width to n character cells"
 			echo -e "-h, --height     set image height to n character cells"
@@ -140,23 +140,19 @@ do
 			echo
 			echo -e "-h, --help       show help and usage information."
 			echo
-			echo -e "if you don't specify width or height an appropriate value will be chosen automatically."
-			echo -e "the width and height are given as word 'auto' or number n followed by a unit:"
+			echo -e "If width or height are not specified, an appropriate value will be chosen automatically."
+			echo -e "Width and height are given as 'auto' or numeric digit n, defined as the number of terminal character cells."
 			echo
-			echo -e "    [n]      number of terminal character cells (columns/rows)"
+			echo -e "The file type can be a mime type (i.e.: text/markdown), a language name (i.e: Java), or a file extension i.e.: (.sh)"
+			echo -e "The file type can usually be inferred from the extension or its contents."
+			echo -e "The type option is most useful when a filename is not available, such as whe input comes from a pipe."
 			echo
+			echo -e "Usage examples:"
 			echo
-			echo -e "If a type is provided, it is used as a hint to disambiguate."
-			echo -e "The file type can be a mime type like text/markdown, a language name like Java, or a file extension like .c"
-			echo -e "The file type can usually be inferred from the extension or its contents. -t is most useful when"
-			echo -e "a filename is not available, such as whe input comes from a pipe."
-			echo
-			echo -e "Examples:"
-			echo
-			echo -e "${script} -w 250px -h 250px -s avatar.png"
-			echo -e "cat graph.png | ${script} -w 100%"
-			echo -e "${script} -p -w 500px -u http://host.tld/path/to/image.jpg -w 80 -f image.png"
-			echo -e "cat url_list.txt | xargs ${script} -p -w 40 -u"
+			echo -e "${script} -w 250px -h 250px -s image.png"
+			echo -e "cat image.png | ${script} -w 100%"
+			echo -e "${script} -p -w 500px -u http://host.url/path/to/image.gif -w 80 -f image.png"
+			echo -e "cat url-list.txt | xargs ${script} -p -w 40 -u"
 			echo -e "${script} -t application/json config.json"
 			echo
 
@@ -215,12 +211,9 @@ image_unit () {
 	# verify image sizing unit format:
 	# [n] / [n]px / [n]% / auto
 
-	if [[ ! "${unit}"  =~ ^[0-9]+$ ]]
+	if [[ ! "$1" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
 	then
-		frobulator.err "Invalid image sizing digit" "[ '${unit}' ]"
-		echo
-
-		frobulator.wrn "Numeric value required."
+		frobulator.err "Invalid image sizing unit" "[ '${unit}' ]"
 		echo
 
 		exit 1
