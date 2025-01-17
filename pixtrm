@@ -1,8 +1,214 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -o pipefail
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		chown "${USER}":"${USER}" "${HOME}"/.local/*
+
+		chmod -R 777 "${HOME}"/.local/*
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="05-01-2023"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}"
+	in
+		-p | --print)
+			option="print_filename"
+		;;
+
+		-n | --no-print)
+			option="no_print_filename"
+		;;
+
+		-H | --height)
+			option="height"
+
+			height="${2}"
+
+			shift
+		;;
+
+		-W | --width)
+			option="width"
+
+			width="${2}"
+
+			shift
+		;;
+
+		-i | --inline)
+			option="inline"
+
+		;;
+
+		-r | --preserve-aspect-ratio)
+			option="preserve_aspect_ratio"
+		;;
+
+		-s | --stretch)
+			option="stretch"
+		;;
+
+
+		-f | --file)
+			option="file"
+		;;
+
+		-u | --url)
+			option="url"
+		;;
+
+		-t | --type)
+			option="file_type"
+
+			file_type="${2}"
+
+			shift
+		;;
+
+		-l | --legacy)
+			option="legacy"
+		;;
+
+		-h | --help)
+			echo
+			echo -e "Usage: ${script} [-p] [-n] [-W width] [-H height] [-r] [-s] [-u] [-t file-type] [-f] filename [-l]"
+			echo -e "       cat filename | ${script} [-W width] [-H height] [-r] [-s]"
+			echo
+			echo -e "Display images inline in the iTerm2 using Inline Images Protocol"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-h, --help                      Display help message"
+			echo -e "-p, --print                     Enable printing of filename or URL after each image"
+			echo -e "-n, --no-print                  Disable printing of filename or URL after each image"
+			echo -e "-u, --url                       Interpret following filename arguments as remote URLs"
+			echo -e "-f, --file                      Interpret following filename arguments as regular Files"
+			echo -e "-t, --type file-type            Provides a type hint"
+			echo -e "-r, --preserve-aspect-ratio     When scaling image preserve its original aspect ratio"
+			echo -e "-s, --stretch                   Stretch image to specified width and height (this option is opposite to -r)"
+			echo -e "-W, --width N                   Set image width to N character cells, pixels or percent (see below)"
+			echo -e "-H, --height N                  Set image height to N character cells, pixels or percent (see below)"
+			echo -e "-l, --legacy                    Use legacy protocol that sends the whole image in a single control sequence"
+			echo
+			echo -e "If you don't specify width or height an appropriate value will be chosen automatically."
+			echo -e "The width and height are given as word 'auto' or number N followed by a unit:"
+			echo
+			echo -e "    N      character cells"
+			echo -e "    Npx    pixels"
+			echo -e "    N%     percent of the session's width or height"
+			echo -e "    auto   the image's inherent size will be used to deTERMine an appropriate dimension"
+			echo
+			echo -e "If a type is provided, it is used as a hint to disambiguate."
+			echo -e "The file type can be a mime type like text/markdown, a language name like Java, or a file extension like .c"
+			echo -e "The file type can usually be inferred from the extension or its contents. -t is most useful when"
+			echo -e "a filename is not available, such as whe input comes from a pipe."
+			echo
+			echo -e "Examples:"
+			echo
+			echo -e "${script} -W 250px -H 250px -s avatar.png"
+			echo -e "cat graph.png | ${script} -W 100%"
+			echo -e "${script} -p -W 500px -u http://host.tld/path/to/image.jpg -W 80 -f image.png"
+			echo -e "cat url_list.txt | xargs ${script} -p -W 40 -u"
+			echo -e "${script} -t application/json config.json"
+			echo
+
+			exit
+		;;
+
+		-*)
+			frobulator.err "Unknown option flag: ${1}"
+			echo
+
+			frobulator.stp "Aborting${marker_elp}"
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# set -o pipefail
+
+standard_input () {
+
+	# check for standard input presence
+
+	if [ -t 0 ]
+	then
+		stdin_present="false"
+	else
+		stdin_present="true"
+	fi
+
+	if [ "${stdin_present}" = "false" ] && [ $# -eq 0 ]
+	then
+		frobulator.err "No 'stdin' present or arguments passed."
+		echo
+
+		exit 1
+	fi
+}
 
 image_osc () {
+
+	# verify terminal multiplexer instance and type
 
 	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
 	then
@@ -14,6 +220,8 @@ image_osc () {
 
 image_st () {
 
+	# verify terminal multiplexer instance and type
+
 	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
 	then
 		printf "\a\033\\"
@@ -22,87 +230,51 @@ image_st () {
 	fi
 }
 
-codec_validate () {
+image_unit () {
 
-	codec="base64"
+	unit="${1}"
 
-	if [ -z "${codec_version+x}" ]
+	# verify image sizing unit format:
+	# N / Npx / N% / auto
+
+	if [[ ! "${unit}" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
 	then
-		codec_version=$(${codec} --version 2>&1)
+		frobulator.err "Invalid image sizing unit - '${unit}'"
+		echo
 
-		export codec
-
-		export codec_version
+		exit 1
 	fi
-}
-
-image_encode () {
-
-	codec_validate
-
-	if [[ "${codec_version}" =~ GNU ]]
-	then
-		# disable line wrap
-
-		"${codec}" -w0
-	else
-		"${codec}"
-	fi
-}
-
-image_decode () {
-
-	codec_validate
-
-	if [[ "${codec_version}" =~ fourmilab ]]
-	then
-		codec_argument=-d
-
-	elif [[ "${codec_version}" =~ GNU ]]
-	then
-		codec_argument=-di
-	else
-		codec_argument=-D
-	fi
-
-	"${codec}" "${codec_argument}"
 }
 
 image_missing () {
 
 	if [ "${image_display}" != "true" ]
 	then
-		echo "No image provided. Check command line options."
+		frobulator.err "No image provided. Check command line options."
+		echo
 
 		exit 1
 	fi
 }
 
-image_print () {
-
-	if [ "${stdin_present}" = "true" ]
-	then
-		image_parse "" 1 "$(cat | image_encode)" 0 "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
-	fi
-
-}
-
 image_parse () {
 
 	# image_parse filename inline base64contents print_filename width height preserve_aspect_ratio
-	#  $1 filename: Filename to convey to client
-	#  $2 inline: 0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
-	#  $3 base64contents: Base64-encoded contents
-	#  $4  print_filename: 0 or 1, if set to 1, print the filename after outputting the image
-	#  $5 width: set output width of the image in character cells, pixels or percent
-	#  $6 height: set output height of the image in character cells, pixels or percent
-	#  $7 preserve_aspect_ratio: 0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
-	#  $8 file: Empty string or file type like "application/json" or ".js".
-	#  $9 legacy: 1 to send one giant control sequence, 0 to send many small control sequences.
+
+	# $1 filename:                 filename to convey to client
+	# $2 inline:                   0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
+	# $3 base64contents:           base64-encoded contents
+	# $4  print_filename:          0 or 1, if set to 1, print the filename after outputting the image
+	# $5 width:                    set output width of the image in character cells, pixels or percent
+	# $6 height:                   set output height of the image in character cells, pixels or percent
+	# $7 preserve_aspect_ratio:    0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
+	# $8 file:                     empty string or file type like "application/json" or ".js".
+	# $9 legacy:                   1 - send one monolithic control sequence
+	#                              0 - send many small control sequencess
 
 	printf '\n'
 
-	# Send metadata to begin transfer.
+	# send metadata to begin transfer
 
 	image_osc
 
@@ -117,11 +289,11 @@ image_parse () {
 
 	printf "=inline=%s" "${2}"
 
-	printf ";size=%d" $(printf "%s" "${3}" | image_decode | wc -c)
+	printf ";size=%d" $(printf "%s" "${3}" | base64 -d -i | wc -c)
 
 	if [ -n "${1}" ]
 	then
-		printf ";name=%s" "$(printf "%s" "${1}" | image_encode)"
+		printf ";name=%s" "$(printf "%s" "${1}" | base64 -w 0)"
 	fi
 
 	if [ -n "${5}" ]
@@ -152,9 +324,7 @@ image_parse () {
 		# split into 200-byte chunks:
 		# helps parsing through 'tmux'
 
-		stream=200
-		bytes=$(fold -w ${stream})
-		parts=$(printf "%s" "${3}" | ${bytes})
+		parts=$(printf "%s" "${3}" | fold -w 200)
 
 		# load byte stream
 
@@ -167,7 +337,7 @@ image_parse () {
 			image_st
 		done
 
-		# Indicate completion
+		# indicate completion
 
 		image_osc
 
@@ -178,180 +348,123 @@ image_parse () {
 
 	printf '\n'
 
-	[ "${4}" == "1" ] && echo "${1}"
+	if [ "${4}" == "1" ]
+	then
+		echo "${1}"
+	fi
 
 	image_display="true"
 }
 
-image_unit () {
+image_print () {
 
-	# verify image sizing unit format:
-	# N / Npx / N% / auto
-
-	if [[ ! "${1}" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
+	if [ "${stdin_present}" = "true" ]
 	then
-		error "Invalid image sizing unit - '${1}'"
-		show_help
-		exit 1
+		image_parse "${1}" ${inline} "${encoding}" ${print_filename} "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
+
+	elif [ "${stdin_present}" = "false" ]
+	then
+        image_parse "${1}" 1 "$encoded_image" "$print_filename" "$width" "$height" "$preserve_aspect_ratio" "$file_type" "$legacy"
 	fi
+
 }
 
-# check stdin presence
+# options //////////////////////////////////////////////////////////////////////
 
-if [ -t 0 ]
+if [[ "${option}" = "inline" ]]
+then
+	inline="1"
+else
+	inline="0"
+fi
+
+if [[ "${option}" = "print_filename" ]]
+then
+	print_filename="1"
+
+elif [[ "${option}" = "no_print_filename" ]]
+then
+	print_filename="0"
+fi
+
+if [[ "${option}" = "height" ]] || \
+   [[ "${option}" = "width"  ]]
+then
+	image_unit "${2}"
+fi
+
+if [[ "${option}" = "preserve_aspect_ratio" ]]
+then
+	preserve_aspect_ratio="1"
+
+elif [[ "${option}" = "stretch" ]]
+then
+	preserve_aspect_ratio=0
+fi
+
+
+if [[ "${option}" = "file" ]]
 then
 	stdin_present="false"
-else
-	stdin_present="true"
-fi
 
-# Show help if no arguments and no stdin.
+	is_url="false"
 
-if [ "${stdin_present}" = "false" ] && [ $# -eq 0 ]
+elif [[ "${option}" = "url" ]]
 then
-	show_help
-	exit
+	stdin_present="false"
+
+	is_url="true"
+
 fi
+
+if [[ "${option}" = "legacy" ]]
+then
+	legacy="1"
+fi
+
+# defaults /////////////////////////////////////////////////////////////////////
 
 file_type=""
 
-legacy=0
+stdin_present="false"
 
-# usage
+image_display="false"
 
-while [ $# -gt 0 ]
-do
-	case "${1}"
-	in
-		-h | --h | --help)
-			errcho
-			errcho "Usage: ${0} [-p] [-n] [-W width] [-H height] [-r] [-s] [-u] [-t file-type] [-f] filename ..."
-			errcho "       cat filename | ${0} [-W width] [-H height] [-r] [-s]"
-			errcho
-			errcho "Display images inline in the iTerm2 using Inline Images Protocol"
-			errcho
-			errcho "Options:"
-			errcho
-			errcho "    -h, --help                      Display help message"
-			errcho "    -p, --print                     Enable printing of filename or URL after each image"
-			errcho "    -n, --no-print                  Disable printing of filename or URL after each image"
-			errcho "    -u, --url                       Interpret following filename arguments as remote URLs"
-			errcho "    -f, --file                      Interpret following filename arguments as regular Files"
-			errcho "    -t, --type file-type            Provides a type hint"
-			errcho "    -r, --preserve-aspect-ratio     When scaling image preserve its original aspect ratio"
-			errcho "    -s, --stretch                   Stretch image to specified width and height (this option is opposite to -r)"
-			errcho "    -W, --width N                   Set image width to N character cells, pixels or percent (see below)"
-			errcho "    -H, --height N                  Set image height to N character cells, pixels or percent (see below)"
-			errcho "    -l, --legacy                    Use legacy protocol that sends the whole image in a single control sequence"
-			errcho
-			errcho "    If you don't specify width or height an appropriate value will be chosen automatically."
-			errcho "    The width and height are given as word 'auto' or number N followed by a unit:"
-			errcho "        N      character cells"
-			errcho "        Npx    pixels"
-			errcho "        N%     percent of the session's width or height"
-			errcho "        auto   the image's inherent size will be used to deTERMine an appropriate dimension"
-			errcho
-			errcho "    If a type is provided, it is used as a hint to disambiguate."
-			errcho "    The file type can be a mime type like text/markdown, a language name like Java, or a file extension like .c"
-			errcho "    The file type can usually be inferred from the extension or its contents. -t is most useful when"
-			errcho "    a filename is not available, such as whe input comes from a pipe."
-			errcho
-			errcho "Examples:"
-			errcho
-			errcho "    $ ${0} -W 250px -H 250px -s avatar.png"
-			errcho "    $ cat graph.png | ${0} -W 100%"
-			errcho "    $ ${0} -p -W 500px -u http://host.tld/path/to/image.jpg -W 80 -f image.png"
-			errcho "    $ cat url_list.txt | xargs ${0} -p -W 40 -u"
-			errcho "    $ ${0} -t application/json config.json"
-			errcho
-		;;
+inline="1"
 
-		-p | --print)
-			print_filename=1
-		;;
+print_filename="0"
 
-		-n | --no-print)
-			print_filename=0
-		;;
+legacy="0"
 
-		-W | --width)
-			image_unit "${2}"
+is_url="false"
 
-			width="${2}"
+preserve_aspect_ratio="1"
 
-			shift
-		;;
+# variables ////////////////////////////////////////////////////////////////////
 
-		-H | --height)
-			image_unit "${2}"
+if [ "${is_url}" == "true" ]
+then
+	encoding=$(curl -s -L "${image}" | base64 -w 0)
 
-			height="${2}"
+	if [ ${?} -ne 0 ]
+	then
+		frobulator.err "Could not retrieve image from URL ${image}, error_code: ${?}"
+		echo
 
-			shift
-		;;
+		exit 2
+	fi
+else
+	if [ -r "${image}" ]
+	then
+		encoding=$(cat "${image}" | base64 -w 0)
+	else
+		frobulator.err "${script}: ${image}: No such file or directory"
+		echo
 
-		-r | --preserve-aspect-ratio)
-			preserve_aspect_ratio=1
-		;;
+		exit 2
+	fi
+fi
 
-		-s | --stretch)
-			preserve_aspect_ratio=0
-		;;
-
-		-l | --legacy)
-			legacy=1
-		;;
-
-		-f | --file)
-			stdin_present=f
-			is_url="false"
-		;;
-
-		-u | --url)
-			stdin_present="false"
-			is_url="true"
-		;;
-
-		-t | --type)
-			file_type="${2}"
-
-			shift
-		;;
-
-		-*)
-			error "Unknown option flag: ${1}"
-
-			exit 1
-		;;
-
-		*)
-			if [ "${is_url}" == "true" ]
-			then
-				encoded_image=$(curl -s -L  "${1}" | image_encode) || {
-				echo "Could not retrieve image from URL ${1}, error_code: $?"
-				exit 2
-			}
-			elif [ -r "${1}" ]
-			then
-				encoded_image=$(cat "${1}" | image_encode)
-			else
-				echo "${0}: ${1}: No such file or directory"
-				exit 2
-			fi
-
-			stdin_present="false"
-
-			image_parse "${1}" 1 "${encoded_image}" "${print_filename}" "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
-		;;
-
-		esac
-
-	shift
-
-done
-
-# read and print stdin
 
 image_print
 
-image_missing
