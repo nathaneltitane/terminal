@@ -62,6 +62,10 @@ while (($#))
 do
 	case "${1}"
 	in
+		-i | --inline)
+			option="inline"
+		;;
+		
 		-n | --name)
 			option="name"
 		;;
@@ -82,15 +86,18 @@ do
 			shift
 		;;
 
-		-i | --inline)
-			option="inline"
-
-		;;
-
 		-s | --stretch)
 			option="stretch"
 		;;
 
+		-f | --file)
+			option="file"
+
+			file="${2}"
+
+			shift
+		;;
+		
 		-u | --url)
 			option="url"
 		;;
@@ -111,34 +118,33 @@ do
 			shift
 		;;
 
-		-f | --file)
-			option="file"
-
-			file="${2}"
-
-			shift
-		;;
-
 		-h | --help)
 			echo
-			echo -e "Usage: ${script} -n | -h [Height] -w [Width] | -i | -s | -u | -t [File Type] | [-l] | -f [File]"
+			echo -e "Usage: ${script} -i | -n | -h [Height] -w [Width] | -s | -f [File] | -u | -t [File Type] | [-l]"
 			echo
-			echo -e "Display images using Inline Images Protocol"
+			echo -e "Display images using base64-encoded inline image display protocol"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-u, --url        interpret following filename arguments as remote urls"
-			echo -e "-f, --file       interpret following filename arguments as local files"
-			echo -e "-t, --type       provide a type hint to disambiguate parsing/processing"
-			echo -e "-s, --stretch    stretch image to specified width and height"
-			echo -e "-w, --width      set image width to n character cells"
+			echo -e "-i, --inline     display image inline"
+			echo -e "-n, --name       display filename after parsing image"
+			echo
 			echo -e "-h, --height     set image height to n character cells"
+			echo -e "-w, --width      set image width to n character cells"
+			echo -e "-s, --stretch    stretch image to specified width and height"
+			echo
+			echo -e "-f, --file       interpret following filename arguments as local files"
+			echo -e "-u, --url        interpret following filename arguments as remote urls"
+			echo
+			echo -e "-t, --type       provide a type hint to disambiguate parsing/processing"
 			echo -e "-l, --legacy     use legacy protocol - transfers image as a single monolithic control sequence"
 			echo
 			echo -e "-h, --help       show help and usage information."
 			echo
-			echo -e "If width or height are not specified, an appropriate value will be chosen automatically."
-			echo -e "Width and height are given as 'auto' or numeric digit n, defined as the number of terminal character cells."
+			echo -e "Image sizing:"
+			echo
+			echo -e "    If width or height are not specified, an appropriate value will be chosen automatically."
+			echo -e "    Width and height are given as 'auto' or numeric digit n, defined as the number of terminal character cells."
 			echo
 			echo -e "    n      character cells"
 			echo -e "    npx    pixels"
@@ -146,9 +152,11 @@ do
 			echo
 			echo -e "    auto   the imagesize will be used to determine the appropriate dimension dimension"
 			echo
-			echo -e "The file type can be a mime type (i.e.: text/markdown), a language name (i.e: Java), or a file extension i.e.: (.sh)"
-			echo -e "The file type can usually be inferred from the extension or its contents."
-			echo -e "The type option is most useful when a filename is not available, such as whe input comes from a pipe."
+			echo -e "File type:"
+			echo
+			echo -e "    The file type can be a mime type (i.e.: text/markdown), a language name (i.e: Java), or a file extension i.e.: (.sh)"
+			echo -e "    The file type can usually be inferred from the extension or its contents."
+			echo -e "    The type option is most useful when a filename is not available, such as whe input comes from a pipe."
 			echo
 			echo -e "Usage examples:"
 			echo
@@ -158,7 +166,7 @@ do
 			echo
 			echo -e "    ${script} -p -w 500px -u http://host.url/path/to/image.gif -w 80 -f image.png"
 			echo
-			echo -e "    cat url-list.txt | xargs ${script} -p -w 40 -u"
+			echo -e "    cat url-list.txt | xargs ${script} -n -w 40 -u"
 			echo
 			echo -e "    ${script} -t application/json config.json"
 			echo
@@ -168,7 +176,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ${script} -n | -h [Height] -w [Width] | -i | -s | -u | -t [File Type] | [-l] | -f [File]"
+			echo -e "Usage: ${script} -i | -n | -h [Height] -w [Width] | -s | -f [File] | -u | -t [File Type] | [-l]"
 			echo
 			echo -e "${script}: Unknown option '${1}'"
 			echo -e "Type './${script} --help' for help and usage information."
@@ -189,6 +197,7 @@ done
 
 image_osc () {
 
+	# osc - opening sequence characters
 	# verify terminal multiplexer instance and type
 
 	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
@@ -199,8 +208,9 @@ image_osc () {
 	fi
 }
 
-image_st () {
+image_tsc () {
 
+	# tsc - termination secquence characters
 	# verify terminal multiplexer instance and type
 
 	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
@@ -231,16 +241,38 @@ image_parse () {
 
 	# image_parse image inline encoding name width height ratio file_type legacy
 
-	# $1 image:       filename to convey to client
-	# $2 inline:      0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
-	# $3 encoding:    base64-encoded contents
-	# $4 name:        0 or 1, if set to 1, print the filename name after image output
-	# $5 width:       set output width of the image in character cells, pixels or percent
-	# $6 height:      set output height of the image in character cells, pixels or percent
-	# $7 ratio:       0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
-	# $8 file:        empty string or file type like "application/json" or ".js".
-	# $9 legacy:      1 - send one monolithic control sequence
-	#                 0 - send many small control sequencess
+	# ${1} image:       image filename
+
+	# ${2} inline:      0 - download image
+	#                   1 - display inline
+	# ${3} encoding:    base64-encoded image contents
+
+	# ${4} name:        0 - no filename display after image processing
+	#                   1 - display filename after image processing
+
+	# ${5} width:       set image output width - numeric digits only
+	#                   n    - character cells
+	#                   npx  - pixels
+	#                   n%   - percentage (width only or height only)
+	#                   auto - automatic calculation to terminal output
+
+	# ${6} height:      set image output height - numeric digits only
+	#                   n    - character cells
+	#                   npx  - pixels
+	#                   n%   - percentage (width only or height only)
+	#                   auto - automatic calculation to terminal output
+
+	# ${7} ratio:       0 - fill specified height or width value to maximum terminal output
+	#                   1 - fill specified height or width value to maximum terminal output without deformation
+
+	# ${8} file:        file type hint
+	#                   "" - empty value [Default]
+	#                   mimetype  - ex.: application/json
+	#					name      - ex.: Python
+	#					extension - ex.: .sh
+
+	# ${9} legacy:      1 - parse and send as one monolithic control sequence
+	#                   0 - parse and send as multiple 200-byte control sequences
 
 	echo
 
@@ -287,14 +319,18 @@ image_parse () {
 	then
 		printf ":%s" "${3}"
 
-		image_st
+		image_tsc
 	else
-		image_st
+		image_tsc
 
-		# split into 200-byte chunks:
-		# helps parsing through 'tmux'
+		# split into 200-byte parts:
+		# optimizes parsing through terminal multiplexer
 
-		parts=$(printf "%s" "${3}" | fold -w 200)
+		bytes=200
+
+		split=$(fold -w ${bytes})
+
+		parts=$(printf "%s" "${3}" | ${split})
 
 		# load byte stream
 
@@ -304,7 +340,7 @@ image_parse () {
 
 			printf '1337;FilePart=%s' "${part}"
 
-			image_st
+			image_tsc
 		done
 
 		# indicate completion
@@ -313,7 +349,7 @@ image_parse () {
 
 		printf '1337;FileEnd'
 
-		image_st
+		image_tsc
 	fi
 
 	echo
@@ -337,7 +373,7 @@ image_print () {
 		inline="1"
 	fi
 
-	image_parse "${image}" "${inline}" "${encoding}" ${name} "${width}" "${height}" "${ratio}" "${file_type}" "${legacy}"
+	image_parse "${image}" "${inline}" "${encoding}" "${name}" "${width}" "${height}" "${ratio}" "${file_type}" "${legacy}"
 
 }
 
@@ -405,6 +441,8 @@ file_type=""
 legacy="1"
 
 url="false"
+
+name="0"
 
 # variables ////////////////////////////////////////////////////////////////////
 
