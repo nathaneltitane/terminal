@@ -283,7 +283,7 @@ image_parse () {
 	# $9 legacy:                   1 - send one monolithic control sequence
 	#                              0 - send many small control sequencess
 
-	printf '\n'
+	echo
 
 	# send metadata to begin transfer
 
@@ -339,7 +339,7 @@ image_parse () {
 
 		# load byte stream
 
-		for part in ${parts}
+		for part in "${parts}"
 		do
 			image_osc
 
@@ -357,7 +357,7 @@ image_parse () {
 		image_st
 	fi
 
-	printf '\n'
+	echo
 
 	if [ "${4}" == "1" ]
 	then
