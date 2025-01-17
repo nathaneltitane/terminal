@@ -162,11 +162,12 @@ do
 			echo
 			echo -e "    ${script} -w 250px -h 250px -s image.png"
 			echo
-			echo -e "    cat image.png | ${script} -w 75%"
+			echo -e "    cat image-01.png | ${script} -w 75%"
+			echo -e "    cat image-02.jpg | ${script} -h 30%"
 			echo
-			echo -e "    ${script} -p -w 500px -u http://host.url/path/to/image.gif -w 80 -f image.png"
+			echo -e "    ${script} -n -w 500px -u http://host.url/path/to/image.gif -w 80 -f image.png"
 			echo
-			echo -e "    cat url-list.txt | xargs ${script} -n -w 40 -u"
+			echo -e "    cat url-list[.txt] | xargs ${script} -n -w 40 -u"
 			echo
 			echo -e "    ${script} -t application/json config.json"
 			echo
