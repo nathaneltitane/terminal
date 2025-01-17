@@ -176,6 +176,7 @@ do
 			exit 1
 		;;
 
+
 	esac
 
 	shift
@@ -192,6 +193,8 @@ standard_input () {
 
 	if [ -t 0 ]
 	then
+		# 'stdin' is a tty
+
 		stdin_present="false"
 	else
 		stdin_present="true"
