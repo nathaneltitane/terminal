@@ -62,15 +62,11 @@ while (($#))
 do
 	case "${1}"
 	in
-		-p | --print)
-			option="print_filename"
+		-n | --name)
+			option="name"
 		;;
 
-		-n | --no-print)
-			option="no_print_filename"
-		;;
-
-		-H | --height)
+		-h | --height)
 			option="height"
 
 			height="${2}"
@@ -78,7 +74,7 @@ do
 			shift
 		;;
 
-		-W | --width)
+		-w | --width)
 			option="width"
 
 			width="${2}"
@@ -89,10 +85,6 @@ do
 		-i | --inline)
 			option="inline"
 
-		;;
-
-		-r | --preserve-aspect-ratio)
-			option="preserve_aspect_ratio"
 		;;
 
 		-s | --stretch)
@@ -130,24 +122,22 @@ do
 
 		-h | --help)
 			echo
-			echo -e "Usage: ${script} [-p] [-n] [-W width] [-H height] [-r] [-s] [-u] [-t file-type] [-f] filename [-l]"
-			echo -e "       cat filename | ${script} [-W width] [-H height] [-r] [-s]"
+			echo -e "Usage: ${script} [-p] [-n] [-w width] [-h height] [-s] [-u] [-t file-type] [-f] filename [-l]"
+			echo -e "       cat filename | ${script} [-w width] [-h height] [-s]"
 			echo
-			echo -e "Display images inline in the iTerm2 using Inline Images Protocol"
+			echo -e "Display images using Inline Images Protocol"
 			echo
 			echo -e "Options:"
 			echo
 			echo -e "-h, --help                      Display help message"
 			echo -e "-p, --print                     Enable printing of filename or URL after each image"
-			echo -e "-n, --no-print                  Disable printing of filename or URL after each image"
 			echo -e "-u, --url                       Interpret following filename arguments as remote URLs"
 			echo -e "-f, --file                      Interpret following filename arguments as regular Files"
-			echo -e "-t, --type file-type            Provides a type hint"
-			echo -e "-r, --preserve-aspect-ratio     When scaling image preserve its original aspect ratio"
-			echo -e "-s, --stretch                   Stretch image to specified width and height (this option is opposite to -r)"
-			echo -e "-W, --width N                   Set image width to N character cells, pixels or percent (see below)"
-			echo -e "-H, --height N                  Set image height to N character cells, pixels or percent (see below)"
-			echo -e "-l, --legacy                    Use legacy protocol that sends the whole image in a single control sequence"
+			echo -e "-t, --type                      Provides a type hint"
+			echo -e "-s, --stretch                   Stretch image to specified width and height"
+			echo -e "-w, --width N                   Set image width to N character cells, pixels or percent (see below)"
+			echo -e "-h, --height N                  Set image height to N character cells, pixels or percent (see below)"
+			echo -e "-l, --legacy                    Use legacy protocol - transfers image as a single monolithic control sequence"
 			echo
 			echo -e "If you don't specify width or height an appropriate value will be chosen automatically."
 			echo -e "The width and height are given as word 'auto' or number N followed by a unit:"
@@ -164,26 +154,26 @@ do
 			echo
 			echo -e "Examples:"
 			echo
-			echo -e "${script} -W 250px -H 250px -s avatar.png"
-			echo -e "cat graph.png | ${script} -W 100%"
-			echo -e "${script} -p -W 500px -u http://host.tld/path/to/image.jpg -W 80 -f image.png"
-			echo -e "cat url_list.txt | xargs ${script} -p -W 40 -u"
+			echo -e "${script} -w 250px -h 250px -s avatar.png"
+			echo -e "cat graph.png | ${script} -w 100%"
+			echo -e "${script} -p -w 500px -u http://host.tld/path/to/image.jpg -w 80 -f image.png"
+			echo -e "cat url_list.txt | xargs ${script} -p -w 40 -u"
 			echo -e "${script} -t application/json config.json"
 			echo
 
 			exit
 		;;
 
-		-*)
-			frobulator.err "Unknown option flag: ${1}"
+		*)
 			echo
-
-			frobulator.stp "Aborting${marker_elp}"
+			echo -e "Usage: ${script} [-p] [-n] [-w width] [-h height] [-s] [-u] [-t file-type] [-f] filename [-l]"
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
 			echo
 
 			exit 1
 		;;
-
 
 	esac
 
@@ -203,12 +193,12 @@ standard_input () {
 	then
 		# 'stdin' is a tty
 
-		stdin_present="false"
+		stdin="tty"
 	else
-		stdin_present="true"
+		stdin="stdin"
 	fi
 
-	if [ "${stdin_present}" = "false" ] && [ $# -eq 0 ]
+	if [ "${stdin}" = "false" ] && [ $# -eq 0 ]
 	then
 		frobulator.err "No 'stdin' present or arguments passed."
 		echo
@@ -250,18 +240,7 @@ image_unit () {
 
 	if [[ ! "${unit}" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
 	then
-		frobulator.err "Invalid image sizing unit - '${unit}'"
-		echo
-
-		exit 1
-	fi
-}
-
-image_missing () {
-
-	if [ "${image_display}" != "true" ]
-	then
-		frobulator.err "No image provided. Check command line options."
+		frobulator.err "Invalid image sizing unit" "[ '${unit}' ]"
 		echo
 
 		exit 1
@@ -270,18 +249,18 @@ image_missing () {
 
 image_parse () {
 
-	# image_parse filename inline encoding print_filename width height preserve_aspect_ratio file_type legacy
+	# image_parse image inline encoding name width height ratio file_type legacy
 
-	# $1 filename:                 filename to convey to client
-	# $2 inline:                   0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
-	# $3 encoding:                 base64-encoded contents
-	# $4 print_filename:          0 or 1, if set to 1, print the filename after outputting the image
-	# $5 width:                    set output width of the image in character cells, pixels or percent
-	# $6 height:                   set output height of the image in character cells, pixels or percent
-	# $7 preserve_aspect_ratio:    0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
-	# $8 file:                     empty string or file type like "application/json" or ".js".
-	# $9 legacy:                   1 - send one monolithic control sequence
-	#                              0 - send many small control sequencess
+	# $1 image:       filename to convey to client
+	# $2 inline:      0 or 1, if set to 1, the file will be displayed inline, otherwise, it will be downloaded
+	# $3 encoding:    base64-encoded contents
+	# $4 name:        0 or 1, if set to 1, print the filename name after image output
+	# $5 width:       set output width of the image in character cells, pixels or percent
+	# $6 height:      set output height of the image in character cells, pixels or percent
+	# $7 ratio:       0 or 1, if set to 1, fill the specified width and height as much as possible without stretching the image
+	# $8 file:        empty string or file type like "application/json" or ".js".
+	# $9 legacy:      1 - send one monolithic control sequence
+	#                 0 - send many small control sequencess
 
 	echo
 
@@ -363,24 +342,22 @@ image_parse () {
 	then
 		echo "${1}"
 	fi
-
-	image_display="true"
 }
 
 image_print () {
 
-	if [ "${stdin_present}" = "true" ]
+	if [ "${stdin}" = "stdin" ]
 	then
 		image=""
 		inline="1"
 		encoding=$(cat | base64 -w 0)
 
-	elif [ "${stdin_present}" = "false" ]
+	elif [ "${stdin}" = "tty" ]
 	then
 		inline="1"
 	fi
 
-	image_parse "${image}" "${inline}" "${encoding}" ${print_filename} "${width}" "${height}" "${preserve_aspect_ratio}" "${file_type}" "${legacy}"
+	image_parse "${image}" "${inline}" "${encoding}" ${name} "${width}" "${height}" "${ratio}" "${file_type}" "${legacy}"
 
 }
 
@@ -393,42 +370,31 @@ else
 	inline="0"
 fi
 
-if [[ "${option}" = "print_filename" ]]
+if [[ "${option}" = "name" ]]
 then
-	print_filename="1"
-
-elif [[ "${option}" = "no_print_filename" ]]
-then
-	print_filename="0"
+	name="1"
+else
+	name="0"
 fi
 
-if [[ "${option}" = "height" ]] || \
-   [[ "${option}" = "width"  ]]
+if [[ "${option}" = "stretch" ]]
 then
-	image_unit "${2}"
+	ratio="0"
+else
+	ratio="1"
 fi
-
-if [[ "${option}" = "preserve_aspect_ratio" ]]
-then
-	preserve_aspect_ratio="1"
-
-elif [[ "${option}" = "stretch" ]]
-then
-	preserve_aspect_ratio=0
-fi
-
 
 if [[ "${option}" = "file" ]]
 then
-	stdin_present="false"
+	stdin="tty"
 
-	is_url="false"
+	url="false"
 
 elif [[ "${option}" = "url" ]]
 then
-	stdin_present="false"
+	stdin="tty"
 
-	is_url="true"
+	url="true"
 
 fi
 
@@ -439,27 +405,38 @@ fi
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-stdin_present="false"
+stdin="tty"
 
 image="${file}"
 
 inline="1"
 
-print_filename="0"
-
-preserve_aspect_ratio="1"
-
 file_type=""
 
 legacy="1"
 
-is_url="false"
+url="false"
 
-image_display="false"
+# assume terminal character width for standardized output stream
+
+columns="80"
+
+if [ -z "${height}" ]
+then
+	height="${columns}"
+fi
+
+if [ -z "${width}" ]
+then
+	width="${columns}"
+fi
 
 # variables ////////////////////////////////////////////////////////////////////
 
-if [ "${is_url}" == "true" ]
+echo $1
+echo
+
+if [ "${url}" == "true" ]
 then
 	encoding=$(curl -s -L "${image}" | base64 -w 0)
 
@@ -470,10 +447,14 @@ then
 
 		exit 2
 	fi
-else
+fi
+
+if [ "${url}" == "false" ]
+then
 	if [ -r "${image}" ]
 	then
-		encoding=$(cat "${image}" | base64 -w 0)
+			encoding=$(cat "${image}" | base64 -w 0)
+
 	else
 		frobulator.err "${script}: ${image}: No such file or directory"
 		echo
@@ -482,6 +463,22 @@ else
 	fi
 fi
 
+if [ -z "${image}" ]
+then
+	frobulator.err "No image supplied"
+	echo
+
+	exit 1
+fi
+
+if [ -n "${height}" ]
+then
+	image_unit "${height}"
+fi
+
+if [ -n "${width}" ]
+then
+	image_unit "${width}"
+fi
 
 image_print
-
