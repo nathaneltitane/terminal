@@ -103,9 +103,9 @@ do
 		;;
 
 		-t | --type)
-			option="file_type"
+			option="type"
 
-			file_type="${2}"
+			type="${2}"
 
 			shift
 		;;
@@ -238,7 +238,7 @@ image_unit () {
 
 image_parse () {
 
-	# image_parse image inline encoding name width height ratio file_type legacy
+	# image_parse image inline encoding name width height ratio type legacy
 
 	# ${1} image:       image filename
 
@@ -362,24 +362,24 @@ image_parse () {
 
 image_print () {
 
-	if [ "${stdin}" = "stdin" ]
+	if [ "${input}" = "stdin" ]
 	then
 		image=""
 		inline="1"
 		encoding=$(cat | base64 -w 0)
 
-	elif [ "${stdin}" = "tty" ]
+	elif [ "${input}" = "tty" ]
 	then
 		inline="1"
 	fi
 
-	image_parse "${image}" "${inline}" "${encoding}" "${name}" "${width}" "${height}" "${ratio}" "${file_type}" "${legacy}"
+	image_parse "${image}" "${inline}" "${encoding}" "${name}" "${width}" "${height}" "${ratio}" "${type}" "${legacy}"
 
 }
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-stdin="${stdin}"
+input="${input}"
 
 image="${file}"
 
@@ -389,7 +389,7 @@ name="0"
 
 legacy="1"
 
-file_type=""
+type=""
 
 url="false"
 
@@ -399,9 +399,9 @@ if [ -t 0 ]
 then
 	# 'stdin' is a tty
 
-	stdin="tty"
+	input="tty"
 else
-	stdin="stdin"
+	input="stdin"
 fi
 
 if [[ "${option}" = "inline" ]]
@@ -427,13 +427,13 @@ fi
 
 if [[ "${option}" = "file" ]]
 then
-	stdin="tty"
+	input="tty"
 
 	url="false"
 
 elif [[ "${option}" = "url" ]]
 then
-	stdin="tty"
+	input="tty"
 
 	url="true"
 
