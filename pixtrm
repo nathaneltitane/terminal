@@ -276,7 +276,7 @@ image_parse () {
 
 	echo
 
-	# send metadata to begin transfer
+	# open sequence - begin transfer
 
 	image_osc
 
@@ -343,7 +343,7 @@ image_parse () {
 			image_tsc
 		done
 
-		# indicate completion
+		# terminate sequence
 
 		image_osc
 
