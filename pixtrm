@@ -129,23 +129,22 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-h, --help                      Display help message"
-			echo -e "-p, --print                     Enable printing of filename or URL after each image"
-			echo -e "-u, --url                       Interpret following filename arguments as remote URLs"
-			echo -e "-f, --file                      Interpret following filename arguments as regular Files"
-			echo -e "-t, --type                      Provides a type hint"
-			echo -e "-s, --stretch                   Stretch image to specified width and height"
-			echo -e "-w, --width N                   Set image width to N character cells, pixels or percent (see below)"
-			echo -e "-h, --height N                  Set image height to N character cells, pixels or percent (see below)"
-			echo -e "-l, --legacy                    Use legacy protocol - transfers image as a single monolithic control sequence"
+
+			echo -e "-u, --url        interpret following filename arguments as remote urls"
+			echo -e "-f, --file       interpret following filename arguments as local files"
+			echo -e "-t, --type       provide a type hint"
+			echo -e "-s, --stretch    stretch image to specified width and height"
+			echo -e "-w, --width      set image width to n character cells"
+			echo -e "-h, --height     set image height to n character cells"
+			echo -e "-l, --legacy     use legacy protocol - transfers image as a single monolithic control sequence"
 			echo
-			echo -e "If you don't specify width or height an appropriate value will be chosen automatically."
-			echo -e "The width and height are given as word 'auto' or number N followed by a unit:"
+			echo -e "-h, --help       show help and usage information."
 			echo
-			echo -e "    N      character cells"
-			echo -e "    Npx    pixels"
-			echo -e "    N%     percent of the session's width or height"
-			echo -e "    auto   the image's inherent size will be used to deTERMine an appropriate dimension"
+			echo -e "if you don't specify width or height an appropriate value will be chosen automatically."
+			echo -e "the width and height are given as word 'auto' or number n followed by a unit:"
+			echo
+			echo -e "    [n]      number of terminal character cells (columns/rows)"
+			echo
 			echo
 			echo -e "If a type is provided, it is used as a hint to disambiguate."
 			echo -e "The file type can be a mime type like text/markdown, a language name like Java, or a file extension like .c"
@@ -185,28 +184,6 @@ done
 
 # set -o pipefail
 
-standard_input () {
-
-	# check for standard input presence
-
-	if [ -t 0 ]
-	then
-		# 'stdin' is a tty
-
-		stdin="tty"
-	else
-		stdin="stdin"
-	fi
-
-	if [ "${stdin}" = "false" ] && [ $# -eq 0 ]
-	then
-		frobulator.err "No 'stdin' present or arguments passed."
-		echo
-
-		exit 1
-	fi
-}
-
 image_osc () {
 
 	# verify terminal multiplexer instance and type
@@ -236,11 +213,14 @@ image_unit () {
 	unit="${1}"
 
 	# verify image sizing unit format:
-	# N / Npx / N% / auto
+	# [n] / [n]px / [n]% / auto
 
-	if [[ ! "${unit}" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
+	if [[ ! "${unit}"  =~ ^[0-9]+$ ]]
 	then
-		frobulator.err "Invalid image sizing unit" "[ '${unit}' ]"
+		frobulator.err "Invalid image sizing digit" "[ '${unit}' ]"
+		echo
+
+		frobulator.wrn "Numeric value required."
 		echo
 
 		exit 1
@@ -363,6 +343,15 @@ image_print () {
 
 # options //////////////////////////////////////////////////////////////////////
 
+if [ -t 0 ]
+then
+	# 'stdin' is a tty
+
+	stdin="tty"
+else
+	stdin="stdin"
+fi
+
 if [[ "${option}" = "inline" ]]
 then
 	inline="1"
@@ -405,7 +394,7 @@ fi
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-stdin="tty"
+stdin="${stdin}"
 
 image="${file}"
 
@@ -417,26 +406,17 @@ legacy="1"
 
 url="false"
 
-# assume terminal character width for standardized output stream
-
-columns="80"
-
-if [ -z "${height}" ]
-then
-	height="${columns}"
-fi
-
-if [ -z "${width}" ]
-then
-	width="${columns}"
-fi
-
 # variables ////////////////////////////////////////////////////////////////////
 
-echo $1
-echo
+if [ -z "${image}" ]
+then
+	frobulator.err "No image supplied"
+	echo
 
-if [ "${url}" == "true" ]
+	exit 1
+fi
+
+if [ "${url}" = "true" ]
 then
 	encoding=$(curl -s -L "${image}" | base64 -w 0)
 
@@ -449,26 +429,17 @@ then
 	fi
 fi
 
-if [ "${url}" == "false" ]
+if [ "${url}" = "false" ]
 then
 	if [ -r "${image}" ]
 	then
-			encoding=$(cat "${image}" | base64 -w 0)
-
+		encoding=$(cat "${image}" | base64 -w 0)
 	else
 		frobulator.err "${script}: ${image}: No such file or directory"
 		echo
 
 		exit 2
 	fi
-fi
-
-if [ -z "${image}" ]
-then
-	frobulator.err "No image supplied"
-	echo
-
-	exit 1
 fi
 
 if [ -n "${height}" ]
