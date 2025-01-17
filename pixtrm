@@ -114,17 +114,17 @@ do
 			shift
 		;;
 
-		-l | --legacy)
-			option="legacy"
+		-b | --block)
+			option="block"
 
-			legacy="${2}"
+			block="${2}"
 
 			shift
 		;;
 
 		-h | --help)
 			echo
-			echo -e "Usage: ${script} -i | -n | -h [Height] -w [Width] | -s | -f [File] | -u | -t [File Type] | [-l]"
+			echo -e "Usage: ${script} -i | -n | -h [Height] -w [Width] | -s | -f [File] | -u | -t [File Type] | [-b]"
 			echo
 			echo -e "Display images using base64-encoded inline image display protocol"
 			echo
@@ -141,7 +141,7 @@ do
 			echo -e "-u, --url        interpret following filename arguments as remote urls"
 			echo
 			echo -e "-t, --type       provide a type hint to disambiguate parsing/processing"
-			echo -e "-l, --legacy     use legacy protocol - transfers image as a single monolithic control sequence"
+			echo -e "-b, --block      use standard protocol - transfers image as a single monolithic block/control sequence"
 			echo
 			echo -e "-h, --help       show help and usage information."
 			echo
@@ -242,7 +242,7 @@ image_unit () {
 
 image_parse () {
 
-	# image_parse image inline encoding name width height ratio type legacy
+	# image_parse image inline encoding name width height ratio type block
 
 	# ${1} image:       image filename
 
@@ -274,8 +274,8 @@ image_parse () {
 	#					name      - ex.: Python
 	#					extension - ex.: .sh
 
-	# ${9} legacy:      1 - parse and send as one monolithic control sequence
-	#                   0 - parse and send as multiple 200-byte control sequences
+	# ${9} block:       1 - parse and send as one monolithic block/control sequence
+	#                   0 - parse and send as multiple 200-byte block/control sequences
 
 	echo
 
@@ -377,7 +377,7 @@ image_print () {
 		inline="1"
 	fi
 
-	image_parse "${image}" "${inline}" "${encoding}" "${name}" "${width}" "${height}" "${ratio}" "${type}" "${legacy}"
+	image_parse "${image}" "${inline}" "${encoding}" "${name}" "${width}" "${height}" "${ratio}" "${type}" "${block}"
 
 }
 
@@ -389,7 +389,7 @@ inline="1"
 
 name="0"
 
-legacy="1"
+block="1"
 
 type=""
 
@@ -441,9 +441,9 @@ then
 
 fi
 
-if [[ "${option}" = "legacy" ]]
+if [[ "${option}" = "block" ]]
 then
-	legacy="1"
+	block="1"
 fi
 
 # variables ////////////////////////////////////////////////////////////////////
