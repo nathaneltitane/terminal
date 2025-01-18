@@ -323,13 +323,8 @@ then
 
 	# install
 
-	list=(
-		breeze
-		breeze-cursor-theme
-		breeze-icon-theme
-		breeze-gtk-theme
-
-
+	list+=(
+		${kde_list[@]}
 	)
 
 	frobulator.assess ${list[@]}
