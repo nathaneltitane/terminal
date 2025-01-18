@@ -203,6 +203,11 @@ echo "Synchronizing: " "Music"
 echo
 
 local_server_directory="/media/nathanel/Samsung${SPC}T7"
+server_directory="/Music/BASIL${SPC}O'GLUE"
+
+rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
+
+local_server_directory="/media/nathanel/Samsung${SPC}T7"
 server_directory="/Music/STEYOYOKE"
 
 rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
