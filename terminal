@@ -90,8 +90,18 @@ list=(
 	mesa-utils
 	vulkan-tools
 	wayland-utils
+)
+
+kde_list=(
 	kio-gdrive
 )
+
+if [[ $(echo "${XDG_CURRENT_DESKTOP}") = [kK][dD][eE] ]]
+then
+	list+=(
+		${kde_list}
+	)
+fi
 
 frobulator.assess ${list[@]}
 
@@ -307,6 +317,9 @@ then
 		konsole
 		krename
 		puddletag
+	)
+
+	kde_list=(
 	)
 
 	frobulator.assess ${list[@]}
