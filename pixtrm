@@ -233,7 +233,7 @@ image_unit () {
 
 	if [[ ! "$1" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
 	then
-		frobulator.err "Invalid image sizing unit" "[ '${unit}' ]"
+		frobulator.err "Invalid image size unit" "[ '${unit}' ]"
 		echo
 
 		exit 1
