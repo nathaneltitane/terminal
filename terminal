@@ -79,6 +79,7 @@ frobulator.upgrade
 # install
 
 list=(
+	cura
 	git
 	htop
 	hub
@@ -93,7 +94,25 @@ list=(
 )
 
 kde_list=(
+	breeze
+	breeze-cursor-theme
+	breeze-gtk-theme
+	breeze-icon-theme
+	calligra
+	dolphin
+	gwenview
+	karbon
+	kate
+	kcharselect
+	kcolorchooser
+	kde-config-cron
 	kio-gdrive
+	konsole
+	krename
+	krita
+	kdenlive
+	kontrast
+	yakuake
 )
 
 if [[ $(echo "${XDG_CURRENT_DESKTOP}") = [kK][dD][eE] ]]
@@ -309,17 +328,8 @@ then
 		breeze-cursor-theme
 		breeze-icon-theme
 		breeze-gtk-theme
-		cura
-		dolphin
-		gwenview
-		kate
-		kcharselect
-		konsole
-		krename
-		puddletag
-	)
 
-	kde_list=(
+
 	)
 
 	frobulator.assess ${list[@]}
