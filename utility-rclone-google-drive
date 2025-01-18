@@ -252,7 +252,7 @@ FILE
 
 # service activation
 
-if [[ $(systemctl status --user "${service_timer}") ]]
+if [[ $(systemctl status --user "${service_timer}" 2>&1 > "${sink}") ]]
 then
 	service_actions_list=(
 		disable
