@@ -126,7 +126,7 @@ do
 			echo
 			echo -e "Usage: ${script} -i | -n | -h [Height] -w [Width] | -s | -f [File] | -u | -t [File Type] | [-b]"
 			echo
-			echo -e "Display images using base64-encoded inline image display protocol"
+			echo -e "Display images in terminal using base64-encoded inline image display protocol"
 			echo
 			echo -e "Options:"
 			echo
