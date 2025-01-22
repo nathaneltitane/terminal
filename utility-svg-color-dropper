@@ -1,0 +1,287 @@
+#!/bin/bash
+
+declare -A colors
+
+colors=(
+    ["acid_green"]="#B0BF1A"
+    ["alice_blue"]="#F0F8FF"
+    ["american_rose"]="#FF033E"
+    ["antique_ruby"]="#9E003A"
+    ["antique_white"]="#FAEBD7"
+    ["apple_green"]="#8DB600"
+    ["apple_pie"]="#C9A45C"
+    ["aqua"]="#00FFFF"
+    ["aquamarine"]="#7FFFD4"
+    ["azure"]="#F0FFFF"
+    ["banana_yellow"]="#FFE135"
+    ["beau_blue"]="#BCD4E6"
+    ["beige"]="#F5F5DC"
+    ["bisque"]="#FFE4C4"
+    ["black"]="#000000"
+    ["blanched_almond"]="#FFEBCD"
+    ["blue"]="#0000FF"
+    ["blue_bell"]="#A2A2D0"
+    ["blue_jeans"]="#5DADE2"
+    ["blue_munsell"]="#009C8C"
+    ["blue_violet"]="#8A2BE2"
+    ["bright_green"]="#00FF00"
+    ["bright_turquoise"]="#08E8DE"
+    ["brilliant_rose"]="#FF55A3"
+    ["brown"]="#A52A2A"
+    ["brown_traditional"]="#964B00"
+    ["burly_wood"]="#DEB887"
+    ["burnt_orange"]="#CC5500"
+    ["burnt_sienna"]="#E97451"
+    ["buttercream"]="#F1E2B3"
+    ["cadet_blue"]="#5F9EA0"
+    ["cadmium_red"]="#E30022"
+    ["celeste"]="#B2FFFF"
+    ["cerulean"]="#007BA7"
+    ["chartreuse"]="#7FFF00"
+    ["cherry_blossom_pink"]="#FFB7C5"
+    ["cherry_red"]="#D50032"
+    ["chinese_red"]="#D1001C"
+    ["chinese_violet"]="#856088"
+    ["chocolate"]="#D2691E"
+    ["christmas_green"]="#00A859"
+    ["classic_rose"]="#FBCCE7"
+    ["columbia_blue"]="#9CBBE9"
+    ["cool_gray"]="#A8A8A8"
+    ["coral"]="#FF7F50"
+    ["cornflower_blue"]="#6495ED"
+    ["cornsilk"]="#FFF8DC"
+    ["crimson"]="#DC143C"
+    ["dark_blue"]="#00008B"
+    ["dark_chocolate"]="#3E1C14"
+    ["dark_cyan"]="#008B8B"
+    ["dark_goldenrod"]="#B8860B"
+    ["dark_gray"]="#A9A9A9"
+    ["dark_green"]="#006400"
+    ["dark_khaki"]="#BDB76B"
+    ["dark_magenta"]="#8B008B"
+    ["dark_olive"]="#556B2F"
+    ["dark_orange"]="#FF8C00"
+    ["dark_orchid"]="#9932CC"
+    ["dark_red"]="#8B0000"
+    ["dark_salmon"]="#E9967A"
+    ["dark_sea_green"]="#8FBC8F"
+    ["dark_slate_blue"]="#483D8B"
+    ["dark_slate_gray"]="#2F4F4F"
+    ["dark_turquoise"]="#00CED1"
+    ["dark_violet"]="#9400D3"
+    ["deep_amethyst"]="#9B4F96"
+    ["deep_coral"]="#FF5733"
+    ["deep_emerald"]="#3A8A55"
+    ["deep_pink"]="#FF1493"
+    ["deep_red"]="#9E1B32"
+    ["deep_sky_blue"]="#00BFFF"
+    ["desire"]="#EA3C53"
+    ["dim_gray"]="#696969"
+    ["dodger_blue"]="#1E90FF"
+    ["dusty_rose"]="#C08081"
+    ["eggplant"]="#614051"
+    ["electric_lime"]="#00FF80"
+    ["electronic_blue"]="#1D39B3"
+    ["emerald_green"]="#50C878"
+    ["firebrick"]="#B22222"
+    ["floral_white"]="#FFFAF0"
+    ["forest_green"]="#228B22"
+    ["fuchsia"]="#FF00FF"
+    ["fuchsia_pink"]="#F400F5"
+    ["gainsboro"]="#DCDCDC"
+    ["ghost_white"]="#F8F8FF"
+    ["gold"]="#FFD700"
+    ["golden_yellow"]="#FFDF00"
+    ["goldenrod"]="#DAA520"
+    ["gray"]="#808080"
+    ["green"]="#008000"
+    ["green_yellow"]="#ADFF2F"
+    ["honeydew"]="#F0FFF0"
+    ["hot_pink"]="#FF69B4"
+    ["icy_blue"]="#B2E4FF"
+    ["indian_red"]="#CD5C5C"
+    ["indigo"]="#4B0082"
+    ["ivory"]="#FFFFF0"
+    ["jade"]="#00A86B"
+    ["japanese_carrot"]="#F97F19"
+    ["khaki"]="#F0E68C"
+    ["lavender"]="#E6E6FA"
+    ["lavender_blush"]="#FFF0F5"
+    ["lavender_gray"]="#C4C3D0"
+    ["lawn_green"]="#7CFC00"
+    ["lemon_chiffon"]="#FFFACD"
+    ["light_amethyst"]="#D2A7D7"
+    ["light_blue"]="#ADD8E6"
+    ["light_coral"]="#F08080"
+    ["light_cyan"]="#E0FFFF"
+    ["light_goldenrod_yellow"]="#FAFAD2"
+    ["light_gray"]="#D3D3D3"
+    ["light_green"]="#90EE90"
+    ["light_mauve"]="#C79CBB"
+    ["light_pink"]="#FFB6C1"
+    ["light_purple"]="#D8B3D1"
+    ["light_saffron"]="#F4C430"
+    ["light_salmon"]="#FFA07A"
+    ["light_sea_green"]="#20B2AA"
+    ["light_sky_blue"]="#87CEFA"
+    ["light_slate_gray"]="#778899"
+    ["light_steel_blue"]="#B0C4DE"
+    ["lilac"]="#C8A2C8"
+    ["lime_green"]="#32CD32"
+    ["linen"]="#FAF0E6"
+    ["lumber"]="#C19A6B"
+    ["luxury_blue"]="#4F71B4"
+    ["maroon"]="#800000"
+    ["medium_aqua_marine"]="#66CDAA"
+    ["medium_blue"]="#0000CD"
+    ["medium_orchid"]="#BA55D3"
+    ["medium_purple"]="#9370DB"
+    ["medium_sea_green"]="#3CB371"
+    ["medium_slate_blue"]="#7B68EE"
+    ["medium_spring_green"]="#00FA9A"
+    ["medium_turquoise"]="#48D1CC"
+    ["medium_violet_red"]="#C71585"
+    ["melon"]="#F1A7B7"
+    ["midnight"]="#191970"
+    ["midnight_green"]="#004B49"
+    ["mint"]="#98FF98"
+    ["mint_cream"]="#F5FFFA"
+    ["mint_julep"]="#A5C8B3"
+    ["misty_rose"]="#FFE4E1"
+    ["moccasin"]="#FFE4B5"
+    ["moss_green"]="#8A9A5B"
+    ["navajo_white"]="#FFDEAD"
+    ["navy"]="#000080"
+    ["neon_green"]="#39FF14"
+    ["old_lace"]="#FDF5E6"
+    ["olive"]="#808000"
+    ["olive_drab"]="#6B8E23"
+    ["olive_green"]="#708238"
+    ["orange"]="#FFA500"
+    ["orchid"]="#DA70D6"
+    ["pale_goldenrod"]="#EEE8AA"
+    ["pale_green"]="#98FB98"
+    ["pale_rose"]="#E4A7B9"
+    ["pale_turquoise"]="#AFEEEE"
+    ["pale_violet_red"]="#DB7093"
+    ["papaya_whip"]="#FFEFD5"
+    ["pastel_peach"]="#FFDAB3"
+    ["peach_puff"]="#FFDAB9"
+    ["peacock_blue"]="#1F75FE"
+    ["periwinkle_blue"]="#CCCCFF"
+    ["persian_blue"]="#1C39BB"
+    ["peru"]="#CD853F"
+    ["pink"]="#FFC0CB"
+    ["plum"]="#DDA0DD"
+    ["powder_blue"]="#B0E0E6"
+    ["powder_pink"]="#F9C9D4"
+    ["purple"]="#800080"
+    ["raspberry"]="#E30B5D"
+    ["rebecca_purple"]="#663399"
+    ["red"]="#FF0000"
+    ["rosewood"]="#65000B"
+    ["rosy_brown"]="#BC8F8F"
+    ["royal_blue"]="#4169E1"
+    ["saddle_brown"]="#8B4513"
+    ["sage_green"]="#9C9B7A"
+    ["salmon"]="#FA8072"
+    ["sandy_brown"]="#F4A460"
+    ["scarlet"]="#FF2400"
+    ["sea_green"]="#2E8B57"
+    ["sea_shell"]="#FFF5EE"
+    ["sienna"]="#A0522D"
+    ["silver"]="#C0C0C0"
+    ["sky_blue"]="#87CEEB"
+    ["sky_lavender"]="#B1A7D8"
+    ["slate_blue"]="#6A5ACD"
+    ["slate_gray"]="#708090"
+    ["snow"]="#FFFAFA"
+    ["snowdrift_white"]="#F1F8F6"
+    ["space_cadet"]="#2A3D66"
+    ["spring_green"]="#00FF7F"
+    ["steel_blue"]="#4682B4"
+    ["sunflower_yellow"]="#FFC300"
+    ["tan"]="#D2B48C"
+    ["tangerine"]="#FF7F32"
+    ["teal"]="#008080"
+    ["thistle"]="#D8BFD8"
+    ["tomato"]="#FF6347"
+    ["tropical_rainforest"]="#00755E"
+    ["turquoise"]="#40E0D0"
+    ["violet"]="#EE82EE"
+    ["vivid_orange"]="#FF5F00"
+    ["wheat"]="#F5DEB3"
+    ["white"]="#FFFFFF"
+    ["white_smoke"]="#F5F5F5"
+    ["yellow"]="#FFFF00"
+    ["yellow_green"]="#9ACD32"
+)
+
+process_color () {
+
+	extension="svg"
+
+	color_name="${1}"
+
+	color_name=${color_name,,}
+
+	color_name=${color_name/ /_}
+
+	if [[ -z "${colors[${color_name}]}" ]]
+	then
+		echo error
+		exit 1
+	fi
+
+	color_value="${colors[${color_name}]}"
+
+	output_file="${input_file%.${extension}}-${color_name/_/-}.${extension}"
+
+    sed "s/#000000/${color_value}/g" "${input_file}" > "${output_file}"
+
+    echo "New SVG file created: ${output_file}"
+}
+
+if [ -z "${1}" ]
+then
+    echo "Usage: ${0} <input_file>"
+    exit 1
+fi
+
+input_file="${1}"
+
+if [ ! -f "${input_file}" ]
+then
+    echo "Error: File '${input_file}' not found!"
+    exit 1
+fi
+
+if [ $# -eq 2 ] && [ "${2}" = "all" ]
+then
+    for color_name in "${!colors[@]}"
+    do
+        process_color "${color_name}"
+    done
+
+elif [ $# -eq 1 ]
+then
+	echo "Available colors:"
+	echo
+
+	for color_name in "${!colors[@]}"
+	do
+		formatted_color_name=$(echo "${color_name}" | sed 's/_/ /g' | sed 's/\b\(.\)/\u\1/g' | sort )
+
+		echo "    ${formatted_color_name}"
+	done
+
+	echo
+	echo "Please enter the name of the color you want to use:"
+	echo
+
+	read color_name
+	echo
+
+	process_color "${color_name}"
+fi
+
