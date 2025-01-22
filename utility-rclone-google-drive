@@ -43,7 +43,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="11-09-2024"
+version="01-21-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -129,7 +129,7 @@ ${TAB}transfer_command+=" \${destination}"
 ${TAB}transfer_command+=" --create-empty-src-dirs"
 ${TAB}transfer_command+=" --drive-skip-gdocs"
 
-${TAB}if [ ! -z "\${4}" ]
+${TAB}if [ ! -z "\${exclude}" ]
 ${TAB}then
 ${TAB}${TAB}exclude="/\${exclude}/**"
 
