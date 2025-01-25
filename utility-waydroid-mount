@@ -65,17 +65,20 @@ waydroid session start 2>&1 | while read -r message
 do
 	if echo "${message}" | grep -i 'Android with user 0 is ready'
 	then
-		sudo chown -R "${UID}":"${UID}" "$android_media"/*
+		sudo chown --recursive "${UID}":"${UID}" "$android_media"/*
 
-		sudo chmod -R 777 "$android_media"/*
+		sudo chmod --recursive 777 "$android_media"/*
 
 		for i in ${!android_directories_list[@]}
 		do
-			if ! mountpoint -q "$android_media"/"${android_directories_list[$i]}"
+			if ! mountpoint --quiet "$android_media"/"${android_directories_list[$i]}"
 			then
-				sudo mkdir -p "${android_media}"/"${android_directories_list[$i]}"
+				sudo mkdir --parents "${android_media}"/"${android_directories_list[$i]}"
 
-				sudo mount --bind --options uid="${UID}",gid="${UID}" --rw "${host_media}"/"${host_directories_list[$i]}" "${android_media}"/"${android_directories_list[$i]}"
+				sudo mount										\
+						--bind									\
+						--options uid="${UID}",gid="${UID}"		\
+						--rw "${host_media}"/"${host_directories_list[$i]}" "${android_media}"/"${android_directories_list[$i]}"
 
 			fi
 
