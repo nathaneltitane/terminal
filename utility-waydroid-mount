@@ -59,24 +59,27 @@ host_directories_list=(
 	"/${USER}/Samsung T7/music"
 )
 
-# functions ////////////////////////////////////////////////////////////////////
+waydroid show-full-ui &
 
-attach () {
+waydroid_process=$!
 
-	for i in ${!android_directories_list[@]}
-	do
-		if ! sudo mountpoint -q "$android_media/${android_directories_list[$i]}"
-		then
-			mkdir -p ${android_media}/${android_directories_list[$i]}
+sleep 60
 
-			mount --bind ${host_media}/${host_directories_list[$i]} ${android_media}/${android_directories_list[$i]}
+sudo chown -R 1000:1000 "$android_media"/
 
-		fi
+for i in ${!android_directories_list[@]}
+do
+	if ! sudo mountpoint -q "$android_media/${android_directories_list[$i]}"
+	then
+		mkdir -p ${android_media}/${android_directories_list[$i]}
 
-	done
-}
+		mount --bind -o uid=1000,gid=1000 ${host_media}/${host_directories_list[$i]} ${android_media}/${android_directories_list[$i]}
 
-detach () {
+	fi
+
+done
+
+wait "${waydroid_process}"
 
 for i in ${!android_directories_list[@]}
 do
@@ -85,20 +88,3 @@ do
 		echo -n "x"
 	done
 done
-
-}
-
-attach
-
-# share_off
-#
-# waydroid show-full-ui 2>&1 | while read -r message
-# do
-# 	echo "${message}"
-#
-# 	if echo "${message}" | grep -i 'user 0 is ready'
-# 	then
-# 		share_on
-# 	fi
-#
-# done
