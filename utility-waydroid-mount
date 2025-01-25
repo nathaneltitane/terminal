@@ -49,6 +49,10 @@ android_media="${HOME}"/.local/share/waydroid/data/media/0
 
 host_media=/media
 
+id="${SUDO_UID}"
+
+seconds="60"
+
 android_directories_list=(
 	Drive
 	Music
@@ -63,9 +67,11 @@ waydroid show-full-ui &
 
 waydroid_process=$!
 
-sleep 60
+sleep "${seconds}"
 
-sudo chown -R 1000:1000 "$android_media"/
+sudo chown -R "${id}":"${id}" "$android_media"/
+
+sudo chmod -R 777 "$android_media"/
 
 for i in ${!android_directories_list[@]}
 do
@@ -73,7 +79,7 @@ do
 	then
 		mkdir -p ${android_media}/${android_directories_list[$i]}
 
-		mount --bind -o uid=1000,gid=1000 ${host_media}/${host_directories_list[$i]} ${android_media}/${android_directories_list[$i]}
+		mount --bind -o uid="${id}",gid="${id}" ${host_media}/${host_directories_list[$i]} ${android_media}/${android_directories_list[$i]}
 
 	fi
 
