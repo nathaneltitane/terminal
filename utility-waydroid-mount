@@ -107,7 +107,7 @@ else
 
 	weston --width="${width}" --height="${height}" &
 
-	export WAYLAND_DISPLAY=wayland-0
+	export WAYLAND_DISPLAY=wayland-1
 fi
 
 waydroid session stop
