@@ -96,9 +96,25 @@ session_stop () {
 	done
 }
 
+# compositor setup
+
+if [[ "$(pidof -x weston)" ]]
+then
+	pkill -f weston
+else
+	width=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 1)
+	height=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 2)
+
+	weston --width="${width}" --height="${height}" &
+
+	export WAYLAND_DISPLAY=wayland-0
+fi
+
+waydroid session stop
+
 # session start
 
-waydroid session start 2>&1 | while read -r message
+waydroid show-full-ui 2>&1 | while read -r message
 do
 	if echo "${message}" | grep -i 'Android with user 0 is ready'
 	then
