@@ -41,17 +41,13 @@ fi
 
 export self_arguments="${@}"
 
-frobulator.escalate
+# frobulator.escalate
 
 # variables ////////////////////////////////////////////////////////////////////
 
 android_media="${HOME}"/.local/share/waydroid/data/media/0
 
 host_media=/media
-
-id="${SUDO_UID}"
-
-seconds="60"
 
 android_directories_list=(
 	Drive
@@ -63,34 +59,36 @@ host_directories_list=(
 	"/${USER}/Samsung T7/music"
 )
 
-waydroid show-full-ui &
+# session start
 
-waydroid_process=$!
-
-sleep "${seconds}"
-
-sudo chown -R "${id}":"${id}" "$android_media"/
-
-sudo chmod -R 777 "$android_media"/
-
-for i in ${!android_directories_list[@]}
+waydroid session start 2>&1 | while read -r message
 do
-	if ! sudo mountpoint -q "$android_media/${android_directories_list[$i]}"
+	if echo "${message}" | grep -i 'Android with user 0 is ready'
 	then
-		mkdir -p ${android_media}/${android_directories_list[$i]}
+		sudo chown -R "${UID}":"${UID}" "$android_media"/*
 
-		mount --bind -o uid="${id}",gid="${id}" ${host_media}/${host_directories_list[$i]} ${android_media}/${android_directories_list[$i]}
+		sudo chmod -R 777 "$android_media"/*
 
+		for i in ${!android_directories_list[@]}
+		do
+			if ! mountpoint -q "$android_media"/"${android_directories_list[$i]}"
+			then
+				sudo mkdir -p "${android_media}"/"${android_directories_list[$i]}"
+
+				sudo mount --bind --options uid="${UID}",gid="${UID}" --rw "${host_media}"/"${host_directories_list[$i]}" "${android_media}"/"${android_directories_list[$i]}"
+
+			fi
+
+		done
 	fi
-
 done
 
-wait "${waydroid_process}"
+# session stop
 
 for i in ${!android_directories_list[@]}
 do
-	while sudo umount ${android_media}/${android_directories_list[$i]} 2> "${sink}"
-	do
-		echo -n "x"
-	done
+	sudo umount "${android_media}"/"${android_directories_list[$i]}" 2> "${sink}"
+
+	echo "Unmounting ${android_media}/${android_directories_list[$i]}"
+	echo
 done
