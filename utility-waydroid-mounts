@@ -1,0 +1,104 @@
+#!/bin/bash
+
+set -x
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# variables ////////////////////////////////////////////////////////////////////
+
+android_media="${HOME}"/.local/share/waydroid/data/media/0
+
+host_media=/media
+
+android_directories_list=(
+	Drive
+	Music
+)
+
+host_directories_list=(
+	internal
+	"/${USER}/Samsung T7/music"
+)
+
+# functions ////////////////////////////////////////////////////////////////////
+
+share_on () {
+
+	for i in ${!android_directories_list[@]}
+	do
+		if ! sudo mountpoint -q "$android_media/${android_directories_list[$i]}"
+		then
+			sudo mkdir -p ${android_media}/${android_directories_list[$i]}
+
+			mount --bind ${host_media}/${host_directories_list[$i]} ${android_media}/${android_directories_list[$i]}
+
+		fi
+
+	done
+}
+
+share_off () {
+
+for i in ${!android_directories_list[@]}
+do
+	while sudo umount ${android_media}/${android_directories_list[$i]} 2> "${sink}"
+	do
+		echo -n "x"
+	done
+done
+
+}
+
+share_on
+
+# share_off
+#
+# waydroid show-full-ui 2>&1 | while read -r message
+# do
+# 	echo "${message}"
+#
+# 	if echo "${message}" | grep -i 'user 0 is ready'
+# 	then
+# 		share_on
+# 	fi
+#
+# done
