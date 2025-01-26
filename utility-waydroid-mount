@@ -43,6 +43,8 @@ export self_arguments="${@}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+compositor=$(command -v weston)
+
 android_media="${HOME}"/.local/share/waydroid/data/media/0
 
 host_media=/media
@@ -63,9 +65,9 @@ session_start () {
 
 	# take ownership and populate directories
 
-	sudo chown --recursive "${UID}":"${UID}" "$android_media"/*
+	sudo chown --recursive "${UID}":"${UID}" "$android_media"
 
-	sudo chmod --recursive 777 "$android_media"/*
+	sudo chmod --recursive 777 "$android_media"
 
 	for i in ${!android_directories_list[@]}
 	do
@@ -98,9 +100,9 @@ session_stop () {
 
 # compositor setup
 
-if [[ "$(pgrep -f weston)" ]]
+if [[ "$(pgrep -f "${compositor}")" ]]
 then
-	pkill -f weston
+	pkill -f "${compositor}"
 else
 	width=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 1)
 	height=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 2)
