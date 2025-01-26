@@ -41,6 +41,17 @@ export self_arguments="${@}"
 
 # frobulator.escalate
 
+# defaults /////////////////////////////////////////////////////////////////////
+
+list=(
+	dbus-x11
+	weston
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
 # variables ////////////////////////////////////////////////////////////////////
 
 compositor=$(command -v weston)
