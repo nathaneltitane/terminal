@@ -59,14 +59,14 @@ echo
 settings_intent () {
 	# reload termux settings
 
-	unset settings_command
+	settings_command=()
 
-	settings_command+="am broadcast"
-	settings_command+=" --user 0"
-	settings_command+=" -a com.termux.app.reload_style"
-	settings_command+=" com.termux"
+	settings_command+=(am broadcast)
+	settings_command+=(--user 0)
+	settings_command+=(-a com.termux.app.reload_style)
+	settings_command+=(com.termux)
 
-	frobulator.silence "${settings_command}"
+	frobulator.silence "${settings_command[@]}"
 }
 
 # termux ///////////////////////////////////////////////////////////////////////
@@ -74,13 +74,13 @@ settings_intent () {
 frobulator.inf "Setting up" "[ termux ]"
 echo
 
-files_list+=(
+list+=(
 	termux-colors
 	termux-font
 	termux-properties
 )
 
-frobulator.download get.trmx.app "${HOME}"/.local/bin ${files_list[@]}
+frobulator.download get.trmx.app "${HOME}"/.local/bin ${list[@]}
 
 frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-colors     colors.properties
 frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-font       font.ttf
@@ -88,7 +88,7 @@ frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-properties termux.
 
 settings_intent
 
-files_list=()
+list=()
 
 # git //////////////////////////////////////////////////////////////////////////
 
@@ -115,7 +115,7 @@ frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 frobulator.inf "Setting up" "[ shell ]"
 echo
 
-files_list+=(
+list+=(
 	bash-aliases
 	bash-configuration
 	bash-functions
@@ -124,7 +124,7 @@ files_list+=(
 	bash-profile
 )
 
-frobulator.download get.trmnl.me "${HOME}"/.local/bin ${files_list[@]}
+frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
 
 frobulator.link "${HOME}"/.local/bin "${HOME}" bash-aliases       .bash_aliases
 frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bashrc
@@ -134,14 +134,14 @@ frobulator.link "${HOME}"/.local/bin "${HOME}" bash-login         .bash_login
 frobulator.link "${HOME}"/.local/bin "${HOME}" bash-logout        .bash_logout
 frobulator.link "${HOME}"/.local/bin "${HOME}" bash-profile       .bash_profile
 
-files_list=()
+list=()
 
 # adb /////////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Setting up" "[ adb ]"
 echo
 
-files_list+=(
+list+=(
 	adb
 	fastboot
 	e2fsdroid
@@ -149,9 +149,9 @@ files_list+=(
 	make_f2fs
 )
 
-frobulator.download get.trmnl.me/android "${HOME}"/.local/bin ${files_list[@]}
+frobulator.download get.trmnl.me/android "${HOME}"/.local/bin ${list[@]}
 
-files_list=()
+list=()
 
 # geany ////////////////////////////////////////////////////////////////////////
 
