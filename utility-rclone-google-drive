@@ -120,27 +120,27 @@ ${TAB}destination="\${3}"
 
 ${TAB}exclude="\${4}"
 
-${TAB}unset transfer_command
+${TAB}transfer_command=()
 
-${TAB}transfer_command+="\${rclone}"
-${TAB}transfer_command+=" \${synchronization_option}"
-${TAB}transfer_command+=" \${source}"
-${TAB}transfer_command+=" \${destination}"
-${TAB}transfer_command+=" --create-empty-src-dirs"
-${TAB}transfer_command+=" --drive-skip-gdocs"
+${TAB}transfer_command+=(\${rclone})
+${TAB}transfer_command+=(\${synchronization_option})
+${TAB}transfer_command+=(\${source})
+${TAB}transfer_command+=(\${destination})
+${TAB}transfer_command+=(--create-empty-src-dirs)
+${TAB}transfer_command+=(--drive-skip-gdocs)
 
 ${TAB}if [ ! -z "\${exclude}" ]
 ${TAB}then
 ${TAB}${TAB}exclude="/\${exclude}/**"
 
-${TAB}${TAB}transfer_command+=" --exclude \${exclude}"
+${TAB}${TAB}transfer_command+=(--exclude \${exclude})
 ${TAB}fi
 
-${TAB}transfer_command+=" --multi-thread-streams \${streams}"
-${TAB}transfer_command+=" --progress"
-${TAB}transfer_command+=" --verbose"
+${TAB}transfer_command+=(--multi-thread-streams \${streams})
+${TAB}transfer_command+=(--progress)
+${TAB}transfer_command+=(--verbose)
 
-${TAB}eval \${transfer_command}
+${TAB}eval \${transfer_command[@]}
 }
 
 # batch directory management
