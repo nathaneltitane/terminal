@@ -118,7 +118,7 @@ else
 	width=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 1)
 	height=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 2)
 
-	weston --width="${width}" --height="${height}" &
+	weston --width="${width}" --height="${height}" --fullscreen &
 
 	export WAYLAND_DISPLAY=wayland-1
 fi
