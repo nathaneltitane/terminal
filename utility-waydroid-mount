@@ -69,7 +69,7 @@ android_directories_list=(
 
 host_directories_list=(
 	internal
-	"/${USER}/Samsung T7/music"
+	"${USER}/Samsung T7/music"
 )
 
 # functions ////////////////////////////////////////////////////////////////////
