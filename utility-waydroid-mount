@@ -106,7 +106,8 @@ session_start () {
 	do
 		if ! mountpoint --quiet "${android_storage}"/"${android_directories_list[$i]}"
 		then
-			sudo mkdir --parents "${android_storage}"/"${android_directories_list[$i]}"
+			sudo mkdir										\
+					--parents "${android_storage}"/"${android_directories_list[$i]}"
 
 			sudo mount										\
 					--bind									\
