@@ -72,6 +72,21 @@ host_directories_list=(
 
 # functions ////////////////////////////////////////////////////////////////////
 
+compositor_configure () {
+
+	cat <<- FILE > "${HOME}"/.config/weston.ini
+	[core]
+	idle-time=0
+	xwayland=true
+
+	[shell]
+	background-color=0xff000000
+	panel-position=''
+	locking=false
+	FILE
+
+}
+
 session_start () {
 
 	# take ownership and populate directories
@@ -110,6 +125,11 @@ session_stop () {
 }
 
 # compositor setup
+
+if [ ! -f "${HOME}"/.config/weston.ini ]
+then
+	compositor_configure
+fi
 
 if [[ "$(pgrep -f "${compositor}")" ]]
 then
