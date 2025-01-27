@@ -87,6 +87,17 @@ compositor_configure () {
 
 }
 
+compositor_load () {
+
+	width=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 1)
+	height=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 2)
+
+	weston --width="${width}" --height="${height}" --fullscreen &
+
+	export WAYLAND_DISPLAY=wayland-1
+
+}
+
 session_start () {
 
 	# take ownership and populate directories
@@ -135,12 +146,7 @@ if [[ "$(pgrep -f "${compositor}")" ]]
 then
 	pkill -f "${compositor}"
 else
-	width=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 1)
-	height=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 2)
-
-	weston --width="${width}" --height="${height}" --fullscreen &
-
-	export WAYLAND_DISPLAY=wayland-1
+	compositor_load
 fi
 
 waydroid session stop
