@@ -1,0 +1,45 @@
+#!/bin/bash
+
+url="https://www.gutenberg.org/ebooks"
+
+digits=(
+)
+
+titles=(
+)
+
+author=""
+
+IFS=$'\n'
+
+for i in ${!digits[@]}
+do
+	extension="epub3.images"
+
+	digit="${digits[i]}"
+
+	author="${authorss[i]}"
+
+	title="${titles[i]}"
+
+# 	for word in "${title}"
+# 	do
+# 		first_letter="${word:0:1}"
+#
+# 		rest="${word:1}"
+#
+# 		output+="${first_letter^^}${rest,,} "
+# 	done
+#
+# 	output="${output% }"
+
+	curl -s -L "${url}"/"${digit}"."${extension}" > "${author} - ${title}.${extension}"
+
+	echo "Downloading ${digit} - ${author} - ${title} [ ${extension} ]"
+	echo
+
+# 	output=()
+
+done
+
+IFS=''
