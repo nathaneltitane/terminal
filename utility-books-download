@@ -2,43 +2,127 @@
 
 url="https://www.gutenberg.org/ebooks"
 
+author=(
+"Jules Verne"
+)
+
 digits=(
+26823
+800
+3456
+4548
+4717
+4791
+4968
+5081
+5082
+5095
+5096
+5097
+5126
+7442
+8174
+8175
+11484
+11589
+11927
+12533
+14162
+14163
+14287
+14806
+14810
+15203
+15646
+16826
+16827
+17660
+17796
+17798
+17832
+17914
+20973
+38674
+45058
+46111
+46541
+53439
+54873
+55135
+55869
+799
+60450
 )
 
 titles=(
+"Michel Strogoff: Pièce à grand spectacle en 5 actes et 16 tableaux"
+"Le tour du monde en quatre-vingts jours"
+"Le tour du monde en quatre-vingts jours"
+"Cinq Semaines En Ballon"
+"Autour de la Lune"
+"Voyage au Centre de la Terre"
+"Les Cinq Cents Millions De La Bégum"
+"Les Indes Noires"
+"Le chateâu des Carpathes"
+"Vingt Mille Lieues Sous Les Mers — Part 1"
+"Vingt Mille Lieues Sous Les Mers — Part 2"
+"Vingt mille Lieues Sous Les Mers — Complete"
+"Robur-le-conquérant"
+"Michel Strogoff: De Moscou a Irkoutsk"
+"Kéraban-Le-Têtu, Volume I"
+"Kéraban-Le-Têtu, Volume II"
+"Le pilote du Danube"
+"Le Docteur Ox"
+"Aventures du Capitaine Hatteras"
+"Sans dessus dessous"
+"Les tribulations d'un chinois en Chine"
+"Les enfants du capitaine Grant"
+"L'île mystérieuse"
+"La Jangada: Huit cent lieues sur l'Amazone"
+"La maison à vapeur: Voyage à travers l'Inde septentrionale"
+"Un billet de loterie(Le numéro 9672)"
+"Nord contre sud"
+"Face au drapeau"
+"Le village aérien"
+"L'archipel en feu"
+"Le pays des fourrures"
+"L'île à hélice"
+"Une ville flottante"
+"Mistress Branican"
+"Le tour du monde en quatre-vingts jours"
+"De la terre à la lune, trajet direct en 97 heures 20 minutes"
+"Les tribulations d'un chinois en Chine"
+"Autour de la lune"
+"Le Tour du monde en quatre-vingts jours"
+"Les voyageurs du XIXe siècle"
+"Vingt mille lieues sous les mers"
+"P'tit-bonhomme"
+"Les grands navigateurs du XVIIIe siècle"
+"De la terre à la lune: trajet direct en 97 heures 20 minutes"
+"Les naufragés du Jonathan"
 )
 
-author=""
+if [ ! -d "${HOME}"/Books/"${author}" ]
+then
+	mkdir -p "${HOME}"/Books/"${author}"
+fi
+
+author=${author[@]}
 
 IFS=$'\n'
 
 for i in ${!digits[@]}
 do
-	extension="epub3.images"
+	extension="epub"
 
 	digit="${digits[i]}"
 
-	author="${authorss[i]}"
-
 	title="${titles[i]}"
 
-# 	for word in "${title}"
-# 	do
-# 		first_letter="${word:0:1}"
-#
-# 		rest="${word:1}"
-#
-# 		output+="${first_letter^^}${rest,,} "
-# 	done
-#
-# 	output="${output% }"
-
-	curl -s -L "${url}"/"${digit}"."${extension}" > "${author} - ${title}.${extension}"
+	curl -s -L "${url}"/"${digit}"."${extension}" > "${HOME}"/Books/"${author}"/"${author} - ${title}.${extension}"
 
 	echo "Downloading ${digit} - ${author} - ${title} [ ${extension} ]"
 	echo
-
-# 	output=()
 
 done
 
