@@ -4,33 +4,33 @@
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
 then
-	rm -r -f "${HOME}"/.local/bin/frobulator
+    rm -r -f "${HOME}"/.local/bin/frobulator
 fi
 
 if [[ -z $(command -v frobulator) ]]
 then
-	if [[ $(id -u -n) = "root" ]]
-	then
-		SUDO_HOME=/root
+    if [[ $(id -u -n) = "root" ]]
+    then
+        SUDO_HOME=/root
 
-		USER="${SUDO_USER}"
+        USER="${SUDO_USER}"
 
-		HOME=/home/"${USER}"
-	fi
+        HOME=/home/"${USER}"
+    fi
 
-	if [[ -z $(command -v curl) ]]
-	then
-		yes | apt-get install curl
-	fi
+    if [[ -z $(command -v curl) ]]
+    then
+        yes | apt-get install curl
+    fi
 
-	if [ ! -d "${HOME}"/.local/bin ]
-	then
-		mkdir -p "${HOME}"/.local/bin
-	fi
+    if [ ! -d "${HOME}"/.local/bin ]
+    then
+        mkdir -p "${HOME}"/.local/bin
+    fi
 
-	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+    curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
 
-	chmod +x "${HOME}"/.local/bin/frobulator
+    chmod +x "${HOME}"/.local/bin/frobulator
 fi
 
 . "${HOME}"/.local/bin/frobulator
@@ -122,7 +122,7 @@ book_details () {
 
     response=$(curl -s "${api_url}${book_identifier}/")
 
-   formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
+    formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
     curl -s "${api_url}${book_identifier}/" | jq -r '
         "Title: " + .title + "\n" +
@@ -190,40 +190,39 @@ book_download () {
 
 while true
 do
-echo
-echo "[ 1 ] Search for a book                  [ author | title | subject ]"
-echo "[ 2 ] Get book details                   [ id ]"
-echo "[ 3 ] Download book(s) (epub format)     [ id ]"
-echo
-echo "[ e ] Exit"
-echo
-echo "Choose an option:"
-echo
+    echo
+    echo "[ 1 ] Search for a book                  [ author | title | subject ]"
+    echo "[ 2 ] Get book details                   [ id ]"
+    echo "[ 3 ] Download book(s) (epub format)     [ id ]"
+    echo
+    echo "[ e ] Exit"
+    echo
+    echo "Choose an option:"
+    echo
 
-read -r selection
+    read -r selection
 
-case "${selection}"
-in
-1)
-book_search
-;;
+    case "${selection}"
+    in
+    1)
+        book_search
+        ;;
 
-2)
-book_details
-;;
+    2)
+        book_details
+        ;;
 
+    3)
+        book_download
+        ;;
 
-3)
-book_download
-;;
+    e|E)
+        exit 0
+        ;;
 
-e|E)
-exit 0
-;;
+    *)
+        echo "Invalid choice. Try again."
+        ;;
 
-*)
-echo "Invalid choice. Try again."
-;;
-
-esac
+    esac
 done
