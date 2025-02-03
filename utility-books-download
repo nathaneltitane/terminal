@@ -4,33 +4,33 @@
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
 then
-    rm -r -f "${HOME}"/.local/bin/frobulator
+		rm -r -f "${HOME}"/.local/bin/frobulator
 fi
 
 if [[ -z $(command -v frobulator) ]]
 then
-    if [[ $(id -u -n) = "root" ]]
-    then
-        SUDO_HOME=/root
+		if [[ $(id -u -n) = "root" ]]
+		then
+				SUDO_HOME=/root
 
-        USER="${SUDO_USER}"
+				USER="${SUDO_USER}"
 
-        HOME=/home/"${USER}"
-    fi
+				HOME=/home/"${USER}"
+		fi
 
-    if [[ -z $(command -v curl) ]]
-    then
-        yes | apt-get install curl
-    fi
+		if [[ -z $(command -v curl) ]]
+		then
+				yes | apt-get install curl
+		fi
 
-    if [ ! -d "${HOME}"/.local/bin ]
-    then
-        mkdir -p "${HOME}"/.local/bin
-    fi
+		if [ ! -d "${HOME}"/.local/bin ]
+		then
+				mkdir -p "${HOME}"/.local/bin
+		fi
 
-    curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+		curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
 
-    chmod +x "${HOME}"/.local/bin/frobulator
+		chmod +x "${HOME}"/.local/bin/frobulator
 fi
 
 . "${HOME}"/.local/bin/frobulator
@@ -63,166 +63,166 @@ api_url="https://gutendex.com/books/"
 
 string_sanitize () {
 
-    echo "${1}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+	echo "${1}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
 }
 
 book_search () {
 
-    echo "Enter search query (title, author, or subject):"
+	echo "Enter search query (title, author, or subject):"
 
-    read -r query
+	read -r query
 
-    # url encode space characters
+	# url encode space characters
 
-    query=$(echo "${query}" | sed 's/ /%20/g')
+	query=$(echo "${query}" | sed 's/ /%20/g')
 
-    echo "Enter language code (e.g., 'en' for English, 'fr' for French, press Enter to skip):"
+	echo "Enter language code (e.g., 'en' for English, 'fr' for French, press Enter to skip):"
 
-    read -r language
+	read -r language
 
-    if [ -n "${language}" ]
-    then
-        api_call="${api_url}?search=${query}&languages=${language}"
-    else
-        api_call="${api_url}?search=${query}"
-    fi
+	if [ -n "${language}" ]
+	then
+			api_call="${api_url}?search=${query}&languages=${language}"
+	else
+			api_call="${api_url}?search=${query}"
+	fi
 
-    echo "Fetching results..."
-    echo
+	echo "Fetching results..."
+	echo
 
-    results=$(curl -s "${api_call}")
+	results=$(curl -s "${api_call}")
 
-    if [ -n "${language}" ]
-    then
-            search_results_last=($(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))'))
+	if [ -n "${language}" ]
+	then
+			search_results_last=($(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))'))
 
-    else
-            search_results_last=($(echo "${results}" | jq -r '.results[].id'))
+	else
+			search_results_last=($(echo "${results}" | jq -r '.results[].id'))
 
-    fi
+	fi
 
-    curl -s "${api_call}" | jq -r -c '
-        .results[] | select(.languages[] | contains("'"${language}"'")) |
-        "ID " + (.id|tostring) + ":" + "\n" +
-        "    Title: " + .title + "\n" +
-        "    Author: " + (.authors[].name // "Unknown") + "\n" +
-        "    Language: " + (.languages | join(", ")) + "\n" +
-        "    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
-        '
+	curl -s "${api_call}" | jq -r -c '
+			.results[] | select(.languages[] | contains("'"${language}"'")) |
+			"ID " + (.id|tostring) + ":" + "\n" +
+			"    Title: " + .title + "\n" +
+			"    Author: " + (.authors[].name // "Unknown") + "\n" +
+			"    Language: " + (.languages | join(", ")) + "\n" +
+			"    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
+	'
 }
 
 book_details () {
 
-    echo "Enter Book ID:"
+	echo "Enter Book ID:"
 
-    read -r book_identifier
+	read -r book_identifier
 
-    echo "Fetching details..."
-    echo
+	echo "Fetching details..."
+	echo
 
-    response=$(curl -s "${api_url}${book_identifier}/")
+	response=$(curl -s "${api_url}${book_identifier}/")
 
-    formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
+	formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
-    curl -s "${api_url}${book_identifier}/" | jq -r '
-        "Title: " + .title + "\n" +
-        "Author: " + (.authors[].name // "Unknown") + "\n" +
-        "Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
-        '
+	curl -s "${api_url}${book_identifier}/" | jq -r '
+			"Title: " + .title + "\n" +
+			"Author: " + (.authors[].name // "Unknown") + "\n" +
+			"Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
+	'
 
-    echo "Available Formats:"
-    echo
+	echo "Available Formats:"
+	echo
 
-    echo "${formats}"
+	echo "${formats}"
 }
 
 book_download () {
 
-    echo "Enter Book Identifier(s) (separated by spaces) or type 'all' to download last query results:"
+	echo "Enter Book Identifier(s) (separated by spaces) or type 'all' to download last query results:"
 
-    read -r -a book_identifiers
+	read -r -a book_identifiers
 
-    if [ "${book_identifiers[0]}" = "all" ]
-    then
-        if [ ${#search_results_last[@]} -eq 0 ]
-        then
-            echo "No previous search results found."
+	if [ "${book_identifiers[0]}" = "all" ]
+	then
+			if [ ${#search_results_last[@]} -eq 0 ]
+			then
+					echo "No previous search results found."
 
-            return
-        fi
+					return
+			fi
 
-        book_identifiers=("${search_results_last[@]}")
-    fi
+			book_identifiers=("${search_results_last[@]}")
+	fi
 
-    for book_identifier in "${book_identifiers[@]}"
-    do
-        echo "Fetching book info for ID: ${book_identifier}..."
-        echo
+	for book_identifier in "${book_identifiers[@]}"
+	do
+			echo "Fetching book info for ID: ${book_identifier}..."
+			echo
 
-        response=$(curl -s "${api_url}${book_identifier}/")
-        epub_url=$(echo "$response" | jq -r '.formats."application/epub+zip"')
-        title=$(echo "$response" | jq -r '.title')
-        author=$(echo "$response" | jq -r '.authors[0].name')
+			response=$(curl -s "${api_url}${book_identifier}/")
+			epub_url=$(echo "$response" | jq -r '.formats."application/epub+zip"')
+			title=$(echo "$response" | jq -r '.title')
+			author=$(echo "$response" | jq -r '.authors[0].name')
 
-        if [ "${epub_url}" = "null" ]
-        then
-            echo "No EPUB version available for Book ID: ${book_identifier}"
-            continue
-        fi
+			if [ "${epub_url}" = "null" ]
+			then
+					echo "No EPUB version available for Book ID: ${book_identifier}"
+					continue
+			fi
 
-        safe_author=$(string_sanitize "${author}")
-        safe_title=$(string_sanitize  "${title}")
+			safe_author=$(string_sanitize "${author}")
+			safe_title=$(string_sanitize  "${title}")
 
-        extension="epub"
+			extension="epub"
 
-        file_name="${safe_author} - ${safe_title}.${extension}"
+			file_name="${safe_author} - ${safe_title}.${extension}"
 
-        echo "Downloading: ${file_name}..."
-        echo
+			echo "Downloading: ${file_name}..."
+			echo
 
-        curl -s -L -o "${file_name}" "${epub_url}"
+			curl -s -L -o "${file_name}" "${epub_url}"
 
-        echo "Download complete for: ${file_name}"
-        echo
-    done
+			echo "Download complete for: ${file_name}"
+			echo
+	done
 }
 
 
 while true
 do
-    echo
-    echo "[ 1 ] Search for a book                  [ author | title | subject ]"
-    echo "[ 2 ] Get book details                   [ id ]"
-    echo "[ 3 ] Download book(s) (epub format)     [ id ]"
-    echo
-    echo "[ e ] Exit"
-    echo
-    echo "Choose an option:"
-    echo
+	echo
+	echo "[ 1 ] Search for a book                  [ author | title | subject ]"
+	echo "[ 2 ] Get book details                   [ id ]"
+	echo "[ 3 ] Download book(s) (epub format)     [ id ]"
+	echo
+	echo "[ e ] Exit"
+	echo
+	echo "Choose an option:"
+	echo
 
-    read -r selection
+	read -r selection
 
-    case "${selection}"
-    in
-    1)
-        book_search
-        ;;
+	case "${selection}"
+	in
+	1)
+			book_search
+			;;
 
-    2)
-        book_details
-        ;;
+	2)
+			book_details
+			;;
 
-    3)
-        book_download
-        ;;
+	3)
+			book_download
+			;;
 
-    e|E)
-        exit 0
-        ;;
+	e|E)
+			exit 0
+			;;
 
-    *)
-        echo "Invalid choice. Try again."
-        ;;
+	*)
+			echo "Invalid choice. Try again."
+			;;
 
-    esac
+	esac
 done
