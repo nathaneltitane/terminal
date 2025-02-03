@@ -1,129 +1,229 @@
 #!/bin/bash
 
-url="https://www.gutenberg.org/ebooks"
+# dependencies /////////////////////////////////////////////////////////////////
 
-author=(
-"Jules Verne"
-)
-
-digits=(
-26823
-800
-3456
-4548
-4717
-4791
-4968
-5081
-5082
-5095
-5096
-5097
-5126
-7442
-8174
-8175
-11484
-11589
-11927
-12533
-14162
-14163
-14287
-14806
-14810
-15203
-15646
-16826
-16827
-17660
-17796
-17798
-17832
-17914
-20973
-38674
-45058
-46111
-46541
-53439
-54873
-55135
-55869
-799
-60450
-)
-
-titles=(
-"Michel Strogoff: Pièce à grand spectacle en 5 actes et 16 tableaux"
-"Le tour du monde en quatre-vingts jours"
-"Le tour du monde en quatre-vingts jours"
-"Cinq Semaines En Ballon"
-"Autour de la Lune"
-"Voyage au Centre de la Terre"
-"Les Cinq Cents Millions De La Bégum"
-"Les Indes Noires"
-"Le chateâu des Carpathes"
-"Vingt Mille Lieues Sous Les Mers — Part 1"
-"Vingt Mille Lieues Sous Les Mers — Part 2"
-"Vingt mille Lieues Sous Les Mers — Complete"
-"Robur-le-conquérant"
-"Michel Strogoff: De Moscou a Irkoutsk"
-"Kéraban-Le-Têtu, Volume I"
-"Kéraban-Le-Têtu, Volume II"
-"Le pilote du Danube"
-"Le Docteur Ox"
-"Aventures du Capitaine Hatteras"
-"Sans dessus dessous"
-"Les tribulations d'un chinois en Chine"
-"Les enfants du capitaine Grant"
-"L'île mystérieuse"
-"La Jangada: Huit cent lieues sur l'Amazone"
-"La maison à vapeur: Voyage à travers l'Inde septentrionale"
-"Un billet de loterie(Le numéro 9672)"
-"Nord contre sud"
-"Face au drapeau"
-"Le village aérien"
-"L'archipel en feu"
-"Le pays des fourrures"
-"L'île à hélice"
-"Une ville flottante"
-"Mistress Branican"
-"Le tour du monde en quatre-vingts jours"
-"De la terre à la lune, trajet direct en 97 heures 20 minutes"
-"Les tribulations d'un chinois en Chine"
-"Autour de la lune"
-"Le Tour du monde en quatre-vingts jours"
-"Les voyageurs du XIXe siècle"
-"Vingt mille lieues sous les mers"
-"P'tit-bonhomme"
-"Les grands navigateurs du XVIIIe siècle"
-"De la terre à la lune: trajet direct en 97 heures 20 minutes"
-"Les naufragés du Jonathan"
-)
-
-if [ ! -d "${HOME}"/Books/"${author}" ]
+if [ -f "${HOME}"/.local/bin/frobulator ]
 then
-	mkdir -p "${HOME}"/Books/"${author}"
+	rm -r -f "${HOME}"/.local/bin/frobulator
 fi
 
-author=${author[@]}
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
 
-IFS=$'\n'
+		USER="${SUDO_USER}"
 
-for i in ${!digits[@]}
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="03-10-2023"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+api_url="https://gutendex.com/books/"
+
+# functions ////////////////////////////////////////////////////////////////////
+
+string_sanitize () {
+
+    echo "${1}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+}
+
+book_search () {
+
+    echo "Enter search query (title, author, or subject):"
+
+    read -r query
+
+    # url encode space characters
+
+    query=$(echo "${query}" | sed 's/ /%20/g')
+
+    echo "Enter language code (e.g., 'en' for English, 'fr' for French, press Enter to skip):"
+
+    read -r language
+
+    if [ -n "${language}" ]
+    then
+        api_call="${api_url}?search=${query}&languages=${language}"
+    else
+        api_call="${api_url}?search=${query}"
+    fi
+
+    echo "Fetching results..."
+    echo
+
+    results=$(curl -s "${api_call}")
+
+    if [ -n "${language}" ]
+    then
+            search_results_last=($(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))'))
+
+    else
+            search_results_last=($(echo "${results}" | jq -r '.results[].id'))
+
+    fi
+
+    curl -s "${api_call}" | jq -r -c '
+        .results[] | select(.languages[] | contains("'"${language}"'")) |
+        "ID " + (.id|tostring) + ":" + "\n" +
+        "    Title: " + .title + "\n" +
+        "    Author: " + (.authors[].name // "Unknown") + "\n" +
+        "    Language: " + (.languages | join(", ")) + "\n" +
+        "    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
+        '
+}
+
+book_details () {
+
+    echo "Enter Book ID:"
+
+    read -r book_identifier
+
+    echo "Fetching details..."
+    echo
+
+    response=$(curl -s "${api_url}${book_identifier}/")
+
+   formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
+
+    curl -s "${api_url}${book_identifier}/" | jq -r '
+        "Title: " + .title + "\n" +
+        "Author: " + (.authors[].name // "Unknown") + "\n" +
+        "Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
+        '
+
+    echo "Available Formats:"
+    echo
+
+    echo "${formats}"
+}
+
+book_download () {
+
+    echo "Enter Book Identifier(s) (separated by spaces) or type 'all' to download last query results:"
+
+    read -r -a book_identifiers
+
+    if [ "${book_identifiers[0]}" = "all" ]
+    then
+        if [ ${#search_results_last[@]} -eq 0 ]
+        then
+            echo "No previous search results found."
+
+            return
+        fi
+
+        book_identifiers=("${search_results_last[@]}")
+    fi
+
+    for book_identifier in "${book_identifiers[@]}"
+    do
+        echo "Fetching book info for ID: ${book_identifier}..."
+        echo
+
+        response=$(curl -s "${api_url}${book_identifier}/")
+        epub_url=$(echo "$response" | jq -r '.formats."application/epub+zip"')
+        title=$(echo "$response" | jq -r '.title')
+        author=$(echo "$response" | jq -r '.authors[0].name')
+
+        if [ "${epub_url}" = "null" ]
+        then
+            echo "No EPUB version available for Book ID: ${book_identifier}"
+            continue
+        fi
+
+        safe_author=$(string_sanitize "${author}")
+        safe_title=$(string_sanitize  "${title}")
+
+        extension="epub"
+
+        file_name="${safe_author} - ${safe_title}.${extension}"
+
+        echo "Downloading: ${file_name}..."
+        echo
+
+        curl -s -L -o "${file_name}" "${epub_url}"
+
+        echo "Download complete for: ${file_name}"
+        echo
+    done
+}
+
+
+while true
 do
-	extension="epub"
+echo
+echo "[ 1 ] Search for a book                  [ author | title | subject ]"
+echo "[ 2 ] Get book details                   [ id ]"
+echo "[ 3 ] Download book(s) (epub format)     [ id ]"
+echo
+echo "[ e ] Exit"
+echo
+echo "Choose an option:"
+echo
 
-	digit="${digits[i]}"
+read -r selection
 
-	title="${titles[i]}"
+case "${selection}"
+in
+1)
+book_search
+;;
 
-	curl -s -L "${url}"/"${digit}"."${extension}" > "${HOME}"/Books/"${author}"/"${author} - ${title}.${extension}"
+2)
+book_details
+;;
 
-	echo "Downloading ${digit} - ${author} - ${title} [ ${extension} ]"
-	echo
 
+3)
+book_download
+;;
+
+e|E)
+exit 0
+;;
+
+*)
+echo "Invalid choice. Try again."
+;;
+
+esac
 done
-
-IFS=''
