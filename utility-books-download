@@ -177,19 +177,19 @@ book_download () {
 					continue
 			fi
 
-			safe_author=$(string_sanitize "${author}")
-			safe_title=$(string_sanitize  "${title}")
+			author=$(string_sanitize "${author}")
+			title=$(string_sanitize  "${title}")
 
 			extension="epub"
 
-			file_name="${safe_author} - ${safe_title}.${extension}"
+			file="${author} - ${title}.${extension}"
 
-			echo "Downloading: ${file_name}..."
+			echo "Downloading: ${file}..."
 			echo
 
-			curl -s -L -o "${file_name}" "${epub_url}"
+			curl -s -L -o "${file}" "${epub_url}"
 
-			echo "Download complete for: ${file_name}"
+			echo "Download complete for: ${file}"
 			echo
 	done
 }
@@ -211,25 +211,25 @@ do
 
 	case "${selection}"
 	in
-	1)
+		1)
 			book_search
-			;;
+		;;
 
-	2)
+		2)
 			book_details
-			;;
+		;;
 
-	3)
+		3)
 			book_download
-			;;
+		;;
 
-	e|E)
+		e|E)
 			exit 0
-			;;
+		;;
 
-	*)
+		*)
 			echo "Invalid choice. Try again."
-			;;
+		;;
 
 	esac
 done
