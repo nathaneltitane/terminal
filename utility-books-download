@@ -57,7 +57,7 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-api_url="https://gutendex.com/books/"
+api_url="https://gutendex.com/books"
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -82,9 +82,9 @@ book_search () {
 
 	if [ -n "${language}" ]
 	then
-			api_call="${api_url}?search=${query}&languages=${language}"
+			api_call="${api_url}/?search=${query}&languages=${language}"
 	else
-			api_call="${api_url}?search=${query}"
+			api_call="${api_url}/?search=${query}"
 	fi
 
 	echo "Fetching results..."
@@ -124,7 +124,7 @@ book_details () {
 	echo "Fetching details..."
 	echo
 
-	response=$(curl -s "${api_url}${book_identifier}/")
+	response=$(curl -s "${api_url}/${book_identifier}/")
 
 	formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
@@ -163,14 +163,17 @@ book_download () {
 			echo "Fetching book info for ID: ${book_identifier}..."
 			echo
 
-			response=$(curl -s "${api_url}${book_identifier}/")
-			epub_url=$(echo "$response" | jq -r '.formats."application/epub+zip"')
-			title=$(echo "$response" | jq -r '.title')
-			author=$(echo "$response" | jq -r '.authors[0].name')
+			response=$(curl -s "${api_url}/${book_identifier}/")
+
+			epub_url=$(echo "${response}" | jq -r '.formats."application/epub+zip"')
+
+			title=$(echo "${response}" | jq -r '.title')
+			author=$(echo "${response}" | jq -r '.authors[0].name')
 
 			if [ "${epub_url}" = "null" ]
 			then
 					echo "No EPUB version available for Book ID: ${book_identifier}"
+
 					continue
 			fi
 
