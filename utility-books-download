@@ -82,9 +82,9 @@ book_search () {
 
 	if [ -n "${language}" ]
 	then
-			api_call="${api_url}/?search=${query}&languages=${language}"
+		api_call="${api_url}/?search=${query}&languages=${language}"
 	else
-			api_call="${api_url}/?search=${query}"
+		api_call="${api_url}/?search=${query}"
 	fi
 
 	echo "Fetching results..."
@@ -94,14 +94,14 @@ book_search () {
 
 	if [ -n "${language}" ]
 	then
-			search_results_last=(
-				$(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))')
-			)
+		search_results_last=(
+			$(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))')
+		)
 
 	else
-			search_results_last=(
-				$(echo "${results}" | jq -r '.results[].id')
-			)
+		search_results_last=(
+			$(echo "${results}" | jq -r '.results[].id')
+		)
 
 	fi
 
@@ -148,49 +148,49 @@ book_download () {
 
 	if [ "${book_identifiers[0]}" = "all" ]
 	then
-			if [ ${#search_results_last[@]} -eq 0 ]
-			then
-					echo "No previous search results found."
+		if [ ${#search_results_last[@]} -eq 0 ]
+		then
+				echo "No previous search results found."
 
-					return
-			fi
+				return
+		fi
 
-			book_identifiers=("${search_results_last[@]}")
+		book_identifiers=("${search_results_last[@]}")
 	fi
 
 	for book_identifier in "${book_identifiers[@]}"
 	do
-			echo "Fetching book info for ID: ${book_identifier}..."
-			echo
+		echo "Fetching book info for ID: ${book_identifier}..."
+		echo
 
-			response=$(curl -s "${api_url}/${book_identifier}/")
+		response=$(curl -s "${api_url}/${book_identifier}/")
 
-			epub_url=$(echo "${response}" | jq -r '.formats."application/epub+zip"')
+		epub_url=$(echo "${response}" | jq -r '.formats."application/epub+zip"')
 
-			title=$(echo "${response}" | jq -r '.title')
-			author=$(echo "${response}" | jq -r '.authors[0].name')
+		title=$(echo "${response}" | jq -r '.title')
+		author=$(echo "${response}" | jq -r '.authors[0].name')
 
-			if [ "${epub_url}" = "null" ]
-			then
-					echo "No EPUB version available for Book ID: ${book_identifier}"
+		if [ "${epub_url}" = "null" ]
+		then
+				echo "No EPUB version available for Book ID: ${book_identifier}"
 
-					continue
-			fi
+				continue
+		fi
 
-			author=$(string_sanitize "${author}")
-			title=$(string_sanitize  "${title}")
+		author=$(string_sanitize "${author}")
+		title=$(string_sanitize  "${title}")
 
-			extension="epub"
+		extension="epub"
 
-			file="${author} - ${title}.${extension}"
+		file="${author} - ${title}.${extension}"
 
-			echo "Downloading: ${file}..."
-			echo
+		echo "Downloading: ${file}..."
+		echo
 
-			curl -s -L -o "${file}" "${epub_url}"
+		curl -s -L -o "${file}" "${epub_url}"
 
-			echo "Download complete for: ${file}"
-			echo
+		echo "Download complete for: ${file}"
+		echo
 	done
 }
 
