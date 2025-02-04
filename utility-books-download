@@ -230,11 +230,11 @@ do
 	frobulator.sep
 	echo
 
-	echo "[ 1 ] Search for a book                  [ author | title | subject ]"
-	echo "[ 2 ] Get book details                   [ id ]"
-	echo "[ 3 ] Download book(s) (epub format)     [ id ]"
+	echo "    [ 1 ] [S]earch for a book           [ author | title | subject ]"
+	echo "    [ 2 ] [G]et book details            [ id ]"
+	echo "    [ 3 ] [D]ownload book(s) (epub)     [ id ]"
 	echo
-	echo "[ e ] Exit"
+	echo "    [ 4 ] [E]xit"
 	echo
 
 	frobulator.sep
@@ -248,19 +248,19 @@ do
 
 	case "${selection}"
 	in
-		1)
+		1|s|S)
 			book_query
 		;;
 
-		2)
+		2|g|G)
 			book_details
 		;;
 
-		3)
+		3|d|D)
 			book_download
 		;;
 
-		e|E)
+		4|e|E)
 			exit 0
 		;;
 
