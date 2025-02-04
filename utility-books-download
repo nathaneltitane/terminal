@@ -135,7 +135,7 @@ book_details () {
 			"Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
 	'
 
-	echo "Available Formats:"
+	frobulato.inf "Available formats:"
 	echo
 
 	echo "${formats}"
