@@ -126,11 +126,12 @@ book_query () {
 
 		curl -s "${api_call}" | jq -r '
 				.results[] | select(.languages[] | contains("'"${language}"'")) |
-				"ID " + (.id|tostring) + ":" + "\n" +
-				"    Title:    " + .title + "\n" +
-				"    Author:   " + (.authors[].name // "Unknown") + "\n" +
-				"    Language: " + (.languages | join(", ")) + "\n" +
-				"    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
+				"Identifier: "      + (.id|tostring)                             + "\n" +
+																			       "\n" +
+				"    Title:       " + .title + "\n" +
+				"    Author:      " + (.authors[].name // "Unknown")             + "\n" +
+				"    Language:    " + (.languages | join(", "))                  + "\n" +
+				"    Download:    " + (.formats."application/epub+zip" // "N/A") + "\n"
 		'
 
 		frobulator.sep
@@ -152,7 +153,7 @@ book_details () {
 
 	response=$(curl -s "${api_url}/${book_identifier}/")
 
-	formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
+	formats=$(echo "${response}" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
 	curl -s "${api_url}${book_identifier}/" | jq -r '
 			"Title:    " + .title + "\n" +
