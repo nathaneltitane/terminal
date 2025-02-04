@@ -61,6 +61,23 @@ api_url="https://gutendex.com/books"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+selections () {
+
+	frobulator.sep
+	echo
+
+	echo "    [ 1 ] [S]earch for a book           [ author | title | subject ]"
+	echo "    [ 2 ] [G]et book details            [ id ]"
+	echo "    [ 3 ] [D]ownload book(s) (epub)     [ id ]"
+	echo
+	echo "    [ 4 ] [E]xit"
+	echo
+
+	frobulator.sep
+	echo
+
+}
+
 string_sanitize () {
 
 	string="${1}"
@@ -227,18 +244,7 @@ book_download () {
 
 while true
 do
-	frobulator.sep
-	echo
-
-	echo "    [ 1 ] [S]earch for a book           [ author | title | subject ]"
-	echo "    [ 2 ] [G]et book details            [ id ]"
-	echo "    [ 3 ] [D]ownload book(s) (epub)     [ id ]"
-	echo
-	echo "    [ 4 ] [E]xit"
-	echo
-
-	frobulator.sep
-	echo
+	selections
 
 	frobulator.ipt "Selection"
 
