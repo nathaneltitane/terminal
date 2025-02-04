@@ -63,23 +63,28 @@ api_url="https://gutendex.com/books"
 
 string_sanitize () {
 
-	echo "${1}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+	string="${1}"
+
+	echo "${string}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
 }
 
 book_query () {
 
-	echo "Enter search query (title, author, or subject):"
+	frobulator.ipt "Enter search query [ author / title / subject ]"
 
 	read -r query
+
+	echo
 
 	# url encode space characters
 
 	query=$(echo "${query}" | sed 's/ /%20/g')
 
-	echo "Enter language code (e.g., 'en' for English, 'fr' for French, press Enter to skip):"
-	echo
+	frobulator.ipt "Enter language - press Enter to skip [ en / fr / es / .. ]"
 
 	read -r language
+
+	echo
 
 	if [ -n "${language}" ]
 	then
@@ -118,9 +123,11 @@ book_query () {
 
 book_details () {
 
-	echo "Enter Book ID:"
+	frobulator.ipt "Enter book identifier:"
 
 	read -r book_identifier
+
+	echo
 
 	frobulator.fwd "Fetching details${marker_elp}"
 	echo
@@ -143,7 +150,7 @@ book_details () {
 
 book_download () {
 
-	frobulator.inf "Enter Book identifier(s) separated by spaces or type 'all' to download last query results:"
+	frobulator.ipt "Enter Book identifier(s) separated by spaces or type 'all' to download last query results:"
 	echo
 
 	read -r -a book_identifiers
@@ -152,10 +159,10 @@ book_download () {
 	then
 		if [ ${#search_results_last[@]} -eq 0 ]
 		then
-				frobulator.err "No previous search results stored or found."
-				echo
+			frobulator.err "No previous search results stored or found."
+			echo
 
-				return
+			return
 		fi
 
 		book_identifiers=("${search_results_last[@]}")
@@ -175,7 +182,8 @@ book_download () {
 
 		if [ "${epub_url}" = "null" ]
 		then
-			echo "No EPUB version available for Book ID: ${book_identifier}"
+			frobulator.err "No EPUB version available for book" "[ ${book_identifier} ]"
+			echo
 
 			continue
 		fi
@@ -187,7 +195,7 @@ book_download () {
 
 		file="${author} - ${title}.${extension}"
 
-		frobulator.inf "Downloading: ${file}..."
+		frobulator.fwd "Downloading" "[ ${file} ]"
 		echo
 
 		curl -s -L -o "${file}" "${epub_url}"
@@ -207,10 +215,12 @@ do
 	echo
 	echo "[ e ] Exit"
 	echo
-	echo "Choose an option:"
-	echo
+
+	frobulator.input "Selection"
 
 	read -r selection
+
+	echo
 
 	case "${selection}"
 	in
