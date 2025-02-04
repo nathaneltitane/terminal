@@ -66,7 +66,7 @@ string_sanitize () {
 	echo "${1}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
 }
 
-book_search () {
+book_query () {
 
 	echo "Enter search query (title, author, or subject):"
 
@@ -142,7 +142,7 @@ book_details () {
 
 book_download () {
 
-	echo "Enter Book Identifier(s) (separated by spaces) or type 'all' to download last query results:"
+	echo "Enter Book identifier(s) separated by spaces or type 'all' to download last query results:"
 
 	read -r -a book_identifiers
 
@@ -150,7 +150,8 @@ book_download () {
 	then
 		if [ ${#search_results_last[@]} -eq 0 ]
 		then
-				echo "No previous search results found."
+				frobulator.err "No previous search results stored or found."
+				echo
 
 				return
 		fi
@@ -212,7 +213,7 @@ do
 	case "${selection}"
 	in
 		1)
-			book_search
+			book_query
 		;;
 
 		2)
