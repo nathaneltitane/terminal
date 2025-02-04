@@ -249,19 +249,23 @@ do
 	case "${selection}"
 	in
 		1|s|S)
+
 			book_query
 		;;
 
 		2|g|G)
+
 			book_details
 		;;
 
 		3|d|D)
+
 			book_download
 		;;
 
 		4|e|E)
-			exit 0
+
+			exit
 		;;
 
 		*)
