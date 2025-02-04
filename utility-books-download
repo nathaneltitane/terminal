@@ -127,8 +127,8 @@ book_query () {
 		curl -s "${api_call}" | jq -r '
 				.results[] | select(.languages[] | contains("'"${language}"'")) |
 				"ID " + (.id|tostring) + ":" + "\n" +
-				"    Title: " + .title + "\n" +
-				"    Author: " + (.authors[].name // "Unknown") + "\n" +
+				"    Title:    " + .title + "\n" +
+				"    Author:   " + (.authors[].name // "Unknown") + "\n" +
 				"    Language: " + (.languages | join(", ")) + "\n" +
 				"    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
 		'
@@ -155,8 +155,8 @@ book_details () {
 	formats=$(echo "$response" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
 	curl -s "${api_url}${book_identifier}/" | jq -r '
-			"Title: " + .title + "\n" +
-			"Author: " + (.authors[].name // "Unknown") + "\n" +
+			"Title:    " + .title + "\n" +
+			"Author:   " + (.authors[].name // "Unknown") + "\n" +
 			"Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
 	' &
 
