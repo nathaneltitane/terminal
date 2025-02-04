@@ -160,7 +160,7 @@ book_download () {
 
 	for book_identifier in "${book_identifiers[@]}"
 	do
-		echo "Fetching book info for ID: ${book_identifier}..."
+		frobulator.inf "Fetching book information" " [ ${book_identifier} ]"
 		echo
 
 		response=$(curl -s "${api_url}/${book_identifier}/")
@@ -172,9 +172,9 @@ book_download () {
 
 		if [ "${epub_url}" = "null" ]
 		then
-				echo "No EPUB version available for Book ID: ${book_identifier}"
+			echo "No EPUB version available for Book ID: ${book_identifier}"
 
-				continue
+			continue
 		fi
 
 		author=$(string_sanitize "${author}")
@@ -184,12 +184,12 @@ book_download () {
 
 		file="${author} - ${title}.${extension}"
 
-		echo "Downloading: ${file}..."
+		frobulator.inf "Downloading: ${file}..."
 		echo
 
 		curl -s -L -o "${file}" "${epub_url}"
 
-		echo "Download complete for: ${file}"
+		frobulator.inf "Download complete" "[ ${file} ]"
 		echo
 	done
 }
