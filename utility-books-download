@@ -93,32 +93,50 @@ book_query () {
 		api_call="${api_url}/?search=${query}"
 	fi
 
-	frobulator.fwd "Fetching results${marker_elp}"
-	echo
+	results=$(curl -s "${api_call}") &
 
-	results=$(curl -s "${api_call}")
+	frobulator.process "Querying${marker_elp}"
 
-	if [ -n "${language}" ]
+
+# 	if [ -n "${language}" ]
+# 	then
+# 		search_results_last=(
+# 			$(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))')
+# 		)
+#
+# 	else
+# 		search_results_last=(
+# 			$(echo "${results}" | jq -r '.results[].id')
+# 		)
+#
+# 	fi
+
+	count=$(curl -s "${api_call}" | jq -r '.count')
+
+	if [ "${count}" -eq 0 ]
 	then
-		search_results_last=(
-			$(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))')
-		)
-
+		frobulator.err "Matches" "[ ${count} ]"
+		echo
 	else
-		search_results_last=(
-			$(echo "${results}" | jq -r '.results[].id')
-		)
+		frobulator.scs "Matches" "[ ${count} ]"
+		echo
+
+		frobulator.sep
+		echo
+
+		curl -s "${api_call}" | jq -r '
+				.results[] | select(.languages[] | contains("'"${language}"'")) |
+				"ID " + (.id|tostring) + ":" + "\n" +
+				"    Title: " + .title + "\n" +
+				"    Author: " + (.authors[].name // "Unknown") + "\n" +
+				"    Language: " + (.languages | join(", ")) + "\n" +
+				"    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
+		'
+
+		frobulator.sep
+		echo
 
 	fi
-
-	curl -s "${api_call}" | jq -r -c '
-			.results[] | select(.languages[] | contains("'"${language}"'")) |
-			"ID " + (.id|tostring) + ":" + "\n" +
-			"    Title: " + .title + "\n" +
-			"    Author: " + (.authors[].name // "Unknown") + "\n" +
-			"    Language: " + (.languages | join(", ")) + "\n" +
-			"    Download: " + (.formats."application/epub+zip" // "N/A") + "\n"
-	'
 }
 
 book_details () {
@@ -140,7 +158,7 @@ book_details () {
 			"Title: " + .title + "\n" +
 			"Author: " + (.authors[].name // "Unknown") + "\n" +
 			"Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
-	'
+	' &
 
 	frobulato.inf "Available formats:"
 	echo
@@ -208,7 +226,9 @@ book_download () {
 
 while true
 do
+	frobulator.sep
 	echo
+
 	echo "[ 1 ] Search for a book                  [ author | title | subject ]"
 	echo "[ 2 ] Get book details                   [ id ]"
 	echo "[ 3 ] Download book(s) (epub format)     [ id ]"
@@ -216,7 +236,10 @@ do
 	echo "[ e ] Exit"
 	echo
 
-	frobulator.input "Selection"
+	frobulator.sep
+	echo
+
+	frobulator.ipt "Selection"
 
 	read -r selection
 
