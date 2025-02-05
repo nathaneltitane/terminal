@@ -76,6 +76,8 @@ selections () {
 	frobulator.sep
 	echo
 
+	frobulator.ipt "Selection"
+
 }
 
 string_sanitize () {
@@ -90,6 +92,21 @@ book_query () {
 	frobulator.ipt "Enter search query [ author / title / subject ]"
 
 	read -r query
+
+	while [[ ! "${query}" =~ ^[A-Za-z0-9]+$ ]]
+	do
+		echo
+		frobulator.err "Invalid input type:"
+		echo
+
+		frobulator.wrn "Alphanumeric characters only"
+		echo
+
+		frobulator.ipt "Enter search query [ author / title / subject ]"
+
+		read -r query
+
+	done
 
 	echo
 
@@ -162,6 +179,21 @@ book_details () {
 	frobulator.ipt "Enter book identifier:"
 
 	read -r book_identifier
+
+	while [[ ! "${book_identifier}" =~ ^[0-9]+$ ]]
+	do
+		echo
+		frobulator.err "Invalid input type:"
+		echo
+
+		frobulator.wrn "Numeric characters only"
+		echo
+
+		frobulator.ipt "Enter book identifier:"
+
+		read -r book_identifier
+
+	done
 
 	echo
 
@@ -246,15 +278,13 @@ while true
 do
 	selections
 
-	frobulator.ipt "Selection"
-
 	read -r selection
 
 	echo
 
 	case "${selection}"
 	in
-		1|s|S)
+		1 | s | S )
 
 			book_query
 		;;
