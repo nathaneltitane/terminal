@@ -380,23 +380,52 @@ book_details () {
 
 	echo
 
-	response=$(curl -s "${api_url}/${book_identifier}/") &
+	frobulator.sep
+	echo
+
+	formats=$(curl -s "${api_url}/${book_identifier}/" | jq -r '
+				.formats | to_entries[] |
+				"    - "
+				+ (.key | sub("^application/"; ""))
+				+ ":"
+				+ "\n"
+				+ "      [ " + .value + " ]"
+				+ "\n"
+				'
+		)
+
+	curl -s "${api_url}/${book_identifier}/" | jq -r '
+					"\n"
+					+ "\n"
+					+ "Title:"
+					+ "\n"
+					+ "\n"
+					+ .title
+					+ "\n"
+					+ "\n"
+					+ "Author:"
+					+ "\n"
+					+ "\n"
+					+ (.authors[].name // "Unknown")
+					+ "\n"
+					+ "\n"
+					+ "Subjects:"
+					+ "\n"
+					+ "\n"
+					+ "    - "
+					+ (.subjects | join("\n    - "))
+					+ "\n"
+					+ "\n"
+					+ "Formats:"
+					+ "\n"
+					' | fold -s -w 80 &
 
 	frobulator.process "Fetching details"
-	echo
-
-	formats=$(echo "${response}" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
-
-	curl -s "${api_url}${book_identifier}/" | jq -r '
-			"Title:       " + .title                                           + "\n" +
-			"Author:      " + (.authors[].name // "Unknown")                   + "\n" +
-			"Subjects:    " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
-	' &
-
-	frobulato.inf "Available formats:"
-	echo
 
 	echo "${formats}"
+
+	echo
+
 }
 
 book_download () {
