@@ -330,18 +330,18 @@ book_query () {
 
 	frobulator.process "Querying"
 
-# 	if [ -n "${language}" ]
-# 	then
-# 		search_results_last=(
-# 			$(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))')
-# 		)
-#
-# 	else
-# 		search_results_last=(
-# 			$(echo "${results}" | jq -r '.results[].id')
-# 		)
-#
-# 	fi
+	if [ -n "${language}" ]
+	then
+		search_results_last=(
+			$(echo "${results}" | jq -r '.results[].id | select(.languages[] | contains("'"${language}"'"))')
+		)
+
+	else
+		search_results_last=(
+			$(echo "${results}" | jq -r '.results[].id')
+		)
+
+	fi
 
 	count=$(curl -s "${api_call}" | jq -r '.count')
 
