@@ -389,9 +389,9 @@ book_details () {
 	formats=$(echo "${response}" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
 	curl -s "${api_url}${book_identifier}/" | jq -r '
-			"Title:    " + .title + "\n" +
-			"Author:   " + (.authors[].name // "Unknown") + "\n" +
-			"Subjects: " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
+			"Title:       " + .title                                           + "\n" +
+			"Author:      " + (.authors[].name // "Unknown")                   + "\n" +
+			"Subjects:    " + "\n" + "    - " + (.subjects | join("\n    - ")) + "\n"
 	' &
 
 	frobulato.inf "Available formats:"
@@ -473,17 +473,17 @@ do
 			book_query
 		;;
 
-		2|g|G)
+		2 | g | G )
 
 			book_details
 		;;
 
-		3|d|D)
+		3 | d | D )
 
 			book_download
 		;;
 
-		4|e|E)
+		4 | e | E )
 
 			exit
 		;;
