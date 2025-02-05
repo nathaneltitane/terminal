@@ -76,7 +76,7 @@ selections () {
 	frobulator.sep
 	echo
 
-	frobulator.ipt "Selection"
+	frobulator.ipt "Selection:"
 
 }
 
@@ -89,7 +89,7 @@ string_sanitize () {
 
 book_query () {
 
-	frobulator.ipt "Enter search query [ author / title / subject ]"
+	frobulator.ipt "Enter search query [ author / title / subject ]:"
 
 	read -r query
 
@@ -102,7 +102,7 @@ book_query () {
 		frobulator.wrn "Alphanumeric characters only"
 		echo
 
-		frobulator.ipt "Enter search query [ author / title / subject ]"
+		frobulator.ipt "Enter search query [ author / title / subject ]:"
 
 		read -r query
 
@@ -298,7 +298,7 @@ book_query () {
 	# Zhuang, Chuang / za
 	# Zulu / zu
 
-	frobulator.ipt "Enter language - press Enter to skip [ en / fr / es / .. ]"
+	frobulator.ipt "Enter language - press Enter to skip [ en / fr / es / .. ]:"
 
 	read -r language
 
@@ -313,8 +313,7 @@ book_query () {
 
 	results=$(curl -s "${api_call}") &
 
-	frobulator.process "Querying${marker_elp}"
-
+	frobulator.process "Querying"
 
 # 	if [ -n "${language}" ]
 # 	then
@@ -381,10 +380,10 @@ book_details () {
 
 	echo
 
-	frobulator.fwd "Fetching details${marker_elp}"
-	echo
+	response=$(curl -s "${api_url}/${book_identifier}/") &
 
-	response=$(curl -s "${api_url}/${book_identifier}/")
+	frobulator.process "Fetching details"
+	echo
 
 	formats=$(echo "${response}" | jq -r '.formats | to_entries[] | "    " + "- " + (.key | sub("^application/"; "")) + "\t" + "\t[ " + .value + " ]"')
 
@@ -402,7 +401,7 @@ book_details () {
 
 book_download () {
 
-	frobulator.ipt "Enter Book identifier(s) separated by spaces or type 'all' to download last query results:"
+	frobulator.ipt "Enter Book identifier(s) separated by spaces - Type 'all' to download last query results:"
 	echo
 
 	read -r -a book_identifiers
@@ -425,7 +424,10 @@ book_download () {
 		frobulator.inf "Fetching book information" " [ ${book_identifier} ]"
 		echo
 
-		response=$(curl -s "${api_url}/${book_identifier}/")
+		response=$(curl -s "${api_url}/${book_identifier}/") &
+
+		frobulator.process "Fetching book information" " [ ${book_identifier} ]"
+		echo
 
 		epub_url=$(echo "${response}" | jq -r '.formats."application/epub+zip"')
 
@@ -447,10 +449,10 @@ book_download () {
 
 		file="${author} - ${title}.${extension}"
 
-		frobulator.fwd "Downloading" "[ ${file} ]"
-		echo
+		curl -s -L -o "${file}" "${epub_url}" &
 
-		curl -s -L -o "${file}" "${epub_url}"
+		frobulator.progress "Downloading" "[ ${file} ]"
+		echo
 
 		frobulator.inf "Download complete" "[ ${file} ]"
 		echo
