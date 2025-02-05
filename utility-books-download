@@ -61,6 +61,27 @@ api_url="https://gutendex.com/books"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+languages_list () {
+
+	echo
+
+	frobulator.fwd "Listing known languages${marker_elp}"
+	echo
+
+	frobulator.timeout
+
+	IFS=$'\n'
+
+	printf "${marker_nul} %s\n" ${languages_list[@]}
+
+	echo
+
+	IFS=''
+
+	unset language
+
+}
+
 selections () {
 
 	frobulator.sep
@@ -304,7 +325,15 @@ book_query () {
 
 	read -r language
 
-	while [[ ! "${language}" =~ ^[A-Za-z]+$ ]]
+	if [[ "${language}" = "?" ]]
+	then
+		languages_list
+
+		break
+	fi
+
+	while [[ ! "${language}" =~ ^[A-Za-z]+$ ]] || \
+          [[ ! "${language}" = "?"          ]]
 	do
 		echo
 		frobulator.err "Invalid input type:"
@@ -542,6 +571,7 @@ do
 		1 | s | S )
 
 			book_query
+
 		;;
 
 		2 | g | G )
