@@ -302,6 +302,21 @@ book_query () {
 
 	read -r language
 
+	while [[ ! "${language}" =~ ^[A-Za-z]+$ ]]
+	do
+		echo
+		frobulator.err "Invalid input type:"
+		echo
+
+		frobulator.wrn "Alphabetical characters only"
+		echo
+
+		frobulator.ipt "Enter language - press Enter to skip [ en / fr / es / .. ]:"
+
+		read -r language
+
+	done
+
 	echo
 
 	if [ -n "${language}" ]
@@ -345,16 +360,32 @@ book_query () {
 				.results[] |
 				select(.languages[] |
 				contains("'"${language}"'")) |
-				"Identifier: "      + (.id|tostring)
+				"Identifier:"
+				+ " "
+				+ (.id|tostring)
 				+ "\n"
 				+ "\n"
-				+ "    Title:       " + .title
+				+ "    "
+				+ "Title:"
+				+ "   "
+				+ "    "
+				+ .title
 				+ "\n"
-				+ "    Author:      " + (.authors[].name // "Unknown")
+				+ "    "
+				+ "Author:"
+				+ "  "
+				+ "    "
+				+ (.authors[].name // "N/A")
 				+ "\n"
-				+ "    Language:    " + (.languages | join(", "))
+				+ "    "
+				+ "Language:"
+				+ "    "
+				+ (.languages | join(", "))
 				+ "\n"
-				+ "    Download:    " + (.formats."application/epub+zip" // "N/A")
+				+ "    "
+				+ "Download:"
+				+ "    "
+				+ (.formats."application/epub+zip" // "N/A")
 				+ "\n"
 		'
 
