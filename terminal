@@ -411,7 +411,7 @@ then
 
 						showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
 
-						include themes/refind-theme-regular/theme.conf
+						include themes/theme.conf
 					"																/boot/efi/EFI/refind	refind.conf
 
 fi
