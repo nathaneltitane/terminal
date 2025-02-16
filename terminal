@@ -380,7 +380,7 @@ then
 
 	# purge
 
-	apt purge grub*
+	apt purge grub* > "${sink}" 2>&1
 
 	list=(
 		grub
@@ -397,6 +397,8 @@ then
 	)
 
 	frobulator.delete /boot/efi/EFI/refind	${list[@]}
+
+	frobulator.download get.trmnl.me/refind-configuration /boot/efi/EFI/refind/refind.conf
 
 	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes refind-theme.tar.gz
 
