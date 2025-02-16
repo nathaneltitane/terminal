@@ -380,6 +380,8 @@ then
 
 	# purge
 
+	apt purge grub*
+
 	list=(
 		grub
 	)
@@ -396,23 +398,8 @@ then
 
 	frobulator.delete /boot/efi/EFI/refind	${list[@]}
 
-	# write
+	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes refind-theme.tar.gz
 
-	frobulator.write "
-						timeout 20
-
-						#log_level 1
-
-						#shutdown_after_timeout
-
-						use_nvram false
-
-						#screensaver 300
-
-						showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
-
-						include themes/theme.conf
-					"																/boot/efi/EFI/refind	refind.conf
-
+	frobulator.extract /boot/efi/EFI/refind/themes/refind-theme.tar.gz /boot/efi/EFI/refind/themes
 fi
 
