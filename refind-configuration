@@ -1,0 +1,13 @@
+timeout 20
+
+#log_level 1
+
+#shutdown_after_timeout
+
+use_nvram false
+
+#screensaver 300
+
+showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
+
+include themes/refind-theme-regular/theme.conf

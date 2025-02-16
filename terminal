@@ -362,3 +362,53 @@ fi
 
 frobulator.scs 'Done'
 echo
+
+# efi /////////////////////////////////////////////////////////////////////////
+
+if [ -e /sys/firmware/efi ]
+then
+
+	list=(
+		refind
+	)
+
+	frobulator.install ${list[@]}
+
+	list=()
+
+	list=(
+		grub
+	)
+
+	frobulator.delete /boot ${list[@]}
+
+	list=()
+
+	list+=(
+		refind-configuration
+	)
+
+	list=(
+		refind.conf
+	)
+
+	frobulator.delete /boot/efi/EFI/refind	${list[@]}
+
+	frobulator.write "
+						timeout 20
+
+						#log_level 1
+
+						#shutdown_after_timeout
+
+						use_nvram false
+
+						#screensaver 300
+
+						showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
+
+						include themes/refind-theme-regular/theme.conf
+					"																/boot/efi/EFI/refind	refind.conf
+
+fi
+
