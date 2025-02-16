@@ -368,6 +368,8 @@ echo
 if [ -e /sys/firmware/efi ]
 then
 
+	# install
+
 	list=(
 		refind
 	)
@@ -375,6 +377,8 @@ then
 	frobulator.install ${list[@]}
 
 	list=()
+
+	# purge
 
 	list=(
 		grub
@@ -384,15 +388,15 @@ then
 
 	list=()
 
-	list+=(
-		refind-configuration
-	)
+	# remove
 
 	list=(
 		refind.conf
 	)
 
 	frobulator.delete /boot/efi/EFI/refind	${list[@]}
+
+	# write
 
 	frobulator.write "
 						timeout 20
