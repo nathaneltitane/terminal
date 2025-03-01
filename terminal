@@ -100,9 +100,11 @@ kde_list=(
 	breeze-icon-theme
 	calligra
 	dolphin
+	elisa
 	gwenview
 	karbon
 	kate
+	kcalc
 	kcharselect
 	kcolorchooser
 	kde-config-cron
