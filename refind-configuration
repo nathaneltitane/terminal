@@ -1,5 +1,4 @@
-timeout    20
-#shutdown_after_timeout
+timeout   20
 use_nvram false
 showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
-include themes/theme.conf
+include   themes/theme.conf
