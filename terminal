@@ -99,6 +99,7 @@ kde_list=(
 	breeze-gtk-theme
 	breeze-icon-theme
 	calligra
+	cantata
 	dolphin
 	elisa
 	gwenview
@@ -115,6 +116,7 @@ kde_list=(
 	krename
 	krita
 	kup-backup
+	mpd
 	sweeper
 )
 
