@@ -62,23 +62,35 @@ directories_list=(
 	[iI]nternal
 )
 
+matches=()
+
 for directory in ${directories_list[@]}
 do
-	if [ -d /media/${directory}/[lL]ego ]
+	match=$(ls /media 2>/dev/null | grep -i "^${directory}$" | head -n 1)
+
+	if [ -n "$match" ]
 	then
-	dir=$(echo $directory)
-		if [ -f /media/${directory}/[lL]ego/leocad/leocad.conf ]
+		matches+=("${match}")
+	fi
+done
+
+for directory in ${matches[@]}
+do
+	subdirectory=$(ls "/media/${directory}" 2>/dev/null | grep -i "^lego$" | head -n 1)
+
+	if [ -n "${subdirectory}" ] && [ -d "/media/${directory}/${subdirectory}" ]
+	then
+		if [ -f "/media/${directory}/${subdirectory}/leocad/leocad.conf" ]
 		then
 			frobulator.inf "Linking configuration"
 			echo
 
-			frobulator.link /media/${directory}/[lL]ego/leocad "${HOME}"/.config/"LeoCAD Software" leocad.conf LeoCAD.conf
+			frobulator.link "/media/${directory}/${subdirectory}/leocad" "${HOME}/.config/LeoCAD Software" leocad.conf LeoCAD.conf
 
-			echo "sed"
-			echo
-			echo
-			echo
-			sed -i -e "s|media.*|media/${directory}/|g" /media/${directory}/[lL]ego/leocad/leocad.conf
+			sed															\
+				-i														\
+				-e	"s|media.*|media/${directory}/${subdirectory}/|g"	\
+																		"/media/${directory}/${subdirectory}/leocad/leocad.conf"
 		fi
 	fi
 done
