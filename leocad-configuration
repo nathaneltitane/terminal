@@ -89,7 +89,7 @@ do
 
 			sed															\
 				-i														\
-				-e	"s|media.*|media/${directory}/${subdirectory}/|g"	\
+				-e	"s|/media/\([^/]*\)/\([^/]*\)|/media/${directory}/${subdirectory}|g"	\
 																		"/media/${directory}/${subdirectory}/leocad/leocad.conf"
 		fi
 	fi
