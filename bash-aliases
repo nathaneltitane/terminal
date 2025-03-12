@@ -482,6 +482,11 @@ then
 	alias 'treef'='tree -a -p -L'
 fi
 
+if [[ $(command -v rm) ]]
+then
+	alias 'delete'='rm -r -f'
+fi
+
 # ai ///////////////////////////////////////////////////////////////////////////
 
 if [ "$(command -v ollama)" ]
