@@ -71,7 +71,7 @@ then
 
 	for configuration in ${list[@]}
 	do
-		frobulator.copy /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD	"${configuration}"
+		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD	"${configuration}"
 
 		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD freecad.conf FreeCAD.conf
 	done
@@ -85,5 +85,4 @@ then
 	echo
 
 		frobulator.link /media/internal/Printer/freecad "${HOME}"/.config/FreeCAD macros
-	done
 fi
