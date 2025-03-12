@@ -118,6 +118,9 @@ kde_list=(
 	krita
 	kup-backup
 	mpd
+	plasma-discover
+	plasma-discover-backend-flatpak
+	plasma-discover-backend-fwupd
 	sweeper
 )
 
