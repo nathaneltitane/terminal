@@ -102,6 +102,7 @@ kde_list=(
 	cantata
 	dolphin
 	elisa
+	flatpak
 	gwenview
 	karbon
 	kate
@@ -144,6 +145,10 @@ list=(
 frobulator.delete /usr/share/applications ${list[@]}
 
 list=()
+
+# flatpak //////////////////////////////////////////////////////////////////////
+
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
 # storage //////////////////////////////////////////////////////////////////////
 

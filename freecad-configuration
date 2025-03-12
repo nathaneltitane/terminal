@@ -60,8 +60,6 @@ library_directory=$(pip show py-slvs | grep Location | cut -d ' ' -f 2)
 # functions ////////////////////////////////////////////////////////////////////
 
 list+=(
-	link.system.cfg
-	link.user.cfg
 	system.cfg
 	user.cfg
 )
@@ -86,7 +84,7 @@ then
 	frobulator.inf "Linking macros"
 	echo
 
-		frobulator.link /media/internal/Printer/freecad "${HOME}"/.config/f macros
+		frobulator.link /media/internal/Printer/freecad "${HOME}"/.config/FreeCAD macros
 	done
 fi
 
