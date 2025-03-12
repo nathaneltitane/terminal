@@ -109,6 +109,7 @@ kde_list=(
 	kcharselect
 	kcolorchooser
 	kde-config-cron
+	kde-config-flatpak
 	kdenlive
 	kio-gdrive
 	konsole
