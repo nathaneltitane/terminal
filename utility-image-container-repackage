@@ -78,11 +78,11 @@ do
 
             echo "Extracting ${archive_input}..."
 
-            tar                             \
-                --extract                   \
-                --file="${archive_input}"   \
-                --xz                        \
-                --directory="${temporary_directory}"
+            tar									\
+                --extract						\
+                --file="${archive_input}"   	\
+					--xz                        \
+					--directory="${temporary_directory}"
 
             archive_layer=$(find "${temporary_directory}" -name "layer.tar")
 
