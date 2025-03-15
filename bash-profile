@@ -205,7 +205,7 @@ then
 
 	session_title="${session_title^}"
 
-	frobulator.fwd "Login ${ticker} >>> Welcome to Dextop" "[ ${session_title} ]"
+	frobulator.fwd "Login [ ${ticker} ] >>> Welcome to Dextop" "[ ${session_title} ]"
 	echo
 
 	frobulator.inf "Graphical session:"
