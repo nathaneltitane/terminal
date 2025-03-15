@@ -78,19 +78,26 @@ do
 
             echo "Extracting ${archive_input}..."
 
-            tar -xJf "${archive_input}" -C "${temporary_directory}"
+            tar                             \
+                --extract                   \
+                --file="${archive_input}"   \
+                --xz                        \
+                --directory="${temporary_directory}"
 
             archive_layer=$(find "${temporary_directory}" -name "layer.tar")
 
             if [ -f "${archive_layer}" ]
             then
-                echo "Recompressing ${archive_layer} into ${archive_output}..."
+                frobulator.inf "Archiving ${archive_layer} from ${archive_input}"
+                echo
 
-                xz -c "${archive_layer}" > "${archive_output}"
+                xz -c "${archive_layer}" > "${archive_output}" &
 
-                echo "Successfully repackaged into ${archive_output}"
+                frobulator.process "archive"
+
             else
-                echo "Error: layer.tar not found in the extracted content of ${archive_input}."
+                frobulator.err "Archive not found in extracted content" "[ ${archive_input}/layer.tar ]"
+                echo
             fi
 
             rm -r -f "${temporary_directory}"
