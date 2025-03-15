@@ -14,7 +14,6 @@ do
     do
         docker pull --platform="${platform}" "${distribution}:${version}"
 
-        # Save the image and compress with xz
         docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
 
         for archive_input in *container.tar.xz
@@ -25,7 +24,6 @@ do
 
             echo "Extracting ${archive_input}..."
 
-            # Extract the contents using xz with tar
             tar -xJf "${archive_input}" -C "${temporary_directory}"
 
             archive_layer=$(find "${temporary_directory}" -name "layer.tar")
@@ -34,7 +32,6 @@ do
             then
                 echo "Recompressing ${archive_layer} into ${archive_output}..."
 
-                # Use xz to compress the archive
                 xz -c "${archive_layer}" > "${archive_output}"
 
                 echo "Successfully repackaged into ${archive_output}"
