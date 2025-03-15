@@ -86,9 +86,9 @@ then
 
 	if [[ $(pgrep -f proot) ]]
 	then
-		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
-		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
-		echo 'autospawn = no'               >> /etc/pulse/client.conf
+		echo 'default-server = 127.0.0.1'   >  "${HOME}"/.config/pulse/client.conf
+		echo 'auto-connect-localhost = yes' >> "${HOME}"/.config/pulse/client.conf
+		echo 'autospawn = no'               >> "${HOME}"/.config/pulse/client.conf
 	else
 		if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
 		then
