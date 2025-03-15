@@ -56,6 +56,11 @@ platform="linux/aarch64"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+declare -A distributions=(
+    [ubuntu]="18.04 20.04 22.04 24.04"
+    [debian]="10 11 12 13"
+)
+
 for distribution in "${!distributions[@]}"
 do
     for version in ${distributions[${distribution}]}
