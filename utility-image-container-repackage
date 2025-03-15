@@ -1,74 +1,18 @@
 #!/bin/bash
 
-# dependencies /////////////////////////////////////////////////////////////////
-
-if [[ -z $(command -v frobulator) ]]
-then
-	if [[ $(id -u -n) = "root" ]]
-	then
-		SUDO_HOME=/root
-
-		USER="${SUDO_USER}"
-
-		HOME=/home/"${USER}"
-	fi
-
-	if [[ -z $(command -v curl) ]]
-	then
-		yes | apt-get install curl
-	fi
-
-	if [ ! -d "${HOME}"/.local/bin ]
-	then
-		mkdir -p "${HOME}"/.local/bin
-	fi
-
-	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
-
-	chmod +x "${HOME}"/.local/bin/frobulator
-fi
-
-. "${HOME}"/.local/bin/frobulator
-
-# superuser ////////////////////////////////////////////////////////////////////
-
-export self_arguments="${@}"
-
-frobulator.escalate
-
-# script ///////////////////////////////////////////////////////////////////////
-
-script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version //////////////////////////////////////////////////////////////////////
-
-version="01-01-2025"
-
-# usage ////////////////////////////////////////////////////////////////////////
-
-# prompt ///////////////////////////////////////////////////////////////////////
-
-frobulator.script "Setting up ${script#*-}"
-
-# variables ////////////////////////////////////////////////////////////////////
-
 platform="linux/aarch64"
 
-# defaults /////////////////////////////////////////////////////////////////////
-
-# functions ////////////////////////////////////////////////////////////////////
-
 declare -A distributions=(
-	[ubuntu]="18.04 20.04 22.04 24.04"
-	[debian]="10 11 12 13"
-	[fedora]="38 39 40 41"
+[ubuntu]="18.04 20.04 22.04 24.04"
+[debian]="10 11 12 13"
+[fedora]="38 39 40 41"
 )
 
 for distribution in "${!distributions[@]}"
 do
 	for version in ${distributions[${distribution}]}
 	do
-		docker pull --platform="${platform}" "${distribution}:${version}" &> "${sink}"
+		docker pull --quiet --platform="${platform}" "${distribution}:${version}"
 
 		docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
 
@@ -78,33 +22,25 @@ do
 
 			temporary_directory=$(mktemp -d)
 
-			frobulator.fwd "Extracting" "[  ${archive_input} ]"
-			echo
+			echo "Extracting ${archive_input}..."
 
 			tar										\
 				--extract							\
 					--file="${archive_input}"   	\
 					--xz                        	\
-					--directory="${temporary_directory}" &
-
-			frobulator.progress "extract"
+					--directory="${temporary_directory}"
 
 			archive_layer=$(find "${temporary_directory}" -name "layer.tar")
 
 			if [ -f "${archive_layer}" ]
 			then
-				frobulator.inf "Archiving layer" "[ ${archive_output} ]"
-				echo
+				echo "Recompressing ${archive_layer} into ${archive_output}..."
 
-				xz -c "${archive_layer}" > "${archive_output}" &
+				xz -c "${archive_layer}" > "${archive_output}"
 
-				frobulator.progress "archive"
-
-				frobulator.scs "Repackage successful" "[ ${archive_output} ]"
-				echo
+				echo "Successfully repackaged into ${archive_output}"
 			else
-				frobulator.err "System archive 'layer.tar' not found" "[ ${archive_input} ]"
-				echo
+				echo "Error: layer.tar not found in the extracted content of ${archive_input}."
 			fi
 
 			rm -r -f "${temporary_directory}"
@@ -113,6 +49,3 @@ do
 		done
 	done
 done
-
-frobulator.scs "Done"
-echo
