@@ -1,120 +1,60 @@
 #!/bin/bash
 
-# dependencies /////////////////////////////////////////////////////////////////
-
-if [[ -z $(command -v frobulator) ]]
-then
-	if [[ $(id -u -n) = "root" ]]
-	then
-		SUDO_HOME=/root
-
-		USER="${SUDO_USER}"
-
-		HOME=/home/"${USER}"
-	fi
-
-	if [[ -z $(command -v curl) ]]
-	then
-		yes | apt-get install curl
-	fi
-
-	if [ ! -d "${HOME}"/.local/bin ]
-	then
-		mkdir -p "${HOME}"/.local/bin
-	fi
-
-	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
-
-	chmod +x "${HOME}"/.local/bin/frobulator
-fi
-
-. "${HOME}"/.local/bin/frobulator
-
-# superuser ////////////////////////////////////////////////////////////////////
-
-export self_arguments="${@}"
-
-frobulator.escalate
-
-# script ///////////////////////////////////////////////////////////////////////
-
-script=$(basename -- "${BASH_SOURCE[0]}")
-
-# version //////////////////////////////////////////////////////////////////////
-
-version="03-15-2025"
-
-# prompt ///////////////////////////////////////////////////////////////////////
-
-frobulator.script "Setting up ${script#*-}"
-
-# variables ////////////////////////////////////////////////////////////////////
-
 platform="linux/aarch64"
 
-# defaults /////////////////////////////////////////////////////////////////////
-
-# functions ////////////////////////////////////////////////////////////////////
-
 declare -A distributions=(
-    [ubuntu]="18.04 20.04 22.04 24.04"
-    [debian]="10 11 12 13"
+	[ubuntu]="18.04 20.04 22.04 24.04"
+	[debian]="10 11 12 13"
 )
 
 for distribution in "${!distributions[@]}"
 do
-    for version in ${distributions[${distribution}]}
-    do
-        case "${distribution}"
-        in
-            # ubuntu base image is already minimal
+	for version in ${distributions[${distribution}]}
+	do
+		case "${distribution}"
+		in
+			# ubuntu base image is already minimal
 
-            ubuntu) image_tag="${distribution}:${version}" ;;
+			ubuntu) image_tag="${distribution}:${version}" ;;
 
-            debian) image_tag="${distribution}:${version}-slim" ;;
+			debian) image_tag="${distribution}:${version}-slim" ;;
 
-        esac
+		esac
 
-        docker pull --quiet --platform="${platform}" "${image_tag}"
+		docker pull --quiet --platform="${platform}" "${image_tag}"
 
-        docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
+		docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
 
-        for archive_input in *container.tar.xz
-        do
-            archive_output="${archive_input/-container.tar.xz/.tar.xz}"
+		for archive_input in *container.tar.xz
+		do
+			archive_output="${archive_input/-container.tar.xz/.tar.xz}"
 
-            temporary_directory=$(mktemp -d)
+			temporary_directory=$(mktemp -d)
 
-            echo "Extracting ${archive_input}..."
+			echo "Extracting ${archive_input}..."
 
-            tar									\
-                --extract						\
-                --file="${archive_input}"   	\
-					--xz                        \
+			tar										\
+				--extract							\
+					--file="${archive_input}"   	\
+					--xz                        	\
 					--directory="${temporary_directory}"
 
-            archive_layer=$(find "${temporary_directory}" -name "layer.tar")
+			archive_layer=$(find "${temporary_directory}" -name "layer.tar")
 
-            if [ -f "${archive_layer}" ]
-            then
-                frobulator.inf "Archiving ${archive_layer} from ${archive_input}"
-                echo
+			if [ -f "${archive_layer}" ]
+			then
+				echo "Recompressing ${archive_layer} into ${archive_output}..."
 
-                xz -c "${archive_layer}" > "${archive_output}" &
+				xz -c "${archive_layer}" > "${archive_output}"
 
-                frobulator.process "archive"
+				echo "Successfully repackaged into ${archive_output}"
+			else
+				echo "Error: layer.tar not found in the extracted content of ${archive_input}."
+			fi
 
-            else
-                frobulator.err "Archive not found in extracted content" "[ ${archive_input}/layer.tar ]"
-                echo
-            fi
+			rm -r -f "${temporary_directory}"
 
-            rm -r -f "${temporary_directory}"
-
-            rm -r -f "${archive_input}"
-        done
-    done
+			rm -r -f "${archive_input}"
+		done
+	done
 done
-
-frobulator.scs "Done"
-echo
