@@ -3,25 +3,16 @@
 platform="linux/aarch64"
 
 declare -A distributions=(
-	[ubuntu]="18.04 20.04 22.04 24.04"
-	[debian]="10 11 12 13"
+[ubuntu]="18.04 20.04 22.04 24.04"
+[debian]="10 11 12 13"
+[fedora]="38 39 40 41"
 )
 
 for distribution in "${!distributions[@]}"
 do
 	for version in ${distributions[${distribution}]}
 	do
-		case "${distribution}"
-		in
-			# ubuntu base image is already minimal
-
-			ubuntu) image_tag="${distribution}:${version}" ;;
-
-			debian) image_tag="${distribution}:${version}-slim" ;;
-
-		esac
-
-		docker pull --quiet --platform="${platform}" "${image_tag}"
+		docker pull --platform="${platform}" "${distribution}:${version}"
 
 		docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
 
