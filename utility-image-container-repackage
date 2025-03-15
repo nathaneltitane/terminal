@@ -93,7 +93,7 @@ do
 
 			if [ -f "${archive_layer}" ]
 			then
-				frobulator.inf "Archiving layer" "[ ${archive_output}...]"
+				frobulator.inf "Archiving layer" "[ ${archive_output} ]"
 				echo
 
 				xz -c "${archive_layer}" > "${archive_output}" &
