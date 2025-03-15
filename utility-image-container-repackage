@@ -68,7 +68,7 @@ for distribution in "${!distributions[@]}"
 do
 	for version in ${distributions[${distribution}]}
 	do
-		docker pull --platform="${platform}" "${distribution}:${version}"
+		docker pull --platform="${platform}" "${distribution}:${version}" &> "${sink}"
 
 		docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
 
