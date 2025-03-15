@@ -94,7 +94,7 @@ do
 
 				xz -c "${archive_layer}" > "${archive_output}" &
 
-				frobulator.process "archive"
+				frobulator.progress "archive"
 
 				echo "Successfully repackaged into ${archive_output}"
 			else
