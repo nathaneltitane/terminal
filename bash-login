@@ -84,9 +84,11 @@ then
 
 	# audio
 
-	echo 'default-server = 127.0.0.1'   >  "${HOME}"/.config/pulse/client.conf
-	echo 'auto-connect-localhost = yes' >> "${HOME}"/.config/pulse/client.conf
-	echo 'autospawn = no'               >> "${HOME}"/.config/pulse/client.conf
+	# pulseaudio spawn issues overrides
+
+	# echo 'default-server = 127.0.0.1'   >  "${HOME}"/.config/pulse/client.conf
+	# echo 'auto-connect-localhost = yes' >> "${HOME}"/.config/pulse/client.conf
+	# echo 'autospawn = no'               >> "${HOME}"/.config/pulse/client.conf
 
 	if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
 	then
