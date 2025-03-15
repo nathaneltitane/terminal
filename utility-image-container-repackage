@@ -22,7 +22,7 @@ do
 
 			temporary_directory=$(mktemp -d)
 
-			echo "Extracting ${archive_input}..."
+			echo "Extracting .."
 
 			tar										\
 				--extract							\
@@ -34,13 +34,11 @@ do
 
 			if [ -f "${archive_layer}" ]
 			then
-				echo "Recompressing ${archive_layer} into ${archive_output}..."
-
 				xz -c "${archive_layer}" > "${archive_output}"
 
 				echo "Successfully repackaged into ${archive_output}"
 			else
-				echo "Error: layer.tar not found in the extracted content of ${archive_input}."
+				echo "'layer.tar' not found in the extracted content of ${archive_input}"
 			fi
 
 			rm -r -f "${temporary_directory}"
