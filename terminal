@@ -413,8 +413,10 @@ then
 
 	frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
 
-	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes refind-theme.tar.gz
+	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
 
-	frobulator.extract /boot/efi/EFI/refind/themes/refind-theme.tar.gz /boot/efi/EFI/refind/themes
+	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
+
+	rm -r -f /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
 fi
 
