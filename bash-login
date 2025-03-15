@@ -84,34 +84,35 @@ then
 
 	# audio
 
-	# pulseaudio spawn issues overrides
-
-	# echo 'default-server = 127.0.0.1'   >  "${HOME}"/.config/pulse/client.conf
-	# echo 'auto-connect-localhost = yes' >> "${HOME}"/.config/pulse/client.conf
-	# echo 'autospawn = no'               >> "${HOME}"/.config/pulse/client.conf
-
-	if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
+	if [[ $(pgrep -f proot) ]]
 	then
-		if [[ $(command -v pulseaudio) ]]
+		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
+		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
+		echo 'autospawn = no'               >> /etc/pulse/client.conf
+	else
+		if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
 		then
-			if [[ $(pgrep -f pulseaudio) ]]
+			if [[ $(command -v pulseaudio) ]]
 			then
-				:
-			else
-				# start pulseaudio and daemonize
+				if [[ $(pgrep -f pulseaudio) ]]
+				then
+					:
+				else
+					# start pulseaudio and daemonize
 
-				pulseaudio					\
-					--start					\
-					--daemonize=true		\
-					--exit-idle-time=-1
+					pulseaudio					\
+						--start					\
+						--daemonize=true		\
+						--exit-idle-time=-1
 
-				# initialize transmission control protocol
+					# initialize transmission control protocol
 
-				pacmd								\
-					load-module						\
-						module-native-protocol-tcp	\
-							auth-ip-acl=127.0.0.1	\
-							auth-anonymous=1
+					pacmd								\
+						load-module						\
+							module-native-protocol-tcp	\
+								auth-ip-acl=127.0.0.1	\
+								auth-anonymous=1
+				fi
 			fi
 		fi
 	fi
