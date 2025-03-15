@@ -92,7 +92,9 @@ do
 			then
 				echo "Recompressing ${archive_layer} into ${archive_output}..."
 
-				xz -c "${archive_layer}" > "${archive_output}"
+				xz -c "${archive_layer}" > "${archive_output}" &
+
+				frobulator.process "archive"
 
 				echo "Successfully repackaged into ${archive_output}"
 			else
