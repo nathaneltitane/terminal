@@ -3,9 +3,9 @@
 platform="linux/aarch64"
 
 declare -A distributions=(
-[ubuntu]="18.04 20.04 22.04 24.04"
-[debian]="10 11 12 13"
-[fedora]="38 39 40 41"
+	[ubuntu]="18.04 20.04 22.04 24.04"
+	[debian]="10 11 12 13"
+	[fedora]="38 39 40 41"
 )
 
 for distribution in "${!distributions[@]}"
