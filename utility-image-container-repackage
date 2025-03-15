@@ -100,9 +100,11 @@ do
 
 				frobulator.progress "archive"
 
-				echo "Successfully repackaged into ${archive_output}"
+				frobulator.scs "Repackage successful" "[ ${archive_output} ]"
+				echo
 			else
-				echo "Error: layer.tar not found in the extracted content of ${archive_input}."
+				frobulator.err "System archive 'layer.tar' not found" "[ ${archive_input} ]"
+				echo
 			fi
 
 			rm -r -f "${temporary_directory}"
