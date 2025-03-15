@@ -78,19 +78,23 @@ do
 
 			temporary_directory=$(mktemp -d)
 
-			echo "Extracting ${archive_input}..."
+			frobulator.fwd "Extracting" "[  ${archive_input} ]"
+			echo
 
 			tar										\
 				--extract							\
 					--file="${archive_input}"   	\
 					--xz                        	\
-					--directory="${temporary_directory}"
+					--directory="${temporary_directory}" &
+
+			frobulator.progress "extract"
 
 			archive_layer=$(find "${temporary_directory}" -name "layer.tar")
 
 			if [ -f "${archive_layer}" ]
 			then
-				echo "Recompressing ${archive_layer} into ${archive_output}..."
+				frobulator.inf "Archiving layer" "[ ${archive_output}...]"
+				echo
 
 				xz -c "${archive_layer}" > "${archive_output}" &
 
@@ -107,3 +111,6 @@ do
 		done
 	done
 done
+
+frobulator.scs "Done"
+echo
