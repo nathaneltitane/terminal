@@ -80,6 +80,7 @@ frobulator.upgrade
 
 list=(
 	cura
+	docker.io
 	git
 	htop
 	hub
