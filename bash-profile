@@ -205,7 +205,7 @@ then
 
 	session_title="${session_title^}"
 
-	frobulator.fwd "Login count""[ ${ticker} ]" ">"
+	frobulator.fwd "Login count" "[ ${ticker} ]" ">"
 	echo
 
 	frobulator.fwd "Welcome to Dextop" "[ ${session_title} ]"
