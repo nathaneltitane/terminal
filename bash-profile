@@ -209,7 +209,8 @@ then
 	echo
 
 	frobulator.inf "Graphical session:"
-	frobulator.nul "'container-session -o | -x | -u [User Name] | -d [Directory] | -f [Application]'"
+	frobulator.inf "'container-session -o | -x'"
+	frobulator.inf "'container-session -u [User Name] | -d [Directory] | -f [Application]'"
 	echo
 
 	frobulator.inf "Update utilities:"
