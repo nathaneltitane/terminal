@@ -402,6 +402,8 @@ then
 
 	list=()
 
+	refind-install --yes
+
 	# purge
 
 	apt purge grub* > "${sink}" 2>&1
