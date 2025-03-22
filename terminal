@@ -112,6 +112,7 @@ kde_list=(
 	kcolorchooser
 	kde-config-cron
 	kde-config-flatpak
+	kde-spectacle
 	kdenlive
 	kio-gdrive
 	konsole
@@ -123,7 +124,6 @@ kde_list=(
 	plasma-discover
 	plasma-discover-backend-flatpak
 	plasma-discover-backend-fwupd
-	spectacle
 	sweeper
 )
 
