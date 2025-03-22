@@ -123,6 +123,7 @@ kde_list=(
 	plasma-discover
 	plasma-discover-backend-flatpak
 	plasma-discover-backend-fwupd
+	spectacle
 	sweeper
 )
 
