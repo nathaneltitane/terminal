@@ -152,6 +152,18 @@ list=()
 
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
+flatpak_list=(
+	com.hunterwittenborn.Celeste
+)
+
+list+=(
+	${flatpak_list[@]}
+)
+
+flatpak install --assumeyes ${flatpak_list[@]}
+
+list=()
+
 # storage //////////////////////////////////////////////////////////////////////
 
 # windows subsystem for linux
@@ -185,7 +197,7 @@ then
 
 fi
 
-# android subsystem for chromeos
+# android subsystem for chrome os
 
 if [ -d /opt/google/containers/android ]
 then
