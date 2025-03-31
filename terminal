@@ -95,6 +95,7 @@ list=(
 )
 
 kde_list=(
+	ark
 	breeze
 	breeze-cursor-theme
 	breeze-gtk-theme
