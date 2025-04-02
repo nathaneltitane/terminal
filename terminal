@@ -64,6 +64,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+architecture="$(dpkg --print-architecture)"
+codename="$(lsb_release -c -s)"
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -146,22 +148,6 @@ list=(
 )
 
 frobulator.delete /usr/share/applications ${list[@]}
-
-list=()
-
-# flatpak //////////////////////////////////////////////////////////////////////
-
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-flatpak_list=(
-	com.hunterwittenborn.Celeste
-)
-
-list+=(
-	${flatpak_list[@]}
-)
-
-flatpak install --assumeyes ${flatpak_list[@]}
 
 list=()
 
