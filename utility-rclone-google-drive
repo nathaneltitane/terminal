@@ -212,7 +212,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=${HOME}/.local/bin/
-ExecStart=${SHELL} ${service}
+ExecStart=${SHELL} ${process}
 Restart=on-failure
 StandardOutput=journal
 StandardError=journal
