@@ -11,21 +11,21 @@ if [[ -z $(command -v frobulator) ]]
 then
 	if [[ $(id -u -n) = "root" ]]
 	then
-		SUDO_HOME=/root
+${TAB}${TAB}SUDO_HOME=/root
 
-		USER="${SUDO_USER}"
+${TAB}${TAB}USER="${SUDO_USER}"
 
-		HOME=/home/"${USER}"
+${TAB}${TAB}HOME=/home/"${USER}"
 	fi
 
 	if [[ -z $(command -v curl) ]]
 	then
-		yes | apt-get install curl
+${TAB}${TAB}yes | apt-get install curl
 	fi
 
 	if [ ! -d "${HOME}"/.local/bin ]
 	then
-		mkdir -p "${HOME}"/.local/bin
+${TAB}${TAB}mkdir -p "${HOME}"/.local/bin
 	fi
 
 	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
@@ -53,12 +53,8 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-service="rclone-google-drive"
-
-service_timer="${service}.timer"
-service_service="${service}.service"
-
-service_interval="5"
+process="rclone-google-drive"
+service="${process}.service"
 
 cloud_service="google drive"
 
@@ -86,12 +82,12 @@ if [ -d /media/[iI]nternal/[rR][cC]lone ]
 then
 	if [ -f /media/[iI]nternal/[rR][cC]lone/rclone.conf ]
 	then
-		frobulator.inf "Linking configuration"
-		echo
+${TAB}${TAB}frobulator.inf "Linking configuration"
+${TAB}${TAB}echo
 
-		frobulator.directory "${HOME}" .config/rclone
+${TAB}${TAB}frobulator.directory "${HOME}" .config/rclone
 
-		frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
+${TAB}${TAB}frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
 	fi
 fi
 
@@ -102,16 +98,19 @@ cat <<- FILE > "${HOME}"/.local/bin/"${service}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-cloud_server_directory="${cloud_server_directory}"
-local_server_directory="${local_server_directory}"
+cloud_server_directory="Google:"
+local_server_directory="/media/internal"
 
 # functions ////////////////////////////////////////////////////////////////////
 
 rclone_transfer () {
 
-${TAB}rclone=$(command -v rclone)
+${TAB}rclone=/usr/bin/rclone
 
 ${TAB}streams="16"
+
+${TAB}modify_window="1"
+${TAB}max_lock="120"
 
 ${TAB}synchronization_option="\${1}"
 
@@ -126,8 +125,18 @@ ${TAB}transfer_command+=(\${rclone})
 ${TAB}transfer_command+=(\${synchronization_option})
 ${TAB}transfer_command+=(\${source})
 ${TAB}transfer_command+=(\${destination})
+${TAB}transfer_command+=(--compare size,modtime,checksum)
+${TAB}transfer_command+=(--modify-window \${modify_window}s)
 ${TAB}transfer_command+=(--create-empty-src-dirs)
+${TAB}transfer_command+=(--drive-acknowledge-abuse)
 ${TAB}transfer_command+=(--drive-skip-gdocs)
+${TAB}transfer_command+=(--drive-skip-shortcuts)
+${TAB}transfer_command+=(--drive-skip-dangling-shortcuts)
+${TAB}transfer_command+=(--metadata)
+${TAB}transfer_command+=(--track-renames)
+${TAB}transfer_command+=(--fix-case)
+${TAB}transfer_command+=(--recover)
+${TAB}transfer_command+=(--max-lock \${max_lock}s)
 
 ${TAB}if [ ! -z "\${exclude}" ]
 ${TAB}then
@@ -140,14 +149,23 @@ ${TAB}transfer_command+=(--multi-thread-streams \${streams})
 ${TAB}transfer_command+=(--progress)
 ${TAB}transfer_command+=(--verbose)
 
+${TAB}resync="\${local_server_directory}/\${server_directory}/.resync"
+
+${TAB}if [ ! -e "\${resync}" ]
+${TAB}then
+${TAB}${TAB}transfer_command+=(--resync)
+${TAB}fi
+
 ${TAB}eval \${transfer_command[@]}
+
+${TAB}touch "\${resync}"
 }
 
 # batch directory management
 
 # set IFS
 
-IFS=\$'\\n'
+IFS=\$'\n'
 
 server_directories_list=(
 ${TAB}\$(find "\${local_server_directory}"	\\
@@ -155,8 +173,6 @@ ${TAB}${TAB}-mindepth 1						\\
 ${TAB}${TAB}-maxdepth 1						\\
 ${TAB}${TAB}-type d							\\
 ${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB}${TAB}! -iname "*Git*"				\\
-${TAB}${TAB}! -iname "*Music*"				\\
 ${TAB})
 )
 
@@ -168,54 +184,16 @@ for server_directory in \${server_directories_list[@]}
 do
 ${TAB}server_directory=\${server_directory##*/}
 
-${TAB}# synchronize:
-${TAB}# local machine >>> ${cloud_service}
-
 ${TAB}echo "Synchronizing: " "\${server_directory}"
 ${TAB}echo
 
-${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
-
-${TAB}# copy:
-${TAB}# ${cloud_service} >>> local machine
-
-${TAB}echo "Copying: " "\${server_directory}"
-${TAB}echo
-
-${TAB}rclone_transfer copy "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
+${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
 
 done
 
 # unset directory list
 
 server_directories_list=()
-
-# individual directory management
-
-echo "Synchronizing: " "Git"
-echo
-
-local_server_directory="${local_server_directory}"
-
-rclone_transfer sync "\${local_server_directory}/Git" "\${cloud_server_directory}/Git"
-
-echo "Synchronizing: " "Music"
-echo
-
-local_server_directory="/media/nathanel/Samsung${SPC}T7"
-server_directory="/Music/BASIL${SPC}O\'GLUE"
-
-rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
-
-local_server_directory="/media/nathanel/Samsung${SPC}T7"
-server_directory="/Music/STEYOYOKE"
-
-rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
-
-local_server_directory="/media/nathanel/Samsung${SPC}T7"
-server_directory="/Music/INNER${SPC}SYMPHONY"
-
-rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 FILE
 
 # permissions
@@ -226,38 +204,31 @@ chmod +x "${HOME}"/.local/bin/"${service}"
 
 frobulator.directory "${HOME}" .config/systemd/user
 
-# service timer
-
-cat <<- 'FILE' > "${HOME}"/.config/systemd/user/"${service_timer}"
-[Unit]
-Description=RClone Google Drive synchronization
-
-[Timer]
-OnCalendar=*:0/05
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-FILE
-
 # service desciptor
 
-cat <<- FILE > "${HOME}"/.config/systemd/user/"${service_service}"
+cat <<- FILE > "${HOME}"/.config/systemd/user/"${service}"
 [Unit]
-Description=Synchronize Google Drive using RClone every 5 minutes
+Description=Synchronize Google Drive using RClone
+After=network.target
 
 [Service]
-ExecStart=${SHELL} ${HOME}/.local/bin/${service}
+WorkingDirectory=${HOME}/.local/bin/
+ExecStart=${SHELL} ${service}
+Restart=on-failure
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
 FILE
 
 # service activation
 
-if [[ $(systemctl status --user "${service_timer}" 2>&1 > "${sink}") ]]
+if [[ $(systemctl status --user "${service}" 2>&1 > "${sink}") ]]
 then
 	service_actions_list=(
 		disable
 		stop
-
 	)
 
 	service_action_message="Stopping service"
@@ -274,7 +245,7 @@ service_action_message="Starting service"
 
 for service_action in ${service_actions_list[@]}
 do
-	systemctl "${service_action}" --user "${service_timer}" > "${sink}" 2>&1 &
+	systemctl "${service_action}" --user "${service}" > "${sink}" 2>&1 &
 
 	frobulator.process "${service_action_message}"
 
@@ -285,7 +256,7 @@ done
 
 # service process verification
 
-if [[ $(systemctl status --user "${service_service}" | grep "active") ]]
+if [[ $(systemctl status --user "${service}" | grep "active") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
