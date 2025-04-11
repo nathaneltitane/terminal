@@ -226,33 +226,32 @@ FILE
 
 if [[ $(systemctl status --user "${service}" 2>&1 > "${sink}") ]]
 then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
+
 	service_actions_list=(
 		disable
 		stop
 	)
-
-	service_action_message="Stopping service"
 fi
 
-service_actions_list=()
-
-service_actions_list=(
+service_actions_list+=(
 	enable
 	start
 )
-
-service_action_message="Starting service"
 
 for service_action in ${service_actions_list[@]}
 do
 	systemctl "${service_action}" --user "${service}" > "${sink}" 2>&1 &
 
-	frobulator.process "${service_action_message}"
+	frobulator.process "Service" "[ ${service_action} ]"
 
 	systemctl --user daemon-reload > "${sink}" 2>&1 &
 
 	frobulator.process "Reloading"
 done
+
+service_actions_list=()
 
 # service process verification
 
