@@ -11,21 +11,21 @@ if [[ -z $(command -v frobulator) ]]
 then
 	if [[ $(id -u -n) = "root" ]]
 	then
-${TAB}${TAB}SUDO_HOME=/root
+		SUDO_HOME=/root
 
-${TAB}${TAB}USER="${SUDO_USER}"
+		USER="${SUDO_USER}"
 
-${TAB}${TAB}HOME=/home/"${USER}"
+		HOME=/home/"${USER}"
 	fi
 
 	if [[ -z $(command -v curl) ]]
 	then
-${TAB}${TAB}yes | apt-get install curl
+		yes | apt-get install curl
 	fi
 
 	if [ ! -d "${HOME}"/.local/bin ]
 	then
-${TAB}${TAB}mkdir -p "${HOME}"/.local/bin
+		mkdir -p "${HOME}"/.local/bin
 	fi
 
 	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
@@ -82,12 +82,12 @@ if [ -d /media/[iI]nternal/[rR][cC]lone ]
 then
 	if [ -f /media/[iI]nternal/[rR][cC]lone/rclone.conf ]
 	then
-${TAB}${TAB}frobulator.inf "Linking configuration"
-${TAB}${TAB}echo
+		frobulator.inf "Linking configuration"
+		echo
 
-${TAB}${TAB}frobulator.directory "${HOME}" .config/rclone
+		frobulator.directory "${HOME}" .config/rclone
 
-${TAB}${TAB}frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
+		frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
 	fi
 fi
 
