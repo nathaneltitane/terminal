@@ -183,13 +183,13 @@ ${TAB}if [ ! -e "\${run_count_tracker}" ]
 ${TAB}then
 ${TAB}${TAB}run_count=0
 ${TAB}else
-${TAB}${TAB}run_count=$(cat "${run_count_tracker}")
+${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
 ${TAB}fi
 
-${TAB}echo "${run_count}" > "${run_count_tracker}"
+${TAB}echo "\${run_count}" > "\${run_count_tracker}"
 
 ${TAB}echo
-${TAB}echo "Run start - count: ${run_count}"
+${TAB}echo "Run start - count: \${run_count}"
 ${TAB}echo
 
 ${TAB}rclone_transfer bisync "\${cloud_server_directory}/" "\${local_server_directory}/" --max-depth 0 --exclude '*.Trash*'
@@ -208,10 +208,10 @@ ${TAB}done
 
 ${TAB}run_count=\$((run_count + 1))
 
-${TAB}echo "${run_count}" > "${run_count_tracker}"
+${TAB}echo "\${run_count}" > "\${run_count_tracker}"
 
 ${TAB}echo
-${TAB}echo "Run end - count: ${run_count}"
+${TAB}echo "Run end - count: \${run_count}"
 ${TAB}echo
 
 done
