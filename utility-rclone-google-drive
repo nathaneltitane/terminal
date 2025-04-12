@@ -250,7 +250,7 @@ for service_action in ${service_actions_list[@]}
 do
 	systemctl "${service_action}" --user "${service}" > "${sink}" 2>&1 &
 
-	frobulator.process "Service" "[ ${service_action} ]"
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
 
 	sleep 1
 
