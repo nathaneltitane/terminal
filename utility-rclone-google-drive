@@ -168,6 +168,9 @@ ${TAB})
 
 run_count=0
 
+echo "Run count: \${run_count}"
+echo
+
 # unset IFS
 
 IFS=''
@@ -190,7 +193,8 @@ ${TAB}done
 
 ${TAB}run_count=\$((run_count + 1))
 
-${TAB}echo "\${run_count}"
+${TAB}echo "Run count: \${run_count}"
+${TAB}echo
 
 done
 
