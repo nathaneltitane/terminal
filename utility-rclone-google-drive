@@ -190,6 +190,10 @@ ${TAB}${TAB}server_directory=\${server_directory##*/}
 
 ${TAB}${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
 
+${TAB}${TAB}wait
+
+${TAB}${TAB}sleep 1
+
 ${TAB}done
 done
 
