@@ -270,7 +270,9 @@ if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
-else
+
+elif [[ $(systemctl status --user "${service}" | grep -e "inactive.*") ]]
+then
 	frobulator.err "Service activation failed" "[ ${service} ]"
 	echo
 
