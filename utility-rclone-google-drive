@@ -182,15 +182,15 @@ ${TAB})
 
 IFS=''
 
-for server_directory in \${server_directories_list[@]}
+while true
 do
-${TAB}server_directory=\${server_directory##*/}
+${TAB}for server_directory in \${server_directories_list[@]}
+${TAB}do
+${TAB}${TAB}server_directory=\${server_directory##*/}
 
-${TAB}echo "Synchronizing: " "\${server_directory}"
-${TAB}echo
+${TAB}${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
 
-${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
-
+${TAB}done
 done
 
 # unset directory list
