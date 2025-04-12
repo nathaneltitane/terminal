@@ -215,17 +215,18 @@ frobulator.directory "${HOME}" .config/systemd/user
 cat <<- FILE > "${HOME}"/.config/systemd/user/"${service}"
 [Unit]
 Description=Synchronize Google Drive using RClone
-After=network.target
+After=graphical-session.target
+Requires=graphical-session.target
 
 [Service]
-WorkingDirectory=${HOME}/.local/bin/
-ExecStart=${SHELL} ${process}
-Restart=on-failure
+ExecStart=${SHELL} ${HOME}/.local/bin/${process}
+Restart=always
+RestartSec=1s
 StandardOutput=journal
 StandardError=journal
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical-session.target
 FILE
 
 # service activation
