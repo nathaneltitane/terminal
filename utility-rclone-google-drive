@@ -265,7 +265,7 @@ service_actions_list=()
 
 # service process verification
 
-if [[ $(systemctl status --user "${service}" | grep "active") ]]
+if [[ $(systemctl status --user "${service}" | grep grep -e "active.*running") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
