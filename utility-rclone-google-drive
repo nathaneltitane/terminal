@@ -192,6 +192,8 @@ ${TAB}echo
 ${TAB}echo "Run start - count: \${run_count}"
 ${TAB}echo
 
+${TAB}rclone_transfer bisync "\${cloud_server_directory}/" "\${local_server_directory}/" --max-depth 0 --exclude '*.Trash*'
+
 ${TAB}for server_directory in \${server_directories_list[@]}
 ${TAB}do
 ${TAB}${TAB}server_directory=\${server_directory##*/}
