@@ -181,9 +181,9 @@ while true
 do
 ${TAB}if [ ! -e "\${run_count_tracker}" ]
 ${TAB}then
-${TAB}${TAB}run_count=0
-${TAB}else
 ${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
+${TAB}else
+${TAB}${TAB}run_count=0
 ${TAB}fi
 
 ${TAB}echo "\${run_count}" > "\${run_count_tracker}"
