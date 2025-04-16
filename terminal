@@ -249,7 +249,6 @@ done
 
 # python ///////////////////////////////////////////////////////////////////////
 
-
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
 	frobulator.inf "Setting up" "[ python ]"
