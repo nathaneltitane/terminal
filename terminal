@@ -152,6 +152,31 @@ frobulator.delete /usr/share/applications ${list[@]}
 
 list=()
 
+# python ///////////////////////////////////////////////////////////////////////
+
+if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+then
+	frobulator.inf "Setting up" "[ python ]"
+	echo
+
+	python_directory="/usr/lib/python3.11"
+
+	sudo rm -r -f "${python_directory}"/EXTERNALLY-MANAGED
+fi
+
+# pip //////////////////////////////////////////////////////////////////////////
+
+pip_install_list=(
+	trimesh
+)
+
+for item in "${pip_install_list[@]}"
+do
+	pip install "${item}"
+done
+
+pip_install_list=()
+
 # storage //////////////////////////////////////////////////////////////////////
 
 # windows subsystem for linux
@@ -246,18 +271,6 @@ for storage in ${storage_list[@]}
 		chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
 	fi
 done
-
-# python ///////////////////////////////////////////////////////////////////////
-
-if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
-then
-	frobulator.inf "Setting up" "[ python ]"
-	echo
-
-	python_directory="/usr/lib/python3.11"
-
-	sudo rm -r -f "${python_directory}"/EXTERNALLY-MANAGED
-fi
 
 # shell ////////////////////////////////////////////////////////////////////////
 
