@@ -256,7 +256,7 @@ then
 
 	python_directory="/usr/lib/python3.11"
 
-	frobulator.delete "${python_directory}" EXTERNALLY-MANAGED
+	sudo rm -r -f "${python_directory}"/EXTERNALLY-MANAGED
 fi
 
 # shell ////////////////////////////////////////////////////////////////////////
