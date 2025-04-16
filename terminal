@@ -161,7 +161,7 @@ then
 
 	python_directory="/usr/lib/python3.11"
 
-	sudo rm -r -f "${python_directory}"/EXTERNALLY-MANAGED
+	rm -r -f "${python_directory}"/EXTERNALLY-MANAGED
 fi
 
 # pip //////////////////////////////////////////////////////////////////////////
