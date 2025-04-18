@@ -396,8 +396,7 @@ kwriteconfig5						\
 
 qdbus org.kde.KWin /KWin reconfigure
 
-frobulator.scs 'Done'
-echo
+
 
 # efi /////////////////////////////////////////////////////////////////////////
 
@@ -445,3 +444,5 @@ then
 	rm -r -f /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
 fi
 
+frobulator.scs 'Done'
+echo
