@@ -115,6 +115,6 @@ then
 
 	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
 
-	rm -r -f /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
+	frobulator.delete /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
 fi
 
