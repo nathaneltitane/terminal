@@ -251,10 +251,7 @@ FILE
 
 # prepare
 
-if [ -f "${HOME}"/.local/bin/"${tracker}" ]
-then
-	frobulator.delete "${HOME}"/.local/bin "${tracker}"
-fi
+frobulator.delete "${HOME}"/.local/bin "${tracker}"
 
 # service activation
 
