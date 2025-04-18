@@ -226,7 +226,6 @@ fi
 
 frobulator.file "${HOME}" .hushlogin
 
-
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
 	# generate home directory structure
