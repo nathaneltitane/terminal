@@ -258,7 +258,7 @@ storage_list=(
 )
 
 for storage in ${storage_list[@]}
-	do
+do
 	if [ -d "${storage}" ]
 	then
 		frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
