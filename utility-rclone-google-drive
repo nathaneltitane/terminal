@@ -55,6 +55,7 @@ frobulator.script "Setting up ${script#*-}"
 
 process="rclone-google-drive"
 service="${process}.service"
+tracker="${HOME}"/.local/bin/rclone-google-drive-run-count
 
 cloud_service="google drive"
 
@@ -247,6 +248,13 @@ StandardError=journal
 [Install]
 WantedBy=graphical-session.target
 FILE
+
+# prepare
+
+if [ -f "${HOME}"/.local/bin/"${tracker}" ]
+then
+	frobulator.delete "${HOME}"/.local/bin "${tracker}"
+fi
 
 # service activation
 
