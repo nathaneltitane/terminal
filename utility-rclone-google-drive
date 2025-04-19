@@ -256,6 +256,8 @@ FILE
 
 frobulator.delete "${HOME}"/.local/bin "${tracker}"
 
+frobulator.delete "${HOME}"/.cache rclone
+
 # service activation
 
 if [[ $(systemctl status --user "${service}" 2>&1 > "${sink}") ]]
