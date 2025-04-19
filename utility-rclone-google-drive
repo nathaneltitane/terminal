@@ -145,6 +145,9 @@ ${TAB}transfer_command+=(--transfers \${transfers})
 
 ${TAB}if (( run_count == 0 || run_count \% 50 == 0 ))
 ${TAB}then
+${TAB}${TAB}echo "Resync triggered - count \${run_count}"
+${TAB}${TAB}echo
+
 ${TAB}${TAB}transfer_command+=(--resync)
 ${TAB}fi
 
