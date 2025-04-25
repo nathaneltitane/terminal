@@ -792,3 +792,40 @@ findd () {
 	fi
 
 }
+
+ssh-check () {
+
+timeout="0.5"
+
+lan="${1}"
+
+if [ -z "${lan}" ]
+then
+    echo "Usage: ${0} <LAN_PREFIX> (e.g., ${0} 192.168.0 or 192.168.0.1)"
+
+    exit 1
+fi
+
+# extract the first 3 octets from the input:
+# sanitize to nnn.nnn.nnn.
+
+lan=$(
+		echo "${lan}" | grep -oE '^([0-9]{1,3}\.){2}[0-9]{1,3}' | awk -F. '{print $1"."$2"."$3"."}'
+	)
+
+	for i in {1..255}
+	do
+		ip="${lan}${i}"
+
+		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${ip}/22" 2> "${sink}"
+
+		if [ ${?} -eq 0 ]
+		then
+			frobulator.scs "SSH open" "[ ${ip} ]"
+		else
+			frobulator.err "${ip}" &
+		fi
+
+	done | grep "open"
+
+}

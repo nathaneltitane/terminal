@@ -1,0 +1,49 @@
+#!/bin/bash
+
+platform="linux/aarch64"
+
+declare -A distributions=(
+	[ubuntu]="18.04 20.04 22.04 24.04"
+	[debian]="10 11 12 13"
+	[fedora]="38 39 40 41"
+)
+
+for distribution in "${!distributions[@]}"
+do
+	for version in ${distributions[${distribution}]}
+	do
+		docker pull --quiet --platform="${platform}" "${distribution}:${version}"
+
+		docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
+
+		for archive_input in *container.tar.xz
+		do
+			archive_output="${archive_input/-container.tar.xz/.tar.xz}"
+
+			temporary_directory=$(mktemp -d)
+
+			echo "Extracting .."
+
+			tar										\
+				--extract							\
+					--file="${archive_input}"   	\
+					--xz                        	\
+					--directory="${temporary_directory}"
+
+			archive_layer=$(find "${temporary_directory}" -name "layer.tar")
+
+			if [ -f "${archive_layer}" ]
+			then
+				xz -c "${archive_layer}" > "${archive_output}"
+
+				echo "Successfully repackaged into ${archive_output}"
+			else
+				echo "'layer.tar' not found in the extracted content of ${archive_input}"
+			fi
+
+			rm -r -f "${temporary_directory}"
+
+			rm -r -f "${archive_input}"
+		done
+	done
+done

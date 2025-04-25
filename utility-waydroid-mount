@@ -56,7 +56,9 @@ list=()
 
 compositor=$(command -v weston)
 
-android_media="${HOME}"/.local/share/waydroid/data/media/0
+android_media="${HOME}"/.local/share/waydroid/data/media/
+
+android_storage="${android_storage}"/0
 
 host_media=/media
 
@@ -67,7 +69,7 @@ android_directories_list=(
 
 host_directories_list=(
 	internal
-	"/${USER}/Samsung T7/music"
+	"${USER}/Samsung T7/music"
 )
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -100,22 +102,16 @@ compositor_load () {
 
 session_start () {
 
-	# take ownership and populate directories
-
-	sudo chown --recursive "${UID}":"${UID}" "$android_media"
-
-	sudo chmod --recursive 777 "$android_media"
-
 	for i in ${!android_directories_list[@]}
 	do
-		if ! mountpoint --quiet "$android_media"/"${android_directories_list[$i]}"
+		if ! mountpoint --quiet "${android_storage}"/"${android_directories_list[$i]}"
 		then
-			sudo mkdir --parents "${android_media}"/"${android_directories_list[$i]}"
+			sudo mkdir --parents "${android_storage}"/"${android_directories_list[$i]}"
 
 			sudo mount										\
 					--bind									\
 					--options uid="${UID}",gid="${UID}"		\
-					--rw "${host_media}"/"${host_directories_list[$i]}" "${android_media}"/"${android_directories_list[$i]}"
+					--rw "${host_media}"/"${host_directories_list[$i]}" "${android_storage}"/"${android_directories_list[$i]}"
 
 		fi
 
@@ -128,7 +124,7 @@ session_stop () {
 
 	for i in ${!android_directories_list[@]}
 	do
-		sudo umount "${android_media}"/"${android_directories_list[$i]}" 2> "${sink}"
+		sudo umount "${android_storage}"/"${android_directories_list[$i]}" 2> "${sink}"
 
 		echo "Unmounting ${android_media}/${android_directories_list[$i]}"
 		echo
@@ -149,14 +145,16 @@ else
 	compositor_load
 fi
 
-waydroid session stop
-
 # session start
+
+waydroid session stop
 
 waydroid show-full-ui 2>&1 | while read -r message
 do
 	if echo "${message}" | grep -i 'Android with user 0 is ready'
 	then
+		sudo chmod --recursive 777 "${android_media}"
+
 		session_start
 	fi
 done
