@@ -54,7 +54,7 @@ version="09-23-2022"
 # prompt ///////////////////////////////////////////////////////////////////////
 
 # variables ////////////////////////////////////////////////////////////////////
-
+configuration=/media/internal/.ddclient
 hostname="${HOSTNAME}"
 login=$(cat /media/internal/.ddclient | sed -n 1p)
 password=$(cat /media/internal/.ddclient | sed -n 2p)
@@ -70,6 +70,17 @@ frobulator.require ${list[@]}
 list=()
 
 # functions ////////////////////////////////////////////////////////////////////
+
+if [ ! -e "${configuration}" ]
+then
+	frobulator.err "Configuration file not found" "[ ${configuration} ]"
+	echo
+
+	frobulator.fwd "Aborting"
+	echo
+
+	exit 1
+fi
 
 # write ddclient configuration
 
