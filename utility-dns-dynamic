@@ -108,13 +108,9 @@ www
 ${hostname}
 FILE
 
-# stop service
-
-service ddclient stop
-
 # reconfigure prccess handlers
 
-sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
+sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/"${process}".service
 
 # purge service cache file
 
