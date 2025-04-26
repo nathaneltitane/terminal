@@ -60,6 +60,9 @@ hostname="${HOSTNAME}"
 login=$(cat /media/internal/.dns-dynamic | sed -n 1p)
 password=$(cat /media/internal/.dns-dynamic | sed -n 2p)
 
+process="ddclient"
+service="${process}.service"
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 list=(
@@ -85,7 +88,7 @@ fi
 
 # write ddclient configuration
 
-cat <<- FILE > /etc/ddclient.conf
+cat <<- FILE > /etc/"${process}".conf
 # ddclient #
 
 daemon=300                                  # check every 5 minutes
@@ -115,17 +118,61 @@ sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/ddclient.service
 
 # purge service cache file
 
-if [ -d /var/cache/ddclient ]
+if [ -d /var/cache/"${process}" ]
 then
 	rm					\
 		--recursive		\
-		--force			 /var/cache/ddclient/ddclient.cache
+		--force			 /var/cache/"${process}"/"${process}".cache
 fi
 
-# restart service
+# service activation
 
-service ddclient start
+if [[ $(systemctl status "${service}" 2>&1 > "${sink}") ]]
+then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
 
-# reload service units
+	service_actions_list=(
+		disable
+		stop
+	)
+fi
 
-systemctl daemon-reload
+service_actions_list+=(
+	enable
+	start
+)
+
+for service_action in ${service_actions_list[@]}
+do
+	systemctl "${service_action}" "${service}" > "${sink}" 2>&1 &
+
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
+
+	sleep 1
+
+	systemctl daemon-reload > "${sink}" 2>&1 &
+
+	frobulator.process "Reloading"
+
+	sleep 1
+done
+
+service_actions_list=()
+
+# service process verification
+
+if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.scs "Service activation success" "[ ${service} ]"
+	echo
+
+elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
+then
+	frobulator.err "Service activation failed" "[ ${service} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.scs "Done"
