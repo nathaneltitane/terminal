@@ -56,12 +56,19 @@ version="04-26-2025"
 # variables ////////////////////////////////////////////////////////////////////
 
 configuration=/media/internal/.dns-dynamic
-hostname="${HOSTNAME}"
-login=$(cat /media/internal/.dns-dynamic | sed -n 1p)
-password=$(cat /media/internal/.dns-dynamic | sed -n 2p)
+
+use=$(cat /media/internal/.dns-dynamic | sed -n 1p)
+protocol=$(cat /media/internal/.dns-dynamic | sed -n 2p)
+server=$(cat /media/internal/.dns-dynamic | sed -n 3p)
+
+login=$(cat /media/internal/.dns-dynamic | sed -n 4p)
+password=$(cat /media/internal/.dns-dynamic | sed -n 5p)
 
 process="ddclient"
 service="${process}.service"
+
+web="www"
+hostname="${HOSTNAME}"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -98,13 +105,14 @@ pid=/var/run/ddclient.pid                   # record PID to file
 ssl=yes                                     # use ssl
 cache=/var/cache/ddclient/ddclient.cache    # set cache file
 
-use=web, web=dynamicdns.park-your-domain.com/getip
-protocol=namecheap
-server=dynamicdns.park-your-domain.com
+use=${use}
+protocol=${protocol}
+server=${server}
 
 login=${login}
 password=${password}
-www
+
+${web}
 ${hostname}
 FILE
 
