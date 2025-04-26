@@ -55,6 +55,10 @@ version="09-23-2022"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+hostname="${HOSTNAME}"
+login=$(cat /media/internal/.ddclient | sed -n 1p)
+password=$(cat /media/internal/.ddclient | sed -n 2p)
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 list=(
@@ -83,10 +87,10 @@ use=web, web=dynamicdns.park-your-domain.com/getip
 protocol=namecheap
 server=dynamicdns.park-your-domain.com
 
-login=terminal.me
-password=ec0f426f08764a3b9a5b48ef5e7c3d22
+login=${login}
+password=${password}
 www
-${HOSTNAME}
+${hostname}
 FILE
 
 # stop service
