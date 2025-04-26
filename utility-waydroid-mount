@@ -102,16 +102,29 @@ compositor_load () {
 
 session_start () {
 
+<<<<<<< HEAD
 	for i in ${!android_directories_list[@]}
 	do
 		if ! mountpoint --quiet "${android_storage}"/"${android_directories_list[$i]}"
 		then
 			sudo mkdir --parents "${android_storage}"/"${android_directories_list[$i]}"
+=======
+	for index in ${!android_directories_list[@]}
+	do
+		if ! mountpoint --quiet "${android_storage}"/"${android_directories_list[${index}]}"
+		then
+			sudo mkdir										\
+					--parents "${android_storage}"/"${android_directories_list[$i{ndex}]}"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
 
 			sudo mount										\
 					--bind									\
 					--options uid="${UID}",gid="${UID}"		\
+<<<<<<< HEAD
 					--rw "${host_media}"/"${host_directories_list[$i]}" "${android_storage}"/"${android_directories_list[$i]}"
+=======
+					--rw "${host_media}"/"${host_directories_list[${index}]}" "${android_storage}"/"${android_directories_list[${index}]}"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
 
 		fi
 
@@ -122,11 +135,15 @@ session_stop () {
 
 	# unmount directories
 
-	for i in ${!android_directories_list[@]}
+	for index in ${!android_directories_list[@]}
 	do
+<<<<<<< HEAD
 		sudo umount "${android_storage}"/"${android_directories_list[$i]}" 2> "${sink}"
+=======
+		sudo umount "${android_storage}"/"${android_directories_list[${index}]}" 2> "${sink}"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
 
-		echo "Unmounting ${android_media}/${android_directories_list[$i]}"
+		echo "Unmounting ${android_media}/${android_directories_list[${index}]}"
 		echo
 	done
 }

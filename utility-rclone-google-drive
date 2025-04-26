@@ -43,7 +43,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="01-21-2024"
+version="04-19-2024"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -53,12 +53,9 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-service="rclone-google-drive"
-
-service_timer="${service}.timer"
-service_service="${service}.service"
-
-service_interval="5"
+process="rclone-google-drive"
+service="${process}.service"
+tracker="${HOME}"/.local/bin/rclone-google-drive-run-count
 
 cloud_service="google drive"
 
@@ -97,28 +94,32 @@ fi
 
 # script
 
-cat <<- FILE > "${HOME}"/.local/bin/"${service}"
+cat <<- FILE > "${HOME}"/.local/bin/"${process}"
 #!/bin/bash
 
 # variables ////////////////////////////////////////////////////////////////////
 
-cloud_server_directory="${cloud_server_directory}"
-local_server_directory="${local_server_directory}"
+cloud_server_directory="Google:"
+local_server_directory="/media/internal"
+
+run_count_tracker="\${HOME}"/.local/bin/rclone-google-drive-run-count
 
 # functions ////////////////////////////////////////////////////////////////////
 
 rclone_transfer () {
 
-${TAB}rclone=$(command -v rclone)
+${TAB}rclone=/usr/bin/rclone
 
+${TAB}checkers="64"
+${TAB}max_lock="120"
+${TAB}modify_window="1"
 ${TAB}streams="16"
+${TAB}transfers="32"
 
 ${TAB}synchronization_option="\${1}"
 
 ${TAB}source="\${2}"
 ${TAB}destination="\${3}"
-
-${TAB}exclude="\${4}"
 
 ${TAB}transfer_command=()
 
@@ -126,17 +127,30 @@ ${TAB}transfer_command+=(\${rclone})
 ${TAB}transfer_command+=(\${synchronization_option})
 ${TAB}transfer_command+=(\${source})
 ${TAB}transfer_command+=(\${destination})
+${TAB}transfer_command+=(--compare size,modtime,checksum)
+${TAB}transfer_command+=(--checkers \${checkers})
 ${TAB}transfer_command+=(--create-empty-src-dirs)
+${TAB}transfer_command+=(--drive-acknowledge-abuse)
+${TAB}transfer_command+=(--drive-skip-dangling-shortcuts)
 ${TAB}transfer_command+=(--drive-skip-gdocs)
+${TAB}transfer_command+=(--drive-skip-shortcuts)
+${TAB}transfer_command+=(--fix-case)
+${TAB}transfer_command+=(--max-lock \${max_lock}s)
+${TAB}transfer_command+=(--metadata)
+${TAB}transfer_command+=(--modify-window \${modify_window}s)
+${TAB}transfer_command+=(--multi-thread-streams \${streams})
+${TAB}transfer_command+=(--recover)
+${TAB}transfer_command+=(--track-renames)
+${TAB}transfer_command+=(--transfers \${transfers})
 
-${TAB}if [ ! -z "\${exclude}" ]
+${TAB}if (( run_count == 0 || run_count % 10 == 0 ))
 ${TAB}then
-${TAB}${TAB}exclude="/\${exclude}/**"
+${TAB}${TAB}echo "Resync triggered - count \${run_count}"
+${TAB}${TAB}echo
 
-${TAB}${TAB}transfer_command+=(--exclude \${exclude})
+${TAB}${TAB}transfer_command+=(--resync)
 ${TAB}fi
 
-${TAB}transfer_command+=(--multi-thread-streams \${streams})
 ${TAB}transfer_command+=(--progress)
 ${TAB}transfer_command+=(--verbose)
 
@@ -147,7 +161,7 @@ ${TAB}eval \${transfer_command[@]}
 
 # set IFS
 
-IFS=\$'\\n'
+IFS=\$'\n'
 
 server_directories_list=(
 ${TAB}\$(find "\${local_server_directory}"	\\
@@ -155,141 +169,139 @@ ${TAB}${TAB}-mindepth 1						\\
 ${TAB}${TAB}-maxdepth 1						\\
 ${TAB}${TAB}-type d							\\
 ${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB}${TAB}! -iname "*Git*"				\\
-${TAB}${TAB}! -iname "*Music*"				\\
 ${TAB})
 )
+
+run_count=0
+
+echo "Run count: \${run_count}"
+echo
 
 # unset IFS
 
 IFS=''
 
-for server_directory in \${server_directories_list[@]}
+while true
 do
-${TAB}server_directory=\${server_directory##*/}
+${TAB}if [ -e "\${run_count_tracker}" ]
+${TAB}then
+${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
+${TAB}else
+${TAB}${TAB}run_count=0
+${TAB}fi
 
-${TAB}# synchronize:
-${TAB}# local machine >>> ${cloud_service}
+${TAB}echo "\${run_count}" > "\${run_count_tracker}"
 
-${TAB}echo "Synchronizing: " "\${server_directory}"
+${TAB}echo
+${TAB}echo "Run start - count: \${run_count}"
 ${TAB}echo
 
-${TAB}rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
+${TAB}rclone_transfer bisync "\${cloud_server_directory}/" "\${local_server_directory}/" --max-depth 1 --exclude '*.Trash*'
 
-${TAB}# copy:
-${TAB}# ${cloud_service} >>> local machine
+${TAB}for server_directory in \${server_directories_list[@]}
+${TAB}do
+${TAB}${TAB}server_directory=\${server_directory##*/}
 
-${TAB}echo "Copying: " "\${server_directory}"
+${TAB}${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
+
+${TAB}${TAB}wait
+
+${TAB}${TAB}sleep 1
+
+${TAB}done
+
+${TAB}run_count=\$((run_count + 1))
+
+${TAB}echo "\${run_count}" > "\${run_count_tracker}"
+
 ${TAB}echo
-
-${TAB}rclone_transfer copy "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
+${TAB}echo "Run end - count: \${run_count}"
+${TAB}echo
 
 done
 
 # unset directory list
 
 server_directories_list=()
-
-# individual directory management
-
-echo "Synchronizing: " "Git"
-echo
-
-local_server_directory="${local_server_directory}"
-
-rclone_transfer sync "\${local_server_directory}/Git" "\${cloud_server_directory}/Git"
-
-echo "Synchronizing: " "Music"
-echo
-
-local_server_directory="/media/nathanel/Samsung${SPC}T7"
-server_directory="/Music/BASIL${SPC}O\'GLUE"
-
-rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
-
-local_server_directory="/media/nathanel/Samsung${SPC}T7"
-server_directory="/Music/STEYOYOKE"
-
-rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
-
-local_server_directory="/media/nathanel/Samsung${SPC}T7"
-server_directory="/Music/INNER${SPC}SYMPHONY"
-
-rclone_transfer sync "\${local_server_directory}/\${server_directory}" "\${cloud_server_directory}/\${server_directory}"
 FILE
 
 # permissions
 
-chmod +x "${HOME}"/.local/bin/"${service}"
+chmod +x "${HOME}"/.local/bin/"${process}"
 
 # service
 
 frobulator.directory "${HOME}" .config/systemd/user
 
-# service timer
-
-cat <<- 'FILE' > "${HOME}"/.config/systemd/user/"${service_timer}"
-[Unit]
-Description=RClone Google Drive synchronization
-
-[Timer]
-OnCalendar=*:0/05
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-FILE
-
 # service desciptor
 
-cat <<- FILE > "${HOME}"/.config/systemd/user/"${service_service}"
+cat <<- FILE > "${HOME}"/.config/systemd/user/"${service}"
 [Unit]
-Description=Synchronize Google Drive using RClone every 5 minutes
+Description=Synchronize Google Drive using RClone
+After=graphical-session.target
+Requires=graphical-session.target
 
 [Service]
-ExecStart=${SHELL} ${HOME}/.local/bin/${service}
+ExecStart=${SHELL} ${HOME}/.local/bin/${process}
+Restart=always
+RestartSec=1s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=graphical-session.target
 FILE
+
+# prepare
+
+frobulator.delete "${HOME}"/.local/bin "${tracker}"
+
+frobulator.delete "${HOME}"/.cache rclone
 
 # service activation
 
-if [[ $(systemctl status --user "${service_timer}" 2>&1 > "${sink}") ]]
+if [[ $(systemctl status --user "${service}" 2>&1 > "${sink}") ]]
 then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
+
 	service_actions_list=(
 		disable
 		stop
-
 	)
-
-	service_action_message="Stopping service"
 fi
 
-service_actions_list=()
-
-service_actions_list=(
+service_actions_list+=(
 	enable
 	start
 )
 
-service_action_message="Starting service"
-
 for service_action in ${service_actions_list[@]}
 do
-	systemctl "${service_action}" --user "${service_timer}" > "${sink}" 2>&1 &
+	systemctl "${service_action}" --user "${service}" > "${sink}" 2>&1 &
 
-	frobulator.process "${service_action_message}"
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
+
+	sleep 1
 
 	systemctl --user daemon-reload > "${sink}" 2>&1 &
 
 	frobulator.process "Reloading"
+
+	sleep 1
 done
+
+service_actions_list=()
 
 # service process verification
 
-if [[ $(systemctl status --user "${service_service}" | grep "active") ]]
+if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 	echo
-else
+
+elif [[ $(systemctl status --user "${service}" | grep -e "inactive.*") ]]
+then
 	frobulator.err "Service activation failed" "[ ${service} ]"
 	echo
 

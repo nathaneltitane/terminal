@@ -54,7 +54,11 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 version="04-12-2023"
+=======
+version="04-18-2025"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -115,6 +119,10 @@ then
 
 	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
 
+<<<<<<< HEAD
 	rm -r -f /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
+=======
+	frobulator.delete /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
 fi
 

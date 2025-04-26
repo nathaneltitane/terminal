@@ -72,21 +72,21 @@ list=()
 cat <<- FILE > /etc/ddclient.conf
 # ddclient #
 
-daemon=600                               # check every 10 minutes
-syslog=yes                               # log update messages to syslog
-mail-failure=root                        # mail failed updates to user
-pid=/var/run/ddclient.pid                # record PID to file
-ssl=yes                                  # use ssl
-cache=/var/cache/ddclient/ddclient.cache # set cache file
+daemon=300                                  # check every 5 minutes
+syslog=yes                                  # log update messages to syslog
+mail-failure=root                           # mail failed updates to user
+pid=/var/run/ddclient.pid                   # record PID to file
+ssl=yes                                     # use ssl
+cache=/var/cache/ddclient/ddclient.cache    # set cache file
 
 use=web, web=dynamicdns.park-your-domain.com/getip
+protocol=namecheap
+server=dynamicdns.park-your-domain.com
 
-protocol=protocol_name
-server=protocol_server_address
-wildcard=no
-login=login
-password=password # protocol dynamic dns password
-$HOSTNAME
+login=terminal.me
+password=ec0f426f08764a3b9a5b48ef5e7c3d22
+www
+${HOSTNAME}
 FILE
 
 # stop service

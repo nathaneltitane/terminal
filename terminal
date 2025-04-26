@@ -54,7 +54,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="01-18-2023"
+version="04-12-2023"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -63,6 +63,9 @@ version="01-18-2023"
 frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
+
+architecture="$(dpkg --print-architecture)"
+codename="$(lsb_release -c -s)"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -80,6 +83,7 @@ frobulator.upgrade
 
 list=(
 	cura
+	docker.io
 	git
 	htop
 	hub
@@ -94,18 +98,25 @@ list=(
 )
 
 kde_list=(
+	ark
 	breeze
 	breeze-cursor-theme
 	breeze-gtk-theme
 	breeze-icon-theme
 	calligra
+	cantata
 	dolphin
+	elisa
+	flatpak
 	gwenview
 	karbon
 	kate
+	kcalc
 	kcharselect
 	kcolorchooser
 	kde-config-cron
+	kde-config-flatpak
+	kde-spectacle
 	kdenlive
 	kio-gdrive
 	konsole
@@ -113,14 +124,17 @@ kde_list=(
 	krename
 	krita
 	kup-backup
+	mpd
+	plasma-discover
+	plasma-discover-backend-flatpak
+	plasma-discover-backend-fwupd
 	sweeper
-	yakuake
 )
 
 if [[ $(echo "${XDG_CURRENT_DESKTOP}") = [kK][dD][eE] ]]
 then
 	list+=(
-		${kde_list}
+		${kde_list[@]}
 	)
 fi
 
@@ -137,6 +151,31 @@ list=(
 frobulator.delete /usr/share/applications ${list[@]}
 
 list=()
+
+# python ///////////////////////////////////////////////////////////////////////
+
+if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+then
+	frobulator.inf "Setting up" "[ python ]"
+	echo
+
+	python_directory="/usr/lib/python3.11"
+
+	rm -r -f "${python_directory}"/EXTERNALLY-MANAGED
+fi
+
+# pip //////////////////////////////////////////////////////////////////////////
+
+pip_install_list=(
+	trimesh
+)
+
+for item in "${pip_install_list[@]}"
+do
+	pip install "${item}"
+done
+
+pip_install_list=()
 
 # storage //////////////////////////////////////////////////////////////////////
 
@@ -171,7 +210,7 @@ then
 
 fi
 
-# android subsystem for chromeos
+# android subsystem for chrome os
 
 if [ -d /opt/google/containers/android ]
 then
@@ -186,7 +225,6 @@ fi
 # home /////////////////////////////////////////////////////////////////////////
 
 frobulator.file "${HOME}" .hushlogin
-
 
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
@@ -220,7 +258,7 @@ storage_list=(
 )
 
 for storage in ${storage_list[@]}
-	do
+do
 	if [ -d "${storage}" ]
 	then
 		frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
@@ -232,19 +270,6 @@ for storage in ${storage_list[@]}
 		chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
 	fi
 done
-
-# python ///////////////////////////////////////////////////////////////////////
-
-
-if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
-then
-	frobulator.inf "Setting up" "[ python ]"
-	echo
-
-	python_directory="/usr/lib/python3.11"
-
-	frobulator.delete "${python_directory}" EXTERNALLY-MANAGED
-fi
 
 # shell ////////////////////////////////////////////////////////////////////////
 
@@ -294,7 +319,7 @@ list=()
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-frobulator.write  "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+frobulator.write  "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
 
 # themes ///////////////////////////////////////////////////////////////////////
 
@@ -305,13 +330,13 @@ then
 
 	echo 'gtk-icon-theme-name = "Breeze"'  > /etc/gtk-2.0/gtkrc
 	echo 'gtk-theme-name = "Breeze"'      >> /etc/gtk-2.0/gtkrc
-	echo 'gtk-font-name = "Noto Sans 10"' >> /etc/gtk-2.0/gtkrc
+	echo 'gtk-font-name = "Noto Mono 10"' >> /etc/gtk-2.0/gtkrc
 
 	echo '[Settings]'                      > /etc/gtk-3.0/settings.ini
 	echo 'gtk-cursor-theme-name = Breeze' >> /etc/gtk-3.0/settings.ini
 	echo 'gtk-icon-theme-name = Breeze'   >> /etc/gtk-3.0/settings.ini
 	echo 'gtk-theme-name = Breeze'        >> /etc/gtk-3.0/settings.ini
-	echo 'gtk-font-name = Noto Sans 10'   >> /etc/gtk-3.0/settings.ini
+	echo 'gtk-font-name = Noto Mono 10'   >> /etc/gtk-3.0/settings.ini
 
 	echo '[Qt]'                             > /etc/xdg/Trolltech.conf
 	echo 'style=Breeze'                    >> /etc/xdg/Trolltech.conf
@@ -359,6 +384,64 @@ then
 	frobulator.purge ${list[@]}
 
 	list=()
+fi
+
+# runner
+
+kwriteconfig5						\
+	--file kwinrc					\
+	--group ModifierOnlyShortcuts	\
+	--key Meta						\
+									"org.kde.krunner,/App,,toggleDisplay"
+
+qdbus org.kde.KWin /KWin reconfigure
+
+
+
+# efi /////////////////////////////////////////////////////////////////////////
+
+if [ -e /sys/firmware/efi ]
+then
+
+	# install
+
+	list=(
+		refind
+	)
+
+	frobulator.install ${list[@]}
+
+	list=()
+
+	refind-install --yes
+
+	# purge
+
+	apt purge grub* > "${sink}" 2>&1
+
+	list=(
+		grub
+	)
+
+	frobulator.delete /boot ${list[@]}
+
+	list=()
+
+	# remove
+
+	list=(
+		refind.conf
+	)
+
+	frobulator.delete /boot/efi/EFI/refind	${list[@]}
+
+	frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
+
+	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+
+	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
+
+	rm -r -f /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
 fi
 
 frobulator.scs 'Done'

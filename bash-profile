@@ -205,14 +205,22 @@ then
 
 	session_title="${session_title^}"
 
-	frobulator.fwd "Login ${ticker} >>> Welcome to Dextop" "[ ${session_title} ]"
+	frobulator.fwd "Login count" "[ ${ticker} ]" ">"
+	echo
+
+	frobulator.fwd "Welcome to Dextop" "[ ${session_title} ]"
 	echo
 
 	frobulator.inf "Graphical session:"
-	frobulator.nul "'container-session -o | -x | -u [User Name] | -d [Directory] | -f [Application]'"
+	echo
+
+	frobulator.inf "'container-session -o | -x'"
+	frobulator.nul "'container-session -u [User Name] | -d [Directory] | -f [Application]'"
 	echo
 
 	frobulator.inf "Update utilities:"
+	echo
+
 	frobulator.nul "'dextop -u shell [Shell Name | all] | utility [Utility Name | all]'"
 	echo
 

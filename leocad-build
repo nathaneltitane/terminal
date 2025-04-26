@@ -131,7 +131,7 @@ Terminal=false
 Type=Application
 Icon=leocad
 MimeType=application/vnd.leocad;application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;application/x-ldlite;
-Categories=Graphics;3DGraphics;Education;
+Categories=Graphics;3DGraphics;
 Keywords=CAD;LEGO;LDraw;
 FILE
 
