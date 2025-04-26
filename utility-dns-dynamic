@@ -55,10 +55,10 @@ version="04-26-2025"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-configuration=/media/internal/.ddclient
+configuration=/media/internal/.dns-dynamic
 hostname="${HOSTNAME}"
-login=$(cat /media/internal/.ddclient | sed -n 1p)
-password=$(cat /media/internal/.ddclient | sed -n 2p)
+login=$(cat /media/internal/.dns-dynamic | sed -n 1p)
+password=$(cat /media/internal/.dns-dynamic | sed -n 2p)
 
 # defaults /////////////////////////////////////////////////////////////////////
 
