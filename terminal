@@ -191,7 +191,6 @@ fi
 
 if [ -d /mnt/chromeos ]
 then
-
 	if [ -d /mnt/chromeos/GoogleDrive ]
 	then
 		frobulator.link /mnt/chromeos /media GoogleDrive Drive
@@ -214,13 +213,41 @@ fi
 
 if [ -d /opt/google/containers/android ]
 then
-
 	if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
 	then
 		frobulator.link /opt/google/containers/android/rootfs/android-data/data/media /media 0 Android
 	fi
 
 fi
+
+# removable storage
+
+if [ -d /media/"${USER}"/* ]
+then
+	for directory in /media/"${USER}"/*
+	do
+		frobulator.inf "Removable storage found" "[ ${directory}]"
+		echo
+
+		list+=(
+			"${directory}"
+		)
+	done
+
+	unset directory
+
+	for item in ${list[@]}
+	do
+		directory=${item##*/}
+
+		if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
+		then
+			frobulator.link /media/"${USER}" /media "${directory}"
+		fi
+	done
+fi
+
+list=()
 
 # home /////////////////////////////////////////////////////////////////////////
 
