@@ -261,7 +261,6 @@ list=(
 )
 
 storage_list=(
-	/media/[aA]ndroid
 	/media/[iI]nternal
 )
 
