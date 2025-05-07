@@ -89,7 +89,7 @@ list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
-if [ ! -e "${configuration}" ]
+if [ ! -e "${configuration_directory}"/"${configuration}" ]
 then
 	frobulator.err "Configuration file not found" "[ ${configuration} ]"
 	echo
