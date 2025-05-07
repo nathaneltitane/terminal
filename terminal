@@ -65,6 +65,7 @@ frobulator.script "Setting up ${script#*-}"
 # variables ////////////////////////////////////////////////////////////////////
 
 architecture="$(dpkg --print-architecture)"
+
 codename="$(lsb_release -c -s)"
 
 # defaults /////////////////////////////////////////////////////////////////////
@@ -246,6 +247,39 @@ then
 		fi
 	done
 fi
+
+list=()
+
+# files ////////////////////////////////////////////////////////////////////////
+
+list=(
+	.dns
+	.dns-dynamic
+	.modem
+	.router
+	.wifi
+)
+
+storage_list=(
+	/media/[aA]ndroid
+	/media/[iI]nternal
+)
+
+for storage in ${storage_list[@]}
+do
+	if [ -d "${storage}" ]
+	then
+		for item in ${list[@]}
+		do
+			if [ -e "${storage}"/"${item}" ]
+			then
+				frobulator.link "${storage}" "${HOME}" "${item}"
+			fi
+		done
+	fi
+done
+
+storage_list=()
 
 list=()
 
