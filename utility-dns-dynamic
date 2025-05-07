@@ -55,14 +55,21 @@ version="04-26-2025"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-configuration=/media/internal/.dns-dynamic
+if [ ! -d /media/internal/ ]
+then
+	configuration_directory="${HOME}"
+else
+	configuration_directory=/media/internal
+fi
 
-use=$(cat /media/internal/.dns-dynamic | sed -n 1p)
-protocol=$(cat /media/internal/.dns-dynamic | sed -n 2p)
-server=$(cat /media/internal/.dns-dynamic | sed -n 3p)
+configuration=.dns-dynamic
 
-login=$(cat /media/internal/.dns-dynamic | sed -n 4p)
-password=$(cat /media/internal/.dns-dynamic | sed -n 5p)
+use=$(cat "${configuration_directory}"/"${configuration}" | sed -n 1p)
+protocol=$(cat "${configuration_directory}"/"${configuration}" | sed -n 2p)
+server=$(cat "${configuration_directory}"/"${configuration}" | sed -n 3p)
+
+login=$(cat "${configuration_directory}"/"${configuration}" | sed -n 4p)
+password=$(cat "${configuration_directory}"/"${configuration}" | sed -n 5p)
 
 process="ddclient"
 service="${process}.service"
