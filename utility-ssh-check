@@ -44,7 +44,7 @@ fi
 . "${HOME}"/.local/bin/frobulator
 
 
-ssh-check () {
+ssh_check () {
 
 	timeout="0.25"
 	lan="${1}"
@@ -138,3 +138,5 @@ ssh-check () {
 	fi
 
 }
+
+ssh_check "${@}"
