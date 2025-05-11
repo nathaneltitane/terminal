@@ -95,12 +95,12 @@ ssh_check () {
 		then
 			list_port_open+=("${ip_display}")
 
-			tput cuu1
+			frobulator.plo
 
 			frobulator.scs "Port open" "[ ${ip_display} ]"
 			echo
 		else
-			tput cuu1
+			frobulator.plo
 
 			frobulator.err "Port closed" "[ ${ip_display} ]"
 			echo
