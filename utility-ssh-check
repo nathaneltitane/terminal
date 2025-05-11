@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set +x
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
@@ -120,12 +120,12 @@ ssh_check () {
 		then
 			list_port_open+=("${ip_display}")
 
-			frobulator.plo
+			frobulator.plo 1
 
 			frobulator.scs "Port open" "[ ${ip_display} ]"
 			echo
 		else
-			frobulator.plo
+			frobulator.plo 1
 
 			frobulator.err "Port closed" "[ ${ip_display} ]"
 			echo
