@@ -456,7 +456,8 @@ then
 	list=()
 fi
 
-# runner
+# runner ///////////////////////////////////////////////////////////////////////
+
 if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
 then
 	kwriteconfig5						\
