@@ -92,6 +92,7 @@ list=(
 	python3-pip
 	tree
 )
+
 display_list=(
 	cura
 	mesa-utils
