@@ -83,17 +83,19 @@ frobulator.upgrade
 # install
 
 list=(
-	cura
 	docker.io
 	git
 	htop
 	hub
 	nano
 	pip
-	puddletag
 	python3-pip
 	tree
+)
+display_list=(
+	cura
 	mesa-utils
+	puddletag
 	vulkan-tools
 	wayland-utils
 )
@@ -136,6 +138,13 @@ if [[ $(echo "${XDG_CURRENT_DESKTOP}") = [kK][dD][eE] ]]
 then
 	list+=(
 		${kde_list[@]}
+	)
+fi
+
+if [ ! -z "$DISPLAY" ]
+then
+	list+=(
+		${display_list[@]}
 	)
 fi
 
