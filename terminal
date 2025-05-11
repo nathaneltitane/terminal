@@ -135,14 +135,14 @@ kde_list=(
 	sweeper
 )
 
-if [[ $(echo "${XDG_CURRENT_DESKTOP}") = [kK][dD][eE] ]]
+if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
 then
 	list+=(
 		${kde_list[@]}
 	)
 fi
 
-if [ ! -z "$DISPLAY" ]
+if [ ! -z "${DISPLAY}" ]
 then
 	list+=(
 		${display_list[@]}
