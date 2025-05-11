@@ -76,7 +76,10 @@ ssh_check () {
 
 	if [ -z "${lan}" ]
 	then
-		echo "Usage: ${FUNCNAME[0]} <LAN_PREFIX> (e.g., ${FUNCNAME[0]} 192.168.0 or 192.168.0.1)"
+		echo "Usage:"
+		echo
+		echo "${script} <LAN_PREFIX>"
+		echo
 
 		return 1
 	fi
