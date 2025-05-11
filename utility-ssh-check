@@ -69,16 +69,132 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+if [[ -t 1 ]]
+	then
+		# monochromatic colors
+
+		white=$(tput setaf "${white}")
+		silver=$(tput setaf "${silver}")
+		grey=$(tput setaf "${grey}")
+		black=$(tput setaf "${black}")
+
+		# standard colors by saturation offset
+
+		red=$(tput setaf "${red}")
+		crimson=$(tput setaf "${crimson}")
+
+		green=$(tput setaf "${green}")
+		lime=$(tput setaf "${lime}")
+
+		yellow=$(tput setaf "${yellow}")
+		orange=$(tput setaf "${orange}")
+
+		blue=$(tput setaf "${blue}")
+		navy=$(tput setaf "${navy}")
+
+		magenta=$(tput setaf "${magenta}")
+		purple=$(tput setaf "${purple}")
+
+		fuschia=$(tput setaf "${fuschia}")
+		pink=$(tput setaf "${pink}")
+
+		aqua=$(tput setaf "${aqua}")
+		teal=$(tput setaf "${teal}")
+
+		# reset all attributes
+
+		reset=$(tput sgr 0)
+
+		# 'tput' terminal control
+
+		# full description of terminal capacity
+
+		terminal_info=$(tput longname)
+
+		# number of lines in terminal
+
+		terminal_height=$(tput lines)
+
+		# number of columns in terminal
+
+		terminal_width=$(tput cols)
+
+		# number of colors available
+
+		terminal_colors=$(tput colors)
+
+		# save cursor position of terminal
+
+		terminal_save_cursor=$(tput sc)
+
+		# restore cursor position of terminal
+
+		terminal_restore_cursor=$(tput rc)
+
+		# move cursor to upper left corner (0,0) - equivalent: 'tput cup 0 0'
+
+		terminal_home_cursor=$(tput home)
+
+		# move cursor to position (row, column)
+
+		terminal_move_cursor=$(tput cup ${tput_row} ${tput_col})
+
+		# move cursor down 1 row
+
+		terminal_cursor_down=$(tput cud ${@})
+
+		# move cursor up 1 row
+
+		terminal_cursor_up=$(tput cuu ${@})
+
+		# set cursor to invisible state
+
+		terminal_cursor_hide=$(tput civis)
+
+		# set cursor to normal state
+
+		terminal_cursor_show=$(tput cnorm)
+
+		# save screen contents
+
+		terminal_save_screen=$(tput smcup)
+
+		# restore screen contents
+
+		terminal_restore_screen=$(tput rmcup)
+
+		# clear from cursor to end of line - left
+
+		terminal_clear_right=$(tput el1)
+
+		# clear from cursor to beginning of line - right
+
+		terminal_clear_left=$(tput el)
+
+		# clear from cursor to end of the screen - down
+
+		terminal_clear_down=$(tput ed)
+
+		# clear entire screen and home cursor (0,0) - all
+
+		terminal_clear_all=$(tput clear)
+	fi
+fi
+
 frobulator.plo () {
 
-	# move cursor up one row
+	lines="${1:-1}"
 
-	eval $(echo ${terminal_cursor_up})
+	# validate input is a number
 
-	# clear line up to cursor
+	if [[ "${lines}" =~ ^[0-9]+$ ]]
+	then
+		tput cuu "${lines}"
+	else
+		return 1
+	fi
 
-	eval $(echo ${terminal_clear_left})
-
+	unset lines
 }
 
 ssh_check () {
