@@ -117,7 +117,7 @@ ssh_check () {
 		ip_display=$(printf "%03d.%03d.%03d.%03d" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
 
 		frobulator.fwd "Port scan" "[ ${ip_display} ]"
-		echo -n ""
+		echo
 
 		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${ip_network}/22" 2> "${sink}"
 
