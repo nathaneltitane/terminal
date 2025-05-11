@@ -461,9 +461,9 @@ fi
 if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
 then
 	kwriteconfig5						\
-		--file kwinrc					\
-		--group ModifierOnlyShortcuts	\
-		--key Meta						\
+		--file	kwinrc					\
+		--group	ModifierOnlyShortcuts	\
+		--key	Meta					\
 										"org.kde.krunner,/App,,toggleDisplay"
 
 	qdbus org.kde.KWin /KWin reconfigure
