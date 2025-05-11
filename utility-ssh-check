@@ -97,7 +97,8 @@ ssh_check () {
 
 	if [ -z "${lan}" ]
 	then
-		frobulator.err "invalid ip format."
+		frobulator.err "Invalid IP address format."
+
 		return 1
 	fi
 
