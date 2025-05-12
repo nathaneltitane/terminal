@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
@@ -57,7 +59,7 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-web_development_directory="/var/www/html/"
+web_development_directory=/var/www
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -69,12 +71,38 @@ frobulator.silence "service apache2 start" &
 
 frobulator.process "Starting service"
 
-frobulator.inf "Setting ownership"
-echo
+list=(
+	legolinux
+)
 
-chmod -R 777 "${web_development_directory}"
+for item in ${list[@]}
+do
+	frobulator.directory "${web_development_directory}" "${item}"
 
-chown -R "${USER}":"${USER}" "${web_development_directory}"
+	cat <<- FILE > /etc/apache2/sites-available/"${item}".conf
+		<VirtualHost *:80>
+			ServerName ${item}
+			DocumentRoot /var/www/${item}
+			<Directory /var/www/${item}
+				Options Indexes FollowSymLinks
+				AllowOverride None
+				Require all granted
+			</Directory>
+		</VirtualHost>
+	FILE
+
+	a2ensite "${item}".conf
+
+	frobulator.inf "Setting ownership"
+	echo
+
+	chmod -R 777 "${web_development_directory}"/"${item}"
+
+	chown -R "${USER}":"${USER}" "${web_development_directory}"/"${item}"
+
+done
+
+list=()
 
 frobulator.scs "Done"
 echo
