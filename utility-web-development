@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
@@ -61,6 +59,12 @@ frobulator.script "Setting up ${script#*-}"
 
 web_development_directory=/var/www
 
+process="apache2"
+service="${process}.service"
+
+web="www"
+hostname="${HOSTNAME}"
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -91,7 +95,17 @@ do
 		</VirtualHost>
 	FILE
 
-	a2ensite "${item}".conf
+	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
+	then
+		frobulator.scs "Configuration validation success" "[ ${item} ]"
+		echo
+	elif [[ $(a2ensite "${item}".conf | grep -e "error") ]]
+	then
+		frobulator.err "Configuration validation failed" "[ ${item} ]"
+		echo
+
+		exit 1
+	fi
 
 	frobulator.inf "Setting ownership"
 	echo
@@ -103,6 +117,56 @@ do
 done
 
 list=()
+
+# service activation
+
+if [[ $(systemctl status "${service}" 2>&1 > "${sink}") ]]
+then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
+
+	service_actions_list=(
+		disable
+		stop
+	)
+fi
+
+service_actions_list+=(
+	enable
+	start
+)
+
+for service_action in ${service_actions_list[@]}
+do
+	systemctl "${service_action}" "${service}" > "${sink}" 2>&1 &
+
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
+
+	sleep 1
+
+	systemctl daemon-reload > "${sink}" 2>&1 &
+
+	frobulator.process "Reloading"
+
+	sleep 1
+done
+
+service_actions_list=()
+
+# service process verification
+
+if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.scs "Service activation success" "[ ${service} ]"
+	echo
+
+elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
+then
+	frobulator.err "Service activation failed" "[ ${service} ]"
+	echo
+
+	exit 1
+fi
 
 frobulator.scs "Done"
 echo
