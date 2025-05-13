@@ -138,7 +138,7 @@ fi
 
 # service activation
 
-if [[ $(systemctl status "${service}" 2>&1 > "${sink}") ]]
+if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
 then
 	frobulator.wrn "Service running" " [ ${service} ]"
 	echo

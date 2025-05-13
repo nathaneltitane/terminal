@@ -73,10 +73,6 @@ ip=$(hostname -I | awk '{print $1}')
 
 frobulator.install apache2
 
-frobulator.silence "service apache2 start" &
-
-frobulator.process "Starting service"
-
 list=(
 	legolinux
 )
@@ -86,24 +82,16 @@ do
 	frobulator.directory "${web_development_directory}" "${item}"
 
 	cat <<- FILE > /etc/apache2/sites-available/"${item}".conf
-		<VirtualHost *:80>
-			ServerName ${ip}
-			Alias /${item} ${web_development_directory}/${item}
-			DocumentRoot /var/www/${item}
+	<VirtualHost *:80>
+		#ServerName www.example.com
 
-			<Directory /var/www/legolinux>
-				Options Indexes FollowSymLinks
-				AllowOverride All
-				Require all granted
-			</Directory>
+		ServerAdmin webmaster@localhost
+		DocumentRoot /var/www/${item}
 
-			ErrorLog ${APACHE_LOG_DIR}/legolinux_error.log
-			CustomLog ${APACHE_LOG_DIR}/legolinux_access.log combined
-
-		</VirtualHost>
+		ErrorLog ${APACHE_LOG_DIR}/${item}-error.log
+		CustomLog ${APACHE_LOG_DIR}/${item}-access.log combined
+	</VirtualHost>
 	FILE
-
-	echo '<h1>Hello World!</h1>' | tee /var/www/"${item}"/index.html
 
 	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
 	then
@@ -130,7 +118,7 @@ list=()
 
 # service activation
 
-if [[ $(systemctl status "${service}" 2>&1 > "${sink}") ]]
+if [[ $(systemctl status "${service}"  | grep -e "active.*running") ]]
 then
 	frobulator.wrn "Service running" " [ ${service} ]"
 	echo
