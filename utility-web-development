@@ -65,6 +65,8 @@ service="${process}.service"
 web="www"
 hostname="${HOSTNAME}"
 
+ip=$(hostname -I | awk '{print $1}')
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -85,15 +87,23 @@ do
 
 	cat <<- FILE > /etc/apache2/sites-available/"${item}".conf
 		<VirtualHost *:80>
-			ServerName ${item}
+			ServerName ${ip}
+			Alias /${item} ${web_development_directory}/${item}
 			DocumentRoot /var/www/${item}
-			<Directory /var/www/${item}
+
+			<Directory /var/www/legolinux>
 				Options Indexes FollowSymLinks
-				AllowOverride None
+				AllowOverride All
 				Require all granted
 			</Directory>
+
+			ErrorLog ${APACHE_LOG_DIR}/legolinux_error.log
+			CustomLog ${APACHE_LOG_DIR}/legolinux_access.log combined
+
 		</VirtualHost>
 	FILE
+
+	echo '<h1>Hello World!</h1>' | tee /var/www/"${item}"/index.html
 
 	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
 	then
@@ -110,7 +120,7 @@ do
 	frobulator.inf "Setting ownership"
 	echo
 
-	chmod -R 777 "${web_development_directory}"/"${item}"
+	chmod -R 755 "${web_development_directory}"/"${item}"
 
 	chown -R "${USER}":"${USER}" "${web_development_directory}"/"${item}"
 
