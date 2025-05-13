@@ -260,7 +260,7 @@ frobulator.delete "${HOME}"/.cache rclone
 
 # service activation
 
-if [[ $(systemctl status --user "${service}" 2>&1 > "${sink}") ]]
+if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
 then
 	frobulator.wrn "Service running" " [ ${service} ]"
 	echo
