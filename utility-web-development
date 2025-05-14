@@ -83,13 +83,19 @@ do
 
 	cat <<- FILE > /etc/apache2/sites-available/"${item}".conf
 	<VirtualHost *:80>
-		#ServerName www.example.com
+		ServerName ${item}.local
+		DocumentRoot /var/www/${item}/
 
-		ServerAdmin webmaster@localhost
-		DocumentRoot /var/www/${item}
 
-		ErrorLog ${APACHE_LOG_DIR}/${item}-error.log
-		CustomLog ${APACHE_LOG_DIR}/${item}-access.log combined
+		<Directory "/var/www/${item}/">
+			Options None
+			AllowOverride None
+			Order allow,deny
+			Allow from all
+		</Directory>
+
+		ErrorLog /var/log/${item}-error.log
+		CustomLog /var/log/${item}-access.log combined
 	</VirtualHost>
 	FILE
 
@@ -104,6 +110,10 @@ do
 
 		exit 1
 	fi
+
+	cat <<- FILE >> /etc/hosts
+	127.0.0.1	"${item}".conf
+	FILE
 
 	frobulator.inf "Setting ownership"
 	echo
