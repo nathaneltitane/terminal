@@ -86,7 +86,6 @@ do
 		ServerName ${item}.local
 		DocumentRoot /var/www/${item}/
 
-
 		<Directory "/var/www/${item}/">
 			Options None
 			AllowOverride None
@@ -112,7 +111,7 @@ do
 	fi
 
 	cat <<- FILE >> /etc/hosts
-	127.0.0.1	"${item}".conf
+	127.0.0.1		${item}.local
 	FILE
 
 	frobulator.inf "Setting ownership"
