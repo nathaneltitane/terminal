@@ -122,6 +122,7 @@ kde_list=(
 	kde-config-flatpak
 	kde-spectacle
 	kdenlive
+	kdenetwork-filesharing
 	kio-gdrive
 	konsole
 	kontrast
@@ -132,6 +133,7 @@ kde_list=(
 	plasma-discover
 	plasma-discover-backend-flatpak
 	plasma-discover-backend-fwupd
+	samba
 	sweeper
 )
 
