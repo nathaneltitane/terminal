@@ -131,6 +131,7 @@ cat <<- FILE > "${launcher}"
 virtual_display="${virtual_display}"
 
 xinit -- /usr/bin/X "\${virtual_display}" -config "${configuration_path}" &
+
 sleep 2
 
 exec /usr/bin/x11vnc \\
