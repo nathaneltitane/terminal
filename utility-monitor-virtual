@@ -54,7 +54,7 @@ version="05-27-2025"
 current_display=$(echo "${DISPLAY:-:0}" | sed 's/^.*:\([0-9]\+\).*$/\1/')
 virtual_display=":$((current_display + 1))"
 
-configuration_path='/etc/X11/xorg.conf.d/10-virtual.conf'
+configuration_path='/etc/X11/xorg.conf.d/10-virtual-monitor.conf'
 launcher_script='/usr/local/bin/virtual-monitor-launch.sh'
 service_name='virtual-monitor'
 service_file="/etc/systemd/system/${service_name}.service"
