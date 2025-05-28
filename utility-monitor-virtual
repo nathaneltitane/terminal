@@ -1,0 +1,191 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="05-27-2025"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+current_display=$(echo "${DISPLAY:-:0}" | sed 's/^.*:\([0-9]\+\).*$/\1/')
+virtual_display=":$((current_display + 1))"
+
+configuration_path='/etc/X11/xorg.conf.d/10-virtual.conf'
+launcher_script='/usr/local/bin/virtual-monitor-launch.sh'
+service_name='virtual-monitor'
+service_file="/etc/systemd/system/${service_name}.service"
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	xserver-xorg-video-dummy
+	x11vnc
+	xinit
+	x11-xserver-utils
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [ ! -f "${configuration_path}" ]
+then
+	frobulator.fwd "Creating virtual X11 config"
+
+	mkdir -p "$(dirname "${configuration_path}")"
+
+	cat <<- FILE > "${configuration_path}"
+	Section "Monitor"
+		Identifier "VirtualMonitor"
+		HorizSync 28.0-80.0
+		VertRefresh 48.0-75.0
+		Modeline "2800x1752_60.00"  348.25  2800 2960 3248 3696  1752 1755 1765 1799 -hsync +vsync
+		Option "PreferredMode" "2800x1752_60.00"
+	EndSection
+
+	Section "Device"
+		Identifier "VirtualDevice"
+		Driver "dummy"
+		VideoRam 256000
+	EndSection
+
+	Section "Screen"
+		Identifier "VirtualScreen"
+		Device "VirtualDevice"
+		Monitor "VirtualMonitor"
+		DefaultDepth 24
+		SubSection "Display"
+			Depth 24
+			Modes "2800x1752_60.00"
+		EndSubSection
+	EndSection
+
+	Section "ServerLayout"
+		Identifier "VirtualLayout"
+		Screen "VirtualScreen"
+	EndSection
+	FILE
+
+	frobulator.scs "X11 virtual config created"
+else
+	frobulator.wrn "X11 virtual config exists" "[ ${configuration_path} ]"
+fi
+
+# launcher script //////////////////////////////////////////////////////////////
+
+if [ ! -f "${launcher_script}" ]
+then
+	frobulator.fwd "Creating launcher script" "[ ${launcher_script} ]"
+
+	cat <<- FILE > "${launcher_script}"
+	#!/bin/bash
+
+	virtual_display="${virtual_display}"
+
+	xinit -- /usr/bin/X "\${virtual_display}" -config "${configuration_path}" &
+	sleep 2
+
+	exec /usr/bin/x11vnc \\
+		--display="\${virtual_display}" \\
+		--rfbport=5900 \\
+		--forever \\
+		--shared \\
+		--nopw \\
+		--loop \\
+		--repeat
+	FILE
+
+	chmod +x "${launcher_script}"
+
+	frobulator.scs "Launcher script created"
+else
+	frobulator.wrn "Launcher script exists" "[ ${launcher_script} ]"
+fi
+
+# systemd service //////////////////////////////////////////////////////////////
+
+if [ ! -f "${service_file}" ]
+then
+	frobulator.fwd "Creating systemd service" "[ ${service_name} ]"
+
+	cat <<- FILE > "${service_file}"
+	[Unit]
+	Description=Virtual Monitor VNC Service
+	After=network.target
+
+	[Service]
+	Type=simple
+	ExecStart=${launcher_script}
+	Restart=always
+	RestartSec=5
+	User=root
+
+	[Install]
+	WantedBy=multi-user.target
+	FILE
+
+	systemctl daemon-reload > "${sink}" 2>&1
+	systemctl enable "${service_name}" > "${sink}" 2>&1
+	systemctl start "${service_name}" > "${sink}" 2>&1
+
+	frobulator.scs "Systemd service activated" "[ ${service_name} ]"
+else
+	frobulator.wrn "Systemd service exists" "[ ${service_name} ]"
+fi
+
+# final status /////////////////////////////////////////////////////////////////
+
+status=$(systemctl is-active "${service_name}")
+
+if [[ "${status}" == "active" ]]
+then
+	frobulator.scs "Virtual monitor running via systemd" "[ ${virtual_display} : VNC :5900 ]"
+else
+	frobulator.err "Service not active: ${status}" "[ ${service_name} ]"
+fi
