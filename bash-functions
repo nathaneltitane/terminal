@@ -304,6 +304,10 @@ audio () {
 	directory="${PWD}"
 	extension="${1}"
 
+	found=0
+
+	# default conversion command
+
 	convert_command () {
 
 		ffmpeg					\
@@ -316,26 +320,47 @@ audio () {
 
 	if [ "${extension}" = "flac" ]
 	then
+		# override for flac files with bitrate
+
 		convert_command () {
 
 			ffmpeg					\
 				-y					\
 				-i "${file}"		\
-				-ac b:a 320k		\
+				-b:a 320k			\
 				-map_metadata 0		\
 				-id3v2_version 3	"${file%.*}.mp3"
 		}
 	fi
 
-	for file in *."${extension}"
-	do
-		convert_command
+	# loop over all files
 
-		rm					\
-			--recursive		\
-			--force			 "${file}"
+	for file in *
+	do
+		case "${file}" in
+			*."${extension}")
+
+				found=1
+
+				convert_command
+
+				rm					\
+					--recursive		\
+					--force			 "${file}"
+				;;
+		esac
 	done
+
+	# handle case where no matching files were found
+
+	if [ "${found}" -eq 0 ]
+	then
+		frobulator.err "No files to convert with specified extension" "[ '${extension}' ]"
+
+		return 1
+	fi
 }
+
 
 # colors ///////////////////////////////////////////////////////////////////////
 
