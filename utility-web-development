@@ -74,7 +74,7 @@ ip=$(hostname -I | awk '{print $1}')
 frobulator.install apache2
 
 list=(
-	legolinux
+	mechablocks
 )
 
 for item in ${list[@]}
