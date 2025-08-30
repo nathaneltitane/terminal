@@ -134,6 +134,7 @@ kde_list=(
 	plasma-discover-backend-flatpak
 	plasma-discover-backend-fwupd
 	samba
+	solaar
 	sweeper
 )
 
