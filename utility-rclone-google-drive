@@ -43,7 +43,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="04-19-2024"
+version="10-03-2025"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -115,6 +115,7 @@ ${TAB}max_lock="120"
 ${TAB}modify_window="1"
 ${TAB}streams="16"
 ${TAB}transfers="32"
+${TAB}log_file="${HOME}/.config/rclone/rclone.log"
 
 ${TAB}synchronization_option="\${1}"
 
@@ -153,6 +154,7 @@ ${TAB}fi
 
 ${TAB}transfer_command+=(--progress)
 ${TAB}transfer_command+=(--verbose)
+${TAB}transfer_command+=(--log-file \${log_file})
 
 ${TAB}eval \${transfer_command[@]}
 }
