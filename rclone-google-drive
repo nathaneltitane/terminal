@@ -1,0 +1,173 @@
+#!/bin/bash
+
+# variables ////////////////////////////////////////////////////////////////////
+
+rclone_configuration="${HOME}"/.config/rclone/rclone.conf
+
+cloud_server_string=$(cat ${rclone_configuration} | head -n 1)
+cloud_server=${cloud_server_string//[\[\]]/}
+
+cloud_server_directory="${cloud_server}:"
+local_server_directory="/media/internal"
+
+run_count_tracker="${HOME}"/.local/bin/rclone-google-drive-run-count
+
+# functions ////////////////////////////////////////////////////////////////////
+
+rclone_transfer () {
+
+	rclone=/usr/bin/rclone
+
+	checkers="64"
+	max_lock="120"
+	modify_window="1"
+	streams="16"
+	transfers="32"
+
+	log_file="${HOME}/.config/rclone/rclone.log"
+
+	synchronization_option="${1}"
+	source="${2}"
+	destination="${3}"
+
+	# user arguments
+
+	shift 3
+
+	arguments=("${@}")
+
+	transfer_command=()
+
+	transfer_command+=(${rclone})
+	transfer_command+=(${synchronization_option})
+
+	if (( run_count == 0 ))
+	then
+		echo "Initial run - 'resync' triggered - run count ${run_count}"
+		echo
+
+		transfer_command+=(--resync)
+	fi
+
+	transfer_command+=(${source})
+	transfer_command+=(${destination})
+	transfer_command+=(--exclude ".Trash-1000/**")
+	transfer_command+=(--exclude "Git/**")
+	transfer_command+=(--exclude "Music/**")
+	transfer_command+=(--compare size,modtime,checksum)
+	transfer_command+=(--checkers ${checkers})
+	transfer_command+=(--create-empty-src-dirs)
+	transfer_command+=(--drive-acknowledge-abuse)
+	transfer_command+=(--drive-skip-dangling-shortcuts)
+	transfer_command+=(--drive-skip-gdocs)
+	transfer_command+=(--drive-skip-shortcuts)
+	transfer_command+=(--fix-case)
+	transfer_command+=(--max-lock ${max_lock}s)
+	transfer_command+=(--metadata)
+	transfer_command+=(--modify-window ${modify_window}s)
+	transfer_command+=(--multi-thread-streams ${streams})
+	transfer_command+=(--track-renames)
+	transfer_command+=(--transfers ${transfers})
+	transfer_command+=(--progress)
+	transfer_command+=(--verbose)
+	transfer_command+=(--log-file ${log_file})
+
+	# append extra user arguments to command on execution
+
+	transfer_command+=(${arguments})
+
+	# execute rclone command
+
+	"${transfer_command[@]}"
+
+	rclone_exit_code=$?
+
+	# rerun with '--resync' argument on abort or critical error
+
+	if [ "${rclone_exit_code}" -eq 1 ] || \
+	   [ "${rclone_exit_code}" -eq 2 ] || \
+	   [ "${rclone_exit_code}" -eq 7 ]
+	then
+		echo "'bisync' command error - status code: ${rclone_exit_code} - need 'resync'"
+
+		# only add '--resync' argument if not already present
+
+		need_resync=true
+
+		for command_argument in "${transfer_command[@]}"
+		do
+			if [ "${command_argument}" = "--resync" ]
+			then
+				need_resync=false
+
+				break
+			fi
+		done
+
+		# rebuild command inserting '--resync' argument directly after 'rclone bisync'
+
+		if [ "${need_resync}" = true ]
+		then
+			resync_command=( "${transfer_command[@]:0:2}" --resync "${transfer_command[@]:2}" )
+		else
+			resync_command=( "${transfer_command[@]}" )
+		fi
+
+		# run the resync attempt
+
+		"${resync_command[@]}"
+
+		# capture exit code from attempt
+
+		rclone_exit_code=$?
+
+		if [ "${rclone_exit_code}" -eq 0 ]
+		then
+			echo "'resync' command success - status code: ${rclone_exit_code}"
+		else
+			echo "'resync' command  fail - status code: ${rclone_exit_code}"
+		fi
+	fi
+
+	# propagate final status to caller
+
+	return "${rclone_exit_code}"
+
+	wait
+}
+
+run_count=0
+
+echo "Run count: ${run_count}"
+echo
+
+# unset IFS
+
+IFS=''
+
+while true
+do
+	if [ -e "${run_count_tracker}" ]
+	then
+		run_count=$(cat "${run_count_tracker}")
+	else
+		run_count=0
+	fi
+
+	echo "${run_count}" > "${run_count_tracker}"
+
+	echo
+	echo "Run start - run count: ${run_count}"
+	echo
+
+	rclone_transfer bisync "${cloud_server_directory}/" "${local_server_directory}/"
+
+	run_count=$((run_count + 1))
+
+	echo "${run_count}" > "${run_count_tracker}"
+
+	echo
+	echo "Run end - count: ${run_count}"
+	echo
+
+done
