@@ -854,3 +854,50 @@ lan=$(
 	done | grep "open"
 
 }
+
+audio-combine () {
+
+	sink_index () {
+
+		sink_name="${1}"
+
+		pactl list short sinks | grep -F "${sink_name}" | cut -f 1 | head -n 1
+
+	}
+
+	combined_sink='bluez_sink_combined'
+
+	sink_a='bluez_sink.FC_E8_06_19_8E_9C.a2dp_sink'
+	sink_b='bluez_sink.FC_E8_06_19_77_00.a2dp_sink'
+
+	index_sink_a="$( sink_index "${sink_a}" )"
+	index_sink_b="$( sink_index "${sink_b}" )"
+
+	if [[ -z "${index_sink_a}" || -z "${index_sink_b}" ]]
+	then
+		echo "Error: one or both sinks not found."
+		echo "Make sure bluetooth devices are paired and connected."
+		echo "Run: 'pactl list short sinks' for more details."
+
+		exit 1
+
+	fi
+
+	# unload any existing combined sink module with the same name
+
+	existing_combined_sink="$(pactl list short modules  | grep -F 'module-combine-sink'		\
+												| grep -F "sink_name=${combined_sink}"		\
+												| cut -f 1									\
+												| head -n 1
+					)"
+
+	if [[ -n "${existing_combined_sink}" ]]
+	then
+
+		sudo pactl unload-module "${existing_combined_sink}"
+
+	fi
+
+	sudo pactl load-module module-combine-sink sink_name="${combined_sink}" slaves="${index_sink_a},${index_sink_b}"
+
+}
