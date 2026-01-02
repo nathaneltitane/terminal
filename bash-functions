@@ -873,6 +873,7 @@ audio-combine () {
 	index_sink_a="$( sink_index "${sink_a}" )"
 	index_sink_b="$( sink_index "${sink_b}" )"
 
+
 	if [[ -z "${index_sink_a}" || -z "${index_sink_b}" ]]
 	then
 		echo "Error: one or both sinks not found."
@@ -886,7 +887,6 @@ audio-combine () {
 	# unload any existing combined sink module with the same name
 
 	existing_combined_sink="$(pactl list short modules  | grep -F 'module-combine-sink'		\
-												| grep -F "sink_name=${combined_sink}"		\
 												| cut -f 1									\
 												| head -n 1
 					)"
@@ -894,10 +894,17 @@ audio-combine () {
 	if [[ -n "${existing_combined_sink}" ]]
 	then
 
-		sudo pactl unload-module "${existing_combined_sink}"
+		pactl unload-module "${existing_combined_sink}"
+
+		wait
 
 	fi
 
-	sudo pactl load-module module-combine-sink sink_name="${combined_sink}" slaves="${index_sink_a},${index_sink_b}"
+	# combine sinks
 
+	pactl load-module module-combine-sink sink_name="${combined_sink}" slaves="${index_sink_a},${index_sink_b}"
+
+	# activate combined sink
+
+	pactl set-default-sink "${combined_sink}"
 }
