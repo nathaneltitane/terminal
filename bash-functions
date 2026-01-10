@@ -865,18 +865,86 @@ audio-combine () {
 
 	}
 
-	combined_sink='bluez_sink_combined'
+	bluetooth_connect () {
 
-	sink_a='bluez_sink.FC_E8_06_19_8E_9C.a2dp_sink'
-	sink_b='bluez_sink.FC_E8_06_19_77_00.a2dp_sink'
+	bluetooth_address="${1}"
 
-	index_sink_a="$( sink_index "${sink_a}" )"
-	index_sink_b="$( sink_index "${sink_b}" )"
+	timeout="${2:-10}"
 
+	i=0
 
-	if [[ -z "${index_sink_a}" || -z "${index_sink_b}" ]]
+	bluetoothctl disconnect "${bluetooth_address}" >/dev/null 2>&1
+
+	while [ "${i}" -lt "${timeout}" ]
+	do
+
+		bluetoothctl connect "${bluetooth_address}" > /dev/null 2>&1
+
+		if bluetoothctl info "${bluetooth_address}" 2>/dev/null | grep -F 'Connected: yes' > /dev/null 2>&1
+		then
+
+			return 0
+
+		fi
+
+		sleep 1
+
+		i=$(( i + 1 ))
+
+	done
+
+	return 1
+
+}
+
+	sink_wait () {
+
+		sink_name="${1}"
+
+		timeout="${2}"
+
+		seconds=0
+
+		while [ "${seconds}" -lt "${timeout}" ]
+		do
+
+			if pactl list short sinks | grep -F "	${sink_name}	" > /dev/null 2>&1
+			then
+
+				return 0
+
+			fi
+
+			sleep 1
+
+			seconds=$(( seconds + 1 ))
+
+		done
+
+		return 1
+
+	}
+
+	sink_combined='bluez_sink_combined'
+
+	bluetooth_address_a="FC:E8:06:19:8E:9C"
+	bluetooth_address_b="FC:E8:06:19:77:00"
+
+	bluetooth_address_label_a="${bluetooth_address_a//:/_}"
+	bluetooth_address_label_b="${bluetooth_address_b//:/_}"
+
+	sink_a="bluez_sink.${bluetooth_address_label_a}.a2dp_sink"
+	sink_b="bluez_sink.${bluetooth_address_label_b}.a2dp_sink"
+
+	# connect bluetooth devices
+
+	bluetooth_connect "${bluetooth_address_a}"
+	bluetooth_connect "${bluetooth_address_b}"
+
+	if ! sink_wait "${sink_a}" 10 || ! sink_wait "${sink_b}" 10
 	then
-		echo "Error: one or both sinks not found."
+
+		echo "Error: one or both sinks not found after connect attempt."
 		echo "Make sure bluetooth devices are paired and connected."
 		echo "Run: 'pactl list short sinks' for more details."
 
@@ -884,27 +952,34 @@ audio-combine () {
 
 	fi
 
+	index_sink_a="$( sink_index "${sink_a}" )"
+	index_sink_b="$( sink_index "${sink_b}" )"
+
 	# unload any existing combined sink module with the same name
 
-	existing_combined_sink="$(pactl list short modules  | grep -F 'module-combine-sink'		\
-												| cut -f 1									\
-												| head -n 1
-					)"
+	existing_sink_combined="$(pactl list short sinks  | grep -F 'module-combine-sink' | cut -f 1 | head -n 1)"
 
-	if [[ -n "${existing_combined_sink}" ]]
+	if [[ -n "${existing_sink_combined}" ]]
 	then
 
-		pactl unload-module "${existing_combined_sink}"
+		pactl unload-module "${existing_sink_combined}"
 
 		wait
-
 	fi
 
 	# combine sinks
 
-	pactl load-module module-combine-sink sink_name="${combined_sink}" slaves="${index_sink_a},${index_sink_b}"
+	pactl load-module module-combine-sink sink_name="${sink_combined}" slaves="${sink_a},${sink_b}"
 
 	# activate combined sink
 
-	pactl set-default-sink "${combined_sink}"
+	pactl set-default-sink "${sink_combined}"
+
+	# set volume levels
+
+	pactl set-sink-volume ${sink_a} 100%
+
+	pactl set-sink-volume ${sink_b} 100%
+
+	pactl set-sink-volume ${sink_combined} 75%
 }
