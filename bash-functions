@@ -812,7 +812,9 @@ youtube-video () {
 		exit 1
 	fi
 
-	video_format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]"
+	video_format+="bestvideo[ext=mp4]"
+	video_format+="+bestaudio[ext=m4a]"
+	video_format+="/best[ext=mp4]"
 
 	"${HOME}"/.local/bin/yt-dlp																		\
 		--ignore-errors																				\
