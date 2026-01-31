@@ -749,7 +749,7 @@ weather () {
 
 # youtube //////////////////////////////////////////////////////////////////////
 
-youtube () {
+youtube-audio () {
 
 	if [[ -z $(command -v yt-dlp) ]]
 	then
@@ -786,6 +786,43 @@ youtube () {
 		--audio-quality		"${audio_quality}"													\
 		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
 																								"${url}"
+}
+
+youtube-video () {
+
+	youtube-video () {
+
+	if [[ -z $(command -v yt-dlp) ]]
+	then
+		(frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp)
+	fi
+
+	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
+
+	url="${1}"
+	path="${2}"
+
+	if [ -z "${path}" ]
+	then
+		path="${PWD}"
+	fi
+
+	if [ -d "${path}" ]
+	then
+		cd "${path}"
+	else
+		exit 1
+	fi
+
+	video_format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]"
+
+	"${HOME}"/.local/bin/yt-dlp																		\
+		--ignore-errors																				\
+		--yes-playlist																				\
+		--merge-output-format	mp4																	\
+		--format				"${video_format}"													\
+		--output				'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
+																									"${url}"
 }
 
 # find /////////////////////////////////////////////////////////////////////////
