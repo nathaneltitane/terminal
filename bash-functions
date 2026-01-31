@@ -790,8 +790,6 @@ youtube-audio () {
 
 youtube-video () {
 
-	youtube-video () {
-
 	if [[ -z $(command -v yt-dlp) ]]
 	then
 		(frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp)
