@@ -812,15 +812,10 @@ youtube-video () {
 		exit 1
 	fi
 
-	video_format+="bestvideo[ext=mp4]"
-	video_format+="+bestaudio[ext=m4a]"
-	video_format+="/best[ext=mp4]"
-
 	"${HOME}"/.local/bin/yt-dlp																		\
 		--ignore-errors																				\
 		--yes-playlist																				\
 		--merge-output-format	mp4																	\
-		--format				"${video_format}"													\
 		--output				'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
 																									"${url}"
 }
