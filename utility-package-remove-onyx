@@ -1,0 +1,33 @@
+#!/bin/bash
+
+applications_list=(
+	com.android.theme.font.notoserifsource
+	org.chromium.chrome
+	com.onyx.clock
+	com.onyx.calculator
+	com.onyx.aiassistant
+	com.onyx.android.production.test
+	com.onyx.appmarket
+	com.onyx.mail
+	com.onyx.kime
+	com.onyx.dict
+	com.onyx.musicplayer
+	com.onyx.voicerecorder
+
+	# com.onyx
+	# com.onyx.android.ksync
+	# com.onyx.android.note
+	# com.onyx.android.onyxotaservice
+	# com.onyx.easytransfer
+	# com.onyx.floatingbutton
+	# com.onyx.gallery
+	# com.onyx.igetshop
+	# com.onyx.kreader
+	# com.onyx.latinime
+	# com.onyx.tscalibration
+)
+
+for application in ${applications_list}
+do
+	sudo adb shell pm uninstall -k --user 0 "${application}"
+done
