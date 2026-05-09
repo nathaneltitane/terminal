@@ -152,7 +152,7 @@ ssh_check () {
 													"${ip_network}" 2>&1
 			)
 
-			if $(echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied")
+			if echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied"
 			then
 				list_sftp_open+=("${ip_display}")
 			fi
@@ -186,9 +186,9 @@ ssh_check () {
 		for address in "${list_port_open[@]}"
 		do
 			frobulator.nul "${address}"
+			echo
 		done
 
-		echo
 	else
 		frobulator.wrn "No open port addresse(s) found"
 		echo
@@ -213,9 +213,9 @@ ssh_check () {
 		for address in "${list_ssh_open[@]}"
 		do
 			frobulator.nul "${address}"
+			echo
 		done
 
-		echo
 	else
 		frobulator.wrn "No available ssh addresse(s) found"
 		echo
@@ -240,9 +240,9 @@ ssh_check () {
 		for address in "${list_sftp_open[@]}"
 		do
 			frobulator.nul "${address}"
+			echo
 		done
 
-		echo
 	else
 		frobulator.wrn "No available sftp addresse(s) found"
 		echo
