@@ -68,6 +68,17 @@ frobulator.script "Setting up ${script#*-}"
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
+frobulator.idx () {
+
+	frobulator.pmt "${@}"
+
+	prompt="${prompt_string[@]}"
+
+	unset color_entry
+
+	echo -e "${color_entry}${marker_nul}${marker_spc}${prompt}${reset}"
+
+}
 
 ssh_check () {
 
@@ -239,7 +250,7 @@ ssh_check () {
 
 		for address in "${list_sftp_open[@]}"
 		do
-			frobulator.nul "${address}"
+			frobulator.idx "${address}"
 			echo
 		done
 
