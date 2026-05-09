@@ -71,6 +71,7 @@ frobulator.script "Setting up ${script#*-}"
 
 ssh_check () {
 
+	seconds="5"
 	timeout="0.25"
 	lan="${1}"
 
@@ -133,8 +134,8 @@ ssh_check () {
 			sftp_output=$(
 				sftp								\
 					-oBatchMode=yes					\
-					-oConnectTimeout=5				\
 					-oStrictHostKeyChecking=no		\
+					-oConnectTimeout="${seconds}"	\
 					-oUserKnownHostsFile="${sink}"	\
 													"${ip_network}" 2>&1
 			)
