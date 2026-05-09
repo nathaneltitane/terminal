@@ -81,7 +81,7 @@ fi
 
 if [ -f "${PREFIX}"/media/internal/.ssh/sshd_config ]
 then
-	cp "${PREFIX}"/media/internal/.ssh/sshd_config /etc/ssh/sshd_config
+	cp "${PREFIX}"/media/internal/.ssh/sshd_config "${PREFIX}"/etc/ssh/sshd_config
 fi
 
 if [ -d "${HOME}"/.ssh ]
