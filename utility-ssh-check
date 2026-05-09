@@ -142,7 +142,7 @@ ssh_check () {
 													"${ip_network}" 2>&1
 			)
 
-			if echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied"
+			if [[ $(echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied") ]]
 			then
 				list_sftp_open+=("${ip_display}")
 
