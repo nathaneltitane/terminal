@@ -54,7 +54,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="05-03-2025"
+version="05-09-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -70,6 +70,10 @@ frobulator.script "Setting up ${script#*-}"
 
 # devices array
 
+#!/usr/bin/env bash
+
+# devices list
+
 devices=(
 	desktop
 	notebook
@@ -78,18 +82,34 @@ devices=(
 	phone
 )
 
-# generate keys with overwrite
-
 for device in "${devices[@]}"
 do
-	key_path="$HOME/$device"
+	key_path="${HOME}/${device}"
 
 	# remove existing key files if they exist
 
-	[ -f "$key_path" ] && rm -f "$key_path"
-	[ -f "$key_path.pub" ] && rm -f "$key_path.pub"
+	if [ -f "${key_path}" ]
+	then
+		rm					\
+			--recursive		\
+			--force			\
+							"${key_path}"
+	fi
 
-	# generate key (no passphrase)
+	if [ -f "${key_path}.pub" ]
+	then
+		rm					\
+			--recursive		\
+			--force			\
+							"${key_path}.pub"
+	fi
 
-	ssh-keygen -t ed25519 -f "$key_path" -N ''
+	# generate key(s):
+	# overwrite - no passphrase
+
+	ssh-keygen				\
+		-t ed25519			\
+		-f "${key_path}"	\
+		-N ''
+
 done
