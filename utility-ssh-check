@@ -130,8 +130,33 @@ ssh_check () {
 
 			frobulator.plo 1
 
-			frobulator.scs "Port open" "[ ${ip_display} ]"
+			frobulator.inf "Port open" "[ ${ip_display} ]"
 			echo
+
+			# secure shell
+
+			ssh_output=$(
+				ssh								\
+					-oBatchMode=yes				\
+					-oStrictHostKeyChecking=no	\
+					-oConnectTimeout="${seconds}"\
+					-oUserKnownHostsFile="${sink}"\
+													"${ip_network}" exit 2>&1
+			)
+
+			if echo "${ssh_output}" | grep -q -i -e "permission denied" -e "welcome" -e "last login"
+			then
+				list_ssh_open+=("${ip_display}")
+
+				frobulator.scs "SSH open" "[ ${ip_display} ]"
+				echo
+
+			else
+				frobulator.err "SSH closed" "[ ${ip_display} ]"
+				echo
+			fi
+
+			# secure file transfer
 
 			sftp_output=$(
 				sftp								\
