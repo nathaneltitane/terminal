@@ -130,19 +130,34 @@ ssh_check () {
 			frobulator.scs "Port open" "[ ${ip_display} ]"
 			echo
 
-			# check sftp subsystem
+			sftp_output=$(
+				sftp								\
+					-oBatchMode=yes					\
+					-oConnectTimeout=5				\
+					-oStrictHostKeyChecking=no		\
+					-oUserKnownHostsFile="${sink}"	\
+													"${ip_network}" 2>&1
+			)
 
-			if sftp											\
-				-oBatchMode=yes								\
-				-oConnectTimeout=5							\
-				-oStrictHostKeyChecking=no					\
-				-oUserKnownHostsFile="${sink}"				\
-															"${ip_network}" <<< quit > "${sink}" 2>&1
+			if echo "${sftp_output}" | grep -qi "sftp>"
 			then
 				list_sftp_open+=("${ip_display}")
 
 				frobulator.scs "SFTP open" "[ ${ip_display} ]"
 				echo
+
+			elif echo "${sftp_output}" | grep -qi "permission denied"
+			then
+				list_sftp_open+=("${ip_display}")
+
+				frobulator.scs "SFTP open" "[ ${ip_display} ]"
+				echo
+
+			elif echo "${sftp_output}" | grep -qi "subsystem request failed"
+			then
+				frobulator.err "SFTP closed" "[ ${ip_display} ]"
+				echo
+
 			else
 				frobulator.err "SFTP closed" "[ ${ip_display} ]"
 				echo
