@@ -122,6 +122,8 @@ ssh_check () {
 		frobulator.fwd "Port scan" "[ ${ip_display} ]"
 		echo
 
+		echo
+
 		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${ip_network}/22" 2> "${sink}"
 
 		if [ $? -eq 0 ]
