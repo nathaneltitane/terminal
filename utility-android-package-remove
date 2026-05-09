@@ -61,9 +61,19 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+applications_list_android=(
+
+)
+
+applications_list_google=(
+
+)
+
 applications_list_onyx=(
 	com.android.theme.font.notoserifsource
+
 	org.chromium.chrome
+
 	com.onyx.clock
 	com.onyx.calculator
 	com.onyx.aiassistant
@@ -74,7 +84,6 @@ applications_list_onyx=(
 	com.onyx.dict
 	com.onyx.musicplayer
 	com.onyx.voicerecorder
-
 	# com.onyx
 	# com.onyx.android.ksync
 	# com.onyx.android.note
@@ -94,5 +103,20 @@ applications_list=(
 
 for application in ${applications_list}
 do
-	sudo adb shell pm uninstall -k --user 0 "${application}"
+	if [ $(adb shell pm -k --user 0 list packages | grep -q "${application}" ]
+	then
+		frobulator.inf "Application package not on device" "[ ${application} ]"
+		echo
+
+		frobulator.wrn "Removing application package" "[ ${application} ]"
+		echo
+
+		sudo adb shell pm uninstall -k --user 0 "${application}"
+	else
+		frobulator.error "Application package not present on device" "[ ${application} ]"
+		echo
+	fi
 done
+
+frobulator.scs 'Done'
+echo
