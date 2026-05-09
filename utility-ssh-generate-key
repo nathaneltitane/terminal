@@ -96,7 +96,7 @@ do
 		rm					\
 			--recursive		\
 			--force			\
-							"${key_directory}"
+							"${key}"
 	fi
 
 	if [ -f "${key_public}" ]
@@ -104,7 +104,7 @@ do
 		rm					\
 			--recursive		\
 			--force			\
-							"${key_directory}.pub"
+							"${key_public}"
 	fi
 
 	# generate key(s):
