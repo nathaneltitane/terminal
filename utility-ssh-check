@@ -144,7 +144,7 @@ ssh_check () {
 
 			# sftp login prompt
 
-			if echo "${sftp_output}" | grep -qi "sftp>"
+			if echo "${sftp_output}" | grep -q -i "sftp>"
 			then
 				list_sftp_open+=("${ip_display}")
 
@@ -153,7 +153,7 @@ ssh_check () {
 
 			# sftp permission message
 
-			elif echo "${sftp_output}" | grep -qi "permission denied"
+			elif echo "${sftp_output}" | grep -q -i "permission denied"
 			then
 				list_sftp_open+=("${ip_display}")
 
@@ -162,7 +162,7 @@ ssh_check () {
 
 			# sftp request message
 
-			elif echo "${sftp_output}" | grep -qi "subsystem request failed"
+			elif echo "${sftp_output}" | grep -q -i "subsystem request failed"
 			then
 				frobulator.err "SFTP closed" "[ ${ip_display} ]"
 				echo
