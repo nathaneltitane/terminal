@@ -69,7 +69,7 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-port_scan () {
+ssh_check () {
 
 	seconds="5"
 	timeout="0.125"
@@ -155,8 +155,6 @@ port_scan () {
 			if $(echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied")
 			then
 				list_sftp_open+=("${ip_display}")
-
-				return ${list_sftp_open}
 			fi
 
 		fi
@@ -166,91 +164,92 @@ port_scan () {
 	# unset IFS
 
 	IFS=''
+
+	frobulator.plo 1
+
+	# port
+
+	if [ ${#list_port_open[@]} -gt 0 ]
+	then
+		if [ ${#list_port_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_port_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with open port found at:"
+		echo
+
+		for address in "${list_port_open[@]}"
+		do
+			frobulator.nul "${address}"
+		done
+
+		echo
+	else
+		frobulator.wrn "No open port addresse(s) found"
+		echo
+	fi
+
+	# shell
+
+	if [ ${#list_ssh_open[@]} -gt 0 ]
+	then
+		if [ ${#list_ssh_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_ssh_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with available ssh found at:"
+		echo
+
+		for address in "${list_ssh_open[@]}"
+		do
+			frobulator.nul "${address}"
+		done
+
+		echo
+	else
+		frobulator.wrn "No available ssh addresse(s) found"
+		echo
+	fi
+
+	# file transfer
+
+	if [ ${#list_sftp_open[@]} -gt 0 ]
+	then
+		if [ ${#list_sftp_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_sftp_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with available sftp found at:"
+		echo
+
+		for address in "${list_sftp_open[@]}"
+		do
+			frobulator.nul "${address}"
+		done
+
+		echo
+	else
+		frobulator.wrn "No available sftp addresse(s) found"
+		echo
+	fi
+
 }
 
-port_scan "${@}" &
+ssh_check "${@}" &
 
 frobulator.progress scan
-
-frobulator.plo 1
-
-# port
-
-if [ ${#list_port_open[@]} -gt 0 ]
-then
-	if [ ${#list_port_open[@]} -eq 1 ]
-	then
-		message="Address"
-
-	elif [ ${#list_port_open[@]} -ge 2 ]
-	then
-		message="Addresses"
-	fi
-
-	frobulator.inf "${message} with open port found at:"
-	echo
-
-	for address in "${list_port_open[@]}"
-	do
-		frobulator.nul "${address}"
-	done
-
-	echo
-else
-	frobulator.wrn "No open port addresse(s) found"
-	echo
-fi
-
-# shell
-
-if [ ${#list_ssh_open[@]} -gt 0 ]
-then
-	if [ ${#list_ssh_open[@]} -eq 1 ]
-	then
-		message="Address"
-
-	elif [ ${#list_ssh_open[@]} -ge 2 ]
-	then
-		message="Addresses"
-	fi
-
-	frobulator.inf "${message} with available ssh found at:"
-	echo
-
-	for address in "${list_ssh_open[@]}"
-	do
-		frobulator.nul "${address}"
-	done
-
-	echo
-else
-	frobulator.wrn "No available ssh addresse(s) found"
-	echo
-fi
-
-# file transfer
-
-if [ ${#list_sftp_open[@]} -gt 0 ]
-then
-	if [ ${#list_sftp_open[@]} -eq 1 ]
-	then
-		message="Address"
-
-	elif [ ${#list_sftp_open[@]} -ge 2 ]
-	then
-		message="Addresses"
-	fi
-
-	frobulator.inf "${message} with available sftp found at:"
-	echo
-
-	for address in "${list_sftp_open[@]}"
-	do
-		frobulator.nul "${address}"
-	done
-
-	echo
-else
-	frobulator.wrn "No available sftp addresse(s) found"
-	echo
-fi
