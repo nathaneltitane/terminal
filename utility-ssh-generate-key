@@ -64,6 +64,12 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+key_directory="${PWD}"
+
+key="${key_directory}"/"${device}"
+
+key_public="${key}.pub"
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -84,24 +90,23 @@ devices=(
 
 for device in "${devices[@]}"
 do
-	key_path="${HOME}/${device}"
 
 	# remove existing key files if they exist
 
-	if [ -f "${key_path}" ]
+	if [ -f "${key}" ]
 	then
 		rm					\
 			--recursive		\
 			--force			\
-							"${key_path}"
+							"${key_directory}"
 	fi
 
-	if [ -f "${key_path}.pub" ]
+	if [ -f "${key_public}" ]
 	then
 		rm					\
 			--recursive		\
 			--force			\
-							"${key_path}.pub"
+							"${key_directory}.pub"
 	fi
 
 	# generate key(s):
@@ -109,7 +114,7 @@ do
 
 	ssh-keygen				\
 		-t ed25519			\
-		-f "${key_path}"	\
+		-f "${key_directory}"	\
 		-N ''
 
 done
