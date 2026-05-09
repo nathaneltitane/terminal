@@ -1,5 +1,5 @@
 #!/bin/bash
-set +x
+
 # dependencies /////////////////////////////////////////////////////////////////
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
@@ -55,7 +55,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="04-12-2023"
+version="05-09-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -129,6 +129,26 @@ ssh_check () {
 
 			frobulator.scs "Port open" "[ ${ip_display} ]"
 			echo
+
+			# check sftp subsystem
+
+			if sftp											\
+				-oBatchMode=yes								\
+				-oConnectTimeout=5							\
+				-oStrictHostKeyChecking=no					\
+				-oUserKnownHostsFile=/dev/null				\
+				"${ip_network}"								\
+												<<< quit	\
+												> "${sink}"
+			then
+				list_sftp_open+=("${ip_display}")
+
+				frobulator.scs "SFTP open" "[ ${ip_display} ]"
+				echo
+			else
+				frobulator.err "SFTP closed" "[ ${ip_display} ]"
+				echo
+			fi
 		else
 			frobulator.plo 1
 
@@ -146,14 +166,14 @@ ssh_check () {
 	then
 		if [ ${#list_port_open[@]} -eq 1 ]
 		then
-			message="Adress"
+			message="Address"
 
 		elif [ ${#list_port_open[@]} -ge 2 ]
 		then
-			message="Adresses"
+			message="Addresses"
 		fi
 
-		frobulator.inf "${message} with open port found at:"
+		frobulator.inf "${message} with open ssh port found at:"
 		echo
 
 		for address in "${list_port_open[@]}"
@@ -163,7 +183,32 @@ ssh_check () {
 
 		echo
 	else
-		frobulator.wrn "No open addresses found"
+		frobulator.wrn "No open ssh addresses found"
+		echo
+	fi
+
+	if [ ${#list_sftp_open[@]} -gt 0 ]
+	then
+		if [ ${#list_sftp_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_sftp_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with available sftp found at:"
+		echo
+
+		for address in "${list_sftp_open[@]}"
+		do
+			echo "     ${address}"
+		done
+
+		echo
+	else
+		frobulator.wrn "No available sftp addresses found"
 		echo
 	fi
 
