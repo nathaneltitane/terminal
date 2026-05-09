@@ -44,10 +44,6 @@ fi
 
 # superuser ////////////////////////////////////////////////////////////////////
 
-export self_arguments="${@}"
-
-frobulator.escalate
-
 # script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
@@ -64,7 +60,9 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
-key_directory="${PWD}"
+key_type="ed25519"
+
+key_directory="${HOME}"
 
 key="${key_directory}"/"${device}"
 
@@ -80,7 +78,7 @@ key_public="${key}.pub"
 
 # devices list
 
-devices=(
+devices_list=(
 	desktop
 	notebook
 	pi
@@ -88,7 +86,7 @@ devices=(
 	phone
 )
 
-for device in "${devices[@]}"
+for device in ${devices_list[@]}
 do
 
 	# remove existing key files if they exist
@@ -112,9 +110,42 @@ do
 	# generate key(s):
 	# overwrite - no passphrase
 
-	ssh-keygen				\
-		-t ed25519			\
-		-f "${key_directory}"	\
-		-N ''
+	yes | ssh-keygen						\
+		-t "${key_type}"					\
+		-f "${key_directory}"/"${device}"	\
+		-N ''								\
+		-C "${USER}@${device}"
+
+	# set ownership
+
+	if [ -f "${key}" ]
+	then
+		chown 					\
+			"${USER}:${USER}"	\
+								"${key}"
+	fi
+
+	if [ -f "${key_public}" ]
+	then
+		chown					\
+			"${USER}:${USER}"	\
+								"${key_public}"
+	fi
+
+	# set permissions
+
+	if [ -f "${key}" ]
+	then
+		chmod		\
+			0600	\
+					"${key}"
+	fi
+
+	if [ -f "${key_public}" ]
+	then
+		chmod		\
+			0644	\
+					"${key_public}"
+	fi
 
 done
