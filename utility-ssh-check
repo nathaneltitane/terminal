@@ -79,7 +79,9 @@ ssh_check () {
 	then
 		echo "Usage:"
 		echo
-		echo "${script} <LAN_PREFIX>"
+		echo "${script} <LAN PREFIX>"
+		echo
+		echo "LAN Prefix	XXX.XXX.XXX"
 		echo
 
 		return 1
@@ -140,6 +142,8 @@ ssh_check () {
 													"${ip_network}" 2>&1
 			)
 
+			# sftp login prompt
+
 			if echo "${sftp_output}" | grep -qi "sftp>"
 			then
 				list_sftp_open+=("${ip_display}")
@@ -147,12 +151,16 @@ ssh_check () {
 				frobulator.scs "SFTP open" "[ ${ip_display} ]"
 				echo
 
+			# sftp permission message
+
 			elif echo "${sftp_output}" | grep -qi "permission denied"
 			then
 				list_sftp_open+=("${ip_display}")
 
 				frobulator.scs "SFTP open" "[ ${ip_display} ]"
 				echo
+
+			# sftp request message
 
 			elif echo "${sftp_output}" | grep -qi "subsystem request failed"
 			then
