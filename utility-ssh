@@ -108,7 +108,7 @@ echo
 list=(
 	"${HOME}"/.ssh
 	"${PREFIX}"/media/internal/.ssh
-	)
+)
 
 for directory in ${directories_list[@]}
 do
