@@ -61,6 +61,12 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
+android_debug_bridge () {
+
+	sudo adb shell pm -k --user 0
+
+}
+
 list_android=(
 
 )
@@ -103,7 +109,7 @@ list=(
 
 for application in ${list}
 do
-	if [ $(adb shell pm -k --user 0 list packages | grep -q "${application}" ]
+	if [ $(android_debug_bridge list packages | grep -q "${application}" ]
 	then
 		frobulator.inf "Application package not on device" "[ ${application} ]"
 		echo
@@ -111,7 +117,7 @@ do
 		frobulator.wrn "Removing application package" "[ ${application} ]"
 		echo
 
-		adb shell pm uninstall -k --user 0 "${application}"
+		android_debug_bridge uninstall "${application}"
 	else
 		frobulator.error "Application package not present on device" "[ ${application} ]"
 		echo
