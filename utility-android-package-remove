@@ -61,15 +61,15 @@ frobulator.script "Setting up ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-applications_list_android=(
+list_android=(
 
 )
 
-applications_list_google=(
+list_google=(
 
 )
 
-applications_list_onyx=(
+list_onyx=(
 	com.android.theme.font.notoserifsource
 
 	org.chromium.chrome
@@ -97,11 +97,11 @@ applications_list_onyx=(
 	# com.onyx.tscalibration
 )
 
-applications_list=(
+list=(
 	${applications_list_onyx[@]}
 )
 
-for application in ${applications_list}
+for application in ${list}
 do
 	if [ $(adb shell pm -k --user 0 list packages | grep -q "${application}" ]
 	then
