@@ -136,10 +136,8 @@ ssh_check () {
 				-oBatchMode=yes								\
 				-oConnectTimeout=5							\
 				-oStrictHostKeyChecking=no					\
-				-oUserKnownHostsFile=/dev/null				\
-				"${ip_network}"								\
-												<<< quit	\
-												> "${sink}"
+				-oUserKnownHostsFile="${sink}"				\
+															"${ip_network}" <<< quit > "${sink}" 2>&1
 			then
 				list_sftp_open+=("${ip_display}")
 
