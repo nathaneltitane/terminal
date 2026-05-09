@@ -111,7 +111,7 @@ do
 		frobulator.wrn "Removing application package" "[ ${application} ]"
 		echo
 
-		sudo adb shell pm uninstall -k --user 0 "${application}"
+		adb shell pm uninstall -k --user 0 "${application}"
 	else
 		frobulator.error "Application package not present on device" "[ ${application} ]"
 		echo
