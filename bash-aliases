@@ -385,6 +385,11 @@ fi
 
 if [[ $(command -v htop) ]]
 then
+	alias 'top'='rm -r -htop'
+fi
+
+if [[ $(command -v htop) ]]
+then
 	alias 'process'='htop -s USER -t'
 fi
 
