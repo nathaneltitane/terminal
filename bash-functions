@@ -736,7 +736,7 @@ terminate () {
 weather () {
 
 	url="wttr.in"
-	
+
 	echo
 
 	curl -s "${url}" | head -n -2
@@ -850,6 +850,30 @@ findd () {
 
 }
 
+# secure shell /////////////////////////////////////////////////////////////////
+
+ssh ( ) {
+
+	local destination
+	local password
+
+	destination="${1}"
+
+	echo -n -e "[ ▷ ] SSH password for ${destination}: "
+
+	read -r -s password
+
+	echo
+
+	sshpass \
+		-p "${password}" \
+		-- \
+		ssh "${@}"
+
+	unset password
+
+}
+
 ssh-check () {
 
 timeout="0.5"
@@ -886,6 +910,8 @@ lan=$(
 	done | grep "open"
 
 }
+
+# audio control ////////////////////////////////////////////////////////////////
 
 audio-combine () {
 
