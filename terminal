@@ -493,7 +493,7 @@ then
 
 	list=()
 
-	refind-install --yes
+	refind-install --yes > "${sink}" 2>&1
 
 	# purge
 
