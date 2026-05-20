@@ -59,6 +59,11 @@ then
 	alias 'in'='cd /media/[iI]nternal'
 fi
 
+if [[ $(ls -d /media/[fF]iles 2> /dev/null) ]]
+then
+	alias 'fl'='cd /media/[fF]iles'
+fi
+
 # git  /////////////////////////////////////////////////////////////////////////
 
 if [[ $(command -v git) ]]
@@ -405,7 +410,7 @@ fi
 
 if [[ $(command -v ls) ]]
 then
-	alias 'list'='ls -a -h -l --group-directories-first'
+	alias 'list'='ls -a -h -l --group-directories-first ; echo $(ls -p | grep -v / | wc -l) files ; echo ; echo $(ls -d */ | wc -l) directories'
 fi
 
 if [[ $(command -v mount) && $(command -v column) ]]
