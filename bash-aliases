@@ -410,7 +410,7 @@ fi
 
 if [[ $(command -v ls) ]]
 then
-	alias 'list'='ls -a -h -l --group-directories-first ; echo ; echo $(find . -type d | wc -l) filesdirectories ; echo ; echo $(find . -type f | wc -l) files'
+	alias 'list'='ls -a -h -l --group-directories-first ; echo ; echo $(find . -type d | wc -l) directories ; echo ; echo $(find . -type f | wc -l) files ; echo'
 fi
 
 if [[ $(command -v mount) && $(command -v column) ]]
