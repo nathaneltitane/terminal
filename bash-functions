@@ -854,9 +854,6 @@ findd () {
 
 ssh ( ) {
 
-	local destination
-	local password
-
 	destination="${1}"
 
 	echo -n -e "[ ▷ ] SSH password for ${destination}: "
@@ -865,10 +862,12 @@ ssh ( ) {
 
 	echo
 
-	sshpass \
-		-p "${password}" \
-		-- \
-		ssh "${@}"
+	sshpass					\
+		-p "${password}"	\
+		--					\
+							ssh "${@}"
+
+	unset destination
 
 	unset password
 
