@@ -63,7 +63,7 @@ version='05-21-2026'
 
 frobulator.script "Processing ${script#*-}"
 
-# variables ////////////////////////////////////////////////////////////////
+# variables ////////////////////////////////////////////////////////////////////
 
 input_file='tracks.txt'
 
@@ -81,7 +81,7 @@ sleep_maximum=5
 
 runtime_javascript="deno:$(command -v deno)"
 
-extension_track="mp3"
+extension_track='mp3'
 
 # dependencies /////////////////////////////////////////////////////////////////
 
@@ -109,7 +109,7 @@ fi
 
 # initialize ///////////////////////////////////////////////////////////////////
 
-mkdir -p "${download_directory}"
+frobulator.directory "${download_directory}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -141,12 +141,12 @@ browser_identify () {
 
 	esac
 
-	printf '%s\n' "${browser}"
+	echo "${browser}"
 }
 
 normalize () {
 
-	printf '%s' "${1}" |
+	echo "${1}" |
 
 		tr '[:upper:]' '[:lower:]' |
 
@@ -212,6 +212,12 @@ youtube_download () {
 																"${url}"
 }
 
+# browser //////////////////////////////////////////////////////////////////////
+
+browser=$(
+	browser_identify
+)
+
 # existing downloads
 
 tracks_existing=()
@@ -229,7 +235,7 @@ do
 done < <(
 	find "${download_directory}"	\
 		-type f						\
-		-iname '*."${extension_track}"'
+		-iname "*.${extension_track}"
 )
 
 unset IFS
@@ -263,19 +269,19 @@ do
 
 	# normalize filename for comparisons
 
-	normalized_filename=$(normalize "${track}")
+	filename_normalized=$(normalize "${track}")
 
 	# preserve original filename for output
 
-	filename=$(printf '%s' "${track}" | tr '/:' '--')
+	filename=$(echo "${track}" | tr '/:' '--')
 
 	found='false'
 
 	# compare against existing downloads
 
-	for track_file_existing in "${tracks_existing[@]}"
+	for track_existing in "${tracks_existing[@]}"
 	do
-		if [ "${track_file_existing}" = "${normalized_filename}" ]
+		if [ "${track_existing}" = "${filename_normalized}" ]
 		then
 			found='true'
 
@@ -297,6 +303,8 @@ do
 done < "${input_file}"
 
 unset IFS
+
+# summary //////////////////////////////////////////////////////////////////////
 
 echo
 
@@ -320,11 +328,11 @@ do
 
 	# normalize filename for comparisons
 
-	normalized_filename=$(normalize "${track}")
+	filename_normalized=$(normalize "${track}")
 
 	# preserve original filename for output
 
-	filename=$(printf '%s' "${track}" | tr '/:' '--')
+	filename=$(echo "${track}" | tr '/:' '--')
 
 	url=''
 
@@ -338,7 +346,7 @@ do
 
 	while IFS= read -r result
 	do
-		duration_track=$(printf '%s\n' "${result}" | jq -r '.duration')
+		duration_track=$(echo "${result}" | jq -r '.duration')
 
 		# skip invalid duration
 
@@ -352,7 +360,7 @@ do
 		if [ "${duration_track}" -ge "${duration_minimum}" ] &&
 		   [ "${duration_track}" -le "${duration_maximum}" ]
 		then
-			url=$(printf '%s\n' "${result}" | jq -r '.webpage_url')
+			url=$(echo "${result}" | jq -r '.webpage_url')
 
 			break
 		fi
@@ -382,9 +390,11 @@ do
 
 	echo
 
-	frobulator.scs "${download_directory}/${filename}."${extension_track}""
+	frobulator.scs "${download_directory}/${filename}.${extension_track}"
 
 done
+
+# done //////////////////////////////////////////////////////////////////////////
 
 echo
 
