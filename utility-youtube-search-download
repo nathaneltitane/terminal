@@ -79,7 +79,9 @@ sleep_minimum=1
 
 sleep_maximum=5
 
-runtime_javascript="deno:$(command -v deno)"
+solver="deno"
+
+runtime_javascript="${solver}:$(command -v ${solver})"
 
 extension_track='mp3'
 
