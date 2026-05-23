@@ -57,15 +57,11 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 version='05-21-2026'
 
-# usage ////////////////////////////////////////////////////////////////////////
-
-# prompt ///////////////////////////////////////////////////////////////////////
-
-frobulator.script "Processing ${script#*-}"
-
 # variables ////////////////////////////////////////////////////////////////////
 
-input_file='tracks.txt'
+input_user=''
+
+input_file=''
 
 download_directory='tracks'
 
@@ -79,39 +75,86 @@ sleep_minimum=1
 
 sleep_maximum=5
 
-solver="deno"
+solver='deno'
 
 runtime_javascript="${solver}:$(command -v ${solver})"
 
 extension_track='mp3'
 
-# dependencies /////////////////////////////////////////////////////////////////
+# usage ////////////////////////////////////////////////////////////////////////
 
-list=(
-	yt-dlp
-	ffmpeg
-	jq
-	node
-	deno
-	xdg-settings
-)
+usage () {
 
-frobulator.require "${list[@]}"
+	echo
+	echo "usage: ${script} [option]"
+	echo
+	echo 'input:'
+	echo '  -i, --input <track>     search/download a single track'
+	echo '  -f, --file <file>       search/download tracks from file'
+	echo
+	echo 'options:'
+	echo '  -h, --help              show this help'
+	echo
+}
 
-unset list
+# arguments ////////////////////////////////////////////////////////////////////
 
-# validate /////////////////////////////////////////////////////////////////////
+while [ "${#}" -gt 0 ]
+do
+	case "${1}" in
 
-if [ ! -f "${input_file}" ]
-then
-	frobulator.err "Missing input file: ${input_file}"
+		-i|--input)
+			if [ -n "${input_user}" ] ||
+			   [ -n "${input_file}" ]
+			then
+				frobulator.err 'Only one input source may be used'
 
-	exit 1
-fi
+				usage
 
-# initialize ///////////////////////////////////////////////////////////////////
+				exit 1
+			fi
 
-frobulator.directory "${download_directory}"
+			input_user="${2}"
+
+			shift 2
+		;;
+
+		-f|--file)
+			if [ -n "${input_user}" ] ||
+			   [ -n "${input_file}" ]
+			then
+				frobulator.err 'Only one input source may be used'
+
+				usage
+
+				exit 1
+			fi
+
+			input_file="${2}"
+
+			shift 2
+		;;
+
+		-h|--help)
+			usage
+
+			exit 0
+		;;
+
+		*)
+			frobulator.err "Unknown argument: ${1}"
+
+			usage
+
+			exit 1
+		;;
+
+	esac
+done
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Processing ${script#*-}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -127,12 +170,19 @@ browser_identify () {
 
 	case "${browser}" in
 
-		firefox*|librewolf*|waterfox*)
-			browser='firefox'
+		firefox*		|
+		librewolf*		|
+		waterfox*		)
+						browser='firefox'
 		;;
 
-		chrome*|google-chrome*|chromium*|brave*|vivaldi*|opera*)
-			browser='chrome'
+		chrome*			|
+		google-chrome*	|
+		chromium*		|
+		brave*			|
+		vivaldi*		|
+		opera*			)
+						browser='chrome'
 		;;
 
 		*)
@@ -148,11 +198,11 @@ browser_identify () {
 
 normalize () {
 
-	echo "${1}" |
+	echo "${1}"						|
 
-		tr '[:upper:]' '[:lower:]' |
+		tr '[:upper:]' '[:lower:]'	|
 
-		tr '/:' '--' |
+		tr '/:' '--'				|
 
 		sed								\
 			-e 's/[^a-z0-9._ -]//g'		\
@@ -195,6 +245,10 @@ youtube_download () {
 
 	local filename="${4}"
 
+	audio_quality="0"
+
+	audio_format='bestaudio/best'
+
 	sleep_randomize
 
 	yt-dlp														\
@@ -204,8 +258,8 @@ youtube_download () {
 		--sleep-requests "${duration_sleep}"					\
 		--extract-audio											\
 		--audio-format "${extension_track}"						\
-		--audio-quality 0										\
-		--format 'bestaudio/best'								\
+		--audio-quality "${audio_quality}"						\
+		--format "${audio_format}"								\
 		--embed-metadata										\
 		--no-playlist											\
 		--replace-in-metadata title '^.*$' "${title}"			\
@@ -213,6 +267,76 @@ youtube_download () {
 		--output "${download_directory}/${filename}.%(ext)s"	\
 																"${url}"
 }
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	ffmpeg
+	jq
+	nodejs
+	pip
+	xdg-settings
+)
+
+frobulator.require "${list[@]}"
+
+unset list
+
+list=(
+	yt-dlp
+	yt-dlp-ejs
+	deno
+)
+
+for item in "${list[@]}"
+do
+	pip install "${item}"
+done
+
+list=()
+
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+if [ -z "${input_user}" ] &&
+   [ -z "${input_file}" ]
+then
+	frobulator.err 'Missing input source'
+
+	usage
+
+	exit 1
+fi
+
+if [ -n "${input_file}"   ] &&
+   [ ! -f "${input_file}" ]
+then
+	frobulator.err "Missing input file: ${input_file}"
+
+	exit 1
+fi
+
+tracks_input=()
+
+if [ -n "${input_user}" ]
+then
+	tracks_input+=("${input_user}")
+fi
+
+if [ -n "${input_file}" ]
+then
+	while IFS= read -r track
+	do
+		tracks_input+=("${track}")
+
+	done < "${input_file}"
+
+	unset IFS
+fi
+
+# initialize ///////////////////////////////////////////////////////////////////
+
+frobulator.directory "${download_directory}"
 
 # browser //////////////////////////////////////////////////////////////////////
 
@@ -222,25 +346,32 @@ browser=$(
 
 # existing downloads
 
-tracks_existing=()
+tracks_existing_files=()
 
-while IFS= read -r file
+while IFS= read -r track_existing_file
 do
-	file=$(basename "${file}")
-
-	file=${file%."${extension_track}"}
-
-	file=$(normalize "${file}")
-
-	tracks_existing+=("${file}")
+	tracks_existing_files+=( "${track_existing_file}" )
 
 done < <(
-	find "${download_directory}"	\
-		-type f						\
-		-iname "*.${extension_track}"
+	find "${download_directory}"		\
+		-type f							\
+		-iname "*.${extension_track}"	\
+		-printf '%f\n'
 )
 
 unset IFS
+
+tracks_existing=()
+
+for track_existing in "${tracks_existing_files[@]}"
+do
+	track_existing=${track_existing%."${extension_track}"}
+
+	track_existing=$(normalize "${track_existing}")
+
+	tracks_existing+=("${track_existing}")
+
+done
 
 # pending downloads
 
@@ -252,7 +383,7 @@ frobulator.fwd 'Comparing track list against existing downloads'
 
 echo
 
-while IFS= read -r track
+for track in "${tracks_input[@]}"
 do
 	# skip empty lines
 
@@ -263,11 +394,10 @@ do
 
 	# skip comments
 
-	case "${track}" in
-		\#*)
-			continue
-		;;
-	esac
+	if [[ ${track} = \#* ]]
+	then
+		continue
+	fi
 
 	# normalize filename for comparisons
 
@@ -302,9 +432,7 @@ do
 		frobulator.scs "Skipping ${track}"
 	fi
 
-done < "${input_file}"
-
-unset IFS
+done
 
 # summary //////////////////////////////////////////////////////////////////////
 
@@ -314,11 +442,13 @@ frobulator.fwd "${#tracks_pending[@]} tracks pending"
 
 # download
 
+search_file=$(mktemp)
+
 for track in "${tracks_pending[@]}"
 do
 	echo
 
-	frobulator.process "Searching ${track}"
+	frobulator.fwd "Searching ${track}"
 
 	# parse artist
 
@@ -340,9 +470,11 @@ do
 
 	# retrieve candidates
 
-	results=$(
-		youtube_search "${track}"
-	)
+	youtube_search "${track}" > "${search_file}" &
+
+	frobulator.process "Searching" "[ ${track} ]"
+
+	results=$(cat "${search_file}")
 
 	# select first reasonable duration
 
@@ -375,7 +507,8 @@ do
 
 	if [ -z "${url}" ]
 	then
-		frobulator.err 'No valid track duration result'
+		frobulator.err "No valid track duration result" "[ ${track} ]"
+		echo
 
 		continue
 	fi
@@ -388,16 +521,24 @@ do
 		"${url}"		\
 		"${artist}"		\
 		"${title}"		\
-						"${filename}"
+						"${filename}" &
+
+	frobulator.process "Downloading" "[ ${track} ]"
 
 	echo
 
 	frobulator.scs "${download_directory}/${filename}.${extension_track}"
+	echo
 
 done
+
+frobulator.delete "${search_file}"
+
+unset IFS
 
 # done //////////////////////////////////////////////////////////////////////////
 
 echo
 
 frobulator.scs "Downloads saved to ${download_directory}"
+echo
