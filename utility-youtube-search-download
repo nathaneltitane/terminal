@@ -206,33 +206,35 @@ fi
 
 browser_identify () {
 
-	local browser
-
 	browser=$(
 		xdg-settings get default-web-browser 2>"${sink}"
 	)
 
 	browser=${browser%.desktop}
 
-	case "${browser}" in
+	if [[ ${browser} = firefox*   ]] || \
+	   [[ ${browser} = librewolf* ]] || \
+	   [[ ${browser} = waterfox*  ]]
+	then
+		browser='firefox'
 
-		firefox*|librewolf* |waterfox*)
-			browser='firefox'
-		;;
+	elif [[ ${browser} = chrome*        ]] || \
+		 [[ ${browser} = google-chrome* ]] || \
+		 [[ ${browser} = chromium*      ]] || \
+		 [[ ${browser} = brave*         ]] || \
+		 [[ ${browser} = vivaldi*       ]] || \
+		 [[ ${browser} = opera*         ]]
+	then
+		browser='chrome'
 
-		chrome*|google-chrome*|chromium*|brave*|vivaldi*|opera*)
-			browser='chrome'
-		;;
+	else
+		frobulator.err 'Unsupported browser'
 
-		*)
-			frobulator.err 'Unsupported browser'
+		exit 1
+	fi
 
-			exit 1
-		;;
-
-	esac
-
-	echo "${browser}"
+	frobulator.inf "Browser indetified" "[ ${browser} ]"
+	echo
 }
 
 normalize () {
@@ -334,7 +336,6 @@ done
 
 list=()
 
-
 # initialize ///////////////////////////////////////////////////////////////////
 
 # browser
@@ -367,13 +368,10 @@ fi
 
 tracks_pending=()
 
-echo
-
-if [[ -d "${download_directory}" ]] &&
-   [ -n "$(find "${download_directory}" -type f 2>${sink})" ]
+if [[ -d "${download_directory}" ]]
 then
 
-	frobulator.inf "Download directory present"
+	frobulator.inf "Download directory present" "[ ${download_directory} ]"
 	echo
 
 	frobulator.fwd 'Comparing track list against existing downloads'
@@ -451,26 +449,28 @@ then
 		if [ "${found}" = 'false' ]
 		then
 			frobulator.fwd "Adding ${track}"
+			echo
 
 			tracks_pending+=("${track}")
 		else
 			frobulator.scs "Skipping ${track}"
+			echo
 		fi
 
 	done
 
+else
+
+	frobulator.wrn "Download directory not found"
+	echo
+
+	frobulator.directory "${download_directory}"
+
 fi
-
-frobulator.inf "Download directory not found"
-echo
-
-frobulator.directory "${download_directory}"
 
 # summary //////////////////////////////////////////////////////////////////////
 
-echo
-
-frobulator.fwd "${#tracks_pending[@]} tracks pending"
+frobulator.fwd "Tracks pending" "[ ${#tracks_pending[@]} ]"
 
 # download
 
