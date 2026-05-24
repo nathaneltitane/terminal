@@ -53,8 +53,6 @@ version='05-21-2026'
 
 # variables ////////////////////////////////////////////////////////////////////
 
-download_directory="${HOME}"/tracks
-
 duration_minimum=120
 
 duration_maximum=780
@@ -77,6 +75,13 @@ while (($#))
 do
 	case "${1}"
 	in
+		-d|--directory)
+			option="directory"
+			download_directory="${2}"
+
+			shift
+		;;
+
 		-i|--input)
 			option="input"
 			input_user="${2}"
@@ -151,6 +156,20 @@ if [ -z "${option}" ]
 then
 	frobulator.err 'No option selected'
 	echo
+
+	exit 1
+fi
+
+if [ "${option}" = "directory" ] &&
+   [ -z "${download_directory}"    ]
+then
+	frobulator.wrn "No download directory specified"
+	echo
+
+	frobulator.inf "Defaulting" "[ ${HOME}/tracks ]"
+	echo
+
+	download_directory="${HOME}"/tracks
 
 	exit 1
 fi
@@ -318,8 +337,6 @@ list=()
 
 # initialize ///////////////////////////////////////////////////////////////////
 
-frobulator.directory "${download_directory}"
-
 # browser
 
 browser=$(
@@ -346,94 +363,108 @@ then
 	unset IFS
 fi
 
-# downloads - existing
-
-tracks_existing_files=()
-
-while IFS= read -r track_existing_file
-do
-	tracks_existing_files+=( "${track_existing_file}" )
-
-done < <(
-	find "${download_directory}"		\
-		-type f							\
-		-iname "*.${extension_track}"	\
-		-printf '%f\n'
-)
-
-unset IFS
-
-tracks_existing=()
-
-for track_existing in "${tracks_existing_files[@]}"
-do
-	track_existing=${track_existing%."${extension_track}"}
-
-	track_existing=$(normalize "${track_existing}")
-
-	tracks_existing+=("${track_existing}")
-
-done
-
 # downloads - pending
 
 tracks_pending=()
 
 echo
 
-frobulator.fwd 'Comparing track list against existing downloads'
-echo
+if [[ -d "${download_directory}" ]] &&
+   [ -n "$(find "${download_directory}" -type f 2>${sink})" ]
+then
 
-for track in "${tracks_input[@]}"
-do
-	# skip empty lines
+	frobulator.inf "Download directory present"
+	echo
 
-	if [ -z "${track}" ]
-	then
-		continue
-	fi
+	frobulator.fwd 'Comparing track list against existing downloads'
+	echo
 
-	# skip comments
+	# downloads - existing
 
-	if [[ ${track} = \#* ]]
-	then
-		continue
-	fi
+	tracks_existing_files=()
 
-	# normalize filename for comparisons
-
-	filename_normalized=$(normalize "${track}")
-
-	# preserve original filename for output
-
-	filename=$(echo "${track}" | tr '/:' '--')
-
-	found='false'
-
-	# compare against existing downloads
-
-	for track_existing in "${tracks_existing[@]}"
+	while IFS= read -r track_existing_file
 	do
-		if [ "${track_existing}" = "${filename_normalized}" ]
-		then
-			found='true'
+		tracks_existing_files+=( "${track_existing_file}" )
 
-			break
-		fi
+	done < <(
+		find "${download_directory}"		\
+			-type f							\
+			-iname "*.${extension_track}"	\
+			-printf '%f\n'
+	)
+
+	unset IFS
+
+	tracks_existing=()
+
+	for track_existing in "${tracks_existing_files[@]}"
+	do
+		track_existing=${track_existing%."${extension_track}"}
+
+		track_existing=$(normalize "${track_existing}")
+
+		tracks_existing+=("${track_existing}")
+
 	done
 
-	# append only missing tracks
+	for track in "${tracks_input[@]}"
+	do
+		# skip empty lines
 
-	if [ "${found}" = 'false' ]
-	then
-		frobulator.fwd "Adding ${track}"
+		if [ -z "${track}" ]
+		then
+			continue
+		fi
 
-		tracks_pending+=("${track}")
-	else
-		frobulator.scs "Skipping ${track}"
-	fi
+		# skip comments
 
-done
+		if [[ ${track} = \#* ]]
+		then
+			continue
+		fi
+
+		# normalize filename for comparisons
+
+		filename_normalized=$(normalize "${track}")
+
+		# preserve original filename for output
+
+		filename=$(echo "${track}" | tr '/:' '--')
+
+		found='false'
+
+		# compare against existing downloads
+
+		for track_existing in "${tracks_existing[@]}"
+		do
+			if [ "${track_existing}" = "${filename_normalized}" ]
+			then
+				found='true'
+
+				break
+			fi
+		done
+
+		# append only missing tracks
+
+		if [ "${found}" = 'false' ]
+		then
+			frobulator.fwd "Adding ${track}"
+
+			tracks_pending+=("${track}")
+		else
+			frobulator.scs "Skipping ${track}"
+		fi
+
+	done
+
+fi
+
+frobulator.inf "Download directory not found"
+echo
+
+frobulator.directory "${download_directory}"
 
 # summary //////////////////////////////////////////////////////////////////////
 
@@ -536,10 +567,6 @@ done
 frobulator.delete "${search_file}"
 
 unset IFS
-
-# done //////////////////////////////////////////////////////////////////////////
-
-echo
 
 frobulator.scs "Downloads saved to ${download_directory}"
 echo
