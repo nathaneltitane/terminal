@@ -63,23 +63,23 @@ input_user=''
 
 input_file=''
 
-download_directory='tracks'
+download_directory="${HOME}"/tracks
 
 duration_minimum=120
 
 duration_maximum=780
 
-search_count='1'
+search_count=1
 
 sleep_minimum=1
 
 sleep_maximum=5
 
-solver='deno'
+solver="deno"
 
 runtime_javascript="${solver}:$(command -v ${solver})"
 
-extension_track='mp3'
+extension_track="mp3"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
