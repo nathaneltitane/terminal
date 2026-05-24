@@ -149,29 +149,27 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
 if [ -z "${option}" ]
 then
-	frobulator.err 'Missing input source'
-
-	usage
+	frobulator.err 'No option selected'
+	echo
 
 	exit 1
 fi
 
-if [ "${option}" = 'input' ] &&
+if [ "${option}" = "input" ] &&
    [ -z "${input_user}"    ]
 then
-	frobulator.err 'Missing input track'
+	frobulator.err "Missing input track"
 
 	usage
 
 	exit 1
 fi
 
-if [ "${option}" = 'file' ] &&
+if [ "${option}" = "file" ] &&
    [ -z "${input_file}"   ]
 then
-	frobulator.err 'Missing input file'
-
-	usage
+	frobulator.err 'No input file specified'
+	echo
 
 	exit 1
 fi
@@ -179,28 +177,10 @@ fi
 if [ "${option}" = 'file' ] &&
    [ ! -f "${input_file}" ]
 then
-	frobulator.err "Missing input file: ${input_file}"
+	frobulator.err "No input file found" "[ ${input_file} ]"
 	echo
 
 	exit 1
-fi
-
-tracks_input=()
-
-if [ -n "${input_user}" ]
-then
-	tracks_input+=("${input_user}")
-fi
-
-if [ -n "${input_file}" ]
-then
-	while IFS= read -r track
-	do
-		tracks_input+=("${track}")
-
-	done < "${input_file}"
-
-	unset IFS
 fi
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -340,13 +320,33 @@ list=()
 
 frobulator.directory "${download_directory}"
 
-# browser //////////////////////////////////////////////////////////////////////
+# browser
 
 browser=$(
 	browser_identify
 )
 
-# existing downloads
+# tracks list
+
+tracks_input=()
+
+if [ -n "${input_user}" ]
+then
+	tracks_input+=("${input_user}")
+fi
+
+if [ -n "${input_file}" ]
+then
+	while IFS= read -r track
+	do
+		tracks_input+=("${track}")
+
+	done < "${input_file}"
+
+	unset IFS
+fi
+
+# downloads - existing
 
 tracks_existing_files=()
 
@@ -375,14 +375,13 @@ do
 
 done
 
-# pending downloads
+# downloads - pending
 
 tracks_pending=()
 
 echo
 
 frobulator.fwd 'Comparing track list against existing downloads'
-
 echo
 
 for track in "${tracks_input[@]}"
