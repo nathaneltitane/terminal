@@ -256,7 +256,7 @@ sleep_randomize () {
 
 	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
 
-	frobulator.fwd "Sleeping ${duration_sleep} seconds"
+	frobulator.inf "Sleeping"  "[ ${duration_sleep} seconds ]"
 
 	sleep "${duration_sleep}"
 }
@@ -331,7 +331,7 @@ list=(
 
 for item in "${list[@]}"
 do
-	pip install "${item}"
+	pip install "${item}" 2>"${sink}"
 done
 
 list=()
