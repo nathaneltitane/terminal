@@ -206,33 +206,33 @@ fi
 
 browser_identify () {
 
-	local browser
-
 	browser=$(
 		xdg-settings get default-web-browser 2>"${sink}"
 	)
 
 	browser=${browser%.desktop}
 
-	case "${browser}" in
+	if [[ ${browser} = firefox*    ]] ||
+	   [[ ${browser} = librewolf*  ]] ||
+	   [[ ${browser} = waterfox*   ]]
+	then
+		browser='firefox'
 
-		firefox*|librewolf* |waterfox*)
-			browser='firefox'
-		;;
+	elif [[ ${browser} = chrome*         ]] ||
+	     [[ ${browser} = google-chrome* ]] ||
+	     [[ ${browser} = chromium*      ]] ||
+	     [[ ${browser} = brave*         ]] ||
+	     [[ ${browser} = vivaldi*       ]] ||
+	     [[ ${browser} = opera*         ]]
+	then
+		browser='chrome'
 
-		chrome*|google-chrome*|chromium*|brave*|vivaldi*|opera*)
-			browser='chrome'
-		;;
+	else
+		frobulator.err 'Unsupported browser'
 
-		*)
-			frobulator.err 'Unsupported browser'
+		exit 1
+	fi
 
-			exit 1
-		;;
-
-	esac
-
-	echo "${browser}"
 }
 
 normalize () {
