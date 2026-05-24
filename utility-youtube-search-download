@@ -53,10 +53,6 @@ version='05-21-2026'
 
 # variables ////////////////////////////////////////////////////////////////////
 
-input_user=''
-
-input_file=''
-
 download_directory="${HOME}"/tracks
 
 duration_minimum=120
