@@ -212,9 +212,9 @@ browser_identify () {
 
 	browser=${browser%.desktop}
 
-	if [[ ${browser} = firefox*    ]] || \
-	   [[ ${browser} = librewolf*  ]] || \
-	   [[ ${browser} = waterfox*   ]]
+	if [[ ${browser} = firefox*         ]] || \
+	   [[ ${browser} = librewolf*       ]] || \
+	   [[ ${browser} = waterfox*        ]]
 	then
 		browser='firefox'
 
@@ -329,7 +329,7 @@ list=(
 
 for item in "${list[@]}"
 do
-	pip install "${item}" > "${sink}"
+	pip install "${item}"
 done
 
 list=()
