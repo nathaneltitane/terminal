@@ -160,8 +160,7 @@ then
 	exit 1
 fi
 
-if [ "${option}" = "directory" ] &&
-   [ -z "${download_directory}"    ]
+if [ -z "${download_directory}" ]
 then
 	frobulator.wrn "No download directory specified"
 	echo
@@ -171,7 +170,6 @@ then
 
 	download_directory="${HOME}"/tracks
 
-	exit 1
 fi
 
 if [ "${option}" = "input" ] &&
@@ -255,8 +253,6 @@ normalize () {
 sleep_randomize () {
 
 	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
-
-	frobulator.inf "Sleeping"  "[ ${duration_sleep} seconds ]"
 
 	sleep "${duration_sleep}"
 }
@@ -502,9 +498,7 @@ do
 
 	# retrieve candidates
 
-	youtube_search "${track}" > "${search_file}" &
-
-	frobulator.process "Searching" "[ ${track} ]"
+	youtube_search "${track}" > "${search_file}"
 
 	results=$(cat "${search_file}")
 
