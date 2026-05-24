@@ -169,7 +169,6 @@ then
 	echo
 
 	download_directory="${HOME}"/tracks
-
 fi
 
 if [ "${option}" = "input" ] &&
@@ -204,35 +203,33 @@ fi
 
 browser_identify () {
 
+	local browser
+
 	browser=$(
 		xdg-settings get default-web-browser 2>"${sink}"
 	)
 
 	browser=${browser%.desktop}
 
-	if [[ ${browser} = firefox*   ]] || \
-	   [[ ${browser} = librewolf* ]] || \
-	   [[ ${browser} = waterfox*  ]]
-	then
-		browser='firefox'
+	case "${browser}" in
 
-	elif [[ ${browser} = chrome*        ]] || \
-		 [[ ${browser} = google-chrome* ]] || \
-		 [[ ${browser} = chromium*      ]] || \
-		 [[ ${browser} = brave*         ]] || \
-		 [[ ${browser} = vivaldi*       ]] || \
-		 [[ ${browser} = opera*         ]]
-	then
-		browser='chrome'
+		firefox*|librewolf* |waterfox*)
+			browser='firefox'
+		;;
 
-	else
-		frobulator.err 'Unsupported browser'
+		chrome*|google-chrome*|chromium*|brave*|vivaldi*|opera*)
+			browser='chrome'
+		;;
 
-		exit 1
-	fi
+		*)
+			frobulator.err 'Unsupported browser'
 
-	frobulator.inf "Browser indetified" "[ ${browser} ]"
-	echo
+			exit 1
+		;;
+
+	esac
+
+	echo "${browser}"
 }
 
 normalize () {
@@ -253,6 +250,8 @@ normalize () {
 sleep_randomize () {
 
 	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
+
+	frobulator.fwd "Sleeping ${duration_sleep} seconds"
 
 	sleep "${duration_sleep}"
 }
@@ -327,10 +326,11 @@ list=(
 
 for item in "${list[@]}"
 do
-	pip install "${item}" 2>"${sink}"
+	pip install "${item}"
 done
 
 list=()
+
 
 # initialize ///////////////////////////////////////////////////////////////////
 
@@ -364,10 +364,12 @@ fi
 
 tracks_pending=()
 
+echo
+
 if [[ -d "${download_directory}" ]]
 then
 
-	frobulator.inf "Download directory present" "[ ${download_directory} ]"
+	frobulator.inf "Download directory present"
 	echo
 
 	frobulator.fwd 'Comparing track list against existing downloads'
@@ -445,28 +447,26 @@ then
 		if [ "${found}" = 'false' ]
 		then
 			frobulator.fwd "Adding ${track}"
-			echo
 
 			tracks_pending+=("${track}")
 		else
 			frobulator.scs "Skipping ${track}"
-			echo
 		fi
 
 	done
 
-else
-
-	frobulator.wrn "Download directory not found"
-	echo
-
-	frobulator.directory "${download_directory}"
-
 fi
+
+frobulator.inf "Download directory not found"
+echo
+
+frobulator.directory "${download_directory}"
 
 # summary //////////////////////////////////////////////////////////////////////
 
-frobulator.fwd "Tracks pending" "[ ${#tracks_pending[@]} ]"
+echo
+
+frobulator.fwd "${#tracks_pending[@]} tracks pending"
 
 # download
 
@@ -498,7 +498,9 @@ do
 
 	# retrieve candidates
 
-	youtube_search "${track}" > "${search_file}"
+	youtube_search "${track}" > "${search_file}" &
+
+	frobulator.process "Searching" "[ ${track} ]"
 
 	results=$(cat "${search_file}")
 
