@@ -169,6 +169,9 @@ then
 	echo
 
 	download_directory="${HOME}"/tracks
+
+else
+	download_directory="${download_directory}"
 fi
 
 if [ "${option}" = "input" ] &&
@@ -251,8 +254,6 @@ sleep_randomize () {
 
 	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
 
-	frobulator.fwd "Sleeping ${duration_sleep} seconds"
-
 	sleep "${duration_sleep}"
 }
 
@@ -263,6 +264,7 @@ youtube_search () {
 	sleep_randomize
 
 	yt-dlp										\
+		--quiet									\
 		--cookies-from-browser "${browser}"		\
 		--js-runtimes "${runtime_javascript}"	\
 		--sleep-requests "${duration_sleep}"	\
@@ -288,6 +290,7 @@ youtube_download () {
 	sleep_randomize
 
 	yt-dlp														\
+		--quiet													\
 		--ignore-errors											\
 		--js-runtimes "${runtime_javascript}"					\
 		--cookies-from-browser "${browser}"						\
@@ -326,11 +329,10 @@ list=(
 
 for item in "${list[@]}"
 do
-	pip install "${item}"
+	pip install "${item}" > "${sink}"
 done
 
 list=()
-
 
 # initialize ///////////////////////////////////////////////////////////////////
 
@@ -339,6 +341,10 @@ list=()
 browser=$(
 	browser_identify
 )
+
+# download directory
+
+frobulator.directory "${download_directory}"
 
 # tracks list
 
@@ -364,15 +370,15 @@ fi
 
 tracks_pending=()
 
-echo
-
 if [[ -d "${download_directory}" ]]
 then
 
 	frobulator.inf "Download directory present"
 	echo
 
-	frobulator.fwd 'Comparing track list against existing downloads'
+	# initiate comparative analysis
+
+	frobulator.fwd "Comparing track list against existing content"
 	echo
 
 	# downloads - existing
@@ -447,122 +453,116 @@ then
 		if [ "${found}" = 'false' ]
 		then
 			frobulator.fwd "Adding ${track}"
+			echo
 
 			tracks_pending+=("${track}")
 		else
 			frobulator.scs "Skipping ${track}"
+			echo
 		fi
 
 	done
-
 fi
-
-frobulator.inf "Download directory not found"
-echo
-
-frobulator.directory "${download_directory}"
 
 # summary //////////////////////////////////////////////////////////////////////
 
+frobulator.fwd "Tracks pending - ${#tracks_pending[@]} "
 echo
-
-frobulator.fwd "${#tracks_pending[@]} tracks pending"
 
 # download
 
-search_file=$(mktemp)
+if [ "${#tracks_pending[@]}" -gt 0 ]
+then
+	search_file=$(mktemp)
 
-for track in "${tracks_pending[@]}"
-do
-	echo
-
-	frobulator.fwd "Searching ${track}"
-
-	# parse artist
-
-	artist=${track%% - *}
-
-	# parse title
-
-	title=${track#* - }
-
-	# normalize filename for comparisons
-
-	filename_normalized=$(normalize "${track}")
-
-	# preserve original filename for output
-
-	filename=$(echo "${track}" | tr '/:' '--')
-
-	url=''
-
-	# retrieve candidates
-
-	youtube_search "${track}" > "${search_file}" &
-
-	frobulator.process "Searching" "[ ${track} ]"
-
-	results=$(cat "${search_file}")
-
-	# select first reasonable duration
-
-	while IFS= read -r result
+	for track in "${tracks_pending[@]}"
 	do
-		duration_track=$(echo "${result}" | jq -r '.duration')
+		frobulator.fwd "Searching ${track}"
 
-		# skip invalid duration
+		# parse artist
 
-		if [ "${duration_track}" = 'null' ]
+		artist=${track%% - *}
+
+		# parse title
+
+		title=${track#* - }
+
+		# normalize filename for comparisons
+
+		filename_normalized=$(normalize "${track}")
+
+		# preserve original filename for output
+
+		filename=$(echo "${track}" | tr '/:' '--')
+
+		url=''
+
+		# retrieve candidates
+
+		youtube_search "${track}" > "${search_file}"
+
+		results=$(cat "${search_file}")
+
+		# select first reasonable duration
+
+		while IFS= read -r result
+		do
+			duration_track=$(echo "${result}" | jq -r '.duration')
+
+			# skip invalid duration
+
+			if [ "${duration_track}" = 'null' ]
+			then
+				continue
+			fi
+
+			# accept only valid duration
+
+			if [ "${duration_track}" -ge "${duration_minimum}" ] &&
+			   [ "${duration_track}" -le "${duration_maximum}" ]
+			then
+				url=$(echo "${result}" | jq -r '.webpage_url')
+
+				break
+			fi
+
+		done <<< "${results}"
+
+		unset IFS
+
+		# validate
+
+		if [ -z "${url}" ]
 		then
+			frobulator.err "No valid track duration result" "[ ${track} ]"
+			echo
+
 			continue
 		fi
 
-		# accept only valid duration
+		frobulator.scs "${url}"
 
-		if [ "${duration_track}" -ge "${duration_minimum}" ] &&
-		   [ "${duration_track}" -le "${duration_maximum}" ]
-		then
-			url=$(echo "${result}" | jq -r '.webpage_url')
+		# download
 
-			break
-		fi
+		youtube_download	\
+			"${url}"		\
+			"${artist}"		\
+			"${title}"		\
+							"${filename}" &
 
-	done <<< "${results}"
+		frobulator.progress "download"
+
+		echo
+
+		frobulator.scs "${download_directory}/${filename}.${extension_track}"
+		echo
+
+	done
 
 	unset IFS
 
-	# validate
+	frobulator.delete "${search_file}"
 
-	if [ -z "${url}" ]
-	then
-		frobulator.err "No valid track duration result" "[ ${track} ]"
-		echo
-
-		continue
-	fi
-
-	frobulator.scs "${url}"
-
-	# download
-
-	youtube_download	\
-		"${url}"		\
-		"${artist}"		\
-		"${title}"		\
-						"${filename}" &
-
-	frobulator.process "Downloading" "[ ${track} ]"
-
+	frobulator.scs "Downloads saved to ${download_directory}"
 	echo
-
-	frobulator.scs "${download_directory}/${filename}.${extension_track}"
-	echo
-
-done
-
-frobulator.delete "${search_file}"
-
-unset IFS
-
-frobulator.scs "Downloads saved to ${download_directory}"
-echo
+fi
