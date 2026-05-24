@@ -212,27 +212,27 @@ browser_identify () {
 
 	browser=${browser%.desktop}
 
-	if [[ ${browser} = firefox*    ]] ||
-	   [[ ${browser} = librewolf*  ]] ||
+	if [[ ${browser} = firefox*    ]] || \
+	   [[ ${browser} = librewolf*  ]] || \
 	   [[ ${browser} = waterfox*   ]]
 	then
 		browser='firefox'
 
-	elif [[ ${browser} = chrome*         ]] ||
-	     [[ ${browser} = google-chrome* ]] ||
-	     [[ ${browser} = chromium*      ]] ||
-	     [[ ${browser} = brave*         ]] ||
-	     [[ ${browser} = vivaldi*       ]] ||
+	elif [[ ${browser} = chrome*        ]] || \
+	     [[ ${browser} = google-chrome* ]] || \
+	     [[ ${browser} = chromium*      ]] || \
+	     [[ ${browser} = brave*         ]] || \
+	     [[ ${browser} = vivaldi*       ]] || \
 	     [[ ${browser} = opera*         ]]
 	then
 		browser='chrome'
 
 	else
 		frobulator.err 'Unsupported browser'
+		echo
 
 		exit 1
 	fi
-
 }
 
 normalize () {
@@ -338,9 +338,7 @@ list=()
 
 # browser
 
-browser=$(
-	browser_identify
-)
+browser_identify
 
 # download directory
 
