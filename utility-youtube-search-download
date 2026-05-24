@@ -382,7 +382,7 @@ then
 
 	# initiate comparative analysis
 
-	frobulator.fwd "Comparing"
+	frobulator.fwd "Comparing${marker_elp}"
 	echo
 
 	# downloads - existing
@@ -470,7 +470,7 @@ fi
 
 # summary //////////////////////////////////////////////////////////////////////
 
-frobulator.fwd "Tracks pending" "[ ${#tracks_pending[@]} ]"
+frobulator.inf "Tracks pending" "[ ${#tracks_pending[@]} ]"
 echo
 
 # download
@@ -483,7 +483,7 @@ then
 
 	for track in "${tracks_pending[@]}"
 	do
-		frobulator.fwd "Searching" "[ ${track} ]"
+		frobulator.fwd "Searching${marker_elp}" "[ ${track} ]"
 
 		# parse artist
 
