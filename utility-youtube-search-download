@@ -43,12 +43,6 @@ fi
 
 . "${HOME}"/.local/bin/frobulator
 
-# superuser ////////////////////////////////////////////////////////////////////
-
-export self_arguments="${@}"
-
-frobulator.escalate
-
 # script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
@@ -83,78 +77,135 @@ extension_track="mp3"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
-usage () {
-
-	echo
-	echo "usage: ${script} [option]"
-	echo
-	echo 'input:'
-	echo '  -i, --input <track>     search/download a single track'
-	echo '  -f, --file <file>       search/download tracks from file'
-	echo
-	echo 'options:'
-	echo '  -h, --help              show this help'
-	echo
-}
-
-# arguments ////////////////////////////////////////////////////////////////////
-
-while [ "${#}" -gt 0 ]
+while (($#))
 do
-	case "${1}" in
-
+	case "${1}"
+	in
 		-i|--input)
-			if [ -n "${input_user}" ] ||
-			   [ -n "${input_file}" ]
-			then
-				frobulator.err 'Only one input source may be used'
-
-				usage
-
-				exit 1
-			fi
-
+			option="input"
 			input_user="${2}"
 
-			shift 2
+			shift
 		;;
 
 		-f|--file)
-			if [ -n "${input_user}" ] ||
-			   [ -n "${input_file}" ]
-			then
-				frobulator.err 'Only one input source may be used'
-
-				usage
-
-				exit 1
-			fi
-
+			option="file"
 			input_file="${2}"
 
-			shift 2
+			shift
 		;;
 
 		-h|--help)
-			usage
+			echo
+			echo "Usage: ${script} -i [Track] | -f [File] | -h [OPTION]"
+			echo
+			echo "Options:"
+			echo
+			echo "-i, --input    Search and download a single track."
+			echo
+			echo "-f, --file     Search and download tracks from file."
+			echo
+			echo "-h, --help     Show help and usage information."
+			echo
+			echo "'${script}' [ Version // ${version} ]"
+			echo
 
-			exit 0
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
 		;;
 
 		*)
-			frobulator.err "Unknown argument: ${1}"
-
-			usage
+			echo
+			echo "Usage: ${script} -i [Track] | -f [File] | -h [OPTION]"
+			echo
+			echo "${script}: Unknown option '${1}'"
+			echo "Type './${script} --help' for help and usage information."
+			echo
 
 			exit 1
 		;;
 
 	esac
+
+	shift
+
 done
+
+# clear ////////////////////////////////////////////////////////////////////////
+
+frobulator.clear
 
 # prompt ///////////////////////////////////////////////////////////////////////
 
-frobulator.script "Processing ${script#*-}"
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+if [ -z "${option}" ]
+then
+	frobulator.err 'Missing input source'
+
+	usage
+
+	exit 1
+fi
+
+if [ "${option}" = 'input' ] &&
+   [ -z "${input_user}"    ]
+then
+	frobulator.err 'Missing input track'
+
+	usage
+
+	exit 1
+fi
+
+if [ "${option}" = 'file' ] &&
+   [ -z "${input_file}"   ]
+then
+	frobulator.err 'Missing input file'
+
+	usage
+
+	exit 1
+fi
+
+if [ "${option}" = 'file' ] &&
+   [ ! -f "${input_file}" ]
+then
+	frobulator.err "Missing input file: ${input_file}"
+	echo
+
+	exit 1
+fi
+
+tracks_input=()
+
+if [ -n "${input_user}" ]
+then
+	tracks_input+=("${input_user}")
+fi
+
+if [ -n "${input_file}" ]
+then
+	while IFS= read -r track
+	do
+		tracks_input+=("${track}")
+
+	done < "${input_file}"
+
+	unset IFS
+fi
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -170,19 +221,12 @@ browser_identify () {
 
 	case "${browser}" in
 
-		firefox*		|
-		librewolf*		|
-		waterfox*		)
-						browser='firefox'
+		firefox*|librewolf* |waterfox*)
+			browser='firefox'
 		;;
 
-		chrome*			|
-		google-chrome*	|
-		chromium*		|
-		brave*			|
-		vivaldi*		|
-		opera*			)
-						browser='chrome'
+		chrome*|google-chrome*|chromium*|brave*|vivaldi*|opera*)
+			browser='chrome'
 		;;
 
 		*)
@@ -295,44 +339,6 @@ done
 
 list=()
 
-
-# defaults /////////////////////////////////////////////////////////////////////
-
-if [ -z "${input_user}" ] &&
-   [ -z "${input_file}" ]
-then
-	frobulator.err 'Missing input source'
-
-	usage
-
-	exit 1
-fi
-
-if [ -n "${input_file}"   ] &&
-   [ ! -f "${input_file}" ]
-then
-	frobulator.err "Missing input file: ${input_file}"
-
-	exit 1
-fi
-
-tracks_input=()
-
-if [ -n "${input_user}" ]
-then
-	tracks_input+=("${input_user}")
-fi
-
-if [ -n "${input_file}" ]
-then
-	while IFS= read -r track
-	do
-		tracks_input+=("${track}")
-
-	done < "${input_file}"
-
-	unset IFS
-fi
 
 # initialize ///////////////////////////////////////////////////////////////////
 
