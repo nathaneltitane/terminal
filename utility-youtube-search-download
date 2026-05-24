@@ -98,13 +98,13 @@ do
 
 		-h|--help)
 			echo
-			echo "Usage: ${script} -i [Track] | -f [File] | -h [OPTION]"
+			echo "Usage: ${script} -i ['Artist - Track'] | -f [File] | -h [OPTION]"
 			echo
 			echo "Options:"
 			echo
 			echo "-i, --input    Search and download a single track."
 			echo
-			echo "-f, --file     Search and download tracks from file."
+			echo "-f, --file     Search and download tracks from list."
 			echo
 			echo "-h, --help     Show help and usage information."
 			echo
