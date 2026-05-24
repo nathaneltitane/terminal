@@ -212,23 +212,23 @@ browser_identify () {
 
 	browser=${browser%.desktop}
 
-	if [[ ${browser} = firefox*         ]] || \
-	   [[ ${browser} = librewolf*       ]] || \
-	   [[ ${browser} = waterfox*        ]]
+	if [[ "${browser}" = firefox*         ]] || \
+	   [[ "${browser}" = librewolf*       ]] || \
+	   [[ "${browser}" = waterfox*        ]]
 	then
-		browser='firefox'
+		browser="firefox"
 
-	elif [[ ${browser} = chrome*        ]] || \
-	     [[ ${browser} = google-chrome* ]] || \
-	     [[ ${browser} = chromium*      ]] || \
-	     [[ ${browser} = brave*         ]] || \
-	     [[ ${browser} = vivaldi*       ]] || \
-	     [[ ${browser} = opera*         ]]
+	elif [[ "${browser}" = chrome*        ]] || \
+	     [[ "${browser}" = google-chrome* ]] || \
+	     [[ "${browser}" = chromium*      ]] || \
+	     [[ "${browser}" = brave*         ]] || \
+	     [[ "${browser}" = vivaldi*       ]] || \
+	     [[ "${browser}" = opera*         ]]
 	then
-		browser='chrome'
+		browser="chrome"
 
 	else
-		frobulator.err 'Unsupported browser'
+		frobulator.err "No compatible browser found on system"
 		echo
 
 		exit 1
@@ -253,6 +253,9 @@ normalize () {
 sleep_randomize () {
 
 	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
+
+	frobulator.inf "Seeping" "[ ${duration_sleep} second(s) ]"
+	echo
 
 	sleep "${duration_sleep}"
 }
@@ -340,6 +343,9 @@ list=()
 
 browser_identify
 
+frobulator.inf "Browser identification" "[ ${browser} ]"
+echo
+
 # download directory
 
 frobulator.directory "${download_directory}"
@@ -376,7 +382,7 @@ then
 
 	# initiate comparative analysis
 
-	frobulator.fwd "Comparing track list against existing content"
+	frobulator.fwd "Comparing"
 	echo
 
 	# downloads - existing
@@ -450,12 +456,12 @@ then
 
 		if [ "${found}" = 'false' ]
 		then
-			frobulator.fwd "Adding ${track}"
+			frobulator.ret "Adding ${track}"
 			echo
 
 			tracks_pending+=("${track}")
 		else
-			frobulator.scs "Skipping ${track}"
+			frobulator.rel "Skipping ${track}"
 			echo
 		fi
 
@@ -464,18 +470,20 @@ fi
 
 # summary //////////////////////////////////////////////////////////////////////
 
-frobulator.fwd "Tracks pending - ${#tracks_pending[@]} "
+frobulator.fwd "Tracks pending" "[ ${#tracks_pending[@]} ]"
 echo
 
 # download
 
 if [ "${#tracks_pending[@]}" -gt 0 ]
 then
+	count=0
+
 	search_file=$(mktemp)
 
 	for track in "${tracks_pending[@]}"
 	do
-		frobulator.fwd "Searching ${track}"
+		frobulator.fwd "Searching" "[ ${track} ]"
 
 		# parse artist
 
@@ -511,6 +519,9 @@ then
 
 			if [ "${duration_track}" = 'null' ]
 			then
+				frobulator.wrn "No valid duration match" "[ ${track} ]"
+				echo
+
 				continue
 			fi
 
@@ -532,13 +543,14 @@ then
 
 		if [ -z "${url}" ]
 		then
-			frobulator.err "No valid track duration result" "[ ${track} ]"
+			frobulator.err "No valid match found" "[ ${track} ]"
 			echo
 
 			continue
 		fi
 
-		frobulator.scs "${url}"
+		frobulator.url "Match found" "[ ${url} ]"
+		echo
 
 		# download
 
@@ -555,12 +567,16 @@ then
 		frobulator.scs "${download_directory}/${filename}.${extension_track}"
 		echo
 
+		# increment file count
+
+		count=$((count + 1))
+
 	done
 
 	unset IFS
 
 	frobulator.delete "${search_file}"
 
-	frobulator.scs "Downloads saved to ${download_directory}"
+	frobulator.scs "${count} downloads saved" "[ ${download_directory} ]"
 	echo
 fi
