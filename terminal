@@ -90,6 +90,7 @@ list=(
 	nano
 	openssh*
 	pip
+	pipx
 	python3-pip
 	ssh*
 	tree
@@ -112,7 +113,6 @@ kde_list=(
 	calligra
 	cantata
 	dolphin
-	elisa
 	flatpak
 	gwenview
 	karbon
