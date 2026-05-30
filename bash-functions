@@ -618,14 +618,17 @@ vector-export () {
 
 	for file in *.svg
 	do
-		file_name="${file%.*}"
+		if [ -f "${file}" ]
+		then
+			file_name="${file%.*}"
 
-		inkscape "${file}"							\
-			--batch-process							\
-			--export-width=4096						\
-			--export-area-page						\
-			--export-type="${export_type}"			\
-			--export-filename="${file_name}"."${export_type}"
+			inkscape "${file}"						\
+				--batch-process						\
+				--export-width=4096					\
+				--export-area-page					\
+				--export-type="${export_type}"		\
+				--export-filename="${file_name}"."${export_type}"
+		fi
 	done
 }
 
