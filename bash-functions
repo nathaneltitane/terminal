@@ -605,25 +605,27 @@ icons () {
 
 # inkscape /////////////////////////////////////////////////////////////////////
 
-inkscape-export () {
+vector-export () {
 
 	frobulator.require inkscape
 
-	export_types_list=(
-		pdf
-		png
-	)
+	export_type="${1}"
+
+	if [ -z "${export_type}" ]
+	then
+		export_type="png"
+	fi
 
 	for file in *.svg
 	do
-		for export_type in ${export_types_list[@]}
-		do
-			inkscape "${file}"							\
-				--batch-process							\
-				--export-area-page						\
-				--export-type="${export_type}"			\
-				--export-filename="${file%.*}"."${export_type}"
-		done
+		file_name="${file%.*}"
+
+		inkscape "${file}"							\
+			--batch-process							\
+			--export-width=4096						\
+			--export-area-page						\
+			--export-type="${export_type}"			\
+			--export-filename="${file_name}"."${export_type}"
 	done
 }
 
