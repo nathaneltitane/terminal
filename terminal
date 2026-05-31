@@ -154,7 +154,7 @@ then
 	)
 fi
 
-frobulator.assess ${list[@]}
+frobulator.assess "${list[@]}"
 
 list=()
 
