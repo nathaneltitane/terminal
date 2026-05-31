@@ -515,7 +515,7 @@ then
 		refind.conf
 	)
 
-	frobulator.delete /boot/efi/EFI/refind	${list[@]}
+	frobulator.delete /boot/efi/EFI/refind ${list[@]}
 
 	frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
 
