@@ -370,9 +370,12 @@ play () {
 		frobulator.require mpv
 	fi
 
-	frobulator.fwd "Playing" "[ ${track##*/} ]"
+	echo
 
-	mpv	\
+	frobulator.fwd "Playing" "[ ${track##*/} ]"
+	echo
+
+	mpv				\
 		--no-video	\
 		--quiet		\
 					"${@}" > "${sink}" 2>&1
