@@ -363,72 +363,17 @@ audio () {
 
 play () {
 
-	if [ $# -eq 0 ]
+	if [ -z "$(command -v mpv)" ]
 	then
-		echo "usage: play <file|pattern...>"
-		return 1
+		frobulator.require mpv
 	fi
-
-	if [ -n "$(command -v mpv)" ]
-	then
-		mpv				\
-			--no-video	\
-						"${@}"
-
-		return
-	fi
-
-	if [ -n "$(command -v cvlc)" ]
-	then
-		cvlc				\
-			--play-and-exit	\
-							"${@}"
-
-		return
-	fi
-
-	if [ -n "$(command -v ffplay)" ]
-	then
-		for track in "${@}"
-		do
-			ffplay			\
-				-nodisp		\
-				-autoexit	\
-							"${track}"
-		done
-
-		return
-	fi
-
-	if [ -n "$(command -v mplayer)" ]
-	then
-		mplayer		\
-					"${@}"
-
-		return
-	fi
-
-	if [ -n "$(command -v mpg123)" ]
-	then
-		mpg123		\
-					"${@}"
-
-		return
-	fi
-
-	if [ -n "$(command -v ogg123)" ]
-	then
-		ogg123		\
-					"${@}"
-
-		return
-	fi
-
-	frobulator.require mpv
 
 	mpv				\
 		--no-video	\
-					"${@}"
+		--quiet		\
+					"${@}" > /dev/null 2>&1
+
+	echo "Playing ${1##*/}"
 
 }
 
