@@ -363,18 +363,19 @@ audio () {
 
 play () {
 
+	track="${1}"
+
 	if [ -z "$(command -v mpv)" ]
 	then
 		frobulator.require mpv
 	fi
 
-	mpv				\
+	frobulator.fwd "Playing" "[ ${track##*/} ]"
+
+	mpv	\
 		--no-video	\
 		--quiet		\
-					"${@}" > /dev/null 2>&1
-
-	echo "Playing ${1##*/}"
-
+					"${@}" > "${sink}" 2>&1
 }
 
 # colors ///////////////////////////////////////////////////////////////////////
