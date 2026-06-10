@@ -363,22 +363,42 @@ audio () {
 
 play () {
 
-	track="${1}"
-
 	if [ -z "$(command -v mpv)" ]
 	then
 		frobulator.require mpv
 	fi
 
-	echo
+	file="${1##*/}"
 
-	frobulator.fwd "Playing" "[ ${track##*/} ]"
-	echo
+	before="[${marker_spc}"
+	after="${marker_spc}]"
 
-	mpv				\
-		--no-video	\
-		--quiet		\
-					"${@}" > "${sink}" 2>&1
+	ticker=(
+		".  "
+		".. "
+		"..."
+		" .."
+		"  ."
+		"   "
+	)
+
+	instance=0
+
+	mpv					\
+		--no-video		\
+		--really-quiet	\
+						"${@}" < "${sink}" > "${sink}" 2>&1 &
+
+	PID=$!
+
+	while [ -d /proc/"${PID}" ]
+	do
+		ticker_frame="${ticker[instance++%${#ticker[@]}]}"
+
+		echo -n -e "\r${before}${ticker_frame}${after}${reset}${marker_spc}${prompt}${marker_slash}${before}${file}${after}\c"
+
+		sleep 0.25
+	done
 }
 
 # colors ///////////////////////////////////////////////////////////////////////
