@@ -368,10 +368,14 @@ play () {
 		frobulator.require mpv
 	fi
 
-	file="${1##*/}"
-
 	before="[${marker_spc}"
 	after="${marker_spc}]"
+
+	file="${1}"
+
+	frobulator.pmt "Playing" "${file##*/}"
+
+	prompt="${prompt_string[@]}"
 
 	ticker=(
 		".  "
@@ -387,7 +391,7 @@ play () {
 	mpv					\
 		--no-video		\
 		--really-quiet	\
-						"${@}" < "${sink}" > "${sink}" 2>&1 &
+						"${file}" < "${sink}" > "${sink}" 2>&1 &
 
 	PID=$!
 
