@@ -371,9 +371,20 @@ play () {
 	before="[${marker_spc}"
 	after="${marker_spc}]"
 
+	action="Playing"
+
 	file="${1}"
 
-	frobulator.pmt "Playing" "${file##*/}"
+	if [ $# -eq 2 ]
+	then
+		action="${1}"
+
+		file="${2}"
+	fi
+
+	title="${file##*/}"
+
+	frobulator.pmt "${action}" "${title}"
 
 	prompt="${prompt_string[@]}"
 
