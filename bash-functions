@@ -384,6 +384,12 @@ play () {
 
 	title="${file##*/}"
 
+
+	# frobulator.pmt "${@}"
+
+	# substitute standard input for function specific criteria:
+	# [ ... ] action ///////////////////////////////////////////.../// [ title ]
+
 	frobulator.pmt "${action}" "${title}"
 
 	prompt="${prompt_string[@]}"
