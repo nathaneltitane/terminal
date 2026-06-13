@@ -921,7 +921,7 @@ ssh () {
 
 	destination="${1}"
 
-	echo -n -e "[ $(tput setaf 3)${destination}$(tput sgr 0) ] >_ ? "
+	echo -n -e "[  $(tput setaf 3)${destination}$(tput sgr 0)  ] >_ ? "
 
 	read -r -s password
 
