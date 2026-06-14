@@ -823,7 +823,7 @@ youtube-audio () {
 
 	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
 
-	url="${1}"
+	source="${1}"
 	path="${2}"
 
 	if [ -z "${path}" ]
@@ -840,7 +840,14 @@ youtube-audio () {
 
 	format="bestaudio"
 	audio_format="mp3"
-	audio_quality="160k"
+	audio_quality="best"
+
+	if [ -f "${source}" ]
+	then
+		url_option='--batch-file'
+	else
+		url_option=''
+	fi
 
 	"${HOME}"/.local/bin/yt-dlp																	\
 		--ignore-errors																			\
@@ -850,7 +857,9 @@ youtube-audio () {
 		--audio-format		"${audio_format}"													\
 		--audio-quality		"${audio_quality}"													\
 		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
-																								"${url}"
+																								\
+		${url_option}																			\
+																								"${source}"
 }
 
 youtube-video () {
@@ -862,7 +871,7 @@ youtube-video () {
 
 	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
 
-	url="${1}"
+	source="${1}"
 	path="${2}"
 
 	if [ -z "${path}" ]
@@ -877,12 +886,25 @@ youtube-video () {
 		exit 1
 	fi
 
-	"${HOME}"/.local/bin/yt-dlp																		\
-		--ignore-errors																				\
-		--yes-playlist																				\
-		--merge-output-format	mp4																	\
-		--output				'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
-																									"${url}"
+	format="bestvideo+bestaudio"
+	video_format="mp4"
+
+	if [ -f "${source}" ]
+	then
+		url_option='--batch-file'
+	else
+		url_option=''
+	fi
+
+	"${HOME}"/.local/bin/yt-dlp																	\
+		--ignore-errors																			\
+		--yes-playlist																			\
+		--format				"${format}"														\
+		--merge-output-format	"${video_format}"												\
+		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
+																								\
+		${url_option}																			\
+																								"${source}"
 }
 
 # find /////////////////////////////////////////////////////////////////////////
