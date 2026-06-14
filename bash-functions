@@ -849,17 +849,31 @@ youtube-audio () {
 		url_option=''
 	fi
 
-	"${HOME}"/.local/bin/yt-dlp																	\
-		--ignore-errors																			\
-		--yes-playlist																			\
-		--extract-audio																			\
-		--format			"${format}"															\
-		--audio-format		"${audio_format}"													\
-		--audio-quality		"${audio_quality}"													\
-		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
-																								\
-		${url_option}																			\
-																								"${source}"
+	"${HOME}"/.local/bin/yt-dlp									\
+		--ignore-errors											\
+		--yes-playlist											\
+		--extract-audio											\
+		--format			"${format}"							\
+		--audio-format		"${audio_format}"					\
+		--audio-quality		"${audio_quality}"					\
+		--output			'%(uploader)s - %(title)s.%(ext)s'	\
+																\
+		${url_option}											\
+																"${source}"
+
+	find "${PWD}" -type f -iname "*.${audio_format}" | while IFS= read -r file
+	do
+		directory="${file%/*}"
+		source="${file##*/}"
+
+		target="${source// - Topic/}"
+
+		if [ "${source}" != "${target}" ]
+		then
+			mv -- "${file}" "${directory}/${target}"
+		fi
+	done
+
 }
 
 youtube-video () {
@@ -905,6 +919,20 @@ youtube-video () {
 																								\
 		${url_option}																			\
 																								"${source}"
+
+	find "${PWD}" -type f -iname "*.${audio_format}" | while IFS= read -r file
+	do
+		directory="${file%/*}"
+		source="${file##*/}"
+
+		target="${source// - Topic/}"
+
+		if [ "${source}" != "${target}" ]
+		then
+			mv -- "${file}" "${directory}/${target}"
+		fi
+	done
+
 }
 
 # find /////////////////////////////////////////////////////////////////////////
