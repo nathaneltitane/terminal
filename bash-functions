@@ -909,30 +909,32 @@ youtube-video () {
 
 # find /////////////////////////////////////////////////////////////////////////
 
-findf () {
+find () {
 
-	type="f"
+	type="${1}"
 
-	if [[ $(command -v find) ]]
+	query="${2}"
+
+	if [[ "${type}" =~ ^(d|dir|directory)$ ]]
 	then
-		find					\
-			"${PWD}"			\
-			-type "${type}"		\
-			-iname				"*${1}*"
+		type='d'
+
+	elif [[ "${type}" =~ ^(f|file)$ ]]
+	then
+		type='f'
+	else
+		echo "unsupported type"
+		echo
+
+		exit 1
 	fi
 
-}
-
-findd () {
-
-	type="d"
-
 	if [[ $(command -v find) ]]
 	then
-		find					\
-			"${PWD}"			\
-			-type "${type}"		\
-			-iname				"*${1}*"
+		find								\
+			"${PWD}"						\
+				-type			"${type}"	\
+				-iname 			"*${query}*"
 	fi
 
 }
