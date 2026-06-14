@@ -971,6 +971,7 @@ lan="${1}"
 if [ -z "${lan}" ]
 then
     echo "Usage: ${0} <LAN_PREFIX> (e.g., ${0} 192.168.0 or 192.168.0.1)"
+    echo
 
     exit 1
 fi
