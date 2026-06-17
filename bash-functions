@@ -971,7 +971,9 @@ find () {
 
 ssh () {
 
-	destination="${1}"
+	# destination is always the last argument
+
+	destination="${!#}"
 
 	echo -n -e "[  $(tput setaf 3)${destination}$(tput sgr 0)  ] >_ ? "
 
@@ -982,7 +984,7 @@ ssh () {
 	sshpass					\
 		-p "${password}"	\
 		--					\
-							ssh "${@}"
+							ssh -X "${@}"
 
 	unset destination
 
