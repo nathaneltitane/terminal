@@ -70,7 +70,7 @@ then
 
 			-i|--install)
 
-				install_file="frobulator"
+				install_file="bash-configuration"
 				install_directory="${HOME}"/.local/bin
 
 				source_file="${BASH_SOURCE[0]}"
