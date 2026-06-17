@@ -983,7 +983,6 @@ ssh () {
 
 	sshpass					\
 		-p "${password}"	\
-		--					\
 							ssh -X "${@}"
 
 	unset destination
