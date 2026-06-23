@@ -899,13 +899,21 @@ youtube-audio () {
 
 	if [[ -z $(command -v yt-dlp) ]]
 	then
-		(frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp)
+		frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp
 	fi
 
-	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
+	frobulator.silence "${HOME}"/.local/bin/yt-dlp --update
 
 	source="${1}"
 	path="${2}"
+
+	if [ -z "${source}" ]
+	then
+		frobulator.err "No source provided"
+		echo
+
+		return 1
+	fi
 
 	if [ -z "${path}" ]
 	then
@@ -914,46 +922,100 @@ youtube-audio () {
 
 	if [ -d "${path}" ]
 	then
-		cd "${path}"
+		cd "${path}" || return 1
 	else
-		exit 1
+		frobulator.err "Output path does not exist"
+		echo
+
+		return 1
 	fi
+
+	duration_sleep=$(( RANDOM % ( 5 - 1 + 1 ) + 1 ))
+
+	solver="deno"
+
+	if [[ -z $(command -v "${solver}") ]]
+	then
+		frobulator.require "${solver}"
+	fi
+
+	runtime_javascript="${solver}:$(command -v "${solver}")"
 
 	format="bestaudio"
 	audio_format="mp3"
 	audio_quality="best"
 
+	browser=$(
+		xdg-settings get default-web-browser 2>"${sink:-/dev/null}"
+	)
+
+	browser=${browser%.desktop}
+
+	if [[ "${browser}" = firefox*   ]] ||
+	   [[ "${browser}" = librewolf* ]] ||
+	   [[ "${browser}" = waterfox*  ]]
+	then
+		browser="firefox"
+
+	elif [[ "${browser}" = chrome*        ]] ||
+	     [[ "${browser}" = google-chrome* ]] ||
+	     [[ "${browser}" = chromium*      ]] ||
+	     [[ "${browser}" = brave*         ]] ||
+	     [[ "${browser}" = vivaldi*       ]] ||
+	     [[ "${browser}" = opera*         ]]
+	then
+		browser="chrome"
+
+	else
+		frobulator.err "No compatible browser found on system"
+		echo
+
+		return 1
+	fi
+
+	url_options=()
+
 	if [ -f "${source}" ]
 	then
-		url_option='--batch-file'
-	else
-		url_option=''
+		url_options+=( --batch-file )
 	fi
 
 	"${HOME}"/.local/bin/yt-dlp									\
+		--quiet													\
 		--ignore-errors											\
+		--no-overwrites											\
+		--js-runtimes			"${runtime_javascript}"			\
+		--cookies-from-browser	"${browser}"					\
+		--sleep-requests		"${duration_sleep}"				\
 		--yes-playlist											\
 		--extract-audio											\
-		--format			"${format}"							\
-		--audio-format		"${audio_format}"					\
-		--audio-quality		"${audio_quality}"					\
-		--output			'%(uploader)s - %(title)s.%(ext)s'	\
-																\
-		${url_option}											\
-																"${source}"
+		--format				"${format}"						\
+		--audio-format			"${audio_format}"				\
+		--audio-quality			"${audio_quality}"				\
+		--output				'%(uploader)s - %(title)s.%(ext)s'	\
+		"${url_options[@]}"									\
+		"${source}"
 
-	find "${PWD}" -type f -iname "*.${audio_format}" | while IFS= read -r file
+	files=$(
+		find "${PWD}" -type f -iname "*.${audio_format}"
+	)
+
+	IFS=$'\n'
+
+	for file in ${files}
 	do
 		directory="${file%/*}"
-		source="${file##*/}"
+		name_source="${file##*/}"
 
-		target="${source// - Topic/}"
+		name_target="${name_source// - Topic/}"
 
-		if [ "${source}" != "${target}" ]
+		if [ "${name_source}" != "${name_target}" ]
 		then
-			mv -- "${file}" "${directory}/${target}"
+			mv -- "${file}" "${directory}/${name_target}"
 		fi
 	done
+
+	unset IFS
 
 }
 
