@@ -981,21 +981,22 @@ youtube-audio () {
 		url_options+=( --batch-file )
 	fi
 
-	"${HOME}"/.local/bin/yt-dlp									\
-		--quiet													\
-		--ignore-errors											\
-		--no-overwrites											\
-		--js-runtimes			"${runtime_javascript}"			\
-		--cookies-from-browser	"${browser}"					\
-		--sleep-requests		"${duration_sleep}"				\
-		--yes-playlist											\
-		--extract-audio											\
-		--format				"${format}"						\
-		--audio-format			"${audio_format}"				\
-		--audio-quality			"${audio_quality}"				\
-		--output				'%(uploader)s - %(title)s.%(ext)s'	\
-		"${url_options[@]}"									\
-		"${source}"
+	"${HOME}"/.local/bin/yt-dlp											\
+		--quiet															\
+		--no-update														\
+		--ignore-errors													\
+		--no-overwrites													\
+		--js-runtimes			"${runtime_javascript}"					\
+		--cookies-from-browser	"${browser}"							\
+		--sleep-requests		"${duration_sleep}"						\
+		--yes-playlist													\
+		--extract-audio													\
+		--format				"${format}"								\
+		--audio-format			"${audio_format}"						\
+		--audio-quality			"${audio_quality}"						\
+		--output				'%(uploader)s - %(title)s.%(ext)s'		\
+		"${url_options[@]}"												\
+																		"${source}"
 
 	files=$(
 		find "${PWD}" -type f -iname "*.${audio_format}"
