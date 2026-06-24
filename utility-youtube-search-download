@@ -11,7 +11,7 @@ then
 
 	rm -r -f "${HOME}"/.local/bin/frobulator
 else
-	echo -n -e '[ ▷ ] Updating...'
+	echo -n -e '[  ▷  ] Updating...'
 	echo
 fi
 
