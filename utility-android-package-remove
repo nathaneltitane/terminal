@@ -67,15 +67,22 @@ android_debug_bridge () {
 
 }
 
-list_android=(
+applications_list_android=(
 
 )
 
-list_google=(
+applications_list_google=(
 
 )
 
-list_onyx=(
+applications_list_microsoft=(
+	com.microsoft.appmanager
+	com.microsoft.office.outlook
+	com.microsoft.rdc.androidx
+	com.microsoft.skydrive
+)
+
+applications_list_onyx=(
 	com.android.theme.font.notoserifsource
 
 	org.chromium.chrome
@@ -104,6 +111,7 @@ list_onyx=(
 )
 
 list=(
+	${applications_list_microsoft[@]}
 	${applications_list_onyx[@]}
 )
 
