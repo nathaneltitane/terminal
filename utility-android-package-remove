@@ -71,6 +71,11 @@ applications_list_android=(
 
 )
 
+applications_list_carrier=(
+	com.telus.myaccount
+	com.telus.checkup
+)
+
 applications_list_google=(
 
 )
@@ -115,6 +120,7 @@ applications_list_samsung=(
 )
 
 list=(
+	${applications_list_carrier[@]}
 	${applications_list_microsoft[@]}
 	${applications_list_onyx[@]}
 	${applications_list_samsung[@]}
