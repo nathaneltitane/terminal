@@ -110,9 +110,14 @@ applications_list_onyx=(
 	# com.onyx.tscalibration
 )
 
+applications_list_samsung=(
+	com.samsung.android.kidsinstaller
+)
+
 list=(
 	${applications_list_microsoft[@]}
 	${applications_list_onyx[@]}
+	${applications_list_samsung[@]}
 )
 
 for application in ${list}
