@@ -76,6 +76,12 @@ applications_list_carrier=(
 	com.telus.checkup
 )
 
+applications_list_facebook=(
+	com.facebook.appmanager
+	com.facebook.services
+	com.facebook.system
+)
+
 applications_list_google=(
 
 )
