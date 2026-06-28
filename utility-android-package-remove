@@ -653,6 +653,7 @@ applications_list_samsung=(
 )
 
 list=(
+	${applications_list_malware[@]}
 	${applications_list_carrier[@]}
 	${applications_list_microsoft[@]}
 	${applications_list_onyx[@]}
