@@ -672,7 +672,7 @@ do
 
 		android_debug_bridge uninstall "${application}"
 	else
-		frobulator.fwd "Not present on device" "[ ${application} ]"
+		frobulator.fwd "Not on device" "[ ${application} ]"
 		echo
 	fi
 done
