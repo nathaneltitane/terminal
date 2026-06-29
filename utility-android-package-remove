@@ -664,15 +664,15 @@ for application in ${list[@]}
 do
 	if [ $(android_debug_bridge list packages | grep -q "${application}") ]
 	then
-		frobulator.inf "Application package not on device" "[ ${application} ]"
+		frobulator.inf "Package on device" "[ ${application} ]"
 		echo
 
-		frobulator.wrn "Removing application package" "[ ${application} ]"
+		frobulator.wrn "Removing package" "[ ${application} ]"
 		echo
 
 		android_debug_bridge uninstall "${application}"
 	else
-		frobulator.err "Application package not present on device" "[ ${application} ]"
+		frobulator.fwd "Not present on device" "[ ${application} ]"
 		echo
 	fi
 done
