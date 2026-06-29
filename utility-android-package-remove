@@ -652,7 +652,7 @@ applications_list_samsung=(
 	com.samsung.android.kidsinstaller
 )
 
-list=(
+applications_list=(
 	${applications_list_malware[@]}
 	${applications_list_carrier[@]}
 	${applications_list_microsoft[@]}
@@ -660,7 +660,7 @@ list=(
 	${applications_list_samsung[@]}
 )
 
-for application in ${list[@]}
+for application in ${applications_list[@]}
 do
 	if [ $(android_debug_bridge list packages | grep -q "${application}") ]
 	then
