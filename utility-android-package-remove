@@ -67,8 +67,7 @@ android_debug_bridge () {
 
 }
 
-
-applications_list_malware=(
+packages_list_malware=(
 	ai.tanka.app.team
 	aiphotogenerator.aivideogenerator.artgenerator.texttoimage
 	all.documentreader.filereader.office.viewer
@@ -594,33 +593,33 @@ applications_list_malware=(
 	words.puzzle.wordgame.free.connect
 )
 
-applications_list_android=(
+packages_list_android=(
 
 )
 
-applications_list_carrier=(
+packages_list_carrier=(
 	com.telus.myaccount
 	com.telus.checkup
 )
 
-applications_list_facebook=(
+packages_list_facebook=(
 	com.facebook.appmanager
 	com.facebook.services
 	com.facebook.system
 )
 
-applications_list_google=(
+packages_list_google=(
 
 )
 
-applications_list_microsoft=(
+packages_list_microsoft=(
 	com.microsoft.appmanager
 	com.microsoft.office.outlook
 	com.microsoft.rdc.androidx
 	com.microsoft.skydrive
 )
 
-applications_list_onyx=(
+packages_list_onyx=(
 	com.android.theme.font.notoserifsource
 
 	org.chromium.chrome
@@ -648,19 +647,19 @@ applications_list_onyx=(
 	# com.onyx.tscalibration
 )
 
-applications_list_samsung=(
+packages_list_samsung=(
 	com.samsung.android.kidsinstaller
 )
 
-applications_list=(
-	${applications_list_malware[@]}
-	${applications_list_carrier[@]}
-	${applications_list_microsoft[@]}
-	${applications_list_onyx[@]}
-	${applications_list_samsung[@]}
+packages_list=(
+	${packages_list_malware[@]}
+	${packages_list_carrier[@]}
+	${packages_list_microsoft[@]}
+	${packages_list_onyx[@]}
+	${packages_list_samsung[@]}
 )
 
-for application in ${applications_list[@]}
+for application in ${packages_list[@]}
 do
 	if [ $(android_debug_bridge list packages | grep -q "${application}") ]
 	then
