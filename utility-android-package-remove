@@ -660,9 +660,9 @@ list=(
 	${applications_list_samsung[@]}
 )
 
-for application in ${list}
+for application in ${list[@]}
 do
-	if [ $(android_debug_bridge list packages | grep -q "${application}" ]
+	if [ $(android_debug_bridge list packages | grep -q "${application}") ]
 	then
 		frobulator.inf "Application package not on device" "[ ${application} ]"
 		echo
@@ -672,7 +672,7 @@ do
 
 		android_debug_bridge uninstall "${application}"
 	else
-		frobulator.error "Application package not present on device" "[ ${application} ]"
+		frobulator.err "Application package not present on device" "[ ${application} ]"
 		echo
 	fi
 done
