@@ -1,70 +1,101 @@
 #!/bin/bash
 
-phone="${1}"
-computer="${2}"
-mode="${3}"
+# parse arguments
 
-if [ -z "${phone}" ] || [ -z "${computer}" ]
+device="${1}"
+local="${2}"
+flag="${3}"
+
+execute=false
+
+case "${flag}" in
+	-e|--execute)
+		execute=true
+	;;
+esac
+
+# validate arguments
+
+if [ -z "${device}" ] || [ -z "${local}" ]
 then
 	echo "Usage:"
 	echo
-	echo "utility-compare-prune /path/to/phone/music /path/to/computer/music"
-	echo "utility-compare-prune /path/to/phone/music /path/to/computer/music --apply"
+	echo "utility-compare-prune /path/to/device/files /path/to/local/files"
+	echo "utility-compare-prune /path/to/device/files /path/to/local/files --execute"
+	echo "utility-compare-prune /path/to/device/files /path/to/local/files -e"
+
 	exit 1
 fi
 
-if [ ! -d "${phone}" ] || [ ! -d "${computer}" ]
+# validate directories
+
+if [ ! -d "${device}" ] || [ ! -d "${local}" ]
 then
 	echo "Both arguments must be directories."
 
 	exit 1
 fi
 
+# create temporary workspace
+
 temporary="$(mktemp -d)"
 
-phone_list="${temporary}/phone.list"
-computer_list="${temporary}/computer.list"
-delete_list="${temporary}/delete.list"
+list_device="${temporary}/device.list"
+list_local="${temporary}/local.list"
+list_delete="${temporary}/delete.list"
 
-cd "${phone}" || exit 1
+# index device library
 
-find . -type f | sed 's|^\./||' | sort > "${phone_list}"
+cd "${device}" || exit 1
 
-cd "${computer}" || exit 1
+find . -type f | sed 's|^\./||' | sort > "${list_device}"
 
-find . -type f | sed 's|^\./||' | sort > "${computer_list}"
+# index local library
 
-comm -1 -3 "${phone_list}" "${computer_list}" > "${delete_list}"
+cd "${local}" || exit 1
+
+find . -type f | sed 's|^\./||' | sort > "${list_local}"
+
+# determine files missing from the device
+
+comm -1 -3 "${list_device}" "${list_local}" > "${list_delete}"
+
+# display results
 
 echo
-echo "Files present on computer but missing from phone:"
+echo "Files present locally but missing from device:"
 echo
 
-cat "${delete_list}"
+cat "${list_delete}"
 
 echo
-
 echo "Total files to remove:"
 
-wc -l < "${delete_list}"
+wc -l < "${list_delete}"
 
 echo
 
-if [ "${mode}" = "--apply" ]
+# execute changes
+
+if ${execute}
 then
 	while IFS= read -r file
 	do
-		rm -v -- "${computer}/${file}"
+		rm -v -- "${local}/${file}"
 
-	done < "${delete_list}"
+	done < "${list_delete}"
 
-	find "${computer}" -type d -empty -delete
+	# remove empty directories
+
+	find "${local}" -type d -empty -delete
 
 	echo
-	echo "Computer library pruned."
+	echo "Local library pruned."
 else
 	echo "Dry run only. Nothing deleted."
-	echo "Run again with --apply to delete these files from the computer."
+	echo "Run again with --execute or -e to delete these files from the local directory."
 fi
+
+# cleanup
 
 rm -rf "${temporary}"
