@@ -1,0 +1,70 @@
+#!/bin/bash
+
+phone="${1}"
+computer="${2}"
+mode="${3}"
+
+if [ -z "${phone}" ] || [ -z "${computer}" ]
+then
+	echo "Usage:"
+	echo
+	echo "utility-compare-prune /path/to/phone/music /path/to/computer/music"
+	echo "utility-compare-prune /path/to/phone/music /path/to/computer/music --apply"
+	exit 1
+fi
+
+if [ ! -d "${phone}" ] || [ ! -d "${computer}" ]
+then
+	echo "Both arguments must be directories."
+
+	exit 1
+fi
+
+temporary="$(mktemp -d)"
+
+phone_list="${temporary}/phone.list"
+computer_list="${temporary}/computer.list"
+delete_list="${temporary}/delete.list"
+
+cd "${phone}" || exit 1
+
+find . -type f | sed 's|^\./||' | sort > "${phone_list}"
+
+cd "${computer}" || exit 1
+
+find . -type f | sed 's|^\./||' | sort > "${computer_list}"
+
+comm -13 "${phone_list}" "${computer_list}" > "${delete_list}"
+
+echo
+echo "Files present on computer but missing from phone:"
+echo
+
+cat "${delete_list}"
+
+echo
+
+echo "Total files to remove:"
+
+wc -l < "${delete_list}"
+
+echo
+
+if [ "${mode}" = "--apply" ]
+then
+	while IFS= read -r file
+	do
+		rm -v -- "${computer}/${file}"
+
+	done < "${delete_list}"
+
+	find "${computer}" -type d -empty -delete
+
+	echo
+	echo "Computer library pruned."
+else
+	echo "Dry run only. Nothing deleted."
+	echo "Run again with --apply to delete these files from the computer."
+fi
+
+rm -rf "${temporary}"
