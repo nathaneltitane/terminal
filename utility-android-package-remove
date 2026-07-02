@@ -593,6 +593,11 @@ packages_list_malware=(
 	words.puzzle.wordgame.free.connect
 )
 
+packages_list_amazon=(
+	com.amazon.mShop.android.shopping
+	com.amazon.appmanager
+)
+
 packages_list_android=(
 
 )
@@ -617,6 +622,8 @@ packages_list_microsoft=(
 	com.microsoft.office.outlook
 	com.microsoft.rdc.androidx
 	com.microsoft.skydrive
+	com.samsung.android.mdx
+	com.microsoft.android.mdx
 )
 
 packages_list_onyx=(
@@ -652,11 +659,12 @@ packages_list_samsung=(
 )
 
 packages_list=(
-	${packages_list_malware[@]}
+	${packages_list_amazon[@]}
 	${packages_list_carrier[@]}
 	${packages_list_microsoft[@]}
 	${packages_list_onyx[@]}
 	${packages_list_samsung[@]}
+	${packages_list_malware[@]}
 )
 
 for application in ${packages_list[@]}
@@ -674,6 +682,9 @@ do
 		frobulator.fwd "Not on device" "[ ${application} ]"
 		echo
 	fi
+
+
+
 done
 
 frobulator.scs 'Done'
