@@ -34,7 +34,7 @@ cd "${computer}" || exit 1
 
 find . -type f | sed 's|^\./||' | sort > "${computer_list}"
 
-comm -13 "${phone_list}" "${computer_list}" > "${delete_list}"
+comm -1 -3 "${phone_list}" "${computer_list}" > "${delete_list}"
 
 echo
 echo "Files present on computer but missing from phone:"
