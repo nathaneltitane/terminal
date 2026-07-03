@@ -160,12 +160,9 @@ index () {
 
 	cd "${source}" || exit 1
 
-	find . -type f |
-		sed 's|^\./||' |
-		sort > "${destination}"
+	find . -type f | sed 's|^\./||' | sort > "${destination}"
 
 }
-
 
 # index libraries
 
