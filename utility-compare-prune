@@ -203,7 +203,7 @@ echo
 
 # execute changes
 
-if ${execute}
+if [ "${execute}" = true ]
 then
 	while IFS= read -r file
 	do
