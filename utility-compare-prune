@@ -197,7 +197,7 @@ echo
 
 if [ "${execute}" = true ]
 then
-	frobulator.fwd "Priuning..."
+	frobulator.fwd "Pruning..."
 	echo
 
 	while IFS= read -r file
