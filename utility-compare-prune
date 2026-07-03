@@ -214,7 +214,7 @@ then
 	echo
 else
 	frobulator.wrn "Dry run only:"
-	frobulator.nul "Run ${script} again with 'execute argument' to delete reported files from the local directory."
+	frobulator.nul "Run ${script} again with 'execute' argument to delete reported files from the local directory."
 	echo
 fi
 
