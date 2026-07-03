@@ -53,29 +53,89 @@ version='07-03-2026'
 
 # variables ////////////////////////////////////////////////////////////////////
 
-# parse arguments
-
-device="${1}"
-local="${2}"
-flag="${3}"
-
 execute=false
 
-case "${flag}" in
-	-e|--execute)
-		execute=true
-	;;
-esac
+list_device="${temporary}/device.list"
+list_local="${temporary}/local.list"
+list_delete="${temporary}/delete.list"
+
+temporary="$(mktemp -d)"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}"
+	in
+		-d|--device)
+			device="${2}"
+
+			shift
+		;;
+
+		-l|--local)
+			local="${2}"
+
+			shift
+		;;
+
+		-e|--execute)
+			execute=true
+		;;
+
+		-h|--help)
+			echo
+			echo "Usage:"
+			echo
+			echo "${script} -d /path/to/device/files -l /path/to/local/files"
+			echo "${script} --device /path/to/device/files --local /path/to/local/files"
+			echo "${script} -d /path/to/device/files -l /path/to/local/files --execute"
+			echo
+			echo "Options:"
+			echo
+			echo "-d, --device     Device directory used as reference."
+			echo "-l, --local      Local directory to prune."
+			echo "-e, --execute    Delete files from local directory."
+			echo "-h, --help       Show help and usage information."
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo "Usage: ${script} -d [Device Directory] -l [Local Directory] -e [OPTION]"
+			echo "${script}: Unknown option '${1}'"
+			echo "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+# defaults /////////////////////////////////////////////////////////////////////
 
 # validate arguments
 
 if [ -z "${device}" ] || [ -z "${local}" ]
 then
+	echo
+	echo "Missing required directory."
+	echo
 	echo "Usage:"
 	echo
-	echo "utility-compare-prune /path/to/device/files /path/to/local/files"
-	echo "utility-compare-prune /path/to/device/files /path/to/local/files --execute"
-	echo "utility-compare-prune /path/to/device/files /path/to/local/files -e"
+	echo "${script} -d /path/to/device/files -l /path/to/local/files"
+	echo "${script} --device /path/to/device/files --local /path/to/local/files"
+	echo
 
 	exit 1
 fi
@@ -84,18 +144,12 @@ fi
 
 if [ ! -d "${device}" ] || [ ! -d "${local}" ]
 then
+	echo
 	echo "Both arguments must be directories."
+	echo
 
 	exit 1
 fi
-
-# create temporary workspace
-
-temporary="$(mktemp -d)"
-
-list_device="${temporary}/device.list"
-list_local="${temporary}/local.list"
-list_delete="${temporary}/delete.list"
 
 # index device library
 
