@@ -1,5 +1,58 @@
 #!/bin/bash
 
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	. "${HOME}"/.local/bin/frobulator
+
+	frobulator.fwd 'Updating...'
+	echo
+
+	rm -r -f "${HOME}"/.local/bin/frobulator
+else
+	echo -n -e '[  ▷  ] Updating...'
+	echo
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = 'root' ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version='07-03-2026'
+
+# variables ////////////////////////////////////////////////////////////////////
+
 # parse arguments
 
 device="${1}"
