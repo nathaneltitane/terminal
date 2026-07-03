@@ -151,17 +151,27 @@ then
 	exit 1
 fi
 
-# index device library
+# functions ////////////////////////////////////////////////////////////////////
 
-cd "${device}" || exit 1
+index () {
 
-find . -type f | sed 's|^\./||' | sort > "${list_device}"
+	source="${1}"
+	destination="${2}"
 
-# index local library
+	cd "${source}" || exit 1
 
-cd "${local}" || exit 1
+	find . -type f |
+		sed 's|^\./||' |
+		sort > "${destination}"
 
-find . -type f | sed 's|^\./||' | sort > "${list_local}"
+}
+
+
+# index libraries
+
+index "${device}" "${list_device}"
+
+index "${local}" "${list_local}"
 
 # determine files missing from the device
 
@@ -169,16 +179,25 @@ comm -1 -3 "${list_device}" "${list_local}" > "${list_delete}"
 
 # display results
 
-echo
-echo "Files present locally but missing from device:"
-echo
+if [ -s "${list_delete}" ]
+then
+	echo
+	echo "Files present locally but missing from device:"
+	echo
 
-cat "${list_delete}"
+	cat "${list_delete}"
 
-echo
-echo "Total files to remove:"
+	echo
+	echo "Total files to remove:"
 
-wc -l < "${list_delete}"
+	wc -l < "${list_delete}"
+
+	echo
+else
+	echo
+	echo "No files need to be removed."
+	echo
+fi
 
 echo
 
