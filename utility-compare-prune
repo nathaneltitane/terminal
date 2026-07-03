@@ -215,8 +215,8 @@ then
 
 	find "${local}" -type d -empty -delete
 
-	echo
 	echo "Local library pruned."
+	echo
 else
 	echo "Dry run only. Nothing deleted."
 	echo "Run again with --execute or -e to delete these files from the local directory."
