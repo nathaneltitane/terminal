@@ -55,11 +55,11 @@ version='07-03-2026'
 
 execute=false
 
+temporary="$(mktemp -d)"
+
 list_device="${temporary}/device.list"
 list_local="${temporary}/local.list"
 list_delete="${temporary}/delete.list"
-
-temporary="$(mktemp -d)"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -87,14 +87,18 @@ do
 			echo
 			echo "Usage:"
 			echo
+			echo "Dry run:"
+			echo
 			echo "${script} -d /path/to/device/files -l /path/to/local/files"
-			echo "${script} --device /path/to/device/files --local /path/to/local/files"
-			echo "${script} -d /path/to/device/files -l /path/to/local/files --execute"
+			echo
+			echo "Execute:"
+			echo
+			echo "${script} -d /path/to/device/files -l /path/to/local/files -e"
 			echo
 			echo "Options:"
 			echo
-			echo "-d, --device     Device directory used as reference."
-			echo "-l, --local      Local directory to prune."
+			echo "-d, --device     Set device directoryreference."
+			echo "-l, --local      Set local directory reference."
 			echo "-e, --execute    Delete files from local directory."
 			echo "-h, --help       Show help and usage information."
 			echo
@@ -108,7 +112,8 @@ do
 
 		*)
 			echo
-			echo "Usage: ${script} -d [Device Directory] -l [Local Directory] -e [OPTION]"
+			echo "Usage: ${script} -d [Device Directory] -l [Local Directory] | -e"
+			echo
 			echo "${script}: Unknown option '${1}'"
 			echo "Type './${script} --help' for help and usage information."
 			echo
@@ -126,15 +131,16 @@ done
 
 # validate arguments
 
-if [ -z "${device}" ] || [ -z "${local}" ]
+if [ -z "${device}" ]
 then
+	frobulator.err "Missing device directory."
 	echo
-	echo "Missing required directory."
-	echo
-	echo "Usage:"
-	echo
-	echo "${script} -d /path/to/device/files -l /path/to/local/files"
-	echo "${script} --device /path/to/device/files --local /path/to/local/files"
+
+	exit 1
+
+elif [ -z "${local}" ]
+then
+	frobulator.err "Missing local directory."
 	echo
 
 	exit 1
@@ -142,10 +148,16 @@ fi
 
 # validate directories
 
-if [ ! -d "${device}" ] || [ ! -d "${local}" ]
+if [ ! -d "${device}" ]
 then
+	frobulator.err "Device directory does not exist" "[ ${device} ]"
 	echo
-	echo "Both arguments must be directories."
+
+	exit 1
+
+elif [ ! -d "${local}" ]
+then
+	frobulator.err "Local directory does not exist" "[ ${local} ]"
 	echo
 
 	exit 1
