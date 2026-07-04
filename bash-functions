@@ -887,35 +887,36 @@ record () {
 
 # list /////////////////////////////////////////////////////////////////////////
 
-if [[ $(command -v ls) ]]
-then
-	list () {
+list () {
 
-		directory="${1:-${PWD}}"
+	directory="${1}"
 
-		if [ ! -d "${directory}" ]
-		then
-			frobulator.err "Directory not found" "[ ${directory} ]"
-			echo
+	if [ -z "${directory}" ]
+	then
+		directory="${PWD}"
+	fi
 
-			return 1
-		fi
-
-		ls						\
-			-a					\
-			-h					\
-			-l					\
-			--group-directories-first		\
-			"${directory}"
-
+	if [ ! -d "${directory}" ]
+	then
+		frobulator.err "Directory not found" "[ ${directory} ]"
 		echo
-		echo "$(find "${directory}" -type d | wc -l) directories"
-		echo
-		echo "$(find "${directory}" -type f | wc -l) files"
-		echo
-	}
 
-fi
+		return 1
+	fi
+
+	ls								\
+		-a							\
+		-h							\
+		-l							\
+		--group-directories-first	\
+									"${directory}"
+
+	echo
+	echo "$(find "${directory}" -type d | wc -l) directories"
+	echo
+	echo "$(find "${directory}" -type f | wc -l) files"
+	echo
+}
 
 # size /////////////////////////////////////////////////////////////////////////
 
