@@ -635,7 +635,7 @@ packages_list_onyx=(
 	# com.onyx.android.onyxotaservice
 	# com.onyx.floatingbutton
 	# com.onyx.gallery
-	# com.onyx.igetshop
+	com.onyx.igetshop
 	# com.onyx.kreader
 	# com.onyx.tscalibration
 
