@@ -10,9 +10,13 @@ then
 	echo
 
 	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	clear
 else
 	echo -n -e '[  ▷  ] Updating...'
 	echo
+
+	clear
 fi
 
 if [[ -z $(command -v frobulator) ]]
