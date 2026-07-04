@@ -232,4 +232,4 @@ fi
 
 # cleanup
 
-rm -rf "${temporary}"
+frobulator.delete "${temporary}"
