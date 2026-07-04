@@ -63,7 +63,7 @@ frobulator.script "Setting up ${script#*-}"
 
 android_debug_bridge () {
 
-	sudo adb shell pm -k --user 0
+	sudo adb shell pm "${@}"
 
 }
 
@@ -629,29 +629,29 @@ packages_list_microsoft=(
 packages_list_onyx=(
 	com.android.theme.font.notoserifsource
 
-	org.chromium.chrome
-
-	com.onyx.clock
-	com.onyx.calculator
-	com.onyx.aiassistant
-	com.onyx.android.production.test
-	com.onyx.appmarket
-	com.onyx.mail
-	com.onyx.kime
-	com.onyx.dict
-	com.onyx.musicplayer
-	com.onyx.voicerecorder
 	# com.onyx
 	# com.onyx.android.ksync
 	# com.onyx.android.note
 	# com.onyx.android.onyxotaservice
-	# com.onyx.easytransfer
 	# com.onyx.floatingbutton
 	# com.onyx.gallery
 	# com.onyx.igetshop
 	# com.onyx.kreader
-	# com.onyx.latinime
 	# com.onyx.tscalibration
+
+	com.onyx.aiassistant
+	com.onyx.android.production.test
+	com.onyx.appmarket
+	com.onyx.calculator
+	com.onyx.clock
+	com.onyx.dict
+	com.onyx.easytransfer
+	com.onyx.kime
+	com.onyx.latinime
+	com.onyx.mail
+	com.onyx.musicplayer
+	com.onyx.voicerecorder
+	org.chromium.chrome
 )
 
 packages_list_samsung=(
@@ -667,9 +667,9 @@ packages_list=(
 	${packages_list_malware[@]}
 )
 
-for application in ${packages_list[@]}
+for application in "${packages_list[@]}"
 do
-	if [ $(android_debug_bridge list packages | grep -q "${application}") ]
+	if android_debug_bridge list packages | grep -q "package:${application}$"
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 		echo
@@ -677,14 +677,11 @@ do
 		frobulator.wrn "Removing package" "[ ${application} ]"
 		echo
 
-		android_debug_bridge uninstall "${application}"
+		android_debug_bridge uninstall -k --user 0 "${application}"
 	else
 		frobulator.fwd "Not on device" "[ ${application} ]"
 		echo
 	fi
-
-
-
 done
 
 frobulator.scs 'Done'
