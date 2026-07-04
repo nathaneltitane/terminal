@@ -636,7 +636,9 @@ packages_list_onyx=(
 	# com.onyx.floatingbutton
 	# com.onyx.gallery
 	# com.onyx.kreader
+	# com.onyx.latinime
 	# com.onyx.tscalibration
+
 
 	com.onyx.aiassistant
 	com.onyx.android.production.test
@@ -647,7 +649,6 @@ packages_list_onyx=(
 	com.onyx.easytransfer
 	com.onyx.igetshop
 	com.onyx.kime
-	com.onyx.latinime
 	com.onyx.mail
 	com.onyx.musicplayer
 	com.onyx.voicerecorder
