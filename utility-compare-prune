@@ -178,9 +178,13 @@ index () {
 
 # index libraries
 
-index "${device}" "${list_device}"
+index "${device}" "${list_device}" &
 
-index "${local}" "${list_local}"
+frobulator.progress index "[ device ]"
+
+index "${local}" "${list_local}" &
+
+frobulator.progress index "[ local ]"
 
 # determine files missing from the device
 
@@ -192,41 +196,43 @@ if [ -s "${list_delete}" ]
 then
 	count_delete=$(echo $(wc -l < "${list_delete}"))
 
-	frobulator.wrn "Files removed from device" "[ ${count_delete} ]"
+	frobulator.wrn "Files to be removed from device" "[ ${count_delete} ]"
 	echo
 
 	cat "${list_delete}"
 
 	echo
+
+	# execute changes
+
+	if [ "${execute}" = true ] && [ ${count_delete} -gt 0 ]
+	then
+		frobulator.fwd "Pruning..."
+		echo
+
+		while IFS= read -r file
+		do
+			rm -v -- "${local}/${file}"
+
+		done < "${list_delete}"
+
+		echo
+
+		# remove empty directories
+
+		find "${local}" -type d -empty -delete
+
+		frobulator.inf "Local library pruned."
+		echo
+	else
+		frobulator.wrn "Dry run only:"
+		frobulator.nul "Run ${script} again with 'execute' argument to delete reported files from the local directory."
+		echo
+	fi
+
 else
+
 	frobulator.inf "No files to be removed."
-	echo
-fi
-
-echo
-
-# execute changes
-
-if [ "${execute}" = true ]
-then
-	frobulator.fwd "Pruning..."
-	echo
-
-	while IFS= read -r file
-	do
-		rm -v -- "${local}/${file}"
-
-	done < "${list_delete}"
-
-	# remove empty directories
-
-	find "${local}" -type d -empty -delete
-
-	frobulator.inf "Local library pruned."
-	echo
-else
-	frobulator.wrn "Dry run only:"
-	frobulator.nul "Run ${script} again with 'execute' argument to delete reported files from the local directory."
 	echo
 fi
 
