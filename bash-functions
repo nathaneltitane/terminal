@@ -885,6 +885,38 @@ record () {
 		--output="${path}"/clip-"${stamp}".ogv
 }
 
+# list /////////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v ls) ]]
+then
+	list () {
+
+		directory="${1:-${PWD}}"
+
+		if [ ! -d "${directory}" ]
+		then
+			frobulator.err "Directory not found" "[ ${directory} ]"
+			echo
+
+			return 1
+		fi
+
+		ls						\
+			-a					\
+			-h					\
+			-l					\
+			--group-directories-first		\
+			"${directory}"
+
+		echo
+		echo "$(find "${directory}" -type d | wc -l) directories"
+		echo
+		echo "$(find "${directory}" -type f | wc -l) files"
+		echo
+	}
+
+fi
+
 # size /////////////////////////////////////////////////////////////////////////
 
 size () {
