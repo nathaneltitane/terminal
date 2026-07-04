@@ -669,7 +669,7 @@ packages_list=(
 
 for application in "${packages_list[@]}"
 do
-	if android_debug_bridge list packages | grep -q "package:${application}$"
+	if [[ $(android_debug_bridge list packages | grep -F -x "package:${application}") ]]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 		echo
