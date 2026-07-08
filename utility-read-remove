@@ -49,7 +49,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version='07-03-2026'
+version='07-08-2026'
 
 # variables ////////////////////////////////////////////////////////////////////
 
@@ -97,9 +97,9 @@ do
 			echo
 			echo "Options:"
 			echo
-			echo "-r, --read       Set read directory reference."
-			echo "-m, --remove     Set remove directory reference."
-			echo "-e, --execute    Delete files from remove directory."
+			echo "-r, --read       Set [r]ead directory reference."
+			echo "-m, --remove     Set re[m]ove directory reference."
+			echo "-e, --execute    Execute file removal from specified 'remove' directory."
 			echo "-h, --help       Show help and usage information."
 			echo
 
