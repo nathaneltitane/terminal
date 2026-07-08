@@ -99,8 +99,8 @@ do
 			echo
 			echo "-r, --read       Set [r]ead directory reference."
 			echo "-m, --remove     Set re[m]ove directory reference."
-			echo "-e, --execute    Execute file removal from specified 'remove' directory."
-			echo "-h, --help       Show help and usage information."
+			echo "-e, --execute    Ex[e]cute file removal from specified 'remove' directory."
+			echo "-h, --help       Show [h]elp and usage information."
 			echo
 
 			exit
