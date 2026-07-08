@@ -627,32 +627,41 @@ packages_list_microsoft=(
 )
 
 packages_list_onyx=(
-	com.android.theme.font.notoserifsource
-
 	# com.onyx
 	# com.onyx.android.ksync
-	# com.onyx.android.note
 	# com.onyx.android.onyxotaservice
-	# com.onyx.floatingbutton
 	# com.onyx.gallery
 	# com.onyx.kreader
-	# com.onyx.latinime
-	# com.onyx.tscalibration
 
+	org.chromium.chrome
+
+	com.android.cameraextensions
+	com.android.cts.ctsshim
+	com.android.dreams.phototable
+	com.android.emergency
+	com.android.providers.blockednumber
+	com.android.providers.contacts
+	com.android.quicksearchbox
+	com.android.smspush
+	com.android.theme.font.notoserifsource
+
+	com.google.android.apps.restore
 
 	com.onyx.aiassistant
 	com.onyx.android.production.test
+	com.onyx.android.note
 	com.onyx.appmarket
 	com.onyx.calculator
 	com.onyx.clock
 	com.onyx.dict
 	com.onyx.easytransfer
+	com.onyx.floatingbutton
 	com.onyx.igetshop
 	com.onyx.kime
+	com.onyx.latinime
 	com.onyx.mail
 	com.onyx.musicplayer
 	com.onyx.voicerecorder
-	org.chromium.chrome
 )
 
 packages_list_samsung=(
