@@ -207,7 +207,7 @@ then
 
 	if [ "${execute}" = true ] && [ ${count_delete} -gt 0 ]
 	then
-		frobulator.fwd "Pruning..."
+		frobulator.fwd "Removing..."
 		echo
 
 		while IFS= read -r file
