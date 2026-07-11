@@ -2,50 +2,56 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
-if [ -f "${HOME}"/.local/bin/frobulator ]
+if [[ $(id -u -n) = "root" ]]
 then
-	. "${HOME}"/.local/bin/frobulator
+	SUDO_HOME=/root
 
-	frobulator.fwd 'Updating...'
-	echo
+	USER="${SUDO_USER}"
 
-	rm -r -f "${HOME}"/.local/bin/frobulator
-
-	clear
-else
-	echo -n -e '[  ▷  ] Updating...'
-	echo
-
-	clear
+	HOME=/home/"${USER}"
 fi
 
-if [[ -z $(command -v frobulator) ]]
+if [[ -z $(command -v curl) ]]
 then
-	if [[ $(id -u -n) = 'root' ]]
-	then
-		SUDO_HOME=/root
+	yes | apt-get install curl
+fi
 
-		USER="${SUDO_USER}"
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
 
-		HOME=/home/"${USER}"
-	fi
+frobulator="${HOME}"/.local/bin/frobulator
 
-	if [[ -z $(command -v curl) ]]
-	then
-		yes | apt-get install curl
-	fi
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
 
-	if [ ! -d "${HOME}"/.local/bin ]
-	then
-		mkdir -p "${HOME}"/.local/bin
-	fi
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online}" +%s)
+
+date_local=$(date -d "${version_local}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
 
 	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
 
 	chmod +x "${HOME}"/.local/bin/frobulator
 fi
 
-. "${HOME}"/.local/bin/frobulator
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# clear ////////////////////////////////////////////////////////////////////////
 
 clear
 
