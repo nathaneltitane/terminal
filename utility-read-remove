@@ -222,11 +222,11 @@ then
 
 		find "${remove}" -type d -empty -delete
 
-		frobulator.inf "Remove directory pruned."
+		frobulator.inf "Files removed from remove directory" "[ ${count_delete} ]"
 		echo
 	else
-		frobulator.wrn "Dry run only:"
-		frobulator.nul "Run ${script} again with 'execute' argument to delete reported files from the remove directory."
+		frobulator.wrn "Dry run only: indexed ${count_delete} files to be removed."
+		frobulator.nul "Run ${script} again with 'execute' argument to delete indexed files from the 'remove' directory."
 		echo
 	fi
 
