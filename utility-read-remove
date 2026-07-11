@@ -4,20 +4,12 @@
 
 if [ -f "${HOME}"/.local/bin/frobulator ]
 then
-	. "${HOME}"/.local/bin/frobulator
-
-	frobulator.fwd 'Updating...'
-	echo
-
 	rm -r -f "${HOME}"/.local/bin/frobulator
-else
-	echo -n -e '[  ▷  ] Updating...'
-	echo
 fi
 
 if [[ -z $(command -v frobulator) ]]
 then
-	if [[ $(id -u -n) = 'root' ]]
+	if [[ $(id -u -n) = "root" ]]
 	then
 		SUDO_HOME=/root
 
@@ -43,13 +35,25 @@ fi
 
 . "${HOME}"/.local/bin/frobulator
 
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
 # script ///////////////////////////////////////////////////////////////////////
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version='07-08-2026'
+version="07-11-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
