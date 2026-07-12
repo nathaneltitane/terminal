@@ -144,7 +144,7 @@ google_chrome_beta="com.chrome.beta/com.google.android.apps.chrome.Main"
 google_mail="com.google.android.gm/.GmailActivity"
 terminal="com.termux/com.termux.app.TermuxActivity"
 
-# handles
+# defaults /////////////////////////////////////////////////////////////////////
 
 email="mailto:"
 link="https:"
@@ -168,6 +168,10 @@ handle_intent () {
 		-a android.intent.action.VIEW	\
 		-d "${handle}"					> "${sink}" 2>&1
 }
+
+# requirements /////////////////////////////////////////////////////////////////
+
+# configuration ////////////////////////////////////////////////////////////////
 
 if [[ "${option}" = [aA][cC][tT][iI][vV][iI][tT][yY] ]]
 then
