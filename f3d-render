@@ -163,7 +163,7 @@ do
 			echo -e "-directory        Specify directory to load models from."
 			echo
 			echo -e "-all              Selects all supported file formats as target."
-			echo -e "-stl              Selects mpd file format as target."
+			echo -e "-stl              Selects stl file format as target."
 			echo
 			echo -e "-render           Renders model files using the following parameters:"
 			echo
@@ -222,7 +222,7 @@ frobulator.script "Setting up ${script#*-}"
 
 stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
-# defaults ////////////////////////////////////////////////////////////////////
+# defaults /////////////////////////////////////////////////////////////////////
 
 if [ -z "${directory}" ]
 then
@@ -360,6 +360,8 @@ list=(
 frobulator.assess ${list[@]}
 
 list=()
+
+# configuration ////////////////////////////////////////////////////////////////
 
 if [ "${option}" = "render" ]
 then
@@ -551,8 +553,6 @@ then
 
 	done
 fi
-
-# complete ////////////////////////////////////////////////////////////////////
 
 frobulator.scs "Done."
 echo
