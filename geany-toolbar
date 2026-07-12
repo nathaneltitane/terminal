@@ -1,4 +1,5 @@
 <ui>
+
 <!--
 This is Geany's toolbar UI definition.
 The DTD can be found at 
@@ -14,6 +15,7 @@ editor in Geany.
 A list of available actions can be found in the documentation included with Geany or
 at https://www.geany.org/manual/current/index.html#customizing-the-toolbar.
 -->
+
 	<toolbar name='GeanyToolbar'>
 		<toolitem action='New' />
 		<toolitem action='Open' />
