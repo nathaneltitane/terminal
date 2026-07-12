@@ -170,14 +170,14 @@ fi
 
 if [ ! -d "${read}" ]
 then
-	frobulator.err "Read directory does not exist" "[ ${read} ]"
+	frobulator.err "Read directory not found" "[ ${read} ]"
 	echo
 
 	exit 1
 
 elif [ ! -d "${remove}" ]
 then
-	frobulator.err "Remove directory does not exist" "[ ${remove} ]"
+	frobulator.err "Remove directory not found" "[ ${remove} ]"
 	echo
 
 	exit 1
