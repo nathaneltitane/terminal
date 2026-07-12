@@ -79,6 +79,8 @@ codename="$(lsb_release -c -s)"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
+desktop_environment="${XDG_CURRENT_DESKTOP}"
+
 # functions ////////////////////////////////////////////////////////////////////
 
 # system update ////////////////////////////////////////////////////////////////
@@ -147,7 +149,7 @@ kde_list=(
 	sweeper
 )
 
-if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
+if [ "${desktop_environment}" = [kK][dD][eE] ]
 then
 	list+=(
 		${kde_list[@]}
