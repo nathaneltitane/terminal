@@ -81,10 +81,6 @@ key_public="${key}.pub"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-# devices array
-
-#!/usr/bin/env bash
-
 # devices list
 
 devices_list=(
