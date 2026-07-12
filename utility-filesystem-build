@@ -92,8 +92,8 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --image        Input distribution name and version."
-			echo -e "-s, --selection    Show setup selection options."
+			echo -e "-i, --image        Input distribution [i]mage name and version."
+			echo -e "-s, --selection    Show setup [s]election options."
 			echo
 			echo -e "-h, --help     Show help and usage information."
 			echo
