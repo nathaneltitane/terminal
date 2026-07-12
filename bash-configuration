@@ -29,9 +29,9 @@ version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
 
 version_local="${version_local:-01-01-1970}"
 
-date_online=$(date -d "${version_online}" +%s)
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
 
-date_local=$(date -d "${version_local}" +%s)
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
 
 if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
 then
