@@ -543,6 +543,7 @@ frobulator.install ${list[@]}
 
 list=()
 
+# configuration ////////////////////////////////////////////////////////////////
 
 if [ "${option}" = "selection" ]
 then
