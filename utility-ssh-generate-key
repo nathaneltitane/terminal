@@ -84,7 +84,8 @@ key_public="${key}.pub"
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
-
+	openssh*
+	ssh*
 )
 
 frobulator.require ${list[@]}
