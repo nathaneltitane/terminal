@@ -57,7 +57,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="10-06-2022"
+version="07-12-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -73,6 +73,7 @@ echo
 # functions ////////////////////////////////////////////////////////////////////
 
 settings_intent () {
+
 	# reload termux settings
 
 	settings_command=()
@@ -85,7 +86,11 @@ settings_intent () {
 	frobulator.silence "${settings_command[@]}"
 }
 
-# termux ///////////////////////////////////////////////////////////////////////
+# requirements /////////////////////////////////////////////////////////////////
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# termux
 
 frobulator.inf "Setting up" "[ termux ]"
 echo
@@ -106,7 +111,7 @@ settings_intent
 
 list=()
 
-# git //////////////////////////////////////////////////////////////////////////
+# git
 
 frobulator.inf "Setting up" "[ git ]"
 echo
@@ -126,7 +131,7 @@ fi
 frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
 frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
 
-# shell ////////////////////////////////////////////////////////////////////////
+# shell
 
 frobulator.inf "Setting up" "[ shell ]"
 echo
@@ -152,7 +157,7 @@ frobulator.link "${HOME}"/.local/bin "${HOME}" bash-profile       .bash_profile
 
 list=()
 
-# adb /////////////////////////////////////////////////////////////////////////
+# adb
 
 frobulator.inf "Setting up" "[ adb ]"
 echo
@@ -169,7 +174,7 @@ frobulator.download get.trmnl.me/android "${HOME}"/.local/bin ${list[@]}
 
 list=()
 
-# geany ////////////////////////////////////////////////////////////////////////
+# geany
 
 
 frobulator.inf "Setting up" "[ geany ]"
