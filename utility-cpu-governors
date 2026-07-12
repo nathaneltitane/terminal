@@ -177,7 +177,6 @@ then
 		-i gnome-system-monitor		\
 		"CPU governor set to ${governors_list[governor]}"
 FILE
-FILE
 
 # set permissions
 
