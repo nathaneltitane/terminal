@@ -100,7 +100,7 @@ do
 	# governor - ${governors_list[governor]} #
 
 	${governors_list[governor]}() {
-		for ((n=0; n<$(grep -c processor /proc/cpuinfo); n++))
+		for (( n=0 ; n<$(grep -c processor /proc/cpuinfo) ; n++ ))
 	do
 			sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
 		done
@@ -126,8 +126,8 @@ do
 
 	if [[ $(command -v notify-send) ]]
 	then
-		notify-send					\
-			-i gnome-system-monitor	\
+		notify-send						\
+			-i gnome-system-monitor		\
 			"CPU governor set to ${governors_list[governor]}"
 	FILE
 
@@ -164,7 +164,7 @@ in
 	;;
 esac
 
-for (( count=0; count<cpu_count; count++ ))
+for (( count=0 ; count<cpu_count ; count++ ))
 do
 	sudo cpufreq-set	\
 		-c "${count}"	\
@@ -173,8 +173,8 @@ done
 
 if [[ $(command -v notify-send) ]]
 then
-	notify-send					\
-		-i gnome-system-monitor \
+	notify-send						\
+		-i gnome-system-monitor		\
 		"CPU governor set to ${governors_list[governor]}"
 FILE
 FILE
