@@ -150,13 +150,13 @@ xinit -- /usr/bin/X "\${virtual_display}" -config "${configuration_path}" &
 
 sleep 2
 
-exec /usr/bin/x11vnc \\
-	--display="\${virtual_display}" \\
-	--rfbport=5900 \\
-	--forever \\
-	--shared \\
-	--nopw \\
-	--loop \\
+exec /usr/bin/x11vnc 					\\
+	--display="\${virtual_display}"	 	\\
+	--rfbport=5900 						\\
+	--forever							\\
+	--shared							\\
+	--nopw								\\
+	--loop								\\
 	--repeat
 FILE
 
