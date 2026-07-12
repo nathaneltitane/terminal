@@ -232,7 +232,10 @@ then
 
 		while IFS= read -r file
 		do
-			rm -v -- "${remove}/${file}"
+			rm -- "${remove}/${file}"
+
+			frobulator.wrn "Removing" "[ ${file} ]"
+			echo
 
 		done < "${list_delete}"
 
