@@ -83,6 +83,20 @@ android_debug_bridge () {
 
 }
 
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	adb
+	fastboot
+	android-platform-tools*
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
 packages_list_malware=(
 	ai.tanka.app.team
 	aiphotogenerator.aivideogenerator.artgenerator.texttoimage
