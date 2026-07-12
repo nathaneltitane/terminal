@@ -97,13 +97,13 @@ list=()
 
 # functions ////////////////////////////////////////////////////////////////////
 
-declare -A distributions=(
+declare -A distributions_list=(
 	[ubuntu]="18.04 20.04 22.04 24.04"
 	[debian]="10 11 12 13"
 	[fedora]="38 39 40 41"
 )
 
-for distribution in "${!distributions[@]}"
+for distribution in "${!distributions_list[@]}"
 do
 	for version in ${distributions[${distribution}]}
 	do
