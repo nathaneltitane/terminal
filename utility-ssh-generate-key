@@ -91,6 +91,8 @@ frobulator.require ${list[@]}
 
 list=()
 
+# configuration ////////////////////////////////////////////////////////////////
+
 devices_list=(
 	desktop
 	notebook
