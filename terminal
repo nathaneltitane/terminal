@@ -192,7 +192,7 @@ then
 						"${python_directory}"/EXTERNALLY-MANAGED
 fi
 
-# pip
+# pipx
 
 pip_install_list=(
 	deno
