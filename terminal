@@ -177,7 +177,7 @@ list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-# python ///////////////////////////////////////////////////////////////////////
+# python
 
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
@@ -192,7 +192,7 @@ then
 						"${python_directory}"/EXTERNALLY-MANAGED
 fi
 
-# pip //////////////////////////////////////////////////////////////////////////
+# pip
 
 pip_install_list=(
 	deno
@@ -208,9 +208,7 @@ done
 
 pip_install_list=()
 
-# storage //////////////////////////////////////////////////////////////////////
-
-# windows subsystem for linux
+# storage - windows subsystem for linux
 
 if [ -d /mnt/wsl* ]
 then
@@ -218,7 +216,7 @@ then
 	frobulator.link /mnt /media z external
 fi
 
-# linux subsystem for chromeos
+# storage - linux subsystem for chromeos
 
 if [ -d /mnt/chromeos ]
 then
@@ -240,7 +238,7 @@ then
 
 fi
 
-# android subsystem for chrome os
+# storage - android subsystem for chrome os
 
 if [ -d /opt/google/containers/android ]
 then
@@ -251,7 +249,7 @@ then
 
 fi
 
-# removable storage
+# staorage - removable
 
 if [ -d /media/"${USER}"/* ]
 then
@@ -280,7 +278,7 @@ fi
 
 list=()
 
-# files ////////////////////////////////////////////////////////////////////////
+# files
 
 list=(
 	.dns
@@ -312,7 +310,7 @@ storage_list=()
 
 list=()
 
-# home /////////////////////////////////////////////////////////////////////////
+# home
 
 frobulator.file "${HOME}" .hushlogin
 
@@ -337,7 +335,7 @@ then
 
 fi
 
-# git //////////////////////////////////////////////////////////////////////////
+# git
 
 frobulator.inf "Setting up" "[ git ]"
 echo
@@ -361,7 +359,7 @@ do
 	fi
 done
 
-# shell ////////////////////////////////////////////////////////////////////////
+# shell
 
 frobulator.inf "Setting up" "[ shell ]"
 echo
@@ -407,11 +405,11 @@ fi
 
 list=()
 
-# superuser ////////////////////////////////////////////////////////////////////
+# superuser
 
 frobulator.write  "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
 
-# themes ///////////////////////////////////////////////////////////////////////
+# themes
 
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
@@ -435,7 +433,7 @@ then
 	echo
 fi
 
-# applications /////////////////////////////////////////////////////////////////
+# applications
 
 if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 then
@@ -476,7 +474,7 @@ then
 	list=()
 fi
 
-# runner ///////////////////////////////////////////////////////////////////////
+# kde - runner
 
 if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
 then
@@ -489,7 +487,7 @@ then
 	qdbus org.kde.KWin /KWin reconfigure
 fi
 
-# efi /////////////////////////////////////////////////////////////////////////
+# efi
 
 if [ -e /sys/firmware/efi ]
 then
