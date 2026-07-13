@@ -203,7 +203,7 @@ pip_install_list=(
 
 for item in "${pip_install_list[@]}"
 do
-	pip install "${item}"
+	pipx install "${item}"
 done
 
 pip_install_list=()

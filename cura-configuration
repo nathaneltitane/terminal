@@ -79,10 +79,16 @@ frobulator.script "Setting up ${script#*-}"
 
 # requirements /////////////////////////////////////////////////////////////////
 
+# requirements ////////////////////////////////////////////////////////////////
+
 list=(
-	pip
+	pipx
 	trimesh
 )
+
+frobulator.assess ${list[@]}
+
+list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
@@ -102,7 +108,7 @@ for dependency in ${list[@]}
 do
 	frobulator.inf "Installing dependency" "[ ${dependency} ]"
 
-	pip install trimesh > "${sink}" 2>&1
+	pipx install "${dependency}" > "${sink}" 2>&1
 done
 
 list=()
