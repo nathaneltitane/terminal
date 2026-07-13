@@ -86,6 +86,16 @@ launcher_path="${launcher_directory}"/"${launcher}"
 service_directory="/etc/systemd/system"
 service_path="${service_directory}"/"${service}"
 
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
@@ -101,9 +111,10 @@ list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-frobulator.fwd "Creating virtual X11 config"
+frobulator.inf "Generating virtual display configuration" "[ X11 ]"
+echo
 
-mkdir -p "${configuration_directory}"
+frobulator.directory "${configuration_directory}"
 
 cat <<- FILE > "${configuration_path}"
 Section "Monitor"
@@ -139,7 +150,8 @@ FILE
 
 # launcher
 
-frobulator.fwd "Creating launcher script" "[ ${launcher} ]"
+frobulator.inf "Creating launcher script" "[ ${launcher} ]"
+echo
 
 cat <<- FILE > "${launcher}"
 #!/bin/bash
@@ -164,7 +176,8 @@ chmod +x "${launcher}"
 
 # systemd service
 
-frobulator.fwd "Creating systemd service" "[ ${service} ]"
+frobulator.inf "Creating systemd service" "[ ${service} ]"
+echo
 
 cat <<- FILE > "${service_path}"
 [Unit]
