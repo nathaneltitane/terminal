@@ -212,7 +212,6 @@ list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-
 # index libraries
 
 index "${read}" "${list_read}" &
