@@ -195,15 +195,15 @@ fi
 # pip //////////////////////////////////////////////////////////////////////////
 
 pip_install_list=(
+	deno
 	trimesh
 	yt-dlp
 	yt-dlp-ejs
-	deno
 )
 
 for item in "${pip_install_list[@]}"
 do
-	pipx install "${item}"
+	pipx install --global "${item}"
 done
 
 pip_install_list=()

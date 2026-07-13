@@ -108,7 +108,7 @@ for dependency in ${list[@]}
 do
 	frobulator.inf "Installing dependency" "[ ${dependency} ]"
 
-	pipx install "${dependency}" > "${sink}" 2>&1
+	pipx install --global "${dependency}" > "${sink}" 2>&1
 done
 
 list=()
