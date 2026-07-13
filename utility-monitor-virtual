@@ -174,7 +174,7 @@ FILE
 
 chmod +x "${launcher}"
 
-# systemd service
+# service - systemd
 
 frobulator.inf "Creating systemd service" "[ ${service} ]"
 echo
@@ -195,7 +195,7 @@ User=root
 WantedBy=multi-user.target
 FILE
 
-# service activation
+# service - activation
 
 if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
 then
@@ -230,7 +230,7 @@ done
 
 service_actions_list=()
 
-# service process verification
+# service - process verification
 
 if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
 then
