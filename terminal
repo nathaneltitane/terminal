@@ -530,6 +530,8 @@ then
 
 	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
 
+	list=()
+
 	rm					\
 		--recursive		\
 		--force			\
