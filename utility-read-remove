@@ -85,6 +85,9 @@ do
 
 		-e|--execute)
 			execute=true
+
+			shift
+
 		;;
 
 		-h|--help)
@@ -136,8 +139,6 @@ done
 frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
-
-execute=false
 
 temporary="$(mktemp -d)"
 
@@ -254,7 +255,7 @@ then
 
 		while IFS= read -r file
 		do
-			rm -- "${remove}/${file}"
+			rm -r -f "${remove}/${file}"
 
 			frobulator.wrn "Removing" "[ ${file} ]"
 			echo
