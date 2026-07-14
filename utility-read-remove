@@ -266,8 +266,6 @@ then
 
 		done < "${list_delete}"
 
-		echo
-
 		# remove empty directories
 
 		find "${remove}" -type d -empty -delete
