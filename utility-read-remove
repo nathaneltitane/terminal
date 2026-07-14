@@ -73,12 +73,14 @@ do
 	in
 		-r|--read)
 			read="${2}"
+			execute=false
 
 			shift
 		;;
 
 		-m|--remove)
 			remove="${2}"
+			execute=false
 
 			shift
 		;;
