@@ -235,7 +235,13 @@ then
 	frobulator.wrn "Files to be removed from remove directory" "[ ${count_delete} ]"
 	echo
 
-	cat "${list_delete}"
+	while IFS= read -r file
+	do
+		(( number++ ))
+
+		frobulator.num "${number}" "${file}"
+
+	done < "${list_delete}"
 
 	echo
 
