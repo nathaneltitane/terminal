@@ -72,15 +72,17 @@ do
 	case "${1}"
 	in
 		-r|--read)
-			read="${2}"
 			execute=false
+
+			read="${2}"
 
 			shift
 		;;
 
 		-m|--remove)
-			remove="${2}"
 			execute=false
+
+			remove="${2}"
 
 			shift
 		;;
