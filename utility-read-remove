@@ -73,6 +73,7 @@ do
 	in
 		-r|--read)
 			execute=false
+			confirm=true
 
 			read="${2}"
 
@@ -81,6 +82,7 @@ do
 
 		-m|--remove)
 			execute=false
+			confirm=true
 
 			remove="${2}"
 
@@ -250,11 +252,17 @@ then
 
 	echo
 
-	if [ ${count_delete} -gt 0 ]
+	if [ "${execute}" = false ]
+	then
+		frobulator.wrn "Dry run only: indexed ${count_delete} files to be removed."
+		frobulator.nul "Run ${script} again with '--execute' to enable deletion."
+		echo
+
+	elif [ "${confirm}" = true ]
 	then
 		frobulator.separate
 
-		frobulator.ask "Proceed with file removal?"
+		frobulator.ask "Proceed with removal of ${count_delete} files?"
 
 		frobulator.read reply
 
@@ -263,7 +271,10 @@ then
 		then
 			execute=true
 		else
-			:
+			execute=false
+
+			frobulator.fwd "File removal cancelled."
+			echo
 		fi
 	fi
 
@@ -289,14 +300,9 @@ then
 
 		frobulator.inf "Files removed from remove directory" "[ ${count_delete} ]"
 		echo
-	else
-		frobulator.wrn "Dry run only: indexed ${count_delete} files to be removed."
-		frobulator.nul "Run ${script} again with 'execute' argument to delete indexed files from the 'remove' directory."
-		echo
 	fi
 
 else
-
 	frobulator.inf "No files to be removed."
 	echo
 fi
