@@ -63,7 +63,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="07-13-2026"
+version="07-16-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -249,6 +249,20 @@ then
 	done < "${list_delete}"
 
 	echo
+
+	frobulator.separate
+
+	frobulator.ask "Proceed with file removal?" "[ execute ]"
+
+	frobulator.read reply
+
+	if [[ "${reply}" = [yY]         ]] || \
+	   [[ "${reply}" = [yY][eE][sS] ]]
+	then
+		execute=true
+	else
+		:
+	fi
 
 	# execute changes
 
