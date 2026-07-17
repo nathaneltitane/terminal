@@ -63,7 +63,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="07-16-2026"
+version="07-17-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -150,7 +150,7 @@ temporary="$(mktemp -d)"
 
 list_read="${temporary}/read.list"
 list_remove="${temporary}/remove.list"
-list_delete="${temporary}/delete.list"
+list_remove="${temporary}/delete.list"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -231,15 +231,15 @@ frobulator.progress index "[ remove ]"
 
 # determine files missing from the read directory
 
-comm -1 -3 "${list_read}" "${list_remove}" > "${list_delete}"
+comm -1 -3 "${list_read}" "${list_remove}" > "${list_remove}"
 
 # display results
 
-if [ -s "${list_delete}" ]
+if [ -s "${list_remove}" ]
 then
-	count_delete=$(echo $(wc -l < "${list_delete}"))
+	count_remove=$(echo $(wc -l < "${list_remove}"))
 
-	frobulator.wrn "Files to be removed from remove directory" "[ ${count_delete} ]"
+	frobulator.wrn "Files to be removed from remove directory" "[ ${count_remove} ]"
 	echo
 
 	while IFS= read -r file
@@ -248,13 +248,13 @@ then
 
 		frobulator.num "${number}" "${file}"
 
-	done < "${list_delete}"
+	done < "${list_remove}"
 
 	echo
 
 	if [ "${execute}" = false ]
 	then
-		frobulator.wrn "Dry run only: indexed ${count_delete} files to be removed."
+		frobulator.wrn "Dry run only: indexed ${count_remove} files to be removed."
 		frobulator.nul "Run ${script} again with '--execute' to enable deletion."
 		echo
 
@@ -262,7 +262,7 @@ then
 	then
 		frobulator.separate
 
-		frobulator.ask "Proceed with removal of ${count_delete} files?"
+		frobulator.ask "Proceed with removal of ${count_remove} files?"
 
 		frobulator.read reply
 
@@ -280,7 +280,7 @@ then
 
 	# execute changes
 
-	if [ "${execute}" = true ] && [ ${count_delete} -gt 0 ]
+	if [ "${execute}" = true ] && [ ${count_remove} -gt 0 ]
 	then
 		frobulator.fwd "Removing..."
 		echo
@@ -292,13 +292,13 @@ then
 			frobulator.wrn "Removing" "[ ${file} ]"
 			echo
 
-		done < "${list_delete}"
+		done < "${list_remove}"
 
 		# remove empty directories
 
 		find "${remove}" -type d -empty -delete
 
-		frobulator.inf "Files removed from remove directory" "[ ${count_delete} ]"
+		frobulator.inf "Files removed from remove directory" "[ ${count_remove} ]"
 		echo
 	fi
 
