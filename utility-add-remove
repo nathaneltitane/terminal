@@ -461,7 +461,7 @@ fi
 
 if [ "${execute}" = false ]
 then
-	frobulator.wrn "Dry run only" "[ ${operation}: ${count_differential} ]"
+	frobulator.wrn "Dry run only - ${operation}:"
 	frobulator.nul "Run ${script} again with '--execute' to apply changes."
 	echo
 
