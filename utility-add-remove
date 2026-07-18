@@ -109,24 +109,6 @@ do
 			echo
 			echo "Usage:"
 			echo
-			echo "Dry run:"
-			echo
-			echo "${script} -f /path/to/from -t /path/to/to --add"
-			echo
-			echo "${script} -f /path/to/from -t /path/to/to --remove"
-			echo
-			echo "Execute with confirmation:"
-			echo
-			echo "${script} -f /path/to/from -t /path/to/to --add -e"
-			echo
-			echo "${script} -f /path/to/from -t /path/to/to --remove -e"
-			echo
-			echo "Execute without confirmation:"
-			echo
-			echo "${script} -f /path/to/from -t /path/to/to --add -e -y"
-			echo
-			echo "${script} -f /path/to/from -t /path/to/to --remove -e -y"
-			echo
 			echo "Options:"
 			echo
 			echo "-f, --from       Set [f]rom directory reference."
@@ -136,6 +118,24 @@ do
 			echo "-e, --execute    Ex[e]cute selected operation."
 			echo "-y, --yes        Assume [y]es and skip confirmation."
 			echo "-h, --help       Show [h]elp and usage information."
+			echo
+			echo "Dry run:"
+			echo
+			echo "${script} -f /path/from -t /path/to -a"
+			echo
+			echo "${script} -f /path/from -t /path/to -r"
+			echo
+			echo "Execute with confirmation:"
+			echo
+			echo "${script} -f /path/from -t /path/to -a -e"
+			echo
+			echo "${script} -f /path/from -t /path/to -r -e"
+			echo
+			echo "Execute without confirmation:"
+			echo
+			echo "${script} -f /path/from -t /path/to -a -e -y"
+			echo
+			echo "${script} -f /path/to/from -t /path/to/to -r -e -y"
 			echo
 
 			exit
