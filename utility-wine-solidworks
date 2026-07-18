@@ -1,0 +1,168 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-12-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+wine_prefix="${HOME}"/.wine
+wine_drive="${wine_prefix}"/drive_c
+
+WINEPREFIX="${wine_prefix}"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	cabextract
+	curl
+	p7zip
+	p7zip-full
+	p7zip-rar
+	rfkill
+	wget
+	winbind
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+sudo apt-get update
+sudo apt-get upgrade
+
+yes | sudo dpkg --add-architecture i386
+
+wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+
+yes | sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/debian/ bookworm main'
+
+sudo apt-get update
+sudo apt-get upgrade
+
+yes | sudo apt-get install --install-recommends winehq-staging
+
+# gecko
+
+curl -s -L https://dl.winehq.org/wine/wine-gecko/2.47.3/wine-gecko-2.47.3-x86.msi > "${HOME}"/Downloads/wine-gecko.msi
+
+WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-gecko.msi /qn
+
+# mono
+
+curl -s -L https://dl.winehq.org/wine/wine-mono/7.4.0/wine-mono-7.4.0-x86.msi > "${HOME}"/Downloads/wine-mono.msi
+
+WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-mono.msi /qn
+
+# winetricks
+
+curl -s -L https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks > "${HOME}"/.local/bin/winetricks
+
+chmod +x "${HOME}"/.local/bin/winetricks
+
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q win10
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q allfonts
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dxvk
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q vcrun2019
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dotnet48
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml6
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml4
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml3
+WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q ie8
+
+# vba 7.1
+
+curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba7.1.zip > "${HOME}"/Downloads/vba7.1.zip
+
+unzip "${HOME}"/Downloads/vba7.1.zip
+
+cp -r "${HOME}"/Downloads/vba7.1/* "${wine_drive}"
+
+# vba 7.1 patch
+
+curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba71-kb2783832-x64.msp > "${HOME}"/Downloads/vba-patch.msp
+
+WINEPREFIX="${wine_prefix}" msiexec /p "${HOME}"/Downloads/vba-patch.msp REINSTALL=ALL REINSTALLMODE=omus /qn
+
+# solidworks
+
+wine_prefix="${HOME}"/.wine ; WINEPREFIX="${wine_prefix}" ; wine "${HOME}"/Downloads/SOLIDWORKS 2021 SP05.1/setup.exe

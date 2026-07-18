@@ -1,0 +1,53 @@
+#!/bin/bash
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+separator=" // "
+font_name="Monospace"
+font_size=10
+font="${font_name}:size=${font_size}"
+
+lines=15
+prompt="PROMPT${separator}"
+
+selections_parse () {
+
+	selections=(
+		1
+		2
+		3
+		4
+	)
+
+	IFS=$"\n"
+
+	for selection in "${selections[@]}"
+	do
+		echo "${selection}"
+	done
+
+	IFS=""
+
+	selections=()
+}
+
+selection_menu=$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+
+case "${selection_menu}" in
+	1)
+
+	;;
+	2)
+
+	;;
+	3)
+
+	;;
+	4)
+
+	;;
+
+	*)
+		exit
+	;;
+esac

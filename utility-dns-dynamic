@@ -1,0 +1,216 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="04-26-2025"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+# variables ////////////////////////////////////////////////////////////////////
+
+if [ ! -d /media/internal/ ]
+then
+	configuration_directory="${HOME}"
+else
+	configuration_directory=/media/internal
+fi
+
+configuration=.dns-dynamic
+
+use=$(cat "${configuration_directory}"/"${configuration}" | sed -n 1p)
+protocol=$(cat "${configuration_directory}"/"${configuration}" | sed -n 2p)
+server=$(cat "${configuration_directory}"/"${configuration}" | sed -n 3p)
+
+login=$(cat "${configuration_directory}"/"${configuration}" | sed -n 4p)
+password=$(cat "${configuration_directory}"/"${configuration}" | sed -n 5p)
+
+process="ddclient"
+service="${process}.service"
+
+web="www"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+hostname="${HOSTNAME}"
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	ddclient
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [ ! -e "${configuration_directory}"/"${configuration}" ]
+then
+	frobulator.err "Configuration file not found" "[ ${configuration} ]"
+	echo
+
+	frobulator.fwd "Aborting"
+	echo
+
+	exit 1
+fi
+
+# write ddclient configuration
+
+cat <<- FILE > /etc/"${process}".conf
+# ddclient #
+
+daemon=300                                  # check every 5 minutes
+syslog=yes                                  # log update messages to syslog
+mail-failure=root                           # mail failed updates to user
+pid=/var/run/ddclient.pid                   # record PID to file
+ssl=yes                                     # use ssl
+cache=/var/cache/ddclient/ddclient.cache    # set cache file
+
+use=${use}
+protocol=${protocol}
+server=${server}
+
+login=${login}
+password=${password}
+
+${web}
+${hostname}
+FILE
+
+# reconfigure prccess handlers
+
+sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/"${process}".service
+
+# purge service cache file
+
+if [ -d /var/cache/"${process}" ]
+then
+	rm					\
+		--recursive		\
+		--force			 /var/cache/"${process}"/"${process}".cache
+fi
+
+# service activation
+
+if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
+
+	service_actions_list=(
+		disable
+		stop
+	)
+fi
+
+service_actions_list+=(
+	enable
+	start
+)
+
+for service_action in ${service_actions_list[@]}
+do
+	systemctl "${service_action}" "${service}" > "${sink}" 2>&1 &
+
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
+
+	sleep 1
+
+	systemctl daemon-reload > "${sink}" 2>&1 &
+
+	frobulator.process "Reloading"
+
+	sleep 1
+done
+
+service_actions_list=()
+
+# service process verification
+
+if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.scs "Service activation success" "[ ${service} ]"
+	echo
+
+elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
+then
+	frobulator.err "Service activation failed" "[ ${service} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.scs "Done"

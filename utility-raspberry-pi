@@ -1,0 +1,186 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# user
+
+deluser --remove-home ubuntu
+groupdel -f ubuntu
+
+chpasswd <<< root:09018610
+
+# hostname
+
+echo pi > /etc/hostname
+
+hostnamectl set-hostname pi
+
+# ssh
+
+cat << 'FILE' > /boot/firmware/ssh
+FILE
+
+# network
+
+cat << 'FILE' > /etc/netplan/01-wlan0-config.yaml
+network:
+    version: 2
+
+    ethernets:
+      eth0:
+        dhcp4: no
+        dhcp6: no
+
+    wifis:
+      wlan0:
+        dhcp4: no
+        dhcp6: no
+
+        addresses:
+          - 192.168.86.21/24
+
+        nameservers:
+          addresses:
+            - 8.8.8.8
+            - 1.1.1.1
+
+        routes:
+            - to: default
+              via: 192.168.86.1
+
+        access-points:
+          "WiFi":
+            password: "y5cE?z>6&juDEm"
+FILE
+
+netplan generate
+netplan apply
+
+# configuration
+
+cat << 'FILE' > /boot/firmware/config.txt
+[pi4]
+max_framebuffers=2
+
+[all]
+arm_64bit=1
+disable_splash=1
+kernel=vmlinuz
+cmdline=cmdline.txt
+initramfs initrd.img followkernel
+loglevel=1
+dtoverlay=vc4-kms-v3d,noaudio
+dtparam=audio=on
+dtparam=i2c_arm=on
+dtparam=spi=on
+enable_uart=1
+
+disable_overscan=1
+hdmi_force_hotplug=1
+
+over_voltage=8
+arm_freq=2000
+FILE
+
+# packages
+
+apt --assume-yes update
+apt --assume-yes purge snap thin-provisioning-tools
+apt --assume-yes upgrade
+
+# restart
+
+reboot

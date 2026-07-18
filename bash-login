@@ -1,0 +1,251 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]]
+then
+	# implement from local version
+
+	if [ $# -eq 0 ]
+	then
+		source "${BASH_SOURCE[0]}"
+
+		if return 0 2> "${sink}"
+		then
+			:
+		else
+			frobulator.scs "Implemented" "[ ${PWD}/${install_file} ]"
+			echo
+		fi
+	fi
+
+	while (($#))
+	do
+		case "${1}" in
+
+			-i|--install)
+
+				install_file="bash-login"
+				install_directory="${HOME}"/.local/bin
+
+				source_file="${BASH_SOURCE[0]}"
+				target_file="${install_directory}/${install_file}"
+
+				if [ ! -d "${install_directory}" ]
+				then
+					mkdir -p "${install_directory}"
+				fi
+
+				if [ "${source_file}" != "${target_file}" ]
+				then
+					cp "${source_file}" "${target_file}"
+
+					chmod a+rx "${target_file}"
+
+					source "${target_file}"
+
+					frobulator.scs "Installed" "[ ${target_file} ]"
+
+					echo
+				fi
+			;;
+
+			-h|--help)
+
+				echo
+				echo -e "Usage: ./${script} | [OPTION]"
+				echo
+				echo "Options:"
+				echo
+				echo "	-i, --install    Install BASH login to ${install_directory}"
+				echo "	-h, --help       Show this help menu"
+				echo
+
+				exit
+			;;
+
+			*)
+
+				echo
+				echo "${script}: Unknown option '${1}'"
+				echo "Type './${script} --help' for help and usage information."
+				echo
+
+				exit 1
+			;;
+
+		esac
+
+		shift
+
+	done
+fi
+
+# login ////////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	frobulator.fwd "Logging in..."
+	echo
+fi
+
+# dextop ///////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	# session
+
+	if [[ $(cat "${HOME}"/.dextop/dextop-environment) ]]
+	then
+		# extract session interface information
+
+		session_interface=$(cat "${HOME}"/.dextop/dextop-environment)
+
+		# format session interface information:
+		# capitalize
+
+		session_interface=${session_interface^^}
+	fi
+
+	if [ -f /etc/os-release ]
+	then
+		. /etc/os-release
+
+		name="${ID}"
+		version="${VERSION_ID}"
+
+		distribution="${name} ${version}"
+	fi
+
+	# settings
+
+	if [ ! -f "${HOME}"/.dextop/dextop-settings-checkpoint ]
+	then
+		frobulator.fwd "Setting up..."
+		echo
+
+		dbus-launch "${HOME}"/.local/bin/container-settings
+
+		frobulator.file "${HOME}"/.dextop dextop-settings-checkpoint
+
+		frobulator.clear
+	fi
+
+	# update
+
+	if [[ $(pgrep -f proot) ]]
+	then
+		:
+	else
+		if [[ $(cat "${HOME}"/.dextop/dextop-update) = *update* ]]
+		then
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *dextop* ]]
+			then
+				dextop -u dextop
+			fi
+
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *shell* ]]
+			then
+				dextop -u shell
+			fi
+
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *utility* ]]
+			then
+				dextop -u utility all
+			fi
+
+			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *all* ]]
+			then
+				dextop -u all
+			fi
+
+			frobulator.clear
+		fi
+	fi
+
+	# audio
+
+	if [[ $(pgrep -f proot) ]]
+	then
+		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
+		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
+		echo 'autospawn = no'               >> /etc/pulse/client.conf
+	else
+		if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
+		then
+			if [[ $(command -v pulseaudio) ]]
+			then
+				if [[ $(pgrep -f pulseaudio) ]]
+				then
+					:
+				else
+					# start pulseaudio and daemonize
+
+					pulseaudio					\
+						--start					\
+						--daemonize=true		\
+						--exit-idle-time=-1
+
+					# initialize transmission control protocol
+
+					pacmd								\
+						load-module						\
+							module-native-protocol-tcp	\
+								auth-ip-acl=127.0.0.1	\
+								auth-anonymous=1
+				fi
+			fi
+		fi
+	fi
+fi

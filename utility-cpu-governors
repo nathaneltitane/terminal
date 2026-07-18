@@ -1,0 +1,189 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-12-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	cpufreq-set
+)
+
+frobulator.require ${install_list[@]}
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# set governor aliases
+
+governors_list=(
+	$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors)
+)
+
+for governor in "${!governors_list[@]}"
+do
+	cat <<- FILE >> /etc/bash.bashrc
+
+	# governor - ${governors_list[governor]} #
+
+	${governors_list[governor]}() {
+		for (( n=0 ; n<$(grep -c processor /proc/cpuinfo) ; n++ ))
+	do
+			sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
+		done
+	}
+	FILE
+
+	cat <<- FILE > /usr/bin/${governors_list[governor]}
+	#!/bin/bash
+
+	# cpu governor (${governors_list[governor]}) #
+
+	if [[ $(grep -c processor /proc/cpuinfo) ]]
+	then
+		cpu="$(grep -c processor /proc/cpuinfo)"
+	fi
+
+	for (( count=0; count<cpu; count++ ))
+	do
+		sudo cpufreq-set	\
+			-c "\${count}"	\
+			-g ${governors_list[governor]}
+	done
+
+	if [[ $(command -v notify-send) ]]
+	then
+		notify-send						\
+			-i gnome-system-monitor		\
+			"CPU governor set to ${governors_list[governor]}"
+	FILE
+
+	sudo chmod +x /usr/bin/${governors_list[governor]}
+done
+
+# write switch
+
+cat <<- 'FILE' > /usr/bin/cpu-switch
+#!/bin/bash
+
+# cpu-switch #
+
+cpu_count="$(grep -c processor /proc/cpuinfo)"
+
+cpu_status="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
+
+case "${governor}"
+in
+	powersave)
+		governor="conservative"
+	;;
+
+	conservative)
+		governor="ondemand"
+	;;
+
+	ondemand)
+		governor="performance"
+	;;
+
+	performance)
+		governor="powersave"
+	;;
+esac
+
+for (( count=0 ; count<cpu_count ; count++ ))
+do
+	sudo cpufreq-set	\
+		-c "${count}"	\
+		-g "${governor}"
+done
+
+if [[ $(command -v notify-send) ]]
+then
+	notify-send						\
+		-i gnome-system-monitor		\
+		"CPU governor set to ${governors_list[governor]}"
+FILE
+
+# set permissions
+
+sudo chmod +x /usr/bin/cpu-switch

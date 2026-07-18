@@ -1,0 +1,190 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="079-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# variables ////////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	conky
+	convert
+	zenity
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+cat << "FILE" > /usr/bin/conky-picture-selector
+#!/bin/bash
+
+process="${directory}"/conky-picture-frame/conky-picture-framerc
+
+# specify source image
+
+dimension="full"
+
+# small:  25%
+# medium: 50%
+# large:  75%
+# full:   100%
+
+source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null
+
+# set dimension flags
+
+if [ "${dimension}" == "small" ]
+then
+	# canvas at 25%
+
+	ratio="128x"
+
+elif [ "${dimension}" == "medium" ]
+then
+	# canvas at 50%
+
+	ratio="256x"
+
+elif [ "${dimension}" == "large" ]
+then
+	# canvas at 75%
+
+	ratio="384x"
+
+elif [ "${dimension}" == "full" ]
+then
+	# canvas at 100%
+
+	ratio="512x"
+fi
+
+# cleanup files
+
+if [[ -e .picture.png ]]
+then
+	rm					\
+		--recursive		\
+		--force			 .picture.png
+fi
+
+# picture frame compositor
+
+convert "${source}" -resize "${ratio}" .picture.png
+
+# get dimensions
+
+dimensions=$(identify .picture.png | awk '{print $3}')
+
+IFS='x'
+read width height <<< "$dimensions"
+
+# send result to conky
+
+sed -i -e "s/^minimum_size\ .*/minimum_size ${width} ${height}/g" "${directory}"/conky-picture-frame/conky-picture-framerc
+
+wait
+
+echo "${image .picture.png}"
+
+wait
+
+sudo kill -SIGTERM $(pgrep -f "${process}")
+
+wait
+
+conky -c "${process}" &
+FILE
+
+chmod +x /usr/bin/conky-picture-selector
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/conky-picture-selector.desktop
+[Desktop Entry]
+Name=Conky Picture Selector
+Comment=Highly configurable system monitor
+Exec=/usr/bin/conky-picture-selector/usr/bin/conky-picture-selector/usr/bin/conky-picture-selector
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

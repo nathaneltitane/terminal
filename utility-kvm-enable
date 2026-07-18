@@ -1,0 +1,185 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	aqemu
+	guestfs-tools
+	libosinfo-bin
+	libvirt-daemon-system
+	ovmf
+	qemu-system-x86
+	qemu-utils
+	swtpm
+	tuned
+	tuned-utils
+	virt-manager
+	virt-viewer
+	virtinst
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+sudo systemctl enable libvirtd.service
+
+sudo virt-host-validate qemu
+
+sudo systemctl enable tuned
+
+sudo tuned-adm active
+
+sudo tuned-adm profile virtual-host
+
+sudo nmcli device status
+
+sudo nmcli															\
+		connection add type bridge 									\
+		con-name bridge0 											\
+		ifname bridge0
+
+sudo nmcli															\
+		connection add type ethernet 								\
+		slave-type bridge 											\
+		con-name 'Bridge Connection' 								\
+		ifname enp2s0 												\
+		master bridge0
+
+sudo nmcli 															\
+		connection up bridge0
+
+sudo nmcli 															\
+		connection modify bridge0 									\
+		connection.autoconnect-slaves 1
+
+sudo nmcli 															\
+		connection up bridge0
+
+sudo nmcli 															\
+		device status
+
+cat > /tmp/bridge << 'FILE'
+<network>
+<name>bridge</name>
+<forward mode='bridge'/>
+<bridge name='bridge0'/>
+</network>
+FILE
+
+sudo virsh net-define /tmp/bridge
+
+sudo virsh net-start bridge
+
+sudo virsh net-autostart bridge
+
+sudo rm					\
+		--recursive		\
+		--force			 /tmp/bridge
+
+sudo usermod 			\
+	--append			\
+	--groups libvirt	\
+						"${USER}"
+
+echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> /home/"${USER}"/.bashrc
+
+sudo setfacl 			\
+	--recursive			\
+	--remove-all		/var/lib/libvirt/images
+
+sudo setfacl			\
+	--recursive			\
+	--modify			u:"${USER}":rwX /var/lib/libvirt/images
+
+sudo setfacl			\
+	--modify			d:u:"${USER}":rwx /var/lib/libvirt/images

@@ -1,0 +1,173 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-12-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+key_type="ed25519"
+
+key_directory="${HOME}"
+
+key="${key_directory}"/"${device}"
+
+key_public="${key}.pub"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	openssh*
+	ssh*
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+devices_list=(
+	desktop
+	notebook
+	pi
+	tablet
+	phone
+)
+
+for device in ${devices_list[@]}
+do
+
+	# remove existing key files if they exist
+
+	if [ -f "${key}" ]
+	then
+		rm					\
+			--recursive		\
+			--force			\
+							"${key}"
+	fi
+
+	if [ -f "${key_public}" ]
+	then
+		rm					\
+			--recursive		\
+			--force			\
+							"${key_public}"
+	fi
+
+	# generate key(s):
+	# overwrite - no passphrase
+
+	yes | ssh-keygen						\
+		-t "${key_type}"					\
+		-f "${key_directory}"/"${device}"	\
+		-N ''								\
+		-C "${USER}@${device}"
+
+	# set ownership
+
+	if [ -f "${key}" ]
+	then
+		chown 					\
+			"${USER}:${USER}"	\
+								"${key}"
+	fi
+
+	if [ -f "${key_public}" ]
+	then
+		chown					\
+			"${USER}:${USER}"	\
+								"${key_public}"
+	fi
+
+	# set permissions
+
+	if [ -f "${key}" ]
+	then
+		chmod		\
+			0600	\
+					"${key}"
+	fi
+
+	if [ -f "${key_public}" ]
+	then
+		chmod		\
+			0644	\
+					"${key_public}"
+	fi
+
+done

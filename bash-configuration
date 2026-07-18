@@ -1,0 +1,454 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]]
+then
+	# implement from local version
+
+	if [ $# -eq 0 ]
+	then
+		source "${BASH_SOURCE[0]}"
+
+		if return 0 2> "${sink}"
+		then
+			:
+		else
+			frobulator.scs "Implemented" "[ ${PWD}/${install_file} ]"
+			echo
+		fi
+	fi
+
+	while (($#))
+	do
+		case "${1}" in
+
+			-i|--install)
+
+				install_file="bash-configuration"
+				install_directory="${HOME}"/.local/bin
+
+				source_file="${BASH_SOURCE[0]}"
+				target_file="${install_directory}/${install_file}"
+
+				if [ ! -d "${install_directory}" ]
+				then
+					mkdir -p "${install_directory}"
+				fi
+
+				if [ "${source_file}" != "${target_file}" ]
+				then
+					cp "${source_file}" "${target_file}"
+
+					chmod a+rx "${target_file}"
+
+					source "${target_file}"
+
+					frobulator.scs "Installed" "[ ${target_file} ]"
+
+					echo
+				fi
+			;;
+
+			-h|--help)
+
+				echo
+				echo -e "Usage: ./${script} | [OPTION]"
+				echo
+				echo "Options:"
+				echo
+				echo "	-i, --install    Install BASH configuration to ${install_directory}"
+				echo "	-h, --help       Show this help menu"
+				echo
+
+				exit
+			;;
+
+			*)
+
+				echo
+				echo "${script}: Unknown option '${1}'"
+				echo "Type './${script} --help' for help and usage information."
+				echo
+
+				exit 1
+			;;
+
+		esac
+
+		shift
+
+	done
+fi
+
+# clear ////////////////////////////////////////////////////////////////////////
+
+clear
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	frobulator.fwd "Setting up..."
+	echo
+fi
+
+# session //////////////////////////////////////////////////////////////////////
+
+if [ -z "${PS1}" ]
+then
+	return
+fi
+
+# options //////////////////////////////////////////////////////////////////////
+
+shopt -s checkwinsize
+shopt -s histappend
+shopt -s histverify
+
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# completion ///////////////////////////////////////////////////////////////////
+
+if [ ! $(shopt -oq posix) ]
+then
+	if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
+	then
+		. "${PREFIX}"/share/bash-completion/bash_completion
+
+	elif [ -f /usr/share/bash-completion/bash_completion ]
+	then
+		. /usr/share/bash-completion/bash_completion
+
+	elif [ -f /etc/bash_completion ]
+	then
+		. /etc/bash_completion
+	fi
+fi
+
+# user  ////////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	if [ -z "${USER}" ]
+	then
+		USER="termux"
+	fi
+fi
+
+# colors ///////////////////////////////////////////////////////////////////////
+
+colors_selection=(
+	white="255"
+	silver="248"
+	grey="243"
+	black="238"
+
+	red="1"
+	crimson="88"
+
+	green="2"
+	lime="28"
+
+	yellow="11"
+	orange="202"
+
+	blue="4"
+	navy="26"
+
+	magenta="5"
+	purple="53"
+
+	fuschia="126"
+	pink="200"
+
+	aqua="6"
+	teal="30"
+)
+
+if [ -z "$(command -v tput)" ]
+then
+	# handle color digit length for ansi fallback method
+
+	for color in ${colors_selection[@]}
+	do
+		IFS='='
+
+		read color_name color_value <<< "${color}"
+
+		if [ ${#color_value} = 3 ]
+		then
+			color_value="${color_value}"
+		fi
+
+		if [ ${#color_value} = 2 ]
+		then
+			color_value="0${color_value}"
+		fi
+
+		if [ ${#color_value} = 1 ]
+		then
+			color_value="00${color_value}"
+		fi
+
+		IFS=''
+
+		eval "${color_name}=${color_value}"
+
+		unset color
+	done
+
+	# ansi color attributes
+
+	if [[ -t 1 ]]
+	then
+		# monochromatic colors
+
+		white=$(echo -e \\e\[38\;5\;"${white}"m)
+		silver=$(echo -e \\e\[38\;5\;"${silver}"m)
+		grey=$(echo -e \\e\[38\;5\;"${grey}"m)
+		black=$(echo -e \\e\[38\;5\;"${black}"m)
+
+		# standard colors by saturation offset
+
+		red=$(echo -e \\e\[38\;5\;"${red}"m)
+		crimson=$(echo -e \\e\[38\;5\;"${crimson}"m)
+
+		green=$(echo -e \\e\[38\;5\;"${green}"m)
+		lime=$(echo -e \\e\[38\;5\;"${lime}"m)
+
+		yellow=$(echo -e \\e\[38\;5\;"${yellow}"m)
+		orange=$(echo -e \\e\[38\;5\;"${orange}"m)
+
+		blue=$(echo -e \\e\[38\;5\;"${blue}"m)
+		navy=$(echo -e \\e\[38\;5\;"${navy}"m)
+
+		magenta=$(echo -e \\e\[38\;5\;"${magenta}"m)
+		purple=$(echo -e \\e\[38\;5\;"${purple}"m)
+
+		aqua=$(echo -e \\e\[38\;5\;"${aqua}"m)
+		teal=$(echo -e \\e\[38\;5\;"${teal}"m)
+
+		# reset all attributes
+
+		reset=$(echo -e \\e\[39m)
+	fi
+else
+	# handle color selections
+
+	for color in ${colors_selection[@]}
+	do
+		IFS='='
+
+		read color_name color_value <<< "${color}"
+
+		IFS=''
+
+		eval "${color_name}=${color_value}"
+
+		unset color
+	done
+
+	# 'tput' colors and attributes
+
+	if [[ -t 1 ]]
+	then
+		# monochromatic colors
+
+		white=$(tput setaf "${white}")
+		silver=$(tput setaf "${silver}")
+		grey=$(tput setaf "${grey}")
+		black=$(tput setaf "${black}")
+
+		# standard colors by saturation offset
+
+		red=$(tput setaf "${red}")
+		crimson=$(tput setaf "${crimson}")
+
+		green=$(tput setaf "${green}")
+		lime=$(tput setaf "${lime}")
+
+		yellow=$(tput setaf "${yellow}")
+		orange=$(tput setaf "${orange}")
+
+		blue=$(tput setaf "${blue}")
+		navy=$(tput setaf "${navy}")
+
+		magenta=$(tput setaf "${magenta}")
+		purple=$(tput setaf "${purple}")
+
+		fuschia=$(tput setaf "${fuschia}")
+		pink=$(tput setaf "${pink}")
+
+		aqua=$(tput setaf "${aqua}")
+		teal=$(tput setaf "${teal}")
+
+		# reset all attributes
+
+		reset=$(tput sgr 0)
+	fi
+fi
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+unset PS1
+
+if [[ $(id -u -n) = "root" ]]
+then
+	prompt_color="${red}"
+
+elif [[ $(pidof proot) ]]
+then
+	prompt_color="${magenta}"
+else
+	prompt_color="${green}"
+fi
+
+PS1+="${reset}[ "
+PS1+="${prompt_color}${USER}"
+PS1+="${reset} ]"
+
+if [[ $(id -u -n) = "root" ]]
+then
+	PS1+="${white} >_ # ${reset}"
+else
+	PS1+="${white} >_ $ ${reset}"
+fi
+
+unset prompt_color
+
+# path /////////////////////////////////////////////////////////////////////////
+
+PATH=""
+
+# container
+
+[ -d /usr/local/sbin ]       && PATH+="/usr/local/sbin:"
+[ -d /usr/local/bin ]        && PATH+="/usr/local/bin:"
+[ -d /usr/sbin ]             && PATH+="/usr/sbin:"
+[ -d /usr/bin ]              && PATH+="/usr/bin:"
+[ -d /sbin ]                 && PATH+="/sbin:"
+[ -d /bin ]                  && PATH+="/bin:"
+
+# termux
+
+[ -d "${HOME}"/.local/sbin ] && PATH+="${HOME}/.local/sbin:"
+[ -d "${HOME}"/.local/bin ]  && PATH+="${HOME}/.local/bin:"
+[ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
+[ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
+
+[ -d "${PREFIX}"/sbin ]      && PATH+="${PREFIX}/sbin:"
+[ -d "${PREFIX}"/bin ]       && PATH+="${PREFIX}/bin:"
+
+# android
+
+[ -d /system/sbin ]          && PATH+="/system/sbin:"
+[ -d /system/bin ]           && PATH+="/system/bin:"
+
+PATH="${PATH}"
+
+# aliases //////////////////////////////////////////////////////////////////////
+
+if [ -d "${HOME}"/.bash-aliases ]
+then
+	for alias in "${HOME}"/.bash-aliases/*
+	do
+		if [ -x "${alias}" ]
+		then
+			. "${alias}"
+		fi
+	done
+fi
+
+if [ -f "${HOME}"/.bash_aliases ]
+then
+	. "${HOME}"/.bash_aliases
+fi
+
+# functions ////////////////////////////////////////////////////////////////////
+
+if [ -d "${HOME}"/.bash-functions ]
+then
+	for function in "${HOME}"/.bash-functions/*
+	do
+		if [ -x "${function}" ]
+		then
+			. "${function}"
+		fi
+	done
+fi
+
+if [ -f "${HOME}"/.bash_functions ]
+then
+	. "${HOME}"/.bash_functions
+fi
+
+# login ////////////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.bash_login ]
+then
+	. "${HOME}"/.bash_login
+fi
+
+# profile //////////////////////////////////////////////////////////////////////
+
+if [[ $(pgrep -f proot) ]]
+then
+	if [ -f "${HOME}"/.bash_profile ]
+	then
+		. "${HOME}"/.bash_profile
+	fi
+fi

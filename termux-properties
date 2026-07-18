@@ -1,0 +1,62 @@
+# use black for drawer and dialogs - Android 9.0+ default
+
+use-black-ui=true
+
+# allow external application package execution
+
+allow-external-apps=true
+
+# enforce character based input - workaround for word-based input keyboards
+
+enforce-char-based-input=true
+
+# handle the bell character - vibrate | beep | ignore
+
+bell-character=ignore
+
+# handle the escape key - escape | back
+
+back-key=back
+
+# rename current terminal session
+
+shortcut.rename-session=ctrl+n
+
+# open a new terminal with ctrl+t (volume down+t)
+
+shortcut.create-session=ctrl+t
+
+# move to previous terminal session
+
+shortcut.previous-session=ctrl+1
+
+# move to next terminal session
+
+shortcut.next-session=ctrl+2
+
+# allow terminal url open on click/tap
+
+terminal-onclick-url-open=true
+
+# disable auto capitalization of extra keys text
+
+extra-keys-text-all-caps=false
+
+# disable hardware keyboard shortcuts
+
+disable-hardware-keyboard-shortcuts=false
+
+# set horizontal terminal margin
+
+terminal-margin-horizontal=3
+
+set vertical terminal margin
+
+terminal-margin-vertical=0
+
+# configure keyboard shortcut keys
+
+extra-keys=[																	\
+	['ESC', '|',    '/',   'HOME', 'UP',   'END',   'PGUP', '_', 'BKSP'		],	\
+	['TAB', 'CTRL', 'ALT', 'LEFT', 'DOWN', 'RIGHT', 'PGDN', '-', 'RETURN'	]	\
+																				]

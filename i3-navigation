@@ -1,0 +1,135 @@
+#!/bin/bash
+
+navigation_selection="${HOME}"
+
+separator=" // "
+font_name="Monospace"
+font_size=10
+font="${font_name}:size=${font_size}"
+
+lines=60
+prompt="NAVIGATION${separator}"
+
+history_entry_count=3
+history_file="${HOME}"/.local/bin/.i3-navigation-history
+
+file_manager="ranger"
+terminal="i3-sensible-terminal"
+
+list="ls -a"
+read="cat"
+
+handler_open () {
+
+	xdg-open "${@}"
+}
+
+terminal_open () {
+
+	"${terminal}" -e "${@}"
+}
+
+terminal_open_visual () {
+
+	"${terminal}" -e "${file_manager} ${@}"
+}
+
+history_write () {
+
+	history_entry="${1}"
+
+	sed -i "\:${history_entry}:d" "${history_file}"
+
+	printf '%s\n' "${history_entry}" >> "${history_file}"
+
+	printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
+}
+
+
+selections_parse () {
+
+	working_directory="${navigation_selection}"
+
+	label_selections_empty=''
+	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
+
+	label_selections_working_directory="DIRECTORY${separator}${working_directory}"
+	label_selections_history='[ History ]  ↴'
+	label_selections_terminal='[ Open Terminal Here ]'
+	label_selections_terminal_visual='[ Open Visual Terminal Here ]'
+
+	selections=(
+		"${label_selections_working_directory}"
+		"${label_selections_empty}"
+		"${label_selections_terminal}"
+		"${label_selections_terminal_visual}"
+		"${label_selections_empty}"
+		"$(${list} "${navigation_selection}")"
+		"${label_selections_empty}"
+		"${label_selections_history}"
+		"${label_selections_empty}"
+		"$(${read} "${history_file}")"
+	)
+
+	IFS=$"\n"
+
+	for selection in "${selections[@]}"
+	do
+		echo "${selection}"
+	done
+
+	IFS=""
+
+	selections=()
+}
+
+while :
+do
+	selection="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
+
+	if [ "${selection}" == '[ Open Terminal Here ]' ]
+	then
+		terminal_open "${navigation_selection}"
+
+		history_write "${navigation_selection}"
+
+	elif [ "${selection}" == '[ Open Visual Terminal Here ]' ]
+	then
+		terminal_open_visual "${navigation_selection}"
+
+		history_write "${navigation_selection}"
+
+	elif [[ "${selection}" == '/'* ]]
+	then
+		navigation_selection="${selection}"
+
+	elif [[ "${selection}" =~ ^(https?|ftps): ]]
+	then
+		handler_open "${selection}"
+
+		history_write "${selection}"
+
+	else
+		navigation_selection="$(realpath "${navigation_selection}/${selection}")"
+	fi
+
+	if [ -f "${navigation_selection}" ] || [ "${selection}" = '.' ]
+	then
+		handler_open "${navigation_selection}"
+
+		history_write "${navigation_selection}"
+
+	elif [ -d "${navigation_selection}" ]
+	then
+		selections=(
+			"${label_selections_working_directory}"
+			"${label_selections_empty}"
+			"${label_selections_terminal}"
+			"${label_selections_terminal_visual}"
+			"${label_selections_empty}"
+			"$(${list} "${navigation_selection}")"
+		)
+	else
+		navigation_selection="$(dirname "${navigation_selection}")"
+	fi
+done

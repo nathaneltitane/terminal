@@ -1,0 +1,156 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# variables ////////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	conky
+	convert
+	zenity
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+cat <<- 'FILE' > /usr/bin/conky-color-selector
+#!/bin/bash
+
+# conky color selector #
+
+rgb_to_hex () {
+
+	IFS='(,)'
+
+	read _ r g b <<< "${1}"
+
+	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+}
+
+hex_to_rgb () {
+
+	read hex <<< "${1}"
+
+	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
+
+	r=$((16#${hex:0:2}))
+	g=$((16#${hex:2:2}))
+	b=$((16#${hex:4:2}))
+
+	printf '%03d %03d %03d\n' ${r} ${g} ${b}
+}
+
+default_color="cccccc"
+color_input="$(zenity --color-selection --color="#cccccc" --show-palette)"
+color_selection=$(rgb_to_hex "${color_input}")
+
+if [[ "$color_input" != "" ]]
+then
+	color="$color_selection"
+else
+	color="$default_color"
+fi
+
+find "${HOME}" -type f -name *conkyrc -exec \
+	sed -i \
+	-e "s|default_color.*|default_color $color|g" \
+	-e "s|default_shade_color.*|default_shade_color $color|g" {} +
+FILE
+
+sudo chmod +x /usr/bin/conky-color-selector
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/conky-color-selector.desktop
+[Desktop Entry]
+Name=Conky Color Selector
+Comment=Color selector for Conky
+Exec=/usr/bin/conky-color-selector
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

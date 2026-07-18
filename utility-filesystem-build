@@ -1,0 +1,581 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-12-2025"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}"
+	in
+		-i|--image)
+			option="image"
+			distribution_name="${2}"
+
+			shift
+
+			distribution_version="${2}"
+
+			shift
+		;;
+
+		-s|--selection)
+			option="selection"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -i [Distribution Name] [Distribution Version] | -s [Selection] | [OPTION]"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-i, --image        Input distribution [i]mage name and version."
+			echo -e "-s, --selection    Show setup [s]election options."
+			echo
+			echo -e "-h, --help     Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+			"")
+				# handle empty argument:
+				# use default values specified in script
+
+				:
+			;;
+
+		*)
+			echo
+			echo -e "Usage: ${script} -i [Distribution Name] [Distribution Version] | -s [Selection] | [OPTION]"
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+distribution_architecture="arm64"
+
+distribution_name="debian"
+
+distribution_version="12"
+
+distribution_codename="bookworm"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+if [ -z "${distribution_name}" ]
+then
+	distribution_name="${distribution_name}"
+fi
+
+if [ -z "${distribution_version}" ]
+then
+	distribution_version="${distribution_version}"
+fi
+
+if [ -z "${distribution_codename}" ]
+then
+	distribution_codename="${distribution_codename}"
+fi
+
+# functions ////////////////////////////////////////////////////////////////////
+
+image_select () {
+
+	# list distributions
+
+	if [ -z "${distribution_name}"     ] || \
+	   [ -z "${distribution_version}"  ] || \
+	   [ -z "${distribution_codename}" ]
+	then
+		frobulator.msg "Select distribution version to generate."
+		echo
+
+		# list supported distribution versions
+
+		debian_versions=(
+			debian	10	buster
+			debian	11	bullseye
+			debian	12	bookworm
+			debian	13	trixie
+		)
+
+		ubuntu_versions=(
+			ubuntu	18.04	bionic
+			ubuntu	20.04	focal
+			ubuntu	22.04	jammy
+			ubuntu	24.04	noble
+		)
+
+		versions=(
+			${debian_versions[@]}
+			${ubuntu_versions[@]}
+		)
+
+		# set padding for uniform output
+
+		pad_length=10
+
+		# continue list using array selection of suppported values
+
+		for (( i=0; i<${#versions[@]} ; i+=3 ))
+		do
+			number=$(( ( ${i} / 3 ) + 1 ))
+
+			name="${versions[${i}]}"
+			version="${versions[${i}+1]}"
+			codename="${versions[${i}+2]}"
+
+			indent="${marker_tab}"
+
+			if [ ${#version} -le 2 ]
+			then
+				indent+="${marker_tab}"
+			fi
+
+			if (( ${i}/3 >= 0 && ${i}/3 <= 9 ))
+			then
+				# handle number spacing for entries 1-9
+
+				number=" ${number}"
+			else
+				# handle number spacing for entries 10+
+
+				number="${number}"
+			fi
+
+			echo "${marker_nul}" "[ ${number} ]" "${name}" "${version}" "${indent}" "[ ${codename} ]"
+
+		done
+
+		echo
+
+		# values #
+
+		values_list=(
+			selection
+		)
+
+		# handle user input for values_list
+
+		eval ${frobulator_return[@]}
+
+		frobulator.ipt "Selection:"
+
+		frobulator.read selection
+
+		unset distribution_version
+
+		# integer check:
+		# handle numerical selection
+
+		while [[ ! "${selection}" =~ ^[0-9]+$ ]]
+		do
+			echo
+			frobulator.err "Invalid selection:"
+			echo
+
+			frobulator.wrn "Select image [ 1 - ${number} ]"
+			echo
+
+			frobulator.ipt "Selection:"
+
+			frobulator.read selection
+		done
+
+			i=$(( ${selection}))
+			i=$(( ( ${i} * 3  ) - 3 ))
+
+			name="${versions[${i}]}"
+			version="${versions[${i}+1]}"
+			codename="${versions[${i}+2]}"
+
+			number="${selection}"
+
+			distribution_name="${name}"
+			distribution_version="${version}"
+			distribution_codename="${codename}"
+
+		# handle distribution code markup
+
+		if [ "${distribution_name}" = ubuntu ]
+		then
+			distribution_url="http://ports.ubuntu.com/ubuntu-ports"
+
+			# set IFS
+
+			IFS='.'
+
+			read code_year code_month code_revision <<< "${distribution_version}"
+
+			if [ -z "${code_revision}" ]
+			then
+				distribution_release="${distribution_version}"
+			else
+				distribution_release="${distribution_version%.*}"
+			fi
+
+			# reset IFS
+
+			IFS=''
+		fi
+
+		frobulator.inf "User selection" "[ ${selection} // ${name} ${version} - '${codename}' ]"
+		echo
+
+	fi
+}
+
+image_handle () {
+
+	frobulator.continue
+
+	# handle manual input:
+	# validate input selections
+	# set container image name and version
+
+	case "${distribution_name}"
+	in
+		[dD][eE][bB][iI][aA][nN]| \
+		[fF][eE][dD][oO][rR][aA]| \
+		[uU][bB][uU][nN][tT][uU])
+			distribution_name="${distribution_name,,}"
+
+			frobulator.scs "Supported distribution name."
+			echo
+		;;
+
+		"")
+			distribution_name="debian"
+
+			frobulator.err "Empty distribution name."
+			echo
+
+			frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+			echo
+		;;
+
+		*)
+			distribution_name="debian"
+
+			frobulator.err "Unsupported distribution name."
+			echo
+
+			frobulator.wrn "Defaulting" "[ ${distribution_name} ]"
+			echo
+		;;
+
+	esac
+
+	case "${distribution_name}" in
+	debian)
+
+		case "${distribution_version}"
+		in
+			10)
+				distribution_version=10
+			;;
+
+			11)
+				distribution_version=11
+			;;
+
+			12)
+				distribution_version=12
+			 ;;
+
+			 "")
+				distribution_version=12
+
+				frobulator.err "Distribution version not specified."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			 *)
+				distribution_version=12
+
+				frobulator.err "Unsupported distribution version."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+		esac
+	;;
+
+	fedora)
+
+		case "${distribution_version}"
+		in
+			33)
+				distribution_version=39
+			;;
+
+			34)
+				distribution_version=40
+			;;
+
+			35)
+				distribution_version=41
+			 ;;
+
+			 "")
+				distribution_version=41
+
+				frobulator.err "Distribution version not specified."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			 *)
+				distribution_version=35
+
+				frobulator.err "Unsupported distribution version."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+		esac
+	;;
+
+	ubuntu)
+
+		case "${distribution_version}"
+		in
+			18*04|18*04*)
+				distribution_version="18.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			20*04|20*04*)
+				distribution_version="20.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			22*04|22*04*)
+				distribution_version="22.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			24*04|24*04*)
+				distribution_version="24.04"
+
+				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			"")
+				distribution_version="${distribution_version}"
+
+				frobulator.err "Distribution version not specified."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+			 *)
+				distribution_version="${distribution_version}"
+
+				frobulator.err "Unsupported distribution version."
+				echo
+
+				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				echo
+			;;
+
+		esac
+
+	;;
+
+	esac
+
+	frobulator.complete "${script} : ${FUNCNAME}"
+
+}
+
+image_build () {
+
+	variant="minbase"
+
+	parameters="${distribution_codename} ${build_directory} ${distribution_url}"
+
+	unset command_image_build
+
+	command_image_build="
+		debootstrap									\
+			--foreign								\
+			--arch="${distribution_architecture}"	\
+			--variant="${variant}"					\
+													"${parameters}"
+	"
+
+	frobulator.log ${command_image_build}
+
+}
+
+image_archive () {
+
+	extension="tar.xz"
+	archive="${distribution_name}"-"${distribution_version}"."${extension}"
+
+	cd "${build_directory}"
+
+	unset command_image_archive
+
+	command_image_archive="
+		tar --create								\
+			--file="${archive}"						\
+				--use-compress-program='xz -9'		\
+				--exclude='debootstrap' 			\
+													*
+	"
+
+	frobulator.log ${command_image_archive}
+
+	cp "${build_directory}"/"${archive}" "${HOME}"/"${archive}"
+
+}
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	qemu-user-static
+	binfmt-support
+	debootstrap
+)
+
+frobulator.install ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [ "${option}" = "selection" ]
+then
+	unset distribution_name
+	unset distribution_version
+	unset distribution_codename
+	unset distribution_url
+
+	# select image version
+
+	image_select
+fi
+
+frobulator.temporary build_directory
+
+build_directory=${frobulator_return[@]}
+
+frobulator.trap "${build_directory}"
+
+image_build &
+
+frobulator.progress "build"
+
+image_archive &
+
+frobulator.progress "archive"
+
+frobulator.scs "Done"
+echo

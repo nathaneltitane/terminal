@@ -1,0 +1,390 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]]
+then
+	# implement from local version
+
+	if [ $# -eq 0 ]
+	then
+		source "${BASH_SOURCE[0]}"
+
+		if return 0 2> "${sink}"
+		then
+			:
+		else
+			frobulator.scs "Implemented" "[ ${PWD}/${install_file} ]"
+			echo
+		fi
+	fi
+
+	while (($#))
+	do
+		case "${1}" in
+
+			-i|--install)
+
+				install_file="bash-profile"
+				install_directory="${HOME}"/.local/bin
+
+				source_file="${BASH_SOURCE[0]}"
+				target_file="${install_directory}/${install_file}"
+
+				if [ ! -d "${install_directory}" ]
+				then
+					mkdir -p "${install_directory}"
+				fi
+
+				if [ "${source_file}" != "${target_file}" ]
+				then
+					cp "${source_file}" "${target_file}"
+
+					chmod a+rx "${target_file}"
+
+					source "${target_file}"
+
+					frobulator.scs "Installed" "[ ${target_file} ]"
+
+					echo
+				fi
+			;;
+
+			-h|--help)
+
+				echo
+				echo -e "Usage: ./${script} | [OPTION]"
+				echo
+				echo "Options:"
+				echo
+				echo "	-i, --install    Install BASH profile to ${install_directory}"
+				echo "	-h, --help       Show this help menu"
+				echo
+
+				exit
+			;;
+
+			*)
+
+				echo
+				echo "${script}: Unknown option '${1}'"
+				echo "Type './${script} --help' for help and usage information."
+				echo
+
+				exit 1
+			;;
+
+		esac
+
+		shift
+
+	done
+fi
+
+# shell ////////////////////////////////////////////////////////////////////////
+
+# loading order - login shell:
+
+# system profile
+# system bash configuration
+# home bash configuration
+
+# loading order - non-login shell:
+
+# system bash configuration
+# home bash configuration
+
+# non-login shell requires 'bashrc'
+
+# profile /////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	frobulator.fwd "Loading profile..."
+	echo
+
+	frobulator.clear
+fi
+
+# bash /////////////////////////////////////////////////////////////////////////
+
+if [ -n "${BASH_VERSION}" ]
+then
+
+	# aliases //////////////////////////////////////////////////////////////////
+
+	if [ -d "${HOME}"/.bash-aliases ]
+	then
+		for alias in "${HOME}"/.bash-aliases/*
+		do
+			if [ -x "${alias}" ]
+			then
+				. "${alias}"
+			fi
+		done
+	fi
+
+	if [ -f "${HOME}"/.bash_aliases ]
+	then
+		. "${HOME}"/.bash_aliases
+	fi
+
+	# functions ////////////////////////////////////////////////////////////////
+
+	if [ -d "${HOME}"/.bash-functions ]
+	then
+		for function in "${HOME}"/.bash-functions/*
+		do
+			if [ -x "${function}" ]
+			then
+				. "${function}"
+			fi
+		done
+	fi
+
+	if [ -f "${HOME}"/.bash_functions ]
+	then
+		. "${HOME}"/.bash_functions
+	fi
+fi
+
+# path /////////////////////////////////////////////////////////////////////////
+
+PATH=""
+
+# container
+
+[ -d /usr/local/sbin ]       && PATH+="/usr/local/sbin:"
+[ -d /usr/local/bin ]        && PATH+="/usr/local/bin:"
+[ -d /usr/sbin ]             && PATH+="/usr/sbin:"
+[ -d /usr/bin ]              && PATH+="/usr/bin:"
+[ -d /sbin ]                 && PATH+="/sbin:"
+[ -d /bin ]                  && PATH+="/bin:"
+
+# termux
+
+[ -d "${HOME}"/.local/sbin ] && PATH+="${HOME}/.local/sbin:"
+[ -d "${HOME}"/.local/bin ]  && PATH+="${HOME}/.local/bin:"
+[ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
+[ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
+
+[ -d "${PREFIX}"/sbin ]      && PATH+="${PREFIX}/sbin:"
+[ -d "${PREFIX}"/bin ]       && PATH+="${PREFIX}/bin:"
+
+# android
+
+[ -d /system/sbin ]          && PATH+="/system/sbin:"
+[ -d /system/bin ]           && PATH+="/system/bin:"
+
+PATH="${PATH}"
+
+# user  ////////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	if [ -z "${USER}" ]
+	then
+		USER="termux"
+	fi
+fi
+
+# colors ///////////////////////////////////////////////////////////////////////
+
+black="\001$(tput setaf 0)\002"
+red="\001$(tput setaf 1)\002"
+green="\001$(tput setaf 2)\002"
+yellow="\001$(tput setaf 3)\002"
+blue="\001$(tput setaf 4)\002"
+magenta="\001$(tput setaf 5)\002"
+cyan="\001$(tput setaf 6)\002"
+white="\001$(tput setaf 7)\002"
+
+reset="\001$(tput sgr 0)\002"
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+unset PS1
+
+if [[ $(id -u -n) = "root" ]]
+then
+	prompt_color="${red}"
+
+elif [[ $(pidof proot) ]]
+then
+	prompt_color="${magenta}"
+else
+	prompt_color="${green}"
+fi
+
+PS1+="${reset}[ "
+PS1+="${prompt_color}${USER}"
+PS1+="${reset} ]"
+
+if [[ $(id -u -n) = "root" ]]
+then
+	PS1+="${white} >_ # ${reset}"
+else
+	PS1+="${white} >_ $ ${reset}"
+fi
+
+unset prompt_color
+
+# display //////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	TERMUX_X11_APPLICATION="com.termux.x11"
+	TERMUX_X11_SERVER="termux-x11"
+	TERMUX_X11_DRIVER="virpipe"
+	TERMUX_X11_ACCELERATOR="virgl_test_server"
+
+	if [ -z "${DISPLAY}" ]
+	then
+		DISPLAY=":0"
+	fi
+
+	if [[ $(pgrep -f "${TERMUX_X11_ACCELERATOR}") ]]
+	then
+		:
+	else
+		"${TERMUX_X11_ACCELERATOR}" &
+	fi
+
+	if [[ $(pgrep -f "${TERMUX_X11_APPLICATION}") ]]
+	then
+		:
+	else
+		"${TERMUX_X11_SERVER}" "${DISPLAY}" &
+	fi
+
+	# export variables
+
+	export DISPLAY="${DISPLAY}"
+
+	export TERMUX_X11_APPLICATION="${TERMUX_X11_APPLICATION}"
+	export TERMUX_X11_SERVER="${TERMUX_X11_SERVER}"
+	export TERMUX_X11_DRIVER="${TERMUX_X11_DRIVER}"
+	export TERMUX_X11_ACCELERATOR="${TERMUX_X11_ACCELERATOR}"
+fi
+
+# dextop ///////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	# get session login count
+
+	ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
+
+	session_title="termux"
+
+	# load welcome message
+
+	if [[ $(pgrep -f proot) ]]
+	then
+		session_tilte="${distribution}"
+	fi
+
+	session_title="${session_title^}"
+
+	frobulator.fwd "Login count" "[ ${ticker} ]" ">"
+	echo
+
+	frobulator.fwd "Welcome to Dextop" "[ ${session_title} ]"
+	echo
+
+	frobulator.inf "Graphical session:"
+	echo
+
+	frobulator.inf "'container-session -o | -x'"
+	frobulator.nul "'container-session -u [User Name] | -d [Directory] | -f [Application]'"
+	echo
+
+	frobulator.inf "Update utilities:"
+	echo
+
+	frobulator.nul "'dextop -u shell [Shell Name | all] | utility [Utility Name | all]'"
+	echo
+
+	# increment session login count
+
+	ticker=$(( ${ticker} + 1 ))
+
+	echo ${ticker} > "${HOME}"/.dextop/dextop-ticker
+
+	sleep 1
+
+	# automatic session start
+
+	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
+	then
+		frobulator.wrn "Automatic session start enabled"
+		echo
+
+		session_level="termux"
+
+		if [[ $(pgrep -f proot) ]]
+		then
+			session_level="container"
+		fi
+
+		# load session interface
+
+		session_level="${session_level^}"
+
+		frobulator.cpt "Loading ${session_level} level session" "[ ${session_interface} ]"
+		echo
+
+		container-session -o
+	fi
+fi

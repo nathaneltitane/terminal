@@ -1,0 +1,281 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="05-09-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+ssh_check () {
+
+	seconds="5"
+	timeout="0.125"
+	lan="${1}"
+
+	if [ -z "${lan}" ]
+	then
+		echo "Usage:"
+		echo
+		echo "${script} <LAN PREFIX>"
+		echo
+		echo "LAN Prefix	XXX.XXX.XXX"
+		echo
+
+		return 1
+	fi
+
+	# extract and validate first 3 octets
+
+	lan=$(
+		echo "${lan}"									| \
+			grep -E -o '^([0-9]{1,3}\.){2}[0-9]{1,3}'	| \
+				awk -F'.' '
+					$1 <= 255 && $2 <= 255 && $3 <= 255 {
+						printf("%d.%d.%d.", $1, $2, $3)
+					}'
+	)
+
+	if [ -z "${lan}" ]
+	then
+		frobulator.err "Invalid IP address format."
+
+		return 1
+	fi
+
+	# split ip into individual octets
+
+	IFS='.' read -r octet_01 octet_02 octet_03 <<< "${lan%?}"
+
+	for octet_host in {1..255}
+	do
+		# ip used for networking
+
+		ip_network="${octet_01}.${octet_02}.${octet_03}.${octet_host}"
+
+		# ip used for informational display
+
+		ip_display=$(printf "%03d.%03d.%03d.%03d" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
+
+		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${ip_network}/22" 2> "${sink}"
+
+		if [ $? -eq 0 ]
+		then
+			list_port_open+=("${ip_display}")
+
+			# secure shell
+
+			ssh_output=$(
+				ssh								\
+					-oBatchMode=yes				\
+					-oStrictHostKeyChecking=no	\
+					-oConnectTimeout="${seconds}"\
+					-oUserKnownHostsFile="${sink}"\
+													"${ip_network}" exit 2>&1
+			)
+
+			if echo "${ssh_output}" | grep -q -i -e "permission denied" -e "welcome" -e "last login"
+			then
+				list_ssh_open+=("${ip_display}")
+			fi
+
+			# secure file transfer
+
+			sftp_output=$(
+				sftp								\
+					-oBatchMode=yes					\
+					-oStrictHostKeyChecking=no		\
+					-oConnectTimeout="${seconds}"	\
+					-oUserKnownHostsFile="${sink}"	\
+													"${ip_network}" 2>&1
+			)
+
+			if echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied"
+			then
+				list_sftp_open+=("${ip_display}")
+			fi
+
+		fi
+
+	done
+
+	# unset IFS
+
+	IFS=''
+
+	frobulator.plo 3
+
+	# port
+
+	if [ ${#list_port_open[@]} -gt 0 ]
+	then
+		if [ ${#list_port_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_port_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with open port found at:"
+		echo
+
+		for address in "${list_port_open[@]}"
+		do
+			frobulator.ind "${address}"
+			echo
+		done
+
+	else
+		frobulator.wrn "No open port addresse(s) found"
+		echo
+	fi
+
+	# shell
+
+	if [ ${#list_ssh_open[@]} -gt 0 ]
+	then
+		if [ ${#list_ssh_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_ssh_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with available ssh found at:"
+		echo
+
+		for address in "${list_ssh_open[@]}"
+		do
+			frobulator.ind "${address}"
+			echo
+		done
+
+	else
+		frobulator.wrn "No available ssh addresse(s) found"
+		echo
+	fi
+
+	# file transfer
+
+	if [ ${#list_sftp_open[@]} -gt 0 ]
+	then
+		if [ ${#list_sftp_open[@]} -eq 1 ]
+		then
+			message="Address"
+
+		elif [ ${#list_sftp_open[@]} -ge 2 ]
+		then
+			message="Addresses"
+		fi
+
+		frobulator.inf "${message} with available sftp found at:"
+		echo
+
+		for address in "${list_sftp_open[@]}"
+		do
+			frobulator.ind "${address}"
+			echo
+		done
+
+	else
+		frobulator.wrn "No available sftp addresse(s) found"
+		echo
+	fi
+
+}
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	ssh*
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+ssh_check "${@}" &
+
+frobulator.progress scan

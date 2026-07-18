@@ -1,0 +1,39 @@
+#!/bin/bash
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+separator=" // "
+font_name="Monospace"
+font_size=10
+font="${font_name}:size=${font_size}"
+
+lines=60
+prompt="CHANGE BACKGROUND IMAGE${separator}"
+
+images="$(find "${HOME}"						\
+			-maxdepth 2							\
+			-type f								\
+			-iname "*.jpg"						\
+			-o -iname "*.png"					\
+			-o -iname "*.svg"					\
+				-not -path "*.cache*"			\
+				-not -path "*.config*"			\
+				-not -path "*thumbnails*" | sort
+		)"
+
+display_options_list=(
+	center
+	fill
+	scale
+	tile
+	zoom
+)
+
+selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+lines=${#display_options_list[@]}
+prompt="SELECT DISPLAY METHOD${separator}"
+
+display="$(printf '%s\n' "${display_options_list[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+feh --no-fehbg --bg-"${display}" "${selection}"

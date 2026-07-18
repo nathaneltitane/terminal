@@ -1,0 +1,15 @@
+#!/bin/bash
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+lines=15
+
+prompt="${1}"
+execute="${2}"
+
+selection_menu=$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+
+[ "${selection_menu}" == "YES" ] && "${execute}"
+
+# use with i3wm binding:
+# bindsym $modifier+key exec --no-startup-id /usr/bin/dmenu-confirm "Prompt?" "usr/bin/script-to-execute"

@@ -1,0 +1,689 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]]
+then
+	# implement from local version
+
+	if [ $# -eq 0 ]
+	then
+		source "${BASH_SOURCE[0]}"
+
+		if return 0 2> "${sink}"
+		then
+			:
+		else
+			frobulator.scs "Implemented" "[ ${PWD}/${install_file} ]"
+			echo
+		fi
+	fi
+
+	while (($#))
+	do
+		case "${1}" in
+
+			-i|--install)
+
+				install_file="bash-aliases"
+				install_directory="${HOME}"/.local/bin
+
+				source_file="${BASH_SOURCE[0]}"
+				target_file="${install_directory}/${install_file}"
+
+				if [ ! -d "${install_directory}" ]
+				then
+					mkdir -p "${install_directory}"
+				fi
+
+				if [ "${source_file}" != "${target_file}" ]
+				then
+					cp "${source_file}" "${target_file}"
+
+					chmod a+rx "${target_file}"
+
+					source "${target_file}"
+
+					frobulator.scs "Installed" "[ ${target_file} ]"
+
+					echo
+				fi
+			;;
+
+			-h|--help)
+
+				echo
+				echo -e "Usage: ./${script} | [OPTION]"
+				echo
+				echo "Options:"
+				echo
+				echo "	-i, --install    Install BASH aliases to ${install_directory}"
+				echo "	-h, --help       Show this help menu"
+				echo
+
+				exit
+			;;
+
+			*)
+
+				echo
+				echo "${script}: Unknown option '${1}'"
+				echo "Type './${script} --help' for help and usage information."
+				echo
+
+				exit 1
+			;;
+
+		esac
+
+		shift
+
+	done
+fi
+
+# bash /////////////////////////////////////////////////////////////////////////
+
+if [[ -f "${HOME}"/.bash_aliases ]]
+then
+	alias 'sa'='. "${HOME}"/.bash_aliases'
+fi
+
+if [[ -f "${HOME}"/.bash_funtions ]]
+then
+	alias 'sf'='. "${HOME}"/.bash_functions'
+fi
+
+if [[ -f "${HOME}"/.bashrc ]]
+then
+	alias 'sc'='. "${HOME}"/.bashrc'
+fi
+
+if [[ -f "${HOME}"/.bash_login ]]
+then
+	alias 'si'='. "${HOME}"/.bash_login'
+fi
+
+if [[ -f "${HOME}"/.bash_logout ]]
+then
+	alias 'so'='. "${HOME}"/.bash_logout'
+fi
+
+if [[ -f "${HOME}"/.bash_profile ]]
+then
+	alias 'sp'='. "${HOME}"/.bash_profile'
+fi
+
+# directories //////////////////////////////////////////////////////////////////
+
+if [[ $(command -v cd) ]]
+then
+	alias '..'='cd ..'
+fi
+
+if [[ $(ls -d "${HOME}" 2> /dev/null) ]]
+then
+	alias 'hd'='cd "${HOME}"'
+fi
+
+if [[ $(ls -d /media 2> /dev/null) ]]
+then
+	alias 'md'='cd /media'
+fi
+
+if [[ $(ls -d /media/[eE]xternal 2> /dev/null) ]]
+then
+	alias 'ex'='cd /media/[eE]xternal'
+fi
+
+if [[ $(ls -d /media/[iI]nternal 2> /dev/null) ]]
+then
+	alias 'in'='cd /media/[iI]nternal'
+fi
+
+if [[ $(ls -d /media/[fF]iles 2> /dev/null) ]]
+then
+	alias 'fl'='cd /media/[fF]iles'
+fi
+
+# git  /////////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v git) ]]
+then
+	alias 'gc'="git clone --depth 1"
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gi'='git init'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gp'='git pull'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'ga'='git add *'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gm'="git commit -a -m ${1}"
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gs'='git push'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gu'='ga && gm "Code & Features Update" && gs'
+fi
+
+if [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${HOME}"/[gG]it)'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
+fi
+
+if [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
+fi
+
+if [[ $(command -v git) ]]
+then
+	alias 'gn'='git ls-files | xargs cat | wc -l'
+fi
+
+# packages /////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'autoclean'='sudo apt-get autoclean'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'autoclean'='apt-get autoclean'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'autoremove'='sudo apt-get autoremove'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'autoremove'='apt-get autoremove'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'check'='sudo apt-get check'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'check'='apt-get check'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'clean'='sudo apt-get clean'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'clean'='apt-get clean'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'distribution-upgrade'='apt-get dist-upgrade'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'download'='sudo apt-get download'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'download'='apt-get download'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'install'='sudo apt-get install --no-install-recommends --no-upgrade'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'install'='apt-get install --no-install-recommends --no-upgrade'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'purge'='sudo apt-get purge'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'purge'='apt-get purge'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'reinstall'='sudo apt-get reinstall'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'reinstall'='apt-get reinstall'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'repair'='sudo apt-get -f install'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'repair'='apt-get -f install'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'remove'='sudo apt-get remove'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'remove'='apt-get remove'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'source'='sudo apt-get source'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'source'='apt-get source'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'update'='sudo apt-get update'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'update'='apt-get update'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-get) ]]
+then
+	alias 'upgrade'='sudo apt-get dist-upgrade'
+
+elif [[ $(command -v apt-get) ]]
+then
+	alias 'upgrade'='apt-get dist-upgrade'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'depend'='sudo apt-cache depends'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'depend'='apt-cache depends'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'reverse'='sudo apt-cache rdepends'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'reverse'='apt-cache rdepends'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'search'='sudo apt-cache search'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'search'='apt-cache search'
+fi
+
+if [[ $(command -v sudo) && $(command -v apt-cache) ]]
+then
+	alias 'status'='sudo apt-cache stats'
+
+elif [[ $(command -v apt-cache) ]]
+then
+	alias 'status'='apt-cache stats'
+fi
+
+# system ///////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'start'='sudo systemctl start'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'stop'='sudo systemctl stop'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'enable'='sudo systemctl enable'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'disable'='sudo systemctl disable'
+fi
+
+if [[ $(command -v sudo) && $(command -v systemctl) ]]
+then
+	alias 'status'='sudo systemctl status'
+fi
+
+# filters //////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v env) && $(command -v grep) ]]
+then
+	alias 'efilter'='env | grep -i'
+fi
+
+if [[ $(command -v ls) && $(command -v grep) ]]
+then
+	alias 'ffilter'='ls -a | grep -i'
+fi
+
+if [[ $(command -v ps) && $(command -v grep) ]]
+then
+	alias 'pfilter'='ps -a -u -x | grep -i'
+fi
+
+# session //////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v exit) ]]
+then
+	alias 'exit'='exit > /dev/null 2>&1'
+fi
+
+if [[ $(command -v logout) ]]
+then
+	alias 'logout'='logout > /dev/null 2>&1'
+fi
+
+# commands /////////////////////////////////////////////////////////////////////
+
+if [[ $(command -v chgrp) ]]
+then
+	alias 'chgrp'='chgrp --preserve-root'
+fi
+
+if [[ $(command -v chmod) ]]
+then
+	alias 'chmod'='chmod --preserve-root'
+fi
+
+if [[ $(command -v chown) ]]
+then
+	alias 'chown'='chown --preserve-root'
+fi
+
+if [[ $(command -v command) ]]
+then
+	alias 'which'='command -v'
+fi
+
+if [[ $(command -v curl) ]]
+then
+	alias 'header'='curl -I'
+fi
+
+if [[ $(command -v df) ]]
+then
+	alias 'df'='df -H'
+fi
+
+if [[ $(command -v du) ]]
+then
+	alias 'du'='du -a -c -h'
+fi
+
+if [[ $(command -v du) ]]
+then
+	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
+fi
+
+if [[ $(command -v echo) ]]
+then
+	alias 'where'='echo ${PWD}'
+fi
+
+if [[ $(command -v htop) ]]
+then
+	alias 'top'='rm -r -htop'
+fi
+
+if [[ $(command -v htop) ]]
+then
+	alias 'process'='htop -s USER -t'
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countd'="echo $(find ${PWD} -maxdepth 1 -type d | wc -l) directories under ${PWD}"
+fi
+
+if [[ $(command -v find) && $(command -v wc) ]]
+then
+	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
+fi
+
+if [[ $(command -v ls) ]]
+then
+	alias last='echo ; ls -a -h -l -t | head -11 ; echo'
+	fi
+
+if [[ $(command -v mount) && $(command -v column) ]]
+then
+	alias 'mounts'='mount | column -t'
+fi
+
+if [[ $(command -v nano) ]]
+then
+	alias 'edit'='nano -c -g -i -l -m -q -D -F -J 80 -T 4'
+fi
+
+if [[ $(command -v netstat) ]]
+then
+	alias 'ports'='netstat -t -u -l -a -n -p 2> /dev/null'
+fi
+
+if [[ $(command -v pgrep) ]]
+then
+	alias 'pgrep'='pgrep -f'
+fi
+
+if [[ $(command -v pstree) ]]
+then
+	alias 'ptree'='pstree -C age -p'
+fi
+
+if [[ $(command -v ping) ]]
+then
+	alias 'sonar'='ping -c 5'
+fi
+
+if [[ $(command -v ps) ]]
+then
+	alias 'what'='ps -e'
+fi
+
+if [[ $(command -v ps) ]]
+then
+	alias 'how'='ps -u'
+fi
+
+if [[ $(command -v rm) ]]
+then
+	alias 'delete'='rm -r -f'
+fi
+
+if [[ $(command -v rsync) ]]
+then
+	alias 'archive'='rsync -a -r -q --progress -h'
+fi
+if [[ $(command -v cp) ]]
+then
+	alias 'copy'='cp -r -f'
+fi
+
+if [[ $(command -v shutdown) ]]
+then
+	alias 'shutdown'='shutdown -h now'
+fi
+
+if [[ $(command -v sudo) ]]
+then
+	alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
+fi
+
+if [[ $(command -v wget) ]]
+then
+	alias 'wget'='wget -c'
+fi
+
+if [[ $(command -v tree) ]]
+then
+	alias 'treed'='tree -a -d -p -L'
+fi
+
+if [[ $(command -v tree) ]]
+then
+	alias 'treef'='tree -a -p -L'
+fi
+
+if [[ $(command -v rm) ]]
+then
+	alias 'delete'='rm -r -f'
+fi
+
+# ai ///////////////////////////////////////////////////////////////////////////
+
+if [ "$(command -v ollama)" ]
+then
+	ollama_model=$(ollama list | grep llama | cut -d ':' -f 1)
+
+	if [ -n "${ollama_model}" ]
+	then
+		alias 'llama'="ollama run ${ollama_model}"
+	fi
+
+	if [ -d /usr/share/ollama/.ollama/models/manifests/registry.ollama.ai/library/ada ]
+	then
+		alias 'ada'='ollama run ada'
+	fi
+fi
+
+# pip / pipx ///////////////////////////////////////////////////////////////////
+
+if [ "$(command -v pipx)" ]
+then
+	alias 'pipx'="pipx --global ${@}"
+fi
+
+# dextop ///////////////////////////////////////////////////////////////////////
+
+if [ -n "${TERMUX_VERSION}" ]
+then
+	if [ "$(command -v dextop)" ]
+	then
+		alias 'daa'='bash dextop -u additions all'
+
+		alias 'dda'='bash dextop -u all'
+
+		alias 'ddu'='curl -s -L run.dxtp.app > "${HOME}"/.local/bin/dextop'
+
+		alias 'dfa'='curl -s -L run.dxtp.app > "${HOME}"/.local/bin/dextop && bash dextop -u all'
+
+		alias 'dpa'='bash dextop -u preferences all'
+
+		alias 'dsa'='bash dextop -u shell all'
+
+		alias 'dta'='bash dextop -u termux all'
+
+		alias 'dua'='bash dextop -u utility all'
+	fi
+
+	if [ "$(command -v am)" ]
+	then
+		alias {'dextop-mail','email','mail'}='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
+
+		alias {'dextop-browser','browser','link','web'}='am start --user 0 -a android.intent.action.VIEW -d https: > /dev/null 2>&1'
+
+		alias {'dextop-message','message','text','sms'}='am start --user 0 -a android.intent.action.VIEW -d sms: > /dev/null 2>&1'
+
+		alias {'dextop-files','file'}='am start --user 0 -a android.intent.action.VIEW -d file: > /dev/null 2>&1'
+	fi
+fi

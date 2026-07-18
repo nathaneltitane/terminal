@@ -1,0 +1,221 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	gsettings
+	zenity
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+cat <<- 'FILE' > /usr/bin/wallpaper-selector
+#!/bin/bash
+
+# wallpaper selector #
+
+rgb_to_hex () {
+
+	IFS='(,)'
+
+	read _ r g b <<< "${1}"
+
+	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+}
+
+hex_to_rgb () {
+
+	read hex <<< "${1}"
+
+	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
+
+	r=$((16#${hex:0:2}))
+	g=$((16#${hex:2:2}))
+	b=$((16#${hex:4:2}))
+
+	printf '%03d %03d %03d\n' ${r} ${g} ${b}
+}
+
+default_color="333333"
+
+color_input="$(zenity --color-selection --color="${default_color}" --show-palette)"
+color_selection=$(rgb_to_hex "${color_input}")
+
+if [ ! -z "${color_input}" ]
+then
+	color="#${color_selection}"
+else
+	color="#${default_color}"
+fi
+
+# desktop #
+
+gsettings set org.gnome.desktop.background primary-color "{$color}"
+gsettings set org.gnome.desktop.background secondary-color "{$color}"
+gsettings set org.gnome.desktop.background picture-uri "''"
+
+# lockscreen #
+
+gsettings set org.gnome.desktop.screensaver primary-color "{$color}"
+gsettings set org.gnome.desktop.screensaver secondary-color "{$color}"
+gsettings set org.gnome.desktop.screensaver picture-uri "''"
+
+# login screen #
+
+gsettings set org.gnome.desktop.background primary-color "{$color}"
+gsettings set org.gnome.desktop.background secondary-color "{$color}"
+gsettings set org.gnome.desktop.background picture-uri "''"
+
+	unset picture_option
+
+	picture_option+="zenity"
+	picture_option+=" --title='Select a picture option'"
+	picture_option+=" --width=300"
+	picture_option+=" --height=250"
+	picture_option+=" --text='Specify an image layout option'"
+	picture_option+=" --list"
+	picture_option+=" --radiolist"
+	picture_option+=" --column=Selection"
+	picture_option+=" TRUE"
+	picture_option+=" FALSE"
+	picture_option+=" FALSE"
+	picture_option+=" FALSE"
+	picture_option+=" FALSE"
+	picture_option+=" FALSE"
+	picture_option+=" --column=Option"
+	picture_option+=" wallpaper"
+	picture_option+=" center"
+	picture_option+=" scaled"
+	picture_option+=" stretched"
+	picture_option+=" zoom"
+	picture_option+=" spanned"
+
+	${picture_option} 2> /dev/null
+
+picture_uri+="zenity"
+picture_uri+=" --file-selection"
+picture_uri+=" --separator=$'\n'"
+picture_uri+=" --title='Select a Directory'"
+
+${picture_uri} 2> /dev/null
+
+# desktop #
+
+gsettings set org.gnome.desktop.background picture-options "$picture_option"
+gsettings set org.gnome.desktop.background picture-uri "file:///$picture_uri"
+
+
+# lockscreen #
+
+gsettings set org.gnome.desktop.screensaver picture-options "$picture_option"
+gsettings set org.gnome.desktop.screensaver picture-uri "file:///$picture_uri"
+
+
+# login screen #
+
+sudo su gdm -s /bin/bash << FILE
+gsettings set org.gnome.desktop.background picture-options "$picture_option"
+gsettings set org.gnome.desktop.background picture-uri "file:///$picture_uri"
+
+FILE
+
+sudo chmod +x /usr/bin/wallpaper-selector
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/wallpaper-selector.desktop
+[Desktop Entry]
+Name=Wallpaper Selector
+Comment=Select and configure desktop and lock screen background wallpapers
+Exec=/usr/bin/wallpaper-selector
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

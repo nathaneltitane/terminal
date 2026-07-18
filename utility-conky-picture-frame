@@ -1,0 +1,156 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# variables ////////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	conky
+	convert
+	zenity
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+alignment="top_left"
+font_size="8"
+gap_x="10"
+gap_y="10"
+size_x="512"
+size_y="512"
+width="$size_x"
+
+if [ ! -d "${HOME}"/.config/conky-picture-frame ]
+then
+	mkdir -p "${HOME}"/.config/conky-picture-frame
+fi
+
+cat <<- FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
+# conky picture frame #
+
+alignment $alignment
+background yes
+default_color CCCCCC
+double_buffer yes
+gap_x $gap_x
+gap_y $gap_y
+imlib_cache_size 0
+maximum_width 0
+minimum_size $size_x $size_y
+no_buffers no
+override_utf8_locale yes
+own_window yes
+own_window_argb_value 255
+own_window_argb_visual no
+own_window_colour grey
+own_window_hints below,skip_pager,skip_taskbar,sticky,undecorated
+own_window_transparent no
+own_window_type normal
+total_run_times 0
+uppercase no
+use_xft yes
+xftalpha 1.0
+xftfont Sans:size=$font_size:normal
+
+TEXT
+\${image .picture.png}
+FILE
+
+chmod -R 777 "${HOME}"/.config/conky-picture-frame
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/conky-picture-frame.desktop
+[Desktop Entry]
+Name=Conky Picture Frame
+Comment=Highly configurable system monitor
+Exec=sh -c "conky -c /home/${SUDO_USER:-$USER}/.config/conky-picture-frame/conky-picture-framerc"
+Icon=conky
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
+FILE

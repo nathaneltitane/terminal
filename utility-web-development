@@ -1,0 +1,213 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="03-10-2023"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+web_development_directory=/var/www
+
+process="apache2"
+service="${process}.service"
+
+web="www"
+hostname="${HOSTNAME}"
+
+ip=$(hostname -I | awk '{print $1}')
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	apache2
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# sites
+
+list=(
+	mechablocks
+)
+
+for item in ${list[@]}
+do
+	frobulator.directory "${web_development_directory}" "${item}"
+
+	cat <<- FILE > /etc/apache2/sites-available/"${item}".conf
+	<VirtualHost *:80>
+		ServerName ${item}.local
+		DocumentRoot /var/www/${item}/
+
+		<Directory "/var/www/${item}/">
+			Options None
+			AllowOverride None
+			Order allow,deny
+			Allow from all
+		</Directory>
+
+		ErrorLog /var/log/${item}-error.log
+		CustomLog /var/log/${item}-access.log combined
+	</VirtualHost>
+	FILE
+
+	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
+	then
+		frobulator.scs "Configuration validation success" "[ ${item} ]"
+		echo
+	elif [[ $(a2ensite "${item}".conf | grep -e "error") ]]
+	then
+		frobulator.err "Configuration validation failed" "[ ${item} ]"
+		echo
+
+		exit 1
+	fi
+
+	cat <<- FILE >> /etc/hosts
+	127.0.0.1		${item}.local
+	FILE
+
+	frobulator.inf "Setting ownership"
+	echo
+
+	chmod -R 755 "${web_development_directory}"/"${item}"
+
+	chown -R "${USER}":"${USER}" "${web_development_directory}"/"${item}"
+
+done
+
+list=()
+
+# service activation
+
+if [[ $(systemctl status "${service}"  | grep -e "active.*running") ]]
+then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
+
+	service_actions_list=(
+		disable
+		stop
+	)
+fi
+
+service_actions_list+=(
+	enable
+	start
+)
+
+for service_action in ${service_actions_list[@]}
+do
+	systemctl "${service_action}" "${service}" > "${sink}" 2>&1 &
+
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
+
+	sleep 1
+
+	systemctl daemon-reload > "${sink}" 2>&1 &
+
+	frobulator.process "Reloading"
+
+	sleep 1
+done
+
+service_actions_list=()
+
+# service process verification
+
+if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.scs "Service activation success" "[ ${service} ]"
+	echo
+
+elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
+then
+	frobulator.err "Service activation failed" "[ ${service} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.scs "Done"
+echo

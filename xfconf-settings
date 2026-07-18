@@ -1,0 +1,221 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="09-23-2022"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+settings_file="${1}"
+
+if [[ $# -lt 1 ]]
+then
+	echo
+	echo "Usage: ${script} [SETTINGS FILE] | [OPTION]"
+	echo
+
+	exit 1
+fi
+
+# variables ////////////////////////////////////////////////////////////////////
+
+stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	xfconf-query
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# read settings
+
+frobulator.inf "Generating" "[ ${settings_file} ]"
+echo
+
+xfconf-query -l | sed '/Channel.*/d' | while read channel
+do
+	xfconf-query -l -v -c "${channel}" | while read property setting
+	do
+		# provide data type:
+		# needs to be researched before making a new .xfconf file
+		# “bool”   - boolean value: either 'true'or 'false'
+		# “int”    - 32-bit signed integer value, in the range from -2·147·483·648 through 2·147·483·647
+		# “uint”   - 32-bit unsigned integer value, in the range from 0 through 4·294·967·295
+		# “int64”  - 64-bit signed integer value, in the range from -9·223·372·036·854·775·808 through 9·223·372·036·854·775·807
+		# “uint64” - 64-bit unsigned integer value, in the range from 0 through 18·446·744·073·709·551·615
+		# “double” - presumably a double-precision floating-point value, even though it will be stored as a fixed-point value instead, with six decimal places following the decimal point
+		# “string” - character string
+
+		# parse data types
+
+		if [[ ${setting} = true ]] || [[ ${setting} = false ]]
+		then
+			type=bool
+
+		elif [[ ${setting} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
+		then
+			type=double
+
+		elif [[ ${setting} =~ ^[0-9]+$ ]]
+		then
+			type=int
+
+		else
+			type=string
+		fi
+
+		if [[ ${channel} = "displays"               ]] || \
+		   [[ ${channel} = "xfce4-session"          ]] || \
+		   [[ ${channel} = "xfce4-settings-editor"  ]] || \
+		   [[ ${channel} = "xfce4-settings-manager" ]]
+		then
+			:
+		else
+			echo "xfconf-query --create -c '${channel}' -p '${property}' -t ${type} -s '${setting}'"
+		fi
+	done
+
+done > "${settings_file}"
+
+# fix 'UNSUPPORTED' values:
+# write essential values back into settings file
+
+# add 'xfce4-appfinder' actions string
+
+echo "xfconf-query --create -c 'xfce4-appfinder' -p '/actions' -t string -s ''" >> "${settings_file}"
+
+# add workspace background settings
+
+for rgba_number in {1..2}
+do
+	for workspace_number in {0..8}
+	do
+		value="1.0"
+
+		r="${value}"
+		g="${value}"
+		b="${value}"
+		a="${value}"
+
+			unset command
+
+		command+="xfconf-query --create"
+		command+=" -c 'xfce4-desktop'"
+		command+=" -p '/backdrop/screen0/monitorVNC-0/workspace${workspace_number}/rgba${rgba_number}'"
+		command+=" -t double -s '${r}'"
+		command+=" -t double -s '${g}'"
+		command+=" -t double -s '${b}'"
+		command+=" -t double -s '${a}'"
+
+		echo ${command} >> "${settings_file}"
+	done
+done
+
+# add workspace name settings
+
+unset command
+
+command+="xfconf-query --create"
+command+=" -c 'xfwm4'"
+command+=" -p '/general/workspace_names'"
+
+for workspace_number in {1..9}
+do
+	command+=" -t string -s 'Workspace 0${workspace_number}'"
+done
+
+echo ${command} >> "${settings_file}"
+
+# add keyboard-shortcut providers
+
+unset command
+
+command+="xfconf-query --create"
+command+=" -c 'xfce4-keyboard-shortcuts'"
+command+=" -p '/providers'"
+command+=" -t string -s 'xfwm4'"
+command+=" -t string -s 'commands'"
+
+echo ${command} >> "${settings_file}"
+
+echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
+
+frobulator.scs "Done."
+echo
+
+frobulator.msg "Use newly generated settings file as follows:"
+frobulator.msg "'bash <settings_file>'"
+echo

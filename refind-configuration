@@ -1,0 +1,4 @@
+timeout   5
+use_nvram false
+showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
+include   themes/theme.conf

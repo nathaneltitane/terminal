@@ -1,0 +1,165 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-12-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+application="leocad"
+source="https://github.com/leozide/leocad.git"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list+=(
+	git
+	hub
+	g++
+	make
+	zip
+	zlib1g-dev
+	leocad
+	libqt5concurrent5
+	libqt5opengl5
+	libqt5opengl5-dev
+	libqt5printsupport5
+	libqt5xml5
+	qtbase5-dev
+	qttools5-dev
+	qttools5-dev-tools
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+frobulator.temporary build_directory
+
+build_directory=${frobulator_return[@]}
+
+frobulator.trap "${build_directory}"
+
+# get source code
+
+command_clone="git clone --quiet"
+
+frobulator.silence "${command_clone} ${source} ${build_directory}" &
+
+frobulator.progress "clone"
+
+cd "${build_directory}"
+
+# compile project
+
+frobulator.silence "qmake ${application}.pro"
+
+# compile binary
+
+command_build="make -j$(nproc)"
+
+frobulator.log "${command_build}" &
+
+frobulator.progress "build"
+
+# update binary
+
+frobulator.complete "build"
+
+frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
+
+# generate launcher
+
+cat <<- 'FILE' > /usr/share/applications/leocad.desktop
+[Desktop Entry]
+Name=LeoCAD
+Comment=LDraw model editor
+Exec=leocad %f
+Terminal=false
+Type=Application
+Icon=leocad
+MimeType=application/vnd.leocad;application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;application/x-ldlite;
+Categories=Graphics;3DGraphics;
+Keywords=CAD;LEGO;LDraw;
+FILE
+
+frobulator.scs "Done"
+echo

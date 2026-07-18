@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="01-10-2023"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+# variables ////////////////////////////////////////////////////////////////////
+
+docker_image_name="pihole"
+docker_image_address="192.168.86.13"
+docker_image_base="/var"
+docker_image_container="docker"
+docker_image_directory="${docker_image_base}"/"${docker_image_container}"/"${docker_image_name}"
+docker_image_password=$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
+docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
+docker_image_id=$(docker container ls --all --quiet --filter "name=${docker_image_name}")
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	docker
+	docker-clean
+	docker-compose
+	docker-registry
+	docker.io
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [[ ! -d "${docker_image_directory}" ]]
+then
+	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+else
+	frobulator.log "docker stop ${docker_image_name}"
+	frobulator.log "docker rm -f ${docker_image_name}"
+
+	frobulator.delete "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+
+	wait
+
+	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+fi
+
+frobulator.inf "Deploying" "[ ${docker_image_name} ]"
+echo
+
+frobulator.fwd "Deploying..."
+echo
+
+docker run																					\
+	--detach																				\
+	--name "${docker_image_name}"															\
+	--dns=127.0.0.1																			\
+	--dns=1.1.1.1																			\
+	--restart=unless-stopped																\
+	--hostname "${docker_image_name}"														\
+	-p 53:53/tcp																			\
+	-p 53:53/udp																			\
+	-p 80:80																				\
+	-v "${docker_image_directory}/etc-${docker_image_name}:/etc/${docker_image_name}"		\
+	-v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
+	-e tz="america/toronto"																	\
+	-e virtual_host="${docker_image_name}"													\
+	-e proxy_location="${docker_image_name}"												\
+	-e ftlconf_local_ipv4="${docker_image_address}"											\
+																							"${docker_image_source}" > /dev/null 2>&1
+
+wait
+
+frobulator.write "${docker_image_password}" "${docker_image_directory}" password
+
+frobulator.inf "Image ID" "[ ${docker_image_id} ]"
+echo
+
+frobulator.inf "Password" "[ ${docker_image_password} ]"
+echo
+
+frobulator.scs "Done."

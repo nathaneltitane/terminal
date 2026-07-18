@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-13-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	openssh*
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+frobulator.silence "service ssh restart" &
+
+frobulator.process "Starting service"
+
+# authorized keys file check
+
+frobulator.fwd "Copying keys..."
+echo
+
+if [ -f "${PREFIX}"/media/internal/.ssh/authorized_keys ]
+then
+	:
+else
+	frobulator.file "${PREFIX}"/media/internal/.ssh authorized_keys
+fi
+
+if [ -f "${PREFIX}"/media/internal/.ssh/sshd_config ]
+then
+	cp "${PREFIX}"/media/internal/.ssh/sshd_config "${PREFIX}"/etc/ssh/sshd_config
+fi
+
+if [ -d "${HOME}"/.ssh ]
+then
+	rm						\
+			--recursive		\
+			--force 		"${HOME}"/.ssh
+
+	cp 						\
+			--recursive		\
+			--force			"${PREFIX}"/media/internal/.ssh "${HOME}"/.ssh
+
+else
+	cp 						\
+			--recursive		\
+			--force			"${PREFIX}"/media/internal/.ssh "${HOME}"/.ssh
+fi
+
+# set permissions
+
+frobulator.fwd "Setting permissions..."
+echo
+
+list=(
+	"${HOME}"/.ssh
+	"${PREFIX}"/media/internal/.ssh
+)
+
+for directory in ${directories_list[@]}
+do
+	# ownership
+
+	sudo chown "${USER}" "${directory}"
+	sudo chown "${USER}" "${directory}"/*
+	sudo chown "${USER}" "${directory}"/.keys/
+	sudo chown "${USER}" "${directory}"/.keys/*
+
+	# permissions
+
+	sudo chmod 700 "${directory}"
+	sudo chmod 755 "${directory}"/known_hosts
+	sudo chmod 400 "${directory}"/.keys/*
+	sudo chmod 600 "${directory}"/config
+	sudo chmod 600 "${directory}"/authorized_keys
+done
+
+list=()

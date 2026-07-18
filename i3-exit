@@ -1,0 +1,28 @@
+#!/bin/bash
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+separator=" // "
+font_name="Monospace"
+font_size=10
+font="${font_name}:size=${font_size}"
+
+lines=15
+prompt="EXIT SESSION?"
+
+while [ "${selection}" != "CANCEL" -a "${selection}" != "LOGOUT" -a "${selection}" != "POWEROFF" -a "${selection}" != "REBOOT" ]
+do
+	selection=$(echo -e 'CANCEL\nLOGOUT' | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+
+	[ -z "${selection}" ] && exit
+done
+
+if [ "${selection}" = "CANCEL" ]
+then
+	exit
+fi
+
+if [ "${selection}" = "LOGOUT" ]
+then
+	i3-msg exit
+fi

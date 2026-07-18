@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+
+separator=" // "
+font_name="Monospace"
+font_size=10
+font="${font_name}:size=${font_size}"
+
+lines=30
+prompt="TYPE TO SEARCH - SELECT TO TERMINATE${separator}"
+
+selection="$(ps all | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
+
+if [[ ! -z "${selection}" ]]
+then
+	prompt="SELECTION >>> ${selection} // TERMINATE?"
+
+    answer="$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+
+    if [[ "${answer}" == "YES" ]]
+    then
+        process_selection="$(awk '{print $1}' <<< "${selection}")"
+
+        kill -9 "${process_selection}"
+    fi
+fi
