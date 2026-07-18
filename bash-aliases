@@ -650,7 +650,7 @@ fi
 
 if [ "$(command -v pipx)" ]
 then
-	alias 'pipx'="pipx --global"
+	alias 'pipx'="pipx --global ${@}"
 fi
 
 # dextop ///////////////////////////////////////////////////////////////////////
