@@ -478,11 +478,11 @@ then
 
 	if [ "${operation}" = "add" ]
 	then
-		frobulator.ask "Proceed with adding ${count_differential} files?"
+		frobulator.ask "Proceed with addition?"
 
 	elif [ "${operation}" = "remove" ]
 	then
-		frobulator.ask "Proceed with removing ${count_differential} files?"
+		frobulator.ask "Proceed with removal?"
 	fi
 
 	frobulator.read reply
