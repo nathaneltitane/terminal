@@ -565,3 +565,5 @@ fi
 # cleanup
 
 frobulator.delete "${temporary}"
+
+frobbulator.scs "Done"
