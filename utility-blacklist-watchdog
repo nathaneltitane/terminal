@@ -1,0 +1,178 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER}"
+
+	HOME=/home/"${USER}"
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	yes | apt-get install curl
+fi
+
+if [ ! -d "${HOME}"/.local/bin ]
+then
+	mkdir -p "${HOME}"/.local/bin
+fi
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+
+version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+
+date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+
+if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+if [ ! -f "${frobulator}" ]
+then
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-18-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+blacklist_directory="/etc/modprobe.d"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	awk
+	grep
+	lsmod
+	update-initramfs
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# extract loaded watchdog module
+
+module=$(
+
+	lsmod |
+	awk '
+		tolower($1) ~ /(wdt$|tco$|^softdog$|watchdog)/ &&
+		tolower($1) != "watchdog" {
+			print $1
+			exit
+		}
+	'
+
+)
+
+# validate the module
+
+if [ -z "${module}" ]
+then
+	frobulator.err "No watchdog module found." "[ ${module} ]"
+	echo
+
+	exit 1
+fi
+
+module_label="${module,,}"
+
+module_label="${module/_/-}"
+
+blacklist_file="${module_label}-blacklist.conf"
+
+blacklist_entry="${blacklist_directory}/${blacklist_file}"
+
+# display the detected module
+
+frobulator.inf "Watchdog module" "[ ${module} ]"
+echo
+
+# avoid duplicate blacklist entries
+
+if [ -n "$(grep -F -x "blacklist ${module}" "${blacklist_entry}" 2> "${sink}")" ]
+then
+	frobulator.fwd "Module already blacklisted" "[ ${module} ]"
+	echo
+
+	exit 0
+fi
+
+# blacklist module
+
+echo "blacklist ${module}" > "${blacklist_entry}"
+
+frobulator.inf "Module blacklisted" "[ ${module} ]"
+echo
+
+# rebuild the initramfs
+
+frobulator.silence "update-initramfs -u" &
+
+frobulator.progress "Rebuilding" "[ initramfs ]"
+
+if [ "$?" -ne 0 ]
+then
+	frobulator.err "Failed to rebuild initramfs."
+	echo
+
+	exit 1
+fi
+
+frobulator.inf "Watchdog disabled."
+echo
+
+frobulator.wrn "Change takes effect after next reboot."
+echo
+
+frobulator.scs "Done."
