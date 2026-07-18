@@ -566,4 +566,4 @@ fi
 
 frobulator.delete "${temporary}"
 
-frobbulator.scs "Done"
+frobulator.scs "Done"
