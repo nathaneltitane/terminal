@@ -115,11 +115,11 @@ module=$(
 
 )
 
-# validate the module
+# validate module
 
 if [ -z "${module}" ]
 then
-	frobulator.err "No watchdog module found." "[ ${module} ]"
+	frobulator.err "No watchdog module found." "[ ${module_label} ]"
 	echo
 
 	exit 1
@@ -127,7 +127,7 @@ fi
 
 module_label="${module,,}"
 
-module_label="${module/_/-}"
+module_label="${module_label//_/-}"
 
 blacklist_file="${module_label}-blacklist.conf"
 
@@ -135,14 +135,14 @@ blacklist_entry="${blacklist_directory}/${blacklist_file}"
 
 # display the detected module
 
-frobulator.inf "Watchdog module" "[ ${module} ]"
+frobulator.inf "Watchdog module" "[ ${module_label} ]"
 echo
 
 # avoid duplicate blacklist entries
 
 if [ -n "$(grep -F -x "blacklist ${module}" "${blacklist_entry}" 2> "${sink}")" ]
 then
-	frobulator.fwd "Module already blacklisted" "[ ${module} ]"
+	frobulator.fwd "Module already blacklisted" "[ ${module_label} ]"
 	echo
 
 	exit 0
@@ -152,14 +152,14 @@ fi
 
 echo "blacklist ${module}" > "${blacklist_entry}"
 
-frobulator.inf "Module blacklisted" "[ ${module} ]"
+frobulator.inf "Module blacklisted" "[ ${module_label} ]"
 echo
 
 # rebuild the initramfs
 
 frobulator.silence "update-initramfs -u" &
 
-frobulator.progress "Rebuilding" "[ initramfs ]"
+frobulator.progress rebuild "[ initramfs ]"
 
 if [ "$?" -ne 0 ]
 then
