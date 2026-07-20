@@ -981,24 +981,47 @@ weather () {
 
 }
 
-# youtube //////////////////////////////////////////////////////////////////////
+# media ////////////////////////////////////////////////////////////////////////
 
-youtube-audio () {
+media () {
 
-	if [[ -z $(command -v yt-dlp) ]]
+	local type="${1}"
+	local source="${2}"
+	local path="${3}"
+	local path_binary="${HOME}/.local/bin"
+	local archive
+	local file
+	local files
+	local directory
+	local name_source
+	local name_target
+	local browser
+	local duration_sleep
+	local format
+	local media_format
+	local -a type_options=()
+	local -a url_options=()
+	local -a site_options=()
+
+	if [ -z "${type}" ]
 	then
-		frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp
+		frobulator.err "No type specified" "[ audio | video ]"
+		echo
+
+		return 1
 	fi
 
-	frobulator.silence "${HOME}"/.local/bin/yt-dlp --update
+	if [ "${type}" != "audio" ] && [ "${type}" != "video" ]
+	then
+		frobulator.err "Invalid type" "[ ${type} ]"
+		echo
 
-	source="${1}"
-
-	path="${2}"
+		return 1
+	fi
 
 	if [ -z "${source}" ]
 	then
-		frobulator.err "No source provided"
+		frobulator.err "No source specified"
 		echo
 
 		return 1
@@ -1009,86 +1032,131 @@ youtube-audio () {
 		path="${PWD}"
 	fi
 
-	if [ -d "${path}" ]
+	if [ ! -d "${path}" ]
 	then
-		cd "${path}" || return 1
+		path="${PWD}"
+	fi
+
+	if [ ! -f "${path_binary}/yt-dlp" ]
+	then
+		frobulator.download "https://github.com/yt-dlp/yt-dlp/releases/latest/download" "${path_binary}" "yt-dlp"
 	else
-		frobulator.err "Output path does not exist"
+		frobulator.silence "${path_binary}/yt-dlp --update"
+	fi
+
+	if [ ! -x "${path_binary}/yt-dlp" ]
+	then
+		frobulator.err "Downloader unavailable" "[ yt-dlp ]"
 		echo
 
 		return 1
 	fi
 
-	duration_sleep=$(( RANDOM % ( 5 - 1 + 1 ) + 1 ))
-
-	solver="deno"
-
-	if [[ -z $(command -v "${solver}") ]]
+	if [ ! -f "${path_binary}/deno" ]
 	then
-		frobulator.require "${solver}"
+		archive="deno-x86_64-unknown-linux-gnu.zip"
+
+		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${path_binary}" "${archive}"
+
+		unzip -o -q "${path_binary}/${archive}" -d "${path_binary}"
+
+		rm -f "${path_binary}/${archive}"
+
+		chmod +x "${path_binary}/deno"
+	else
+		frobulator.silence "${path_binary}/deno upgrade"
 	fi
 
-	runtime_javascript="${solver}:$(command -v "${solver}")"
-
-	format="bestaudio"
-	audio_format="mp3"
-	audio_quality="best"
-
-	browser=$(
-		xdg-settings get default-web-browser 2>"${sink:-/dev/null}"
-	)
-
-	browser=${browser%.desktop}
-
-	if [[ "${browser}" = firefox*   ]] ||
-	   [[ "${browser}" = librewolf* ]] ||
-	   [[ "${browser}" = waterfox*  ]]
+	if [ ! -x "${path_binary}/deno" ]
 	then
-		browser="firefox"
-
-	elif [[ "${browser}" = chrome*        ]] ||
-	     [[ "${browser}" = google-chrome* ]] ||
-	     [[ "${browser}" = chromium*      ]] ||
-	     [[ "${browser}" = brave*         ]] ||
-	     [[ "${browser}" = vivaldi*       ]] ||
-	     [[ "${browser}" = opera*         ]]
-	then
-		browser="chrome"
-
-	else
-		frobulator.err "No compatible browser found on system"
+		frobulator.err "Solver unavailable" "[ deno ]"
 		echo
 
 		return 1
 	fi
 
-	url_options=()
+	if [ "${type}" = "audio" ]
+	then
+		format="bestaudio"
+		media_format="mp3"
+
+		type_options+=( --extract-audio )
+		type_options+=( --audio-format "${media_format}" )
+		type_options+=( --audio-quality best )
+		type_options+=( --output '%(uploader)s - %(title)s.%(ext)s' )
+
+	elif [ "${type}" = "video" ]
+	then
+		format="bestvideo+bestaudio"
+		media_format="mp4"
+
+		type_options+=( --merge-output-format "${media_format}" )
+		type_options+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
+	fi
 
 	if [ -f "${source}" ]
 	then
 		url_options+=( --batch-file )
 	fi
 
-	"${HOME}"/.local/bin/yt-dlp											\
-		--quiet															\
-		--no-update														\
-		--ignore-errors													\
-		--no-overwrites													\
-		--js-runtimes			"${runtime_javascript}"					\
-		--cookies-from-browser	"${browser}"							\
-		--sleep-requests		"${duration_sleep}"						\
-		--yes-playlist													\
-		--extract-audio													\
-		--format				"${format}"								\
-		--audio-format			"${audio_format}"						\
-		--audio-quality			"${audio_quality}"						\
-		--output				'%(uploader)s - %(title)s.%(ext)s'		\
-		"${url_options[@]}"												\
-																		"${source}"
+	case "${source}" in
 
-	files=$(
-		find "${PWD}" -type f -iname "*.${audio_format}"
-	)
+		*soundcloud.com*)
+			;;
+
+		*)
+			browser="$(xdg-settings get default-web-browser 2>"${sink}")"
+
+			browser="${browser%.desktop}"
+
+			if [[ "${browser}" = firefox*   ]] ||
+			   [[ "${browser}" = librewolf* ]] ||
+			   [[ "${browser}" = waterfox*  ]]
+			then
+				browser="firefox"
+
+			elif [[ "${browser}" = chrome*        ]] ||
+			     [[ "${browser}" = google-chrome* ]] ||
+			     [[ "${browser}" = chromium*      ]] ||
+			     [[ "${browser}" = brave*         ]] ||
+			     [[ "${browser}" = vivaldi*       ]] ||
+			     [[ "${browser}" = opera*         ]]
+			then
+				browser="chrome"
+
+			else
+				frobulator.err "No compatible browser found on system"
+				echo
+
+				return 1
+			fi
+
+			site_options+=( --cookies-from-browser "${browser}" )
+			;;
+
+	esac
+
+	cd "${path}"
+
+	duration_sleep=$(( RANDOM % 5 + 1 ))
+
+	"${path_binary}/yt-dlp"									\
+		--remote-components		"ejs:github"				\
+		--js-runtimes			"deno:${path_binary}/deno"	\
+		--ffmpeg-location		"/usr/bin/ffmpeg"			\
+		--quiet												\
+		--no-update											\
+		--ignore-errors										\
+		--no-overwrites										\
+		--sleep-requests		"${duration_sleep}"			\
+		--yes-playlist										\
+		--format				"${format}"					\
+		"${site_options[@]}"								\
+		"${type_options[@]}"								\
+		"${url_options[@]}"									\
+		"${source}"
+
+	files="$(find "${PWD}" -type f -iname "*.${media_format}")"
 
 	IFS=$'\n'
 
@@ -1106,66 +1174,6 @@ youtube-audio () {
 	done
 
 	unset IFS
-
-}
-
-youtube-video () {
-
-	if [[ -z $(command -v yt-dlp) ]]
-	then
-		(frobulator.download get.trmnl.me "${HOME}"/.local/bin yt-dlp)
-	fi
-
-	frobulator.silence "${HOME}/.local/bin/yt-dlp --update"
-
-	source="${1}"
-	path="${2}"
-
-	if [ -z "${path}" ]
-	then
-		path="${PWD}"
-	fi
-
-	if [ -d "${path}" ]
-	then
-		cd "${path}"
-	else
-		exit 1
-	fi
-
-	format="bestvideo+bestaudio"
-	video_format="mp4"
-
-	if [ -f "${source}" ]
-	then
-		url_option='--batch-file'
-	else
-		url_option=''
-	fi
-
-	"${HOME}"/.local/bin/yt-dlp																	\
-		--ignore-errors																			\
-		--yes-playlist																			\
-		--format				"${format}"														\
-		--merge-output-format	"${video_format}"												\
-		--output			'%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'	\
-																								\
-		${url_option}																			\
-																								"${source}"
-
-	find "${PWD}" -type f -iname "*.${audio_format}" | while IFS= read -r file
-	do
-		directory="${file%/*}"
-		source="${file##*/}"
-
-		target="${source// - Topic/}"
-
-		if [ "${source}" != "${target}" ]
-		then
-			mv -- "${file}" "${directory}/${target}"
-		fi
-	done
-
 }
 
 # find /////////////////////////////////////////////////////////////////////////
