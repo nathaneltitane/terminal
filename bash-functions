@@ -1214,7 +1214,7 @@ ssh () {
 
 	# destination is always the last argument
 
-	destination="${!#}"
+	destination=${!#}
 
 	echo -n -e "[  $(tput setaf 3)${destination}$(tput sgr 0)  ] >_ ? "
 
