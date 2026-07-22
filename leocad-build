@@ -169,4 +169,4 @@ Categories=Graphics;3DGraphics;
 Keywords=CAD;LEGO;LDraw;
 FILE
 
-frobulator.result "[ ${script} ]"
+frobulator.result "${script}"
