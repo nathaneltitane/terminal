@@ -53,30 +53,32 @@ fi
 
 # script ///////////////////////////////////////////////////////////////////////
 
-script="${BASH_SOURCE[0]}"
+script="$(basename -- ${BASH_SOURCE[0]})"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
+self="${BASH_SOURCE[0]}"
+
 # usage ////////////////////////////////////////////////////////////////////////
 
-if [[ "${script}" = "${0}" ]]
+if [[ "${self}" = "${0}" ]]
 then
 	# implement from local version
 
 	if [ $# -eq 0 ]
 	then
-		source "${BASH_SOURCE[0]}"
+		source "${self}"
 
 		return 0 2> "${sink}"
 
 		if [ "${?}" -ne 0 ]
 		then
-			frobulator.scs "Implemented" "[ ${PWD}/${script} ]"
+			frobulator.scs "Implemented" "[ ${PWD}/${self} ]"
 			echo
 		fi
 	fi
 
-	file_source="${script}"
+	file_source="${self}"
 
 	file_install="${file_source}"
 
