@@ -114,9 +114,13 @@ list=()
 
 frobulator.temporary build_directory
 
+frobulator.complete
+
 build_directory=${frobulator_return[@]}
 
 frobulator.trap "${build_directory}"
+
+frobulator.complete
 
 # get source code
 
@@ -125,6 +129,8 @@ command_clone="git clone --quiet"
 frobulator.silence "${command_clone} ${source} ${build_directory}" &
 
 frobulator.progress "clone"
+
+frobulator.complete
 
 cd "${build_directory}"
 
@@ -140,11 +146,13 @@ frobulator.log "${command_build}" &
 
 frobulator.progress "build"
 
+frobulator.complete
+
 # update binary
 
-frobulator.complete "build"
-
 frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
+
+frobulator.complete
 
 # generate launcher
 
@@ -161,5 +169,4 @@ Categories=Graphics;3DGraphics;
 Keywords=CAD;LEGO;LDraw;
 FILE
 
-frobulator.scs "Done"
-echo
+frobulator.result "[ ${script} ]"
