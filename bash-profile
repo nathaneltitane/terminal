@@ -61,10 +61,10 @@ then
 	then
 		source "${BASH_SOURCE[0]}"
 
-		if return 0 2> "${sink}"
+		return 0 2> "${sink}"
+
+		if [ "${?}" -ne 0 ]
 		then
-			:
-		else
 			frobulator.scs "Implemented" "[ ${PWD}/${BASH_SOURCE[0]} ]"
 			echo
 		fi
