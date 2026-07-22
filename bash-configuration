@@ -65,7 +65,7 @@ then
 		then
 			:
 		else
-			frobulator.scs "Implemented" "[ ${PWD}/${install_file} ]"
+			frobulator.scs "Implemented" "[ ${PWD}/${BASH_SOURCE[0]} ]"
 			echo
 		fi
 	fi
