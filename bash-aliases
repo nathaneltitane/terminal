@@ -51,9 +51,15 @@ fi
 
 . "${frobulator}"
 
+# script ///////////////////////////////////////////////////////////////////////
+
+script="${BASH_SOURCE[0]}"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
 # usage ////////////////////////////////////////////////////////////////////////
 
-if [[ "${BASH_SOURCE[0]}" = "${0}" ]]
+if [[ "${script}" = "${0}" ]]
 then
 	# implement from local version
 
@@ -65,10 +71,18 @@ then
 
 		if [ "${?}" -ne 0 ]
 		then
-			frobulator.scs "Implemented" "[ ${PWD}/${BASH_SOURCE[0]} ]"
+			frobulator.scs "Implemented" "[ ${PWD}/${script} ]"
 			echo
 		fi
 	fi
+
+	file_source="${script}"
+
+	file_install="${file_source}"
+
+	directory_install="${HOME}"/.local/bin
+
+	file_target="${directory_install}/${file_install}"
 
 	while (($#))
 	do
@@ -76,26 +90,20 @@ then
 
 			-i|--install)
 
-				install_file="bash-aliases"
-				install_directory="${HOME}"/.local/bin
-
-				source_file="${BASH_SOURCE[0]}"
-				target_file="${install_directory}/${install_file}"
-
-				if [ ! -d "${install_directory}" ]
+				if [ ! -d "${directory_install}" ]
 				then
-					mkdir -p "${install_directory}"
+					mkdir -p "${directory_install}"
 				fi
 
-				if [ "${source_file}" != "${target_file}" ]
+				if [ "${file_source}" != "${file_target}" ]
 				then
-					cp "${source_file}" "${target_file}"
+					cp "${file_source}" "${file_target}"
 
-					chmod a+rx "${target_file}"
+					chmod a+rx "${file_target}"
 
-					source "${target_file}"
+					source "${file_target}"
 
-					frobulator.scs "Installed" "[ ${target_file} ]"
+					frobulator.scs "Installed" "[ ${file_target} ]"
 
 					echo
 				fi
@@ -108,8 +116,8 @@ then
 				echo
 				echo "Options:"
 				echo
-				echo "	-i, --install    Install BASH aliases to ${install_directory}"
-				echo "	-h, --help       Show this help menu"
+				echo "	-i, --install    [I]nstall "${script}" to ${directory_install}"
+				echo "	-h, --help       Show this [h]elp menu"
 				echo
 
 				exit
