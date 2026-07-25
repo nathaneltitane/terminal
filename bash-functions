@@ -1160,7 +1160,9 @@ media () {
 		"${site_options[@]}"								\
 		"${type_options[@]}"								\
 		"${url_options[@]}"									\
-		"${source}"
+		"${source}" &
+
+	frobulator.progress download
 
 	files="$(find "${PWD}" -type f -iname "*.${media_format}")"
 
