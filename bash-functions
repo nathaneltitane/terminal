@@ -1004,7 +1004,7 @@ media () {
 	local browser
 	local duration_sleep
 	local format
-	local media_format
+	local format_media
 	local -a type_options=()
 	local -a url_options=()
 	local -a site_options=()
@@ -1084,19 +1084,19 @@ media () {
 	if [ "${type}" = "audio" ]
 	then
 		format="bestaudio"
-		media_format="mp3"
+		format_media="mp3"
 
 		type_options+=( --extract-audio )
-		type_options+=( --audio-format "${media_format}" )
+		type_options+=( --audio-format "${format_media}" )
 		type_options+=( --audio-quality best )
 		type_options+=( --output '%(uploader)s - %(title)s.%(ext)s' )
 
 	elif [ "${type}" = "video" ]
 	then
 		format="bestvideo+bestaudio"
-		media_format="mp4"
+		format_media="mp4"
 
-		type_options+=( --merge-output-format "${media_format}" )
+		type_options+=( --merge-output-format "${format_media}" )
 		type_options+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
 	fi
 
@@ -1164,7 +1164,7 @@ media () {
 
 	frobulator.progress download
 
-	files="$(find "${PWD}" -type f -iname "*.${media_format}")"
+	files="$(find "${PWD}" -type f -iname "*.${format_media}")"
 
 	IFS=$'\n'
 
