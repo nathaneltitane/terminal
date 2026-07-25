@@ -994,7 +994,7 @@ media () {
 	local type="${1}"
 	local source="${2}"
 	local path="${3}"
-	local path_binary="${HOME}/.local/bin"
+	local directory_binary="${HOME}/.local/bin"
 	local archive
 	local file
 	local files
@@ -1005,9 +1005,9 @@ media () {
 	local duration_sleep
 	local format
 	local format_media
-	local -a type_options=()
-	local -a url_options=()
-	local -a site_options=()
+	local -a options_type=()
+	local -a options_url=()
+	local -a options_site=()
 
 	if [ -z "${type}" ]
 	then
@@ -1043,14 +1043,14 @@ media () {
 		path="${PWD}"
 	fi
 
-	if [ ! -f "${path_binary}/yt-dlp" ]
+	if [ ! -f "${directory_binary}/yt-dlp" ]
 	then
-		frobulator.download "https://github.com/yt-dlp/yt-dlp/releases/latest/download" "${path_binary}" "yt-dlp"
+		frobulator.download "https://github.com/yt-dlp/yt-dlp/releases/latest/download" "${directory_binary}" "yt-dlp"
 	else
-		frobulator.silence "${path_binary}/yt-dlp --update"
+		frobulator.silence "${directory_binary}/yt-dlp --update"
 	fi
 
-	if [ ! -x "${path_binary}/yt-dlp" ]
+	if [ ! -x "${directory_binary}/yt-dlp" ]
 	then
 		frobulator.err "Downloader unavailable" "[ yt-dlp ]"
 		echo
@@ -1058,22 +1058,22 @@ media () {
 		return 1
 	fi
 
-	if [ ! -f "${path_binary}/deno" ]
+	if [ ! -f "${directory_binary}/deno" ]
 	then
 		archive="deno-x86_64-unknown-linux-gnu.zip"
 
-		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${path_binary}" "${archive}"
+		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${directory_binary}" "${archive}"
 
-		unzip -o -q "${path_binary}/${archive}" -d "${path_binary}"
+		unzip -o -q "${directory_binary}/${archive}" -d "${directory_binary}"
 
-		rm -f "${path_binary}/${archive}"
+		rm -f "${directory_binary}/${archive}"
 
-		chmod +x "${path_binary}/deno"
+		chmod +x "${directory_binary}/deno"
 	else
-		frobulator.silence "${path_binary}/deno upgrade"
+		frobulator.silence "${directory_binary}/deno upgrade"
 	fi
 
-	if [ ! -x "${path_binary}/deno" ]
+	if [ ! -x "${directory_binary}/deno" ]
 	then
 		frobulator.err "Solver unavailable" "[ deno ]"
 		echo
@@ -1086,23 +1086,23 @@ media () {
 		format="bestaudio"
 		format_media="mp3"
 
-		type_options+=( --extract-audio )
-		type_options+=( --audio-format "${format_media}" )
-		type_options+=( --audio-quality best )
-		type_options+=( --output '%(uploader)s - %(title)s.%(ext)s' )
+		options_type+=( --extract-audio )
+		options_type+=( --audio-format "${format_media}" )
+		options_type+=( --audio-quality best )
+		options_type+=( --output '%(uploader)s - %(title)s.%(ext)s' )
 
 	elif [ "${type}" = "video" ]
 	then
 		format="bestvideo+bestaudio"
 		format_media="mp4"
 
-		type_options+=( --merge-output-format "${format_media}" )
-		type_options+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
+		options_type+=( --merge-output-format "${format_media}" )
+		options_type+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
 	fi
 
 	if [ -f "${source}" ]
 	then
-		url_options+=( --batch-file )
+		options_url+=( --batch-file )
 	fi
 
 	case "${source}" in
@@ -1137,7 +1137,7 @@ media () {
 				return 1
 			fi
 
-			site_options+=( --cookies-from-browser "${browser}" )
+			options_site+=( --cookies-from-browser "${browser}" )
 			;;
 
 	esac
@@ -1146,9 +1146,9 @@ media () {
 
 	duration_sleep=$(( RANDOM % 5 + 1 ))
 
-	"${path_binary}/yt-dlp"									\
+	"${directory_binary}/yt-dlp"									\
 		--remote-components		"ejs:github"				\
-		--js-runtimes			"deno:${path_binary}/deno"	\
+		--js-runtimes			"deno:${directory_binary}/deno"	\
 		--ffmpeg-location		"/usr/bin/ffmpeg"			\
 		--quiet												\
 		--no-update											\
@@ -1157,9 +1157,9 @@ media () {
 		--sleep-requests		"${duration_sleep}"			\
 		--yes-playlist										\
 		--format				"${format}"					\
-		"${site_options[@]}"								\
-		"${type_options[@]}"								\
-		"${url_options[@]}"									\
+		"${options_site[@]}"								\
+		"${options_type[@]}"								\
+		"${options_url[@]}"									\
 		"${source}" &
 
 	frobulator.progress download
