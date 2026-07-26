@@ -1105,42 +1105,36 @@ media () {
 		options_url+=( --batch-file )
 	fi
 
-	case "${source}" in
+	if [ "${source#*soundcloud.com}" = "${source}" ]
+	then
+		browser="$(xdg-settings get default-web-browser 2>"${sink}")"
 
-		*soundcloud.com*)
-			;;
+		browser="${browser%.desktop}"
 
-		*)
-			browser="$(xdg-settings get default-web-browser 2>"${sink}")"
+		if [[ "${browser}" = firefox*   ]] ||
+		[[ "${browser}" = librewolf* ]] ||
+		[[ "${browser}" = waterfox*  ]]
+		then
+			browser="firefox"
 
-			browser="${browser%.desktop}"
+		elif [[ "${browser}" = chrome*        ]] ||
+			[[ "${browser}" = google-chrome* ]] ||
+			[[ "${browser}" = chromium*      ]] ||
+			[[ "${browser}" = brave*         ]] ||
+			[[ "${browser}" = vivaldi*       ]] ||
+			[[ "${browser}" = opera*         ]]
+		then
+			browser="chrome"
 
-			if [[ "${browser}" = firefox*   ]] ||
-			   [[ "${browser}" = librewolf* ]] ||
-			   [[ "${browser}" = waterfox*  ]]
-			then
-				browser="firefox"
+		else
+			frobulator.err "No compatible browser found on system"
+			echo
 
-			elif [[ "${browser}" = chrome*        ]] ||
-			     [[ "${browser}" = google-chrome* ]] ||
-			     [[ "${browser}" = chromium*      ]] ||
-			     [[ "${browser}" = brave*         ]] ||
-			     [[ "${browser}" = vivaldi*       ]] ||
-			     [[ "${browser}" = opera*         ]]
-			then
-				browser="chrome"
+			return 1
+		fi
 
-			else
-				frobulator.err "No compatible browser found on system"
-				echo
-
-				return 1
-			fi
-
-			options_site+=( --cookies-from-browser "${browser}" )
-			;;
-
-	esac
+		options_site+=( --cookies-from-browser "${browser}" )
+	fi
 
 	cd "${path}"
 
