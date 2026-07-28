@@ -16,6 +16,9 @@ then
 	fi
 fi
 
+echo "[  -  ] Checking..."
+echo
+
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
@@ -47,7 +50,7 @@ fi
 
 if [[ -z $(command -v curl) ]]
 then
-	echo "Unable to install curl."
+	echo "[  !  ] Unable to install or binary not found ////////////////////// [ 'curl'  ]"
 	echo
 
 	exit 1
@@ -74,7 +77,10 @@ then
 	chmod +x "${frobulator}"
 fi
 
-. "${frobulator}"
+echo "[  >  ] Implementing..."
+echo
+
+source "${frobulator}"
 
 # superuser ////////////////////////////////////////////////////////////////////
 
