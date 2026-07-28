@@ -2,38 +2,85 @@
 
 # dependencies /////////////////////////////////////////////////////////////////
 
-if [ -f "${HOME}"/.local/bin/frobulator ]
+if [[ $(id -u -n) = "root" ]]
 then
-	rm -r -f "${HOME}"/.local/bin/frobulator
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER:-root}"
+
+	if [ "${USER}" = "root" ]
+	then
+		HOME=/root
+	else
+		HOME="/home/${USER}"
+	fi
 fi
 
-if [[ -z $(command -v frobulator) ]]
+echo "[  -  ] Checking..."
+echo
+
+if [[ -z $(command -v curl) ]]
 then
-	if [[ $(id -u -n) = "root" ]]
+	if [[ -n $(command -v apt-get) ]]
 	then
-		SUDO_HOME=/root
+		apt-get -q -q update > /dev/null 2>&1
+		apt-get -q -q install -y curl > /dev/null 2>&1
 
-		USER="${SUDO_USER}"
-
-		HOME=/home/"${USER}"
-	fi
-
-	if [[ -z $(command -v curl) ]]
+	elif [[ -n $(command -v dnf) ]]
 	then
-		yes | apt-get install curl
-	fi
+		dnf -q install -y curl > /dev/null 2>&1
 
-	if [ ! -d "${HOME}"/.local/bin ]
+	elif [[ -n $(command -v yum) ]]
 	then
-		mkdir -p "${HOME}"/.local/bin
+		yum -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v apk) ]]
+	then
+		apk add --quiet curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v pacman) ]]
+	then
+		pacman -S -y --noconfirm --noprogressbar curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v zypper) ]]
+	then
+		zypper --quiet --non-interactive install curl > /dev/null 2>&1
 	fi
-
-	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
-
-	chmod +x "${HOME}"/.local/bin/frobulator
 fi
 
-. "${HOME}"/.local/bin/frobulator
+if [[ -z $(command -v curl) ]]
+then
+	echo "[  !  ] Unable to install or binary not found ////////////////////// [ 'curl'  ]"
+	echo
+
+	exit 1
+fi
+
+mkdir -p "${HOME}"/.local/bin
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(	curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
+
+version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online="${version_online:6:4}${version_online:0:2}${version_online:3:2}"
+date_local="${version_local:6:4}${version_local:0:2}${version_local:3:2}"
+
+if [ ! -f "${frobulator}" ] ||
+   [[ "${date_online}" > "${date_local}" ]]
+then
+	curl -s -L get.frbltr.app > "${frobulator}"
+
+	chmod +x "${frobulator}"
+fi
+
+echo "[  >  ] Implementing..."
+echo
+
+source "${frobulator}"
 
 # superuser ////////////////////////////////////////////////////////////////////
 
