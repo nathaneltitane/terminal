@@ -1353,14 +1353,3 @@ audio-combine () {
 
 	pactl set-sink-volume ${sink_combined} 75%
 }
-
-# python ///////////////////////////////////////////////////////////////////////
-
-pipx () {
-
-	if [ "$(command -v pipx)" ]
-	then
-		alias 'pipx'="pipx --global ${@}"
-	fi
-
-}
