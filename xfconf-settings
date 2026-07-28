@@ -16,6 +16,8 @@ then
 	fi
 fi
 
+echo
+
 echo "[  -  ] Checking..."
 echo
 
@@ -67,6 +69,7 @@ version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"'
 version_local="${version_local:-01-01-1970}"
 
 date_online="${version_online:6:4}${version_online:0:2}${version_online:3:2}"
+
 date_local="${version_local:6:4}${version_local:0:2}${version_local:3:2}"
 
 if [ ! -f "${frobulator}" ] ||

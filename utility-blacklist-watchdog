@@ -16,6 +16,8 @@ then
 	fi
 fi
 
+echo
+
 echo "[  -  ] Checking..."
 echo
 
