@@ -1,0 +1,529 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ $(id -u -n) = "root" ]]
+then
+	SUDO_HOME=/root
+
+	USER="${SUDO_USER:-root}"
+
+	if [ "${USER}" = "root" ]
+	then
+		HOME=/root
+	else
+		HOME="/home/${USER}"
+	fi
+fi
+
+echo
+
+echo "[  -  ] Checking..."
+echo
+
+if [[ -z $(command -v curl) ]]
+then
+	if [[ -n $(command -v apt-get) ]]
+	then
+		apt-get -q -q update > /dev/null 2>&1
+		apt-get -q -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v dnf) ]]
+	then
+		dnf -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v yum) ]]
+	then
+		yum -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v apk) ]]
+	then
+		apk add --quiet curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v pacman) ]]
+	then
+		pacman -S -y --noconfirm --noprogressbar curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v zypper) ]]
+	then
+		zypper --quiet --non-interactive install curl > /dev/null 2>&1
+	fi
+fi
+
+if [[ -z $(command -v curl) ]]
+then
+	echo "[  !  ] Unable to install or binary not found ////////////////////// [ 'curl'  ]"
+	echo
+
+	exit 1
+fi
+
+mkdir -p "${HOME}"/.local/bin
+
+frobulator="${HOME}"/.local/bin/frobulator
+
+version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
+
+version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+version_local="${version_local:-01-01-1970}"
+
+date_online="${version_online:6:4}${version_online:0:2}${version_online:3:2}"
+
+date_local="${version_local:6:4}${version_local:0:2}${version_local:3:2}"
+
+if [ ! -f "${frobulator}" ] ||
+   [[ "${date_online}" > "${date_local}" ]]
+then
+	curl -s -L get.frbltr.app > "${frobulator}"
+
+	chmod +x "${frobulator}"
+fi
+
+echo "[  >  ] Implementing..."
+echo
+
+source "${frobulator}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="07-30-2026"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+if [[ "${self}" = "${0}" ]]
+then
+	# implement from local version
+
+	if [ $# -eq 0 ]
+	then
+		source "${self}"
+
+		return 0 2> "${sink}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.scs "Implemented" "[ ${PWD}/${self} ]"
+			echo
+		fi
+	fi
+
+	file_source="${self}"
+
+	file_install="${file_source}"
+
+	directory_install="${HOME}"/.local/bin
+
+	file_target="${directory_install}/${file_install}"
+
+	while (($#))
+	do
+		case "${1}" in
+
+			-i|--install)
+
+				if [ ! -d "${directory_install}" ]
+				then
+					mkdir -p "${directory_install}"
+				fi
+
+				if [ "${file_source}" != "${file_target}" ]
+				then
+					cp "${file_source}" "${file_target}"
+
+					chmod a+rx "${file_target}"
+
+					source "${file_target}"
+
+					frobulator.scs "Installed" "[ ${file_target} ]"
+
+					echo
+				fi
+			;;
+
+			-h|--help)
+
+				echo
+				echo -e "Usage: ./${script} | [OPTION]"
+				echo
+				echo "Options:"
+				echo
+				echo "	-i, --install    [I]nstall ${script} to ${directory_install}"
+				echo "	-h, --help       Show this [h]elp menu"
+				echo
+
+				exit
+			;;
+
+			*)
+
+				echo
+				echo "${script}: Unknown option '${1}'"
+				echo "Type './${script} --help' for help and usage information."
+				echo
+
+				exit 1
+			;;
+
+		esac
+
+		shift
+	done
+fi
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+directory="${PWD}"
+
+source_name=""
+
+target_name=""
+
+character=""
+
+name=""
+
+extension=""
+
+number=0
+
+count_renamed=0
+
+count_unchanged=0
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+export LANG=C.UTF-8
+
+export LC_ALL=C.UTF-8
+
+# functions ////////////////////////////////////////////////////////////////////
+
+name_normalize () {
+
+	local source_name="${1}"
+	local target_name=""
+	local character=""
+	local index=0
+
+	for (( index = 0; index < ${#source_name}; index++ ))
+	do
+		character="${source_name:index:1}"
+
+		if [ "${character}" = "【" ] ||
+		   [ "${character}" = "『" ] ||
+		   [ "${character}" = "「" ] ||
+		   [ "${character}" = "［" ]
+		then
+			character="["
+
+		elif [ "${character}" = "】" ] ||
+		     [ "${character}" = "』" ] ||
+		     [ "${character}" = "」" ] ||
+		     [ "${character}" = "］" ]
+		then
+			character="]"
+
+		elif [ "${character}" = "（" ]
+		then
+			character="("
+
+		elif [ "${character}" = "）" ]
+		then
+			character=")"
+
+		elif [ "${character}" = "｛" ]
+		then
+			character="{"
+
+		elif [ "${character}" = "｝" ]
+		then
+			character="}"
+
+		elif [ "${character}" = "〈" ] ||
+		     [ "${character}" = "《" ]
+		then
+			character="<"
+
+		elif [ "${character}" = "〉" ] ||
+		     [ "${character}" = "》" ]
+		then
+			character=">"
+
+		elif [ "${character}" = "！" ]
+		then
+			character="!"
+
+		elif [ "${character}" = "？" ]
+		then
+			character="?"
+
+		elif [ "${character}" = "：" ]
+		then
+			character=":"
+
+		elif [ "${character}" = "；" ]
+		then
+			character=";"
+
+		elif [ "${character}" = "，" ]
+		then
+			character=","
+
+		elif [ "${character}" = "．" ]
+		then
+			character="."
+
+		elif [ "${character}" = "％" ]
+		then
+			character="%"
+
+		elif [ "${character}" = "＆" ]
+		then
+			character="&"
+
+		elif [ "${character}" = "＋" ]
+		then
+			character="+"
+
+		elif [ "${character}" = "＝" ]
+		then
+			character="="
+
+		elif [ "${character}" = "＊" ]
+		then
+			character="*"
+
+		elif [ "${character}" = "＃" ]
+		then
+			character="#"
+
+		elif [ "${character}" = "＠" ]
+		then
+			character="@"
+
+		elif [ "${character}" = "＄" ]
+		then
+			character="$"
+
+		elif [ "${character}" = "＾" ]
+		then
+			character="^"
+
+		elif [ "${character}" = "＿" ]
+		then
+			character="_"
+
+		elif [ "${character}" = "｜" ]
+		then
+			character="-"
+
+		elif [ "${character}" = "／" ] ||
+		     [ "${character}" = "⧸" ] ||
+		     [ "${character}" = "＼" ]
+		then
+			character="-"
+
+		elif [ "${character}" = "～" ] ||
+		     [ "${character}" = "〜" ]
+		then
+			character="~"
+
+		elif [ "${character}" = "’" ] ||
+		     [ "${character}" = "‘" ]
+		then
+			character="'"
+
+		elif [ "${character}" = "“" ] ||
+		     [ "${character}" = "”" ] ||
+		     [ "${character}" = "＂" ]
+		then
+			character='"'
+
+		elif [ "${character}" = "—" ] ||
+		     [ "${character}" = "–" ] ||
+		     [ "${character}" = "−" ] ||
+		     [ "${character}" = "‐" ] ||
+		     [ "${character}" = "―" ]
+		then
+			character="-"
+
+		elif [ "${character}" = "…" ]
+		then
+			character="..."
+
+		elif [ "${character}" = "・" ] ||
+		     [ "${character}" = "･" ]
+		then
+			character="-"
+
+		elif [ "${character}" = "　" ]
+		then
+			character=" "
+		fi
+
+		target_name+="${character}"
+	done
+
+	while [[ "${target_name}" = *"  "* ]]
+	do
+		target_name="${target_name//  / }"
+	done
+
+	while [[ "${target_name}" = " "* ]]
+	do
+		target_name="${target_name# }"
+	done
+
+	while [[ "${target_name}" = *" " ]]
+	do
+		target_name="${target_name% }"
+	done
+
+	if [ -z "${target_name}" ]
+	then
+		target_name="unnamed"
+	fi
+
+	echo "${target_name}"
+}
+
+path_unique () {
+
+	local source_path="${1}"
+	local target_path="${2}"
+	local target_name="${target_path##*/}"
+	local target_directory="${target_path%/*}"
+	local name=""
+	local extension=""
+	local number=1
+
+	if [ ! -e "${target_path}" ] ||
+	   [ "${source_path}" = "${target_path}" ]
+	then
+		echo "${target_path}"
+
+		return 0
+	fi
+
+	if [ -f "${source_path}" ] &&
+	   [[ "${target_name}" = *.* ]]
+	then
+		name="${target_name%.*}"
+		extension=".${target_name##*.}"
+	else
+		name="${target_name}"
+		extension=""
+	fi
+
+	while [ -e "${target_directory}/${name}-${number}${extension}" ]
+	do
+		(( number++ ))
+	done
+
+	echo "${target_directory}/${name}-${number}${extension}"
+}
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [[ $(locale charmap 2> "${sink}") != "UTF-8" ]]
+then
+	frobulator.err "UTF-8 locale unavailable"
+	echo
+
+	return 1
+fi
+
+shopt -s nullglob dotglob
+
+# process //////////////////////////////////////////////////////////////////////
+
+for source_path in "${directory}"/*
+do
+	if [ ! -e "${source_path}" ]
+	then
+		continue
+	fi
+
+	source_name="${source_path##*/}"
+
+	if [ "${source_name}" = "." ] ||
+	   [ "${source_name}" = ".." ]
+	then
+		continue
+	fi
+
+	target_name=$(name_normalize "${source_name}")
+
+	target_path="${directory}/${target_name}"
+
+	if [ "${source_path}" = "${target_path}" ]
+	then
+		(( count_unchanged++ ))
+
+		continue
+	fi
+
+	target_path=$(path_unique "${source_path}" "${target_path}")
+
+	frobulator.inf "Renaming" "[ ${source_name} ]"
+	frobulator.inf "To" "[ ${target_path##*/} ]"
+	echo
+
+	if ! mv -- "${source_path}" "${target_path}"
+	then
+		frobulator.err "Unable to rename" "[ ${source_name} ]"
+		echo
+
+		continue
+	fi
+
+	(( count_renamed++ ))
+done
+
+# result ///////////////////////////////////////////////////////////////////////
+
+if [ "${count_renamed}" -gt 0 ]
+then
+	frobulator.scs "Renamed" "[ ${count_renamed} ]"
+	echo
+else
+	frobulator.inf "No filenames required normalization"
+	echo
+fi
+
+if [ "${count_unchanged}" -gt 0 ]
+then
+	frobulator.inf "Unchanged" "[ ${count_unchanged} ]"
+	echo
+fi
