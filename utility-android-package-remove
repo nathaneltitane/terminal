@@ -121,7 +121,7 @@ android_platform_tools_update () {
 	local archive
 	local path_extracted
 
-	directory_temporary=$(mktemp -d)
+	frobulator.temporary directory_temporary
 
 	if [ -z "${directory_temporary}" ] || [ ! -d "${directory_temporary}" ]
 	then
@@ -186,7 +186,10 @@ android_platform_tools_update () {
 		fastboot
 	)
 
-	frobulator.link "${path_android_platform_tools}" "${HOME}/.local/bin" ${list[@]}
+	for item in "${list[@]}"
+	do
+		frobulator.link "${path_android_platform_tools}" "${HOME}/.local/bin" "${item}"
+	done
 
 	list=()
 
