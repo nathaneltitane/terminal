@@ -89,7 +89,7 @@ source "${frobulator}"
 
 export self_arguments="${@}"
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -137,7 +137,7 @@ android_platform_tools_update () {
 	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
 	echo
 
-	curl -f -L -o "${archive}" "${url_android_platform_tools}"
+	curl -s -f -L -o "${archive}" "${url_android_platform_tools}"
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -171,7 +171,7 @@ android_platform_tools_update () {
 		exit 1
 	fi
 
-	pkill -x adb > /dev/null 2>&1 || true
+	pkill -x adb > "${sink}" 2>&1 || true
 
 	mkdir -p "${path_android}"
 
@@ -182,6 +182,7 @@ android_platform_tools_update () {
 	mv "${path_extracted}" "${path_android_platform_tools}"
 
 	ln -s -f "${path_android_platform_tools}/adb" "${HOME}/.local/bin/adb"
+
 	ln -s -f "${path_android_platform_tools}/fastboot" "${HOME}/.local/bin/fastboot"
 
 	if [ "${USER}" != "root" ]
@@ -843,7 +844,7 @@ packages_list=(
 
 for application in "${packages_list[@]}"
 do
-	if [[ $(android_debug_bridge list packages | grep -F -x "package:${application}") ]]
+	if [[ $(android_debug_bridge list packages --user 0 | grep -F -x "package:${application}") ]]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 		echo
