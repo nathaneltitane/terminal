@@ -196,10 +196,10 @@ android_platform_tools_update () {
 
 	hash -r
 
-	frobulator.fwd "Utilities version: $(adb version | head -n 1)" "[ Android Platform Tools ]"
+	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
 	echo
 
-	frobulator.scs "Android Platform Tools ready" "[ $(adb version | head -n 1) ]"
+	frobulator.scs "Deployment ready" "[ Android Platform Tools ]"
 	echo
 
 }
