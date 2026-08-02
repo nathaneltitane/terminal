@@ -173,17 +173,20 @@ android_platform_tools_update () {
 
 	pkill -x adb > "${sink}" 2>&1 || true
 
-	mkdir -p "${path_android}"
+	frobulator.directory "${path_android}"
 
-	mkdir -p "${HOME}/.local/bin"
+	frobulator.directory "${HOME}/.local/bin"
 
 	frobulator.delete "${path_android_platform_tools}"
 
 	mv "${path_extracted}" "${path_android_platform_tools}"
 
-	ln -s -f "${path_android_platform_tools}/adb" "${HOME}/.local/bin/adb"
+	list=(
+		adb
+		fastboot
+	)
 
-	ln -s -f "${path_android_platform_tools}/fastboot" "${HOME}/.local/bin/fastboot"
+	frobulator.link "${path_android_platform_tools}" "${HOME}/.local/bin" ${list[@]}
 
 	if [ "${USER}" != "root" ]
 	then
