@@ -207,7 +207,7 @@ android_platform_tools_update () {
 	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
 	echo
 
-	frobulator.scs "Deployment ready" "[ Android Platform Tools ]"
+	frobulator.scs "Utilities deployment ready" "[ Android Platform Tools ]"
 	echo
 
 }
