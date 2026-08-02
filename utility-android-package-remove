@@ -141,7 +141,7 @@ android_platform_tools_update () {
 
 	if [ "${?}" -ne 0 ]
 	then
-		rm -rf "${directory_temporary}"
+		frobulator.delete "${directory_temporary}"
 
 		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
 		echo
@@ -153,7 +153,7 @@ android_platform_tools_update () {
 
 	if [ "${?}" -ne 0 ]
 	then
-		rm -rf "${directory_temporary}"
+		frobulator.delete "${directory_temporary}"
 
 		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
 		echo
@@ -163,7 +163,7 @@ android_platform_tools_update () {
 
 	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
 	then
-		rm -rf "${directory_temporary}"
+		frobulator.delete "${directory_temporary}"
 
 		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
 		echo
@@ -177,7 +177,7 @@ android_platform_tools_update () {
 
 	mkdir -p "${HOME}/.local/bin"
 
-	rm -rf "${path_android_platform_tools}"
+	frobulator.delete "${path_android_platform_tools}"
 
 	mv "${path_extracted}" "${path_android_platform_tools}"
 
@@ -190,7 +190,7 @@ android_platform_tools_update () {
 		chown -R "${USER}:$(id -g "${USER}")" "${path_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
 	fi
 
-	rm -rf "${directory_temporary}"
+	frobulator.delete "${directory_temporary}"
 
 	export PATH="${HOME}/.local/bin:${path_android_platform_tools}:${PATH}"
 
