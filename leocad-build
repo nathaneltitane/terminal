@@ -97,7 +97,7 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="07-22-2026"
+version="08-02-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -149,8 +149,6 @@ list=()
 frobulator.temporary build_directory
 
 frobulator.complete
-
-build_directory=${frobulator_return[@]}
 
 frobulator.trap "${build_directory}"
 
