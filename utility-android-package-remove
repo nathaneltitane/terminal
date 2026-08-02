@@ -97,7 +97,7 @@ script="${BASH_SOURCE[0]}"
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="07-12-2026"
+version="08-02-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -107,13 +107,105 @@ frobulator.script "Setting up ${script#*-}"
 
 # variables ////////////////////////////////////////////////////////////////////
 
+path_android="${HOME}/.local/lib/android"
+path_android_platform_tools="${path_android}/platform-tools"
+url_android_platform_tools="https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
+
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
 
+android_platform_tools_update () {
+
+	local directory_temporary
+	local archive
+	local path_extracted
+
+	directory_temporary=$(mktemp -d)
+
+	if [ -z "${directory_temporary}" ] || [ ! -d "${directory_temporary}" ]
+	then
+		frobulator.err "Unable to create temporary directory"
+		echo
+
+		exit 1
+	fi
+
+	archive="${directory_temporary}/platform-tools.zip"
+	path_extracted="${directory_temporary}/platform-tools"
+
+	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
+	echo
+
+	curl -f -L -o "${archive}" "${url_android_platform_tools}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		rm -rf "${directory_temporary}"
+
+		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
+		echo
+
+		exit 1
+	fi
+
+	unzip -q "${archive}" -d "${directory_temporary}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		rm -rf "${directory_temporary}"
+
+		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
+		echo
+
+		exit 1
+	fi
+
+	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
+	then
+		rm -rf "${directory_temporary}"
+
+		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
+		echo
+
+		exit 1
+	fi
+
+	pkill -x adb > /dev/null 2>&1 || true
+
+	mkdir -p "${path_android}"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	rm -rf "${path_android_platform_tools}"
+
+	mv "${path_extracted}" "${path_android_platform_tools}"
+
+	ln -s -f "${path_android_platform_tools}/adb" "${HOME}/.local/bin/adb"
+	ln -s -f "${path_android_platform_tools}/fastboot" "${HOME}/.local/bin/fastboot"
+
+	if [ "${USER}" != "root" ]
+	then
+		chown -R "${USER}:$(id -g "${USER}")" "${path_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
+	fi
+
+	rm -rf "${directory_temporary}"
+
+	export PATH="${HOME}/.local/bin:${path_android_platform_tools}:${PATH}"
+
+	hash -r
+
+	frobulator.fwd "Utilities version: $(adb version | head -n 1)" "[ Android Platform Tools ]"
+	echo
+
+	frobulator.scs "Android Platform Tools ready" "[ $(adb version | head -n 1) ]"
+	echo
+
+}
+
 android_debug_bridge () {
 
-	sudo adb shell pm "${@}"
+	adb shell pm "${@}"
 
 }
 
@@ -126,14 +218,14 @@ android_debug_bridge () {
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
-	adb
-	fastboot
-	android-platform-tools*
+	unzip
 )
 
 frobulator.require ${list[@]}
 
 list=()
+
+android_platform_tools_update
 
 # configuration ////////////////////////////////////////////////////////////////
 
@@ -735,6 +827,8 @@ packages_list_onyx=(
 )
 
 packages_list_samsung=(
+	com.samsung.android.mdx
+	com.samsung.android.messaging
 	com.samsung.android.kidsinstaller
 )
 
