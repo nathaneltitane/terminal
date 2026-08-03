@@ -371,7 +371,13 @@ fi
 PS1+="\[""${reset}""\][ "
 PS1+="\[""${prompt_color}""\]${USER}"
 PS1+="\[""${reset}""\] ]"
-PS1+="\[""${white}""\] >_ \\\$ \[""${reset}""\]"
+
+if [[ $(id -u -n) = "root" ]]
+then
+	PS1+="\[""${white}""\] >_ # \[""${reset}""\]"
+else
+	PS1+="\[""${white}""\] >_ \$ \[""${reset}""\]"
+fi
 
 unset prompt_color
 
