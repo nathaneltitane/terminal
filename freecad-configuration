@@ -52,7 +52,7 @@ fi
 
 if [[ -z $(command -v curl) ]]
 then
-	echo "[  !  ] Unable to install or binary not found ////////////////////// [ 'curl'  ]"
+	echo "[  !  ] Unable to install or binary not found /////////////////////// [ 'curl' ]"
 	echo
 
 	exit 1
@@ -93,7 +93,7 @@ export self_arguments="${@}"
 
 # script ///////////////////////////////////////////////////////////////////////
 
-script=$(basename -- "${BASH_SOURCE[0]}")
+script="$(basename -- ${BASH_SOURCE[0]})"
 
 # version //////////////////////////////////////////////////////////////////////
 
