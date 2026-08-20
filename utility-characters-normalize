@@ -62,7 +62,7 @@ mkdir -p "${HOME}"/.local/bin
 
 frobulator="${HOME}"/.local/bin/frobulator
 
-version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
+version_online=$(	curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
 
 version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
 
@@ -93,7 +93,7 @@ export self_arguments="${@}"
 
 # script ///////////////////////////////////////////////////////////////////////
 
-script="$(basename -- "${BASH_SOURCE[0]}")"
+script="$(basename -- ${BASH_SOURCE[0]})"
 
 # version //////////////////////////////////////////////////////////////////////
 
