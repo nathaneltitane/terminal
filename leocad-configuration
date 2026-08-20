@@ -52,7 +52,7 @@ fi
 
 if [[ -z $(command -v curl) ]]
 then
-	echo "[  !  ] Unable to install or binary not found ////////////////////// [ 'curl'  ]"
+	echo "[  !  ] Unable to install or binary not found /////////////////////// [ 'curl' ]"
 	echo
 
 	exit 1
@@ -87,9 +87,13 @@ source "${frobulator}"
 
 # superuser ////////////////////////////////////////////////////////////////////
 
+export self_arguments="${@}"
+
+# frobulator.escalate
+
 # script ///////////////////////////////////////////////////////////////////////
 
-script=$(basename -- "${BASH_SOURCE[0]}")
+script="$(basename -- ${BASH_SOURCE[0]})"
 
 # version //////////////////////////////////////////////////////////////////////
 
