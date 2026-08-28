@@ -72,8 +72,7 @@ date_online="${version_online:6:4}${version_online:0:2}${version_online:3:2}"
 
 date_local="${version_local:6:4}${version_local:0:2}${version_local:3:2}"
 
-if [ ! -f "${frobulator}" ] ||
-   [[ "${date_online}" > "${date_local}" ]]
+if [ ! -f "${frobulator}" ] || [[ "${date_online}" > "${date_local}" ]]
 then
 	curl -s -L get.frbltr.app > "${frobulator}"
 
