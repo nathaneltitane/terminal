@@ -88,7 +88,7 @@ source "${frobulator}"
 
 export self_arguments="${@}"
 
-# frobulator.escalate
+frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
