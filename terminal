@@ -27,6 +27,8 @@ done
 
 echo
 
+echo
+
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
@@ -94,13 +96,9 @@ done
 
 echo
 
+echo
+
 source "${frobulator}"
-
-# superuser ////////////////////////////////////////////////////////////////////
-
-export self_arguments="${@}"
-
-frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
