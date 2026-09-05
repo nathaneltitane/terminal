@@ -18,7 +18,15 @@ fi
 
 echo
 
-echo "[  -  ] Checking..."
+for ticker in '>  ' '>> ' '>>>'
+do
+	echo -n -e "\r[  ${ticker}  ] Checking..."
+
+	sleep 0.5
+done
+
+echo
+
 echo
 
 if [[ -z $(command -v curl) ]]
@@ -79,16 +87,18 @@ then
 	chmod +x "${frobulator}"
 fi
 
-echo "[  >  ] Implementing..."
+for ticker in '>  ' '>> ' '>>>'
+do
+	echo -n -e "\r[  ${ticker}  ] Initializing..."
+
+	sleep 0.5
+done
+
+echo
+
 echo
 
 source "${frobulator}"
-
-# superuser ////////////////////////////////////////////////////////////////////
-
-export self_arguments="${@}"
-
-# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 

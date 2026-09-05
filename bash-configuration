@@ -27,6 +27,8 @@ done
 
 echo
 
+echo
+
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
@@ -91,6 +93,8 @@ do
 
 	sleep 0.5
 done
+
+echo
 
 echo
 
