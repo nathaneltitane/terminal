@@ -194,24 +194,22 @@ then
 	alias 'gu'='ga && gm "Code & Features Update" && gs'
 fi
 
-if [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]
-then
-	alias 'gd'='cd "${HOME}"/[gG]it)'
-fi
-
-if [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]
-then
-	alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
-fi
-
-if [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]
-then
-	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
-fi
-
 if [[ $(command -v git) ]]
 then
 	alias 'gn'='git ls-files | xargs cat | wc -l'
+fi
+
+if [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${HOME}"/[gG]it'
+
+elif [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
+
+elif [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]
+then
+	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
 fi
 
 # packages /////////////////////////////////////////////////////////////////////
@@ -484,16 +482,6 @@ fi
 if [[ $(command -v htop) ]]
 then
 	alias 'process'='htop -s USER -t'
-fi
-
-if [[ $(command -v find) && $(command -v wc) ]]
-then
-	alias 'countd'="echo $(find ${PWD} -maxdepth 1 -type d | wc -l) directories under ${PWD}"
-fi
-
-if [[ $(command -v find) && $(command -v wc) ]]
-then
-	alias 'countf'='echo $(find . -type f | wc -l) files [ ${PWD} ]'
 fi
 
 if [[ $(command -v ls) ]]
