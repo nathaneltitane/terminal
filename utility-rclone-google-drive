@@ -27,6 +27,8 @@ done
 
 echo
 
+echo
+
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
@@ -100,7 +102,7 @@ source "${frobulator}"
 
 export self_arguments="${@}"
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -338,6 +340,10 @@ FILE
 frobulator.delete "${HOME}"/.local/bin "${tracker}"
 
 frobulator.delete "${HOME}"/.cache rclone
+
+# refresh daemon status
+
+systemctl --user daemon-reload
 
 # service activation
 
