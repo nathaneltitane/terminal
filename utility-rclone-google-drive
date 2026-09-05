@@ -106,7 +106,7 @@ script="$(basename -- ${BASH_SOURCE[0]})"
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="07-13-2026"
+version="09-05-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -150,6 +150,7 @@ list=()
 list=(
 	rclone
 	rclone-browser
+	inotify-tools
 )
 
 frobulator.require "${list[@]}"
@@ -260,8 +261,8 @@ echo
 
 IFS=''
 
-while true
-do
+synchronize () {
+
 ${TAB}if [ -e "\${run_count_tracker}" ]
 ${TAB}then
 ${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
@@ -296,7 +297,26 @@ ${TAB}echo "\${run_count}" > "\${run_count_tracker}"
 ${TAB}echo
 ${TAB}echo "Run end - count: \${run_count}"
 ${TAB}echo
+}
 
+# initial sync on startup
+
+synchronize
+
+# event-driven loop - reacts to local changes
+# debounced against bursts
+
+inotifywait -m -r -e modify,create,delete,move,attrib --format '%w%f' "\${local_server_directory}" |
+while read -r changed_file
+do
+${TAB}sleep 2
+
+${TAB}while read -r -t 0.5 _
+${TAB}do
+${TAB}${TAB}:
+${TAB}done
+
+${TAB}synchronize
 done
 
 # unset directory list
