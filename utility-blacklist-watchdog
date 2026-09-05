@@ -18,8 +18,15 @@ fi
 
 echo
 
-echo "[  -  ] Checking..."
+for ticker in '>  ' '>> ' '>>>'
+do
+	echo -n -e "\r[  ${arrow_state}  ] Checking..."
+
+	sleep 0.5
+done
+
 echo
+
 
 if [[ -z $(command -v curl) ]]
 then
