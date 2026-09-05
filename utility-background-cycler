@@ -26,6 +26,7 @@ do
 done
 
 echo
+
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
@@ -86,7 +87,7 @@ fi
 
 for ticker in '>  ' '>> ' '>>>'
 do
-	echo -n -e "\r[  ${arrow_state}  ] Checking..."
+	echo -n -e "\r[  ${arrow_state}  ] Initializing..."
 
 	sleep 0.5
 done
