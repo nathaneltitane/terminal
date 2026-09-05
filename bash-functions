@@ -1353,3 +1353,37 @@ audio-combine () {
 
 	pactl set-sink-volume ${sink_combined} 75%
 }
+
+# identification ///////////////////////////////////////////////////////////////
+
+who () {
+
+	echo
+
+	echo "Current user: ${USER}"
+
+	echo
+
+}
+
+where () {
+
+	echo
+
+	echo "You are in ${PWD}"
+
+	echo
+
+}
+
+when () {
+
+	time=$(date '+%I:%M %p')
+	date=$(date '+%A, %B %d, %Y')
+
+	echo
+
+	echo "It is ${time} on ${date}"
+
+	echo
+}
