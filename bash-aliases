@@ -476,11 +476,6 @@ then
 	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
 fi
 
-if [[ $(command -v echo) ]]
-then
-	alias 'where'='echo ${PWD}'
-fi
-
 if [[ $(command -v htop) ]]
 then
 	alias 'top'='rm -r -htop'
