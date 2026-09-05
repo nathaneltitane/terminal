@@ -96,6 +96,8 @@ done
 
 echo
 
+echo
+
 source "${frobulator}"
 
 # superuser ////////////////////////////////////////////////////////////////////
@@ -343,56 +345,10 @@ frobulator.delete "${HOME}"/.cache rclone
 
 # refresh daemon status
 
-systemctl --user daemon-reload
+frobulator.service reload
 
-# service activation
+frobulator.service "${service}" status
 
-if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
-then
-	frobulator.wrn "Service running" " [ ${service} ]"
-	echo
-
-	service_actions_list=(
-		disable
-		stop
-	)
-fi
-
-service_actions_list+=(
-	enable
-	start
-)
-
-for service_action in ${service_actions_list[@]}
-do
-	systemctl "${service_action}" --user "${service}" > "${sink}" 2>&1 &
-
-	frobulator.process "Service ${service_action}" "[ ${service} ]"
-
-	sleep 1
-
-	systemctl --user daemon-reload > "${sink}" 2>&1 &
-
-	frobulator.process "Reloading"
-
-	sleep 1
-done
-
-service_actions_list=()
-
-# service process verification
-
-if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
-then
-	frobulator.scs "Service activation success" "[ ${service} ]"
-	echo
-
-elif [[ $(systemctl status --user "${service}" | grep -e "inactive.*") ]]
-then
-	frobulator.err "Service activation failed" "[ ${service} ]"
-	echo
-
-	exit 1
-fi
+frobulator.service "${service}" activate
 
 frobulator.scs "Done"
