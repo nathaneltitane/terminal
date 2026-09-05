@@ -97,10 +97,99 @@ fi
 
 adb_download () {
 
-	if [[ -z $(command -v adb) ]]
+	local directory_temporary
+	local archive
+	local path_extracted
+
+	frobulator.temporary directory_temporary
+
+	if [ -z "${directory_temporary}" ] || [ ! -d "${directory_temporary}" ]
 	then
-		frobulator.require adb
+		frobulator.err "Unable to create temporary directory"
+		echo
+
+		exit 1
 	fi
+
+	archive="${directory_temporary}/platform-tools.zip"
+	path_extracted="${directory_temporary}/platform-tools"
+
+	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
+	echo
+
+	curl -s -f -L -o "${archive}" "${url_android_platform_tools}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.delete "${directory_temporary}"
+
+		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
+		echo
+
+		exit 1
+	fi
+
+	unzip -q "${archive}" -d "${directory_temporary}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.delete "${directory_temporary}"
+
+		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
+		echo
+
+		exit 1
+	fi
+
+	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
+	then
+		frobulator.delete "${directory_temporary}"
+
+		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
+		echo
+
+		exit 1
+	fi
+
+	frobulator.terminate "adb"
+
+	frobulator.directory "${path_android}"
+
+	frobulator.directory "${HOME}/.local/bin"
+
+	frobulator.delete "${path_android_platform_tools}"
+
+	mv "${path_extracted}" "${path_android_platform_tools}"
+
+	list=(
+		adb
+		fastboot
+	)
+
+	for item in "${list[@]}"
+	do
+		frobulator.link "${path_android_platform_tools}" "${HOME}/.local/bin" "${item}"
+	done
+
+	list=()
+
+	if [ "${USER}" != "root" ]
+	then
+		chown -R "${USER}:$(id -g "${USER}")" "${path_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
+	fi
+
+	frobulator.delete "${directory_temporary}"
+
+	export PATH="${HOME}/.local/bin:${path_android_platform_tools}:${PATH}"
+
+	hash -r
+
+	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
+	echo
+
+	frobulator.scs "Utilities deployment ready" "[ Android Platform Tools ]"
+	echo
+
 }
 
 adb_set_environment () {
