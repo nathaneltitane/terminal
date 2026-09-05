@@ -1379,7 +1379,7 @@ where () {
 when () {
 
 	time=$(date '+%I:%M %p')
-	date=$(date '+%A, %B %d, %Y')
+	date=$(date '+%A, %B %d %Y')
 
 	echo
 
