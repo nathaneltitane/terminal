@@ -87,12 +87,13 @@ fi
 
 for ticker in '>  ' '>> ' '>>>'
 do
-	echo -n -e "\r[  ${arrow_state}  ] Checking..."
+	echo -n -e "\r[  ${arrow_state}  ] Initializing..."
 
 	sleep 0.5
 done
 
 echo
+
 source "${frobulator}"
 
 # superuser ////////////////////////////////////////////////////////////////////
