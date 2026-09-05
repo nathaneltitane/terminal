@@ -20,7 +20,7 @@ echo
 
 for ticker in '>  ' '>> ' '>>>'
 do
-	echo -n -e "\r[  ${arrow_state}  ] Checking..."
+	echo -n -e "\r[  ${ticker}  ] Checking..."
 
 	sleep 0.5
 done
@@ -87,7 +87,7 @@ fi
 
 for ticker in '>  ' '>> ' '>>>'
 do
-	echo -n -e "\r[  ${arrow_state}  ] Initializing..."
+	echo -n -e "\r[  ${ticker}  ] Initializing..."
 
 	sleep 0.5
 done
