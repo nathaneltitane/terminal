@@ -27,7 +27,6 @@ done
 
 echo
 
-
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
@@ -86,9 +85,14 @@ then
 	chmod +x "${frobulator}"
 fi
 
-echo "[  >  ] Implementing..."
-echo
+for ticker in '>  ' '>> ' '>>>'
+do
+	echo -n -e "\r[  ${arrow_state}  ] Checking..."
 
+	sleep 0.5
+done
+
+echo
 source "${frobulator}"
 
 # superuser ////////////////////////////////////////////////////////////////////

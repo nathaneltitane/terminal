@@ -6,50 +6,95 @@ if [[ $(id -u -n) = "root" ]]
 then
 	SUDO_HOME=/root
 
-	USER="${SUDO_USER}"
+	USER="${SUDO_USER:-root}"
 
-	HOME=/home/"${USER}"
+	if [ "${USER}" = "root" ]
+	then
+		HOME=/root
+	else
+		HOME="/home/${USER}"
+	fi
+fi
+
+echo
+
+for ticker in '>  ' '>> ' '>>>'
+do
+	echo -n -e "\r[  ${arrow_state}  ] Checking..."
+
+	sleep 0.5
+done
+
+echo
+
+if [[ -z $(command -v curl) ]]
+then
+	if [[ -n $(command -v apt-get) ]]
+	then
+		apt-get -q -q update > /dev/null 2>&1
+		apt-get -q -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v dnf) ]]
+	then
+		dnf -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v yum) ]]
+	then
+		yum -q install -y curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v apk) ]]
+	then
+		apk add --quiet curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v pacman) ]]
+	then
+		pacman -S -y --noconfirm --noprogressbar curl > /dev/null 2>&1
+
+	elif [[ -n $(command -v zypper) ]]
+	then
+		zypper --quiet --non-interactive install curl > /dev/null 2>&1
+	fi
 fi
 
 if [[ -z $(command -v curl) ]]
 then
-	yes | apt-get install curl
+	echo "[  !  ] Unable to install or binary not found /////////////////////// [ 'curl' ]"
+	echo
+
+	exit 1
 fi
 
-if [ ! -d "${HOME}"/.local/bin ]
-then
-	mkdir -p "${HOME}"/.local/bin
-fi
+mkdir -p "${HOME}"/.local/bin
 
 frobulator="${HOME}"/.local/bin/frobulator
 
-version_online=$(curl -s -L get.frbltr.app | grep 'version=' | cut -d '"' -f 2)
+version_online=$(	curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
 
-version_local=$(cat "${frobulator}" | grep 'version=' | cut -d '"' -f 2)
+version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
 
 version_local="${version_local:-01-01-1970}"
 
-date_online=$(date -d "${version_online:6:4}-${version_online:0:2}-${version_online:3:2}" +%s)
+date_online="${version_online:6:4}${version_online:0:2}${version_online:3:2}"
 
-date_local=$(date -d "${version_local:6:4}-${version_local:0:2}-${version_local:3:2}" +%s)
+date_local="${version_local:6:4}${version_local:0:2}${version_local:3:2}"
 
-if [ -f "${frobulator}" ] && [ "${date_online}" -gt "${date_local}" ]
+if [ ! -f "${frobulator}" ] || [[ "${date_online}" > "${date_local}" ]]
 then
-	rm -r -f "${HOME}"/.local/bin/frobulator
+	curl -s -L get.frbltr.app > "${frobulator}"
 
-	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
-
-	chmod +x "${HOME}"/.local/bin/frobulator
+	chmod +x "${frobulator}"
 fi
 
-if [ ! -f "${frobulator}" ]
-then
-	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+for ticker in '>  ' '>> ' '>>>'
+do
+	echo -n -e "\r[  ${arrow_state}  ] Checking..."
 
-	chmod +x "${HOME}"/.local/bin/frobulator
-fi
+	sleep 0.5
+done
 
-. "${frobulator}"
+echo
+
+source "${frobulator}"
 
 # script ///////////////////////////////////////////////////////////////////////
 
