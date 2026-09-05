@@ -347,8 +347,8 @@ frobulator.delete "${HOME}"/.cache rclone
 
 frobulator.service reload
 
-frobulator.service "${service}" status
+frobulator.service status "${service}"
 
-frobulator.service "${service}" activate
+frobulator.service activate "${service}"
 
 frobulator.scs "Done"
