@@ -1392,6 +1392,6 @@ when () {
 
 pipx() {
 
-	command pipx --global "${@}"
+	command pipx --global "$@"
 
 }
