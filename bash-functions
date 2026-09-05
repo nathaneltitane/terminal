@@ -117,7 +117,12 @@ adb_download () {
 	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
 	echo
 
-	curl -s -f -L -o "${archive}" "${url_android_platform_tools}"
+	curl						\
+		--silent				\
+		--fail					\
+		--location				\
+		--output "${archive}"	\
+								"${url_android_platform_tools}"
 
 	if [ "${?}" -ne 0 ]
 	then
