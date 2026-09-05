@@ -1395,3 +1395,15 @@ pipx() {
 	command pipx --global "$@"
 
 }
+
+countd () {
+
+	echo "$(find "${PWD}" -maxdepth 1 -type d | wc -l) directories under ${PWD}"
+
+}
+
+countf () {
+
+	echo "$(find . -type f | wc -l) files under ${PWD}"
+
+}
