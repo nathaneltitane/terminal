@@ -26,6 +26,7 @@ do
 done
 
 echo
+
 if [[ -z $(command -v curl) ]]
 then
 	if [[ -n $(command -v apt-get) ]]
