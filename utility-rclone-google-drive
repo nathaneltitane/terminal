@@ -223,13 +223,12 @@ ${TAB}transfer_command+=(--multi-thread-streams \${streams})
 ${TAB}transfer_command+=(--recover)
 ${TAB}transfer_command+=(--track-renames)
 ${TAB}transfer_command+=(--transfers \${transfers})
+${TAB}transfer_command+=(--resync-mode newer)
 
 ${TAB}if (( run_count == 0 || run_count % 10 == 0 ))
 ${TAB}then
 ${TAB}${TAB}echo "Resync triggered - count \${run_count}"
 ${TAB}${TAB}echo
-
-${TAB}${TAB}transfer_command+=(--resync)
 ${TAB}fi
 
 ${TAB}transfer_command+=(--progress)
