@@ -238,7 +238,7 @@ frobulator.directory "$(dirname "${models_directory}")" "$(basename "${models_di
 
 chown -R ollama:ollama "${models_directory}"
 
-cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"override.conf
+cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"-override.conf
 [Service]
 Environment="HSA_OVERRIDE_GFX_VERSION=${gpu_override}"
 Environment="OLLAMA_MODELS=${models_directory}"
