@@ -135,10 +135,11 @@ tool_url="https://claude.ai/install.sh"
 
 url_install () {
 
-	local label="${1}"
-	local command_name="${2}"
-	local url="${3}"
-	local ownership_paths=("${@:4}")
+	local run_as="${1}"
+	local label="${2}"
+	local command_name="${3}"
+	local url="${4}"
+	local ownership_paths=("${@:5}")
 
 	if [[ -n $(command -v "${command_name}") ]]
 	then
@@ -170,7 +171,14 @@ url_install () {
 		return 1
 	fi
 
-	bash "${installer}"
+	chmod +r "${installer}"
+
+	if [ "${run_as}" = "user" ] && [ -n "${SUDO_USER}" ]
+	then
+		sudo -u "${SUDO_USER}" bash "${installer}"
+	else
+		bash "${installer}"
+	fi
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -215,7 +223,7 @@ fi
 
 # process install
 
-url_install "${process}" ollama https://ollama.com/install.sh
+url_install root "${process}" ollama https://ollama.com/install.sh
 
 if [ "${?}" -ne 0 ]
 then
@@ -269,7 +277,7 @@ fi
 
 # tool install
 
-url_install "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
+url_install user "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
 
 # verification
 
