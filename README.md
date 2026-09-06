@@ -2,7 +2,7 @@
 
 [![Donate](https://img.shields.io/badge/Paypal-2f343f.svg?style=for-the-badge&logo=paypal&label=Donate)](https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ)
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 01-21-2023 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2023-01-21 ]
 
 ---
 
@@ -54,7 +54,7 @@ The following projects incorporate Terminal files in their usage:
 
 ---
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 01-21-2023 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2023-01-21 ]
 
 ### Enjoying Terminal? Buy me a coffee to show your appreciation!
 
