@@ -108,8 +108,6 @@ frobulator.escalate
 
 # variables ////////////////////////////////////////////////////////////////////
 
-label="LLM"
-
 process="ollama"
 service="${process}.service"
 
@@ -117,7 +115,7 @@ model="llama3.2"
 
 # path to a separate mount so models survive a system reinstall/format
 
-models_directory="/media/internal/${label}"
+models_directory="/media/internal/${process}"
 
 # 'hades canyon' nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl:
 # not an officially supported rocm target - identifier: gfx902
@@ -126,6 +124,72 @@ models_directory="/media/internal/${label}"
 # so ollama attempts gpu offload rather than silently falling back to cpu-only
 
 gpu_override="9.0.0"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+install_from_url () {
+
+	local label="${1}"
+	local command_name="${2}"
+	local url="${3}"
+	local ownership_paths=("${@:4}")
+
+	if [[ -n $(command -v "${command_name}") ]]
+	then
+		frobulator.wrn "Already installed" "[ ${label} ]"
+		echo
+
+		return 0
+	fi
+
+	frobulator.inf "Installing" "[ ${label} ]"
+	echo
+
+	installer="$(mktemp)"
+
+	curl												\
+		--fail											\
+		--silent										\
+		--show-error									\
+		--location										\
+		--output "${installer}" 						"${url}"
+
+	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
+	then
+		frobulator.err "Unable to fetch installer" "[ ${label} ]"
+		echo
+
+		rm -f "${installer}"
+
+		return 1
+	fi
+
+	bash "${installer}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "Installation failed" "[ ${label} ]"
+		echo
+
+		rm -f "${installer}"
+
+		return 1
+	fi
+
+	rm -f "${installer}"
+
+	if [ "${USER}" != "root" ] && [ "${#ownership_paths[@]}" -gt 0 ]
+	then
+		chown -R "${USER}:$(id -g "${USER}")" "${ownership_paths[@]}" > /dev/null 2>&1
+	fi
+
+	frobulator.scs "Installed" "[ ${label} ]"
+	echo
+
+	return 0
+}
 
 # requirements /////////////////////////////////////////////////////////////////
 
@@ -234,57 +298,16 @@ fi
 
 # claude code
 
-if [[ -z $(command -v claude) ]]
-then
-	frobulator.inf "Installing" "[ claude code ]"
-	echo
-
-	installer="$(mktemp)"
-
-	curl													\
-		--fail												\
-		--silent											\
-		--show-error										\
-		--location											\
-								--output "${installer}"		\
-															"https://claude.ai/install.sh"
-
-	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
-	then
-		frobulator.err "Unable to fetch installer" "[ claude code ]"
-		echo
-	else
-		bash "${installer}"
-
-		if [ "${?}" -ne 0 ]
-		then
-			frobulator.err "Installation failed" "[ claude code ]"
-			echo
-		else
-			if [ "${USER}" != "root" ]
-			then
-				chown -R "${USER}:$(id -g "${USER}")" "${HOME}"/.local/bin/claude "${HOME}"/.claude > /dev/null 2>&1
-			fi
-
-			frobulator.scs "Installed" "[ claude code ]"
-			echo
-		fi
-	fi
-
-	rm -f "${installer}"
-else
-	frobulator.wrn "Already installed" "[ claude code ]"
-	echo
-fi
+install_from_url "claude code" claude https://claude.ai/install.sh "${HOME}"/.local/bin/claude "${HOME}"/.claude
 
 # verification
 
 frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt:
 
-if it reports CPU instead of a GPU percentage, the 'gfx902' override did not take.
+if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
 
-Try 'HSA_OVERRIDE_GFX_VERSION=9.0.2' as an alternate value in the override.conf.
+Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf.
 
-Run 'frobulator.service reload' then 'frobulator.service restart ${service}'."
+Run 'frobulator.service reload' and 'frobulator.service restart' the service."
 
 frobulator.scs "Done"
