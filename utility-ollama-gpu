@@ -279,6 +279,6 @@ if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
 
 Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf.
 
-Run 'frobulator.service reload' and 'frobulator.service restart' the service."
+Run 'frobulator.service reload' then 'frobulator.service restart ${service}'."
 
 frobulator.scs "Done"
