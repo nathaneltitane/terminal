@@ -108,6 +108,7 @@ frobulator.escalate
 
 # variables ////////////////////////////////////////////////////////////////////
 
+label="LLM"
 process="ollama"
 service="${process}.service"
 
@@ -115,7 +116,7 @@ model="llama3.2"
 
 # path to a separate mount so models survive a system reinstall/format
 
-models_directory="/media/internal/${process}"
+models_directory="/media/internal/${label}"
 
 # 'hades canyon' nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl:
 # not an officially supported rocm target - identifier: gfx902
@@ -228,6 +229,45 @@ then
 	echo
 
 	exit 1
+fi
+
+# claude code
+
+if [[ -z $(command -v claude) ]]
+then
+	frobulator.inf "Installing" "[ claude code ]"
+	echo
+
+	installer="$(mktemp)"
+
+	curl -fsSL https://claude.ai/install.sh -o "${installer}"
+
+	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
+	then
+		frobulator.err "Unable to fetch installer" "[ claude code ]"
+		echo
+	else
+		bash "${installer}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Installation failed" "[ claude code ]"
+			echo
+		else
+			if [ "${USER}" != "root" ]
+			then
+				chown -R "${USER}:$(id -g "${USER}")" "${HOME}"/.local/bin/claude "${HOME}"/.claude > /dev/null 2>&1
+			fi
+
+			frobulator.scs "Installed" "[ claude code ]"
+			echo
+		fi
+	fi
+
+	rm -f "${installer}"
+else
+	frobulator.wrn "Already installed" "[ claude code ]"
+	echo
 fi
 
 # verification
