@@ -232,6 +232,12 @@ fi
 
 # verification
 
-frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt - if it reports CPU instead of a GPU percentage, the gfx902 override did not take. Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf, then 'frobulator.service reload' and 'frobulator.service restart' the service."
+frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt:
+
+if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
+
+Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf.
+
+Run 'frobulator.service reload' and 'frobulator.service restart' the service."
 
 frobulator.scs "Done"
