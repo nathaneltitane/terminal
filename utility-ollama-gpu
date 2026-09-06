@@ -129,7 +129,7 @@ gpu_override="9.0.0"
 
 # functions ////////////////////////////////////////////////////////////////////
 
-install_from_url () {
+url_install () {
 
 	local label="${1}"
 	local command_name="${2}"
@@ -211,7 +211,7 @@ fi
 
 # install
 
-install_from_url "${process}" ollama https://ollama.com/install.sh
+url_install "${process}" ollama https://ollama.com/install.sh
 
 if [ "${?}" -ne 0 ]
 then
@@ -265,7 +265,7 @@ fi
 
 # claude code
 
-install_from_url "claude code" claude https://claude.ai/install.sh "${HOME}"/.local/bin/claude "${HOME}"/.claude
+url_install "claude code" claude https://claude.ai/install.sh "${HOME}"/.local/bin/claude "${HOME}"/.claude
 
 # verification
 
