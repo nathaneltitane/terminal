@@ -106,7 +106,7 @@ script="$(basename -- ${BASH_SOURCE[0]})"
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="09-05-2026"
+version="09-06-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -222,12 +222,13 @@ ${TAB}transfer_command+=(--multi-thread-streams \${streams})
 ${TAB}transfer_command+=(--recover)
 ${TAB}transfer_command+=(--track-renames)
 ${TAB}transfer_command+=(--transfers \${transfers})
-${TAB}transfer_command+=(--resync-mode newer)
 
 ${TAB}if (( run_count == 0 || run_count % 10 == 0 ))
 ${TAB}then
 ${TAB}${TAB}echo "Resync triggered - count \${run_count}"
 ${TAB}${TAB}echo
+
+${TAB}${TAB}transfer_command+=(--resync-mode newer)
 ${TAB}fi
 
 ${TAB}transfer_command+=(--progress)
@@ -239,29 +240,30 @@ ${TAB}eval \${transfer_command[@]}
 
 # batch directory management
 
-# set IFS
-
-IFS=\$'\n'
-
-server_directories_list=(
-${TAB}\$(find "\${local_server_directory}"	\\
-${TAB}${TAB}-mindepth 1						\\
-${TAB}${TAB}-maxdepth 1						\\
-${TAB}${TAB}-type d							\\
-${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB})
-)
-
 run_count=0
 
 echo "Run count: \${run_count}"
 echo
 
-# unset IFS
+refresh_server_directories_list () {
 
-IFS=''
+${TAB}IFS=\$'\n'
+
+${TAB}server_directories_list=(
+${TAB}${TAB}\$(find "\${local_server_directory}"	\\
+${TAB}${TAB}${TAB}-mindepth 1						\\
+${TAB}${TAB}${TAB}-maxdepth 1						\\
+${TAB}${TAB}${TAB}-type d							\\
+${TAB}${TAB}${TAB}! -iname "*.Trash*"				\\
+${TAB}${TAB})
+${TAB})
+
+${TAB}IFS=''
+}
 
 synchronize () {
+
+${TAB}refresh_server_directories_list
 
 ${TAB}if [ -e "\${run_count_tracker}" ]
 ${TAB}then
