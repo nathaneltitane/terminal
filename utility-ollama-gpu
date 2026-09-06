@@ -108,6 +108,7 @@ frobulator.escalate
 
 # variables ////////////////////////////////////////////////////////////////////
 
+label="llm"
 process="ollama"
 service="${process}.service"
 
@@ -115,7 +116,7 @@ model="llama3.2"
 
 # path to a separate mount so models survive a system reinstall/format
 
-models_directory="/media/internal/${process}"
+models_directory="/media/internal/${label^^}"
 
 # 'hades canyon' nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl:
 # not an officially supported rocm target - identifier: gfx902
