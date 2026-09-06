@@ -211,44 +211,11 @@ fi
 
 # install
 
-if [[ -z $(command -v ollama) ]]
+install_from_url "${process}" ollama https://ollama.com/install.sh
+
+if [ "${?}" -ne 0 ]
 then
-	frobulator.inf "Installing" "[ ${process} ]"
-	echo
-
-	installer="$(mktemp)"
-
-	curl -fsSL https://ollama.com/install.sh -o "${installer}"
-
-	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
-	then
-		frobulator.err "Unable to fetch installer" "[ ${process} ]"
-		echo
-
-		rm -f "${installer}"
-
-		exit 1
-	fi
-
-	sh "${installer}"
-
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Installation failed" "[ ${process} ]"
-		echo
-
-		rm -f "${installer}"
-
-		exit 1
-	fi
-
-	rm -f "${installer}"
-
-	frobulator.scs "Installed" "[ ${process} ]"
-	echo
-else
-	frobulator.wrn "Already installed" "[ ${process} ]"
-	echo
+	exit 1
 fi
 
 # gpu override
@@ -308,6 +275,6 @@ if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
 
 Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf.
 
-Run 'frobulator.service reload' and 'frobulator.service restart' the service."
+Run 'frobulator.service reload' then 'frobulator.service restart ${service}'."
 
 frobulator.scs "Done"
