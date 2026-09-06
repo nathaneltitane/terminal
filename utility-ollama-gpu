@@ -241,7 +241,13 @@ then
 
 	installer="$(mktemp)"
 
-	curl -fsSL https://claude.ai/install.sh -o "${installer}"
+	curl													\
+		--fail												\
+		--silent											\
+		--show-error										\
+		--location											\
+								--output "${installer}"		\
+															"https://claude.ai/install.sh"
 
 	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
 	then
