@@ -59,5 +59,3 @@ The following projects incorporate Terminal files in their usage:
 ### Enjoying Terminal? Buy me a coffee to show your appreciation!
 
 [![Donate](https://img.shields.io/badge/Paypal-2f343f.svg?style=for-the-badge&logo=paypal&label=Donate)](https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ)
-
-
