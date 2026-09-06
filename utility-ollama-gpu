@@ -275,7 +275,7 @@ fi
 
 frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt:
 
-if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
+if it reports CPU instead of a GPU percentage, the 'gfx902' override did not take.
 
 Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf.
 
