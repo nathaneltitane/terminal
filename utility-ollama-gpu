@@ -127,6 +127,10 @@ gpu_override="9.0.0"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
+tool="claude code"
+tool_command="claude"
+tool_url="https://claude.ai/install.sh"
+
 # functions ////////////////////////////////////////////////////////////////////
 
 url_install () {
@@ -209,7 +213,7 @@ then
 	echo
 fi
 
-# install
+# model install
 
 url_install "${process}" ollama https://ollama.com/install.sh
 
@@ -263,9 +267,9 @@ then
 	exit 1
 fi
 
-# claude code
+# tool model install
 
-url_install "claude code" claude https://claude.ai/install.sh "${HOME}"/.local/bin/claude "${HOME}"/.claude
+install_from_url "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
 
 # verification
 
