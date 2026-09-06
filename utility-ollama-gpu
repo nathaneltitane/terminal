@@ -213,7 +213,7 @@ then
 	echo
 fi
 
-# model install
+# process install
 
 url_install "${process}" ollama https://ollama.com/install.sh
 
@@ -238,7 +238,7 @@ frobulator.directory "$(dirname "${models_directory}")" "$(basename "${models_di
 
 chown -R ollama:ollama "${models_directory}"
 
-cat <<- FILE > /etc/systemd/system/"${service}".d/override.conf
+cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"override.conf
 [Service]
 Environment="HSA_OVERRIDE_GFX_VERSION=${gpu_override}"
 Environment="OLLAMA_MODELS=${models_directory}"
@@ -267,9 +267,9 @@ then
 	exit 1
 fi
 
-# tool model install
+# tool install
 
-install_from_url "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
+url_install "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
 
 # verification
 
