@@ -191,6 +191,34 @@ then
 	done
 fi
 
+# llm //////////////////////////////////////////////////////////////////////////
+
+cc () {
+
+	local command
+
+	command="claude"
+
+	if [[ -z $(command -v "${command}") ]]
+	then
+		frobulator.err "Command not found" "[ ${command} ]"
+		echo
+
+		return 1
+	fi
+
+	"${command}" "${@}"
+
+	wait
+
+	# clear terminal from known cursor position
+
+	tput cnorm
+	tput sgr0
+	tput ed
+
+}
+
 # adb //////////////////////////////////////////////////////////////////////////
 
 adb_download () {
