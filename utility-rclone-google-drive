@@ -102,7 +102,7 @@ script="$(basename -- ${BASH_SOURCE[0]})"
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="2026-09-06"
+version="07-13-2026"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -146,7 +146,6 @@ list=()
 list=(
 	rclone
 	rclone-browser
-	inotify-tools
 )
 
 frobulator.require "${list[@]}"
@@ -218,13 +217,12 @@ ${TAB}transfer_command+=(--multi-thread-streams \${streams})
 ${TAB}transfer_command+=(--recover)
 ${TAB}transfer_command+=(--track-renames)
 ${TAB}transfer_command+=(--transfers \${transfers})
+${TAB}transfer_command+=(--resync-mode newer)
 
 ${TAB}if (( run_count == 0 || run_count % 10 == 0 ))
 ${TAB}then
 ${TAB}${TAB}echo "Resync triggered - count \${run_count}"
 ${TAB}${TAB}echo
-
-${TAB}${TAB}transfer_command+=(--resync-mode newer)
 ${TAB}fi
 
 ${TAB}transfer_command+=(--progress)
@@ -236,31 +234,30 @@ ${TAB}eval \${transfer_command[@]}
 
 # batch directory management
 
+# set IFS
+
+IFS=\$'\n'
+
+server_directories_list=(
+${TAB}\$(find "\${local_server_directory}"	\\
+${TAB}${TAB}-mindepth 1						\\
+${TAB}${TAB}-maxdepth 1						\\
+${TAB}${TAB}-type d							\\
+${TAB}${TAB}! -iname "*.Trash*"				\\
+${TAB})
+)
+
 run_count=0
 
 echo "Run count: \${run_count}"
 echo
 
-refresh_server_directories_list () {
+# unset IFS
 
-${TAB}IFS=\$'\n'
+IFS=''
 
-${TAB}server_directories_list=(
-${TAB}${TAB}\$(find "\${local_server_directory}"	\\
-${TAB}${TAB}${TAB}-mindepth 1						\\
-${TAB}${TAB}${TAB}-maxdepth 1						\\
-${TAB}${TAB}${TAB}-type d							\\
-${TAB}${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB}${TAB})
-${TAB})
-
-${TAB}IFS=''
-}
-
-synchronize () {
-
-${TAB}refresh_server_directories_list
-
+while true
+do
 ${TAB}if [ -e "\${run_count_tracker}" ]
 ${TAB}then
 ${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
@@ -295,26 +292,7 @@ ${TAB}echo "\${run_count}" > "\${run_count_tracker}"
 ${TAB}echo
 ${TAB}echo "Run end - count: \${run_count}"
 ${TAB}echo
-}
 
-# initial sync on startup
-
-synchronize
-
-# event-driven loop - reacts to local changes
-# debounced against bursts
-
-inotifywait -m -r -e modify,create,delete,move,attrib --format '%w%f' "\${local_server_directory}" |
-while read -r changed_file
-do
-${TAB}sleep 2
-
-${TAB}while read -r -t 0.5 _
-${TAB}do
-${TAB}${TAB}:
-${TAB}done
-
-${TAB}synchronize
 done
 
 # unset directory list
@@ -355,12 +333,54 @@ frobulator.delete "${HOME}"/.local/bin "${tracker}"
 
 frobulator.delete "${HOME}"/.cache rclone
 
-# refresh daemon status
+# service activation
 
-frobulator.service reload
+if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.wrn "Service running" " [ ${service} ]"
+	echo
 
-frobulator.service status "${service}"
+	service_actions_list=(
+		disable
+		stop
+	)
+fi
 
-frobulator.service activate "${service}"
+service_actions_list+=(
+	enable
+	start
+)
+
+for service_action in ${service_actions_list[@]}
+do
+	systemctl "${service_action}" --user "${service}" > "${sink}" 2>&1 &
+
+	frobulator.process "Service ${service_action}" "[ ${service} ]"
+
+	sleep 1
+
+	systemctl --user daemon-reload > "${sink}" 2>&1 &
+
+	frobulator.process "Reloading"
+
+	sleep 1
+done
+
+service_actions_list=()
+
+# service process verification
+
+if [[ $(systemctl status --user "${service}" | grep -e "active.*running") ]]
+then
+	frobulator.scs "Service activation success" "[ ${service} ]"
+	echo
+
+elif [[ $(systemctl status --user "${service}" | grep -e "inactive.*") ]]
+then
+	frobulator.err "Service activation failed" "[ ${service} ]"
+	echo
+
+	exit 1
+fi
 
 frobulator.scs "Done"
