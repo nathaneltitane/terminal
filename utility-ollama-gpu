@@ -91,7 +91,7 @@ source "${frobulator}"
 
 export self_arguments="${@}"
 
-frobulator.escalate
+# frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
@@ -104,6 +104,12 @@ version="2026-09-06"
 # prompt ///////////////////////////////////////////////////////////////////////
 
 frobulator.script "Setting up ${script#*-}"
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+frobulator.escalate
 
 # variables ////////////////////////////////////////////////////////////////////
 
@@ -286,7 +292,7 @@ frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt:
 
 if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
 
-Try HSA_OVERRIDE_GFX_VERSION=9.0.2 as an alternate value in the override.conf.
+Try 'HSA_OVERRIDE_GFX_VERSION=9.0.2' as an alternate value in the override.conf.
 
 Run 'frobulator.service reload' then 'frobulator.service restart ${service}'."
 
