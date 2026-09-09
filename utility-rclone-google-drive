@@ -150,6 +150,8 @@ list=(
 
 frobulator.require "${list[@]}"
 
+frobulator.complete
+
 list=()
 
 if [ -d /media/[iI]nternal/[rR][cC]lone ]
@@ -162,6 +164,8 @@ then
 		frobulator.directory "${HOME}" .config/rclone
 
 		frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
+
+		frobulator.complete
 	fi
 fi
 
@@ -300,23 +304,32 @@ done
 server_directories_list=()
 FILE
 
+frobulator.complete
+
 # permissions
 
 chmod +x "${HOME}"/.local/bin/"${process}"
 
+frobulator.complete
+
 # service
 
-frobulator.directory "${HOME}" .config/systemd/user
+frobulator.directory /etc/systemd system
+
+frobulator.complete
 
 # service desciptor
 
-cat <<- FILE > "${HOME}"/.config/systemd/user/"${service}"
+cat <<- FILE > /etc/systemd/system/"${service}"
 [Unit]
 Description=Synchronize Google Drive using RClone
-After=graphical-session.target
-Requires=graphical-session.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
+User=${USER}
+Group=${USER}
+Environment=HOME=${HOME}
 ExecStart=${SHELL} ${HOME}/.local/bin/${process}
 Restart=always
 RestartSec=1s
@@ -324,8 +337,10 @@ StandardOutput=journal
 StandardError=journal
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=multi-user.target
 FILE
+
+frobulator.complete
 
 # prepare
 
@@ -333,13 +348,12 @@ frobulator.delete "$(dirname "${tracker}")" "$(basename "${tracker}")"
 
 frobulator.delete "${HOME}"/.cache rclone
 
+frobulator.complete
+
 # service activation
 
 frobulator.service activate "${service}"
 
-if [ "${?}" -ne 0 ]
-then
-	exit 1
-fi
+frobulator.complete
 
-frobulator.scs "Done"
+frobulator.result "${script}"
