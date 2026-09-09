@@ -118,7 +118,7 @@ label="LLM"
 process="ollama"
 service="${process}.service"
 
-model="qwen3:8b"
+model="llama3.2"
 
 # path to a separate mount so models survive a system reinstall/format
 
