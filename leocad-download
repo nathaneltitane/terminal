@@ -146,7 +146,7 @@ frobulator.temporary download_directory
 
 frobulator.download "${archive_url}" "${download_directory}"
 
-# extract #
+# extract
 
 frobulator.silence "${extract_command}" &
 
