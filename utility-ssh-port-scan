@@ -109,47 +109,57 @@ version="2026-05-09"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} [LAN Prefix] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "[LAN Prefix]        Scan the given LAN prefix for open ports."
+			echo
+			echo -e "                    [ XXX.XXX.XXX ]"
+			echo -e "                    [ (empty) ]    [ Default - detects via 'hostname -I' ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			lan="${1}"
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
 
-ssh_check () {
+ssh_scan () {
 
 	seconds="5"
 	timeout="0.125"
 	lan="${1}"
-
-	if [ -z "${lan}" ]
-	then
-		echo "Usage:"
-		echo
-		echo "${script} <LAN PREFIX>"
-		echo
-		echo "LAN Prefix	XXX.XXX.XXX"
-		echo
-
-		return 1
-	fi
-
-	# extract and validate first 3 octets
-
-	lan=$(
-		echo "${lan}"									| \
-			grep -E -o '^([0-9]{1,3}\.){2}[0-9]{1,3}'	| \
-				awk -F'.' '
-					$1 <= 255 && $2 <= 255 && $3 <= 255 {
-						printf("%d.%d.%d.", $1, $2, $3)
-					}'
-	)
-
-	if [ -z "${lan}" ]
-	then
-		frobulator.err "Invalid IP address format."
-
-		return 1
-	fi
 
 	# split ip into individual octets
 
@@ -169,7 +179,7 @@ ssh_check () {
 
 		if [ $? -eq 0 ]
 		then
-			list_port_open+=("${ip_display}")
+			echo "port:${ip_display}" >> "${results_file}"
 
 			# secure shell
 
@@ -184,7 +194,7 @@ ssh_check () {
 
 			if echo "${ssh_output}" | grep -q -i -e "permission denied" -e "welcome" -e "last login"
 			then
-				list_ssh_open+=("${ip_display}")
+				echo "ssh:${ip_display}" >> "${results_file}"
 			fi
 
 			# secure file transfer
@@ -200,7 +210,7 @@ ssh_check () {
 
 			if echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied"
 			then
-				list_sftp_open+=("${ip_display}")
+				echo "sftp:${ip_display}" >> "${results_file}"
 			fi
 
 		fi
@@ -211,7 +221,9 @@ ssh_check () {
 
 	IFS=''
 
-	frobulator.erase 3
+}
+
+ssh_results () {
 
 	# port
 
@@ -314,6 +326,85 @@ list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-ssh_check "${@}" &
+if [[ "${lan}" =~ [a-zA-Z] ]]
+then
+	frobulator.err "Invalid IP address format."
+	echo
+
+	exit 1
+fi
+
+if [ -z "${lan}" ]
+then
+	lan="$(hostname -I 2> "${sink}")"
+
+	lan="${lan%% *}"
+
+	lan="${lan%.*}"
+
+	IFS='.' read -r octet_auto_01 octet_auto_02 octet_auto_03 <<< "${lan}"
+
+	lan=$(printf "%03d.%03d.%03d" "${octet_auto_01}" "${octet_auto_02}" "${octet_auto_03}")
+
+	frobulator.inf "No prefix - defaulting" "[ ${lan} ]"
+	echo
+fi
+
+# extract and validate first 3 octets
+
+if [[ "${lan}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}) ]]
+then
+	octet_validate_01="${BASH_REMATCH[1]}"
+	octet_validate_02="${BASH_REMATCH[2]}"
+	octet_validate_03="${BASH_REMATCH[3]}"
+
+	if [ "${octet_validate_01}" -le 255 ] && [ "${octet_validate_02}" -le 255 ] && [ "${octet_validate_03}" -le 255 ]
+	then
+		lan="${octet_validate_01}.${octet_validate_02}.${octet_validate_03}."
+	else
+		lan=""
+	fi
+else
+	lan=""
+fi
+
+if [ -z "${lan}" ]
+then
+	echo "Usage:"
+	echo
+	echo "${script} <LAN PREFIX>"
+	echo
+	echo "LAN Prefix	XXX.XXX.XXX"
+	echo
+
+	exit 1
+fi
+
+results_file="$(mktemp)"
+
+ssh_scan "${lan}" &
 
 frobulator.progress scan
+
+while IFS=':' read -r category address
+do
+	if [ "${category}" = "port" ]
+	then
+		list_port_open+=("${address}")
+	fi
+
+	if [ "${category}" = "ssh" ]
+	then
+		list_ssh_open+=("${address}")
+	fi
+
+	if [ "${category}" = "sftp" ]
+	then
+		list_sftp_open+=("${address}")
+	fi
+
+done < "${results_file}"
+
+rm -f "${results_file}"
+
+ssh_results
