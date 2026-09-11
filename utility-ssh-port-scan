@@ -211,7 +211,7 @@ ssh_check () {
 
 	IFS=''
 
-	frobulator.plo 3
+	frobulator.erase 3
 
 	# port
 
