@@ -115,7 +115,7 @@ application="leocad"
 architecture="arm64"
 url="https://api.github.com/repos/leozide/leocad/releases/latest"
 
-archive=$(curl -s -L  "${url}" | grep -o [aA0-zZ9-]*${architecture}.zip | head -n 1)
+archive=$(curl -s -L "${url}" | grep -o [aA0-zZ9-]*${architecture}.zip | head -n 1)
 
 archive_url="https://github.com/leozide/leocad/releases/download/continuous/${archive}"
 
