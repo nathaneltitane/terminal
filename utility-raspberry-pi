@@ -105,120 +105,369 @@ frobulator.script
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="2026-07-13"
+version="2026-09-12"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-d|--device)
+			device="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -d [Device] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-d, --device        Target block device to write the image to."
+			echo
+			echo -e "                    [ /dev/sdX ]"
+			echo -e "                    [ /dev/mmcblkX ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+if [ -z "${device}" ]
+then
+	frobulator.err "No target device specified"
+	echo
+
+	frobulator.inf "Available block devices"
+	echo
+
+	lsblk --nodeps --output NAME,SIZE,MODEL,TRAN,TYPE | grep -e "disk" -e "NAME"
+	echo
+
+	echo "Usage: ${script} -d [Device]"
+	echo
+
+	exit 1
+fi
+
+if [ ! -b "${device}" ]
+then
+	frobulator.err "Not a block device" "[ '${device}' ]"
+	echo
+
+	exit 1
+fi
+
 # variables ////////////////////////////////////////////////////////////////////
+
+image_url_latest="https://downloads.raspberrypi.com/raspios_lite_arm64_latest"
+
+download_directory="${HOME}/.cache/raspberry-pi"
+
+image_archive="${download_directory}/raspios_lite_arm64.img.xz"
+
+mount_boot="/mnt/raspberry-pi-boot"
+mount_root="/mnt/raspberry-pi-root"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-# functions ////////////////////////////////////////////////////////////////////
-
-# update ///////////////////////////////////////////////////////////////////////
-
-# frobulator.update
-
-# frobulator.upgrade
+hostname_default="pi"
+username_default="${USER}"
+wifi_country_default="US"
 
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
-
+	curl
+	xz-utils
+	parted
+	util-linux
+	e2fsprogs
+	dosfstools
+	uuid-runtime
+	openssl
 )
 
 frobulator.require ${list[@]}
 
 list=()
 
-# configuration ////////////////////////////////////////////////////////////////
+# credentials
 
-# user
+frobulator.inf "Headless configuration"
+echo
 
-deluser --remove-home ubuntu
-groupdel -f ubuntu
+credentials_list=(
+	"hostname"
+	"username"
+	"user_password"
+	"wifi_ssid"
+	"wifi_password"
+)
 
-chpasswd <<< root:09018610
+frobulator.input "${credentials_list[@]}"
 
-# hostname
+for entry in "${frobulator_return[@]}"
+do
+	IFS='=' read -r entry_key entry_value <<< "${entry}"
 
-echo pi > /etc/hostname
+	if [ "${entry_key}" = "hostname" ]
+	then
+		hostname="${entry_value:-${hostname_default}}"
+	fi
 
-hostnamectl set-hostname pi
+	if [ "${entry_key}" = "username" ]
+	then
+		username="${entry_value:-${username_default}}"
+	fi
+
+	if [ "${entry_key}" = "user_password" ]
+	then
+		user_password="${entry_value}"
+	fi
+
+	if [ "${entry_key}" = "wifi_ssid" ]
+	then
+		wifi_ssid="${entry_value}"
+	fi
+
+	if [ "${entry_key}" = "wifi_password" ]
+	then
+		wifi_password="${entry_value}"
+	fi
+
+done
+
+credentials_missing_list=()
+
+if [ -z "${username}" ]
+then
+	credentials_missing_list+=("username")
+fi
+
+if [ -z "${user_password}" ]
+then
+	credentials_missing_list+=("user_password")
+fi
+
+if [ -z "${wifi_ssid}" ]
+then
+	credentials_missing_list+=("wifi_ssid")
+fi
+
+if [ -z "${wifi_password}" ]
+then
+	credentials_missing_list+=("wifi_password")
+fi
+
+if [ "${#credentials_missing_list[@]}" -gt 0 ]
+then
+	frobulator.err "Missing required credential(s)" "[ ${credentials_missing_list[*]} ]"
+	echo
+
+	exit 1
+fi
+
+hostname="${hostname:-${hostname_default}}"
+
+# download
+
+frobulator.directory "${download_directory}"
+
+url_install=$(curl -s -I -L -o ${sink} -w '%{url_effective}' "${image_url_latest}")
+
+frobulator.inf "Resolved image" "[ ${url_install} ]"
+echo
+
+checksum_expected=$(curl -s -L "${url_install}.sha256" | cut -d ' ' -f 1)
+
+if [ ! -f "${image_archive}" ] || [ "$(sha256sum "${image_archive}" 2> ${sink} | cut -d ' ' -f 1)" != "${checksum_expected}" ]
+then
+	curl -L -o "${image_archive}" "${url_install}" &
+
+	frobulator.progress download "[ ${url_install} ]"
+
+	checksum_actual=$(sha256sum "${image_archive}" | cut -d ' ' -f 1)
+
+	if [ -n "${checksum_expected}" ] && [ "${checksum_actual}" != "${checksum_expected}" ]
+	then
+		frobulator.err "Checksum verification failed"
+		echo
+
+		rm -f "${image_archive}"
+
+		exit 1
+	fi
+
+	frobulator.scs "Checksum verified"
+	echo
+else
+	frobulator.wrn "Already downloaded and verified"
+	echo
+fi
+
+# confirmation
+
+device_details="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
+
+frobulator.ntf err "Destructive operation" "This operation PERMANENTLY ERASES ALL DATA on '${device}'.${NLN}${NLN}${device_details}"
+
+frobulator.ask "Type the device path exactly to confirm" "[ ${device} ]"
+
+read -r device_confirm
+
+if [ "${device_confirm}" != "${device}" ]
+then
+	frobulator.err "Confirmation did not match - aborting"
+	echo
+
+	exit 1
+fi
+
+# unmount
+
+for partition in "${device}"*
+do
+	if [ "${partition}" != "${device}" ]
+	then
+		umount "${partition}" 2> "${sink}"
+	fi
+done
+
+# write
+
+frobulator.inf "Writing image" "[ ${device} ]"
+echo
+
+xz -dc "${image_archive}" | dd of="${device}" bs=4M conv=fsync status=progress oflag=direct
+
+sync
+
+partprobe "${device}" 2> "${sink}"
+
+udevadm settle
+
+sleep 2
+
+# partition naming
+
+if [[ "${device}" =~ (mmcblk|nvme) ]]
+then
+	partition_boot="${device}p1"
+	partition_root="${device}p2"
+else
+	partition_boot="${device}1"
+	partition_root="${device}2"
+fi
+
+if [ ! -b "${partition_boot}" ] || [ ! -b "${partition_root}" ]
+then
+	frobulator.err "Expected partitions not found" "[ '${partition_boot}' '${partition_root}' ]"
+	echo
+
+	exit 1
+fi
+
+# mount
+
+frobulator.directory "${mount_boot}"
+frobulator.directory "${mount_root}"
+
+mount "${partition_boot}" "${mount_boot}"
+mount "${partition_root}" "${mount_root}"
+
+frobulator.complete
 
 # ssh
 
-cat << 'FILE' > /boot/firmware/ssh
+touch "${mount_boot}"/ssh
+
+frobulator.complete
+
+# user
+
+user_password_hash=$(echo "${user_password}" | openssl passwd -6 -stdin)
+
+echo "${username}:${user_password_hash}" > "${mount_boot}"/userconf.txt
+
+frobulator.complete
+
+# wifi (NetworkManager - wpa_supplicant.conf no longer works on Bookworm)
+
+frobulator.directory "${mount_root}"/etc/NetworkManager/system-connections
+
+connection_uuid="$(uuidgen)"
+
+cat <<- FILE > "${mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
+[connection]
+id=preconfigured
+uuid=${connection_uuid}
+type=wifi
+
+[wifi]
+mode=infrastructure
+ssid=${wifi_ssid}
+
+[wifi-security]
+key-mgmt=wpa-psk
+psk=${wifi_password}
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+addr-gen-mode=default
+
+[proxy]
 FILE
 
-# network
+chmod 600 "${mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
 
-cat << 'FILE' > /etc/netplan/01-wlan0-config.yaml
-network:
-    version: 2
+frobulator.complete
 
-    ethernets:
-      eth0:
-        dhcp4: no
-        dhcp6: no
+# hostname
 
-    wifis:
-      wlan0:
-        dhcp4: no
-        dhcp6: no
+echo "${hostname}" > "${mount_root}"/etc/hostname
 
-        addresses:
-          - 192.168.86.21/24
+sed -i "s/127.0.1.1.*/127.0.1.1\t${hostname}/" "${mount_root}"/etc/hosts
 
-        nameservers:
-          addresses:
-            - 8.8.8.8
-            - 1.1.1.1
+frobulator.complete
 
-        routes:
-            - to: default
-              via: 192.168.86.1
+# unmount
 
-        access-points:
-          "WiFi":
-            password: "y5cE?z>6&juDEm"
-FILE
+sync
 
-netplan generate
-netplan apply
+umount "${mount_boot}"
+umount "${mount_root}"
 
-# configuration
+frobulator.complete
 
-cat << 'FILE' > /boot/firmware/config.txt
-[pi4]
-max_framebuffers=2
+frobulator.result "${script}"
 
-[all]
-arm_64bit=1
-disable_splash=1
-kernel=vmlinuz
-cmdline=cmdline.txt
-initramfs initrd.img followkernel
-loglevel=1
-dtoverlay=vc4-kms-v3d,noaudio
-dtparam=audio=on
-dtparam=i2c_arm=on
-dtparam=spi=on
-enable_uart=1
-
-disable_overscan=1
-hdmi_force_hotplug=1
-
-over_voltage=8
-arm_freq=2000
-FILE
-
-# packages
-
-apt --assume-yes update
-apt --assume-yes purge snap thin-provisioning-tools
-apt --assume-yes upgrade
-
-# restart
-
-reboot
+frobulator.scs "SD card ready" "[ ${device} ]"
+echo
