@@ -471,5 +471,5 @@ frobulator.complete
 
 frobulator.result "${script}"
 
-frobulator.scs "SD card ready" "[ ${device} ]"
+frobulator.scs "Boot device ready" "[ ${device} ]"
 echo
