@@ -334,7 +334,7 @@ fi
 
 device_details="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
 
-frobulator.ntf err "Destructive operation" "This operation PERMANENTLY ERASES ALL DATA on '${device}'.${NLN}${NLN}${device_details}"
+frobulator.ntf err "Destructive operation" "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${device_details}"
 
 frobulator.ask "Type the device path exactly to confirm" "[ ${device} ]"
 
@@ -454,7 +454,9 @@ frobulator.complete
 
 echo "${hostname}" > "${mount_root}"/etc/hostname
 
-sed -i "s/127.0.1.1.*/127.0.1.1\t${hostname}/" "${mount_root}"/etc/hosts
+address_localhost="127.0.1.1"
+
+sed -i "s/${address_localhost}.*/${address_localhost}\t${hostname}/" "${mount_root}"/etc/hosts
 
 frobulator.complete
 
