@@ -109,9 +109,57 @@ version="2026-07-13"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-p|--platform)
+			platform="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -p [Platform] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-p, --platform      Target platform to pull and repackage images for."
+			echo
+			echo -e "                    [ linux/amd64 ]"
+			echo -e "                    [ linux/aarch64 ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
-platform="linux/aarch64"
+platform="${platform:-linux/aarch64}"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -141,9 +189,27 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
+
+directory_origin="${PWD}"
+
+frobulator.temporary directory_temporary
+
+if [ -d "${directory_temporary}" ]
+then
+	cd "${directory_temporary}"
+
+	frobulator.complete
+else
+	frobulator.err "Directory not found" "[ ${directory_temporary} ]"
+	echo
+
+	exit 1
+fi
 
 declare -A distributions_list=(
 	[ubuntu]="18.04 20.04 22.04 24.04"
@@ -157,13 +223,19 @@ do
 	do
 		docker pull --quiet --platform="${platform}" "${distribution}:${distribution_version}"
 
+		frobulator.complete
+
 		docker image save "${distribution}:${distribution_version}" | xz > "${distribution}-${distribution_version}-container.tar.xz"
+
+		frobulator.complete
 
 		for archive_input in *container.tar.xz
 		do
 			archive_output="${archive_input/-container.tar.xz/.tar.xz}"
 
-			temporary_directory=$(mktemp -d)
+			frobulator.temporary directory_extraction
+
+			frobulator.complete
 
 			frobulator.fwd "Extracting .."
 
@@ -171,22 +243,49 @@ do
 				--extract							\
 					--file="${archive_input}"   	\
 					--xz                        	\
-					--directory="${temporary_directory}"
+					--directory="${directory_extraction}"
 
-			archive_layer=$(find "${temporary_directory}" -name "layer.tar")
+			frobulator.complete
+
+			archive_layer=$(find "${directory_extraction}" -name "layer.tar")
 
 			if [ -f "${archive_layer}" ]
 			then
 				xz -c "${archive_layer}" > "${archive_output}"
 
-				echo "Successfully repackaged into ${archive_output}"
+				mv "${archive_output}" "${directory_origin}"/"${archive_output}"
+
+				frobulator.scs "Repackaged" "[ ${archive_output} ]"
+				echo
 			else
-				echo "'layer.tar' not found in the extracted content of ${archive_input}"
+				frobulator.err "'layer.tar' not found in extracted content" "[ ${archive_input} ]"
+				echo
 			fi
 
-			rm -r -f "${temporary_directory}"
+			rm -r -f "${directory_extraction}"
 
 			rm -r -f "${archive_input}"
 		done
 	done
 done
+
+if [ -d "${directory_origin}" ]
+then
+	cd "${directory_origin}"
+
+	frobulator.complete
+else
+	frobulator.err "Directory not found" "[ ${directory_origin} ]"
+	echo
+
+	exit 1
+fi
+
+rm -r -f "${directory_temporary}"
+
+frobulator.complete
+
+frobulator.result "${script}"
+
+frobulator.scs "Repackaging complete" "[ ${platform} ]"
+echo
