@@ -153,11 +153,11 @@ declare -A distributions_list=(
 
 for distribution in "${!distributions_list[@]}"
 do
-	for version in ${distributions[${distribution}]}
+	for distribution_version in ${distributions_list[${distribution}]}
 	do
-		docker pull --quiet --platform="${platform}" "${distribution}:${version}"
+		docker pull --quiet --platform="${platform}" "${distribution}:${distribution_version}"
 
-		docker image save "${distribution}:${version}" | xz > "${distribution}-${version}-container.tar.xz"
+		docker image save "${distribution}:${distribution_version}" | xz > "${distribution}-${distribution_version}-container.tar.xz"
 
 		for archive_input in *container.tar.xz
 		do
