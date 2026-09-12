@@ -199,6 +199,8 @@ hostname_default="pi"
 username_default="${USER}"
 wifi_country_default="US"
 
+address_localhost="127.0.1.1"
+
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
@@ -453,8 +455,6 @@ frobulator.complete
 # hostname
 
 echo "${hostname}" > "${mount_root}"/etc/hostname
-
-address_localhost="127.0.1.1"
 
 sed -i "s/${address_localhost}.*/${address_localhost}\t${hostname}/" "${mount_root}"/etc/hosts
 
