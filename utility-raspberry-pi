@@ -220,6 +220,8 @@ list=()
 
 # credentials
 
+# prompt for and validate values required for headless setup
+
 frobulator.inf "Headless configuration"
 echo
 
@@ -298,16 +300,18 @@ hostname="${hostname:-${hostname_default}}"
 
 # download
 
+# resolve and fetch latest image, verified against its published checksum
+
 frobulator.directory "${download_directory}"
 
-url_install=$(curl -s -I -L -o ${sink} -w '%{url_effective}' "${image_url_latest}")
+url_install=$(curl -s -I -L -o "${sink}" -w '%{url_effective}' "${image_url_latest}")
 
 frobulator.inf "Resolved image" "[ ${url_install} ]"
 echo
 
 checksum_expected=$(curl -s -L "${url_install}.sha256" | cut -d ' ' -f 1)
 
-if [ ! -f "${image_archive}" ] || [ "$(sha256sum "${image_archive}" 2> ${sink} | cut -d ' ' -f 1)" != "${checksum_expected}" ]
+if [ ! -f "${image_archive}" ] || [ "$(sha256sum "${image_archive}" 2> "${sink}" | cut -d ' ' -f 1)" != "${checksum_expected}" ]
 then
 	curl -L -o "${image_archive}" "${url_install}" &
 
@@ -334,6 +338,8 @@ fi
 
 # confirmation
 
+# require device path to be retyped before any destructive action
+
 device_details="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
 
 frobulator.ntf err "Destructive operation" "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${device_details}"
@@ -352,6 +358,8 @@ fi
 
 # unmount
 
+# clear any partitions already mounted from target device
+
 for partition in "${device}"*
 do
 	if [ "${partition}" != "${device}" ]
@@ -361,6 +369,8 @@ do
 done
 
 # write
+
+# decompress and write image directly to device
 
 frobulator.inf "Writing image" "[ ${device} ]"
 echo
@@ -376,6 +386,8 @@ udevadm settle
 sleep 2
 
 # partition naming
+
+# resolve partition suffixes, which differ between /dev/sdX and mmcblk/nvme devices
 
 if [[ "${device}" =~ (mmcblk|nvme) ]]
 then
@@ -396,6 +408,8 @@ fi
 
 # mount
 
+# mount newly written boot and root partitions
+
 frobulator.directory "${mount_boot}"
 frobulator.directory "${mount_root}"
 
@@ -406,11 +420,15 @@ frobulator.complete
 
 # ssh
 
+# enable sshd on first boot
+
 touch "${mount_boot}"/ssh
 
 frobulator.complete
 
 # user
+
+# create default user account with a hashed password
 
 user_password_hash=$(echo "${user_password}" | openssl passwd -6 -stdin)
 
@@ -419,6 +437,8 @@ echo "${username}:${user_password_hash}" > "${mount_boot}"/userconf.txt
 frobulator.complete
 
 # wifi (NetworkManager - wpa_supplicant.conf no longer works on Bookworm)
+
+# write a network connection profile directly into rootfs partition
 
 frobulator.directory "${mount_root}"/etc/NetworkManager/system-connections
 
@@ -454,6 +474,8 @@ frobulator.complete
 
 # hostname
 
+# set system hostname and its matching /etc/hosts entry
+
 echo "${hostname}" > "${mount_root}"/etc/hostname
 
 sed -i "s/${address_localhost}.*/${address_localhost}\t${hostname}/" "${mount_root}"/etc/hosts
@@ -461,6 +483,8 @@ sed -i "s/${address_localhost}.*/${address_localhost}\t${hostname}/" "${mount_ro
 frobulator.complete
 
 # unmount
+
+# flush writes and detach both partitions
 
 sync
 
