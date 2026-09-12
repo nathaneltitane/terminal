@@ -199,6 +199,12 @@ directory_origin="${PWD}"
 
 frobulator.temporary directory_temporary
 
+frobulator.complete
+
+frobulator.trap "${directory_temporary}"
+
+frobulator.complete
+
 if [ -d "${directory_temporary}" ]
 then
 	cd "${directory_temporary}"
@@ -280,10 +286,6 @@ else
 
 	exit 1
 fi
-
-rm -r -f "${directory_temporary}"
-
-frobulator.complete
 
 frobulator.result "${script}"
 
