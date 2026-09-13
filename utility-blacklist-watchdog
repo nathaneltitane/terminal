@@ -109,6 +109,51 @@ version="2026-07-18"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-m|--module)
+			module="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -m [Module] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-m, --module        Blacklist the given module instead of auto-detecting."
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 blacklist_directory="/etc/modprobe.d"
@@ -134,30 +179,37 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
 # extract loaded watchdog module
 
-module=$(
+if [ -z "${module}" ]
+then
+	module=$(
 
-	lsmod |
-	awk '
-		tolower($1) ~ /(wdt$|tco$|^softdog$|watchdog)/ &&
-		tolower($1) != "watchdog" {
-			print $1
-			exit
-		}
-	'
+		lsmod |
+		awk '
+			tolower($1) ~ /(wdt$|tco$|^softdog$|watchdog)/ &&
+			tolower($1) != "watchdog" {
+				print $1
+				exit
+			}
+		'
 
-)
+	)
+fi
+
+frobulator.complete
 
 # validate module
 
 if [ -z "${module}" ]
 then
-	frobulator.err "No watchdog module found." "[ ${module_label} ]"
+	frobulator.err "No watchdog module found."
 	echo
 
 	exit 1
@@ -188,7 +240,17 @@ fi
 
 # blacklist module
 
-echo "blacklist ${module}" > "${blacklist_entry}"
+frobulator.write "blacklist ${module}" "${blacklist_directory}" "${blacklist_file}"
+
+if [ "${?}" -ne 0 ]
+then
+	frobulator.err "Failed to write blacklist entry" "[ ${blacklist_entry} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.complete
 
 frobulator.inf "Module blacklisted" "[ ${module_label} ]"
 echo
@@ -199,7 +261,7 @@ frobulator.silence "update-initramfs -u" &
 
 frobulator.progress rebuild "[ initramfs ]"
 
-if [ "$?" -ne 0 ]
+if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Failed to rebuild initramfs."
 	echo
@@ -207,10 +269,12 @@ then
 	exit 1
 fi
 
+frobulator.complete
+
 frobulator.inf "Watchdog disabled."
 echo
 
 frobulator.wrn "Change takes effect after next reboot."
 echo
 
-frobulator.scs "Done."
+frobulator.scs "Done"
