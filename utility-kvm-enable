@@ -230,7 +230,15 @@ frobulator.complete
 frobulator.inf "Defining libvirt network"
 echo
 
-file_temporary="$(mktemp)"
+frobulator.temporary directory_temporary
+
+frobulator.complete
+
+frobulator.trap "${directory_temporary}"
+
+frobulator.complete
+
+file_temporary="${directory_temporary}"/bridge.xml
 
 cat > "${file_temporary}" << 'FILE'
 <network>
@@ -249,10 +257,6 @@ virsh net-start bridge
 frobulator.complete
 
 virsh net-autostart bridge
-
-frobulator.complete
-
-rm --force "${file_temporary}"
 
 frobulator.complete
 
