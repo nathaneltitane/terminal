@@ -109,6 +109,51 @@ version="2026-08-02"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+dry_run=false
+
+while (($#))
+do
+	case "${1}"
+	in
+		-d|--dry-run)
+			dry_run=true
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -d | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-d, --dry-run       Report packages that would be removed, without removing them."
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 path_android="${HOME}/.local/lib/android"
@@ -135,6 +180,8 @@ android_platform_tools_update () {
 		exit 1
 	fi
 
+	frobulator.trap "${directory_temporary}"
+
 	archive="${directory_temporary}/platform-tools.zip"
 	path_extracted="${directory_temporary}/platform-tools"
 
@@ -150,8 +197,6 @@ android_platform_tools_update () {
 
 	if [ "${?}" -ne 0 ]
 	then
-		frobulator.delete "${directory_temporary}"
-
 		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
 		echo
 
@@ -162,8 +207,6 @@ android_platform_tools_update () {
 
 	if [ "${?}" -ne 0 ]
 	then
-		frobulator.delete "${directory_temporary}"
-
 		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
 		echo
 
@@ -172,8 +215,6 @@ android_platform_tools_update () {
 
 	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
 	then
-		frobulator.delete "${directory_temporary}"
-
 		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
 		echo
 
@@ -207,8 +248,6 @@ android_platform_tools_update () {
 		chown -R "${USER}:$(id -g "${USER}")" "${path_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
 	fi
 
-	frobulator.delete "${directory_temporary}"
-
 	export PATH="${HOME}/.local/bin:${path_android_platform_tools}:${PATH}"
 
 	hash -r
@@ -241,9 +280,13 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 android_platform_tools_update
+
+frobulator.complete
 
 # configuration ////////////////////////////////////////////////////////////////
 
@@ -859,22 +902,56 @@ packages_list=(
 	${packages_list_malware[@]}
 )
 
+frobulator.inf "Querying installed packages"
+echo
+
+packages_installed=$(android_debug_bridge list packages --user 0)
+
+frobulator.complete
+
+count_removed=0
+count_failed=0
+
 for application in "${packages_list[@]}"
 do
-	if [[ $(android_debug_bridge list packages --user 0 | grep -F -x "package:${application}") ]]
+	if [[ $(echo "${packages_installed}" | grep -F -x "package:${application}") ]]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 		echo
+
+		if [ "${dry_run}" = true ]
+		then
+			frobulator.wrn "Would be removed" "[ ${application} ]"
+			echo
+
+			continue
+		fi
 
 		frobulator.wrn "Removing package" "[ ${application} ]"
 		echo
 
 		android_debug_bridge uninstall -k --user 0 "${application}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Failed to remove" "[ ${application} ]"
+			echo
+
+			count_failed=$(( count_failed + 1 ))
+		else
+			count_removed=$(( count_removed + 1 ))
+		fi
 	else
 		frobulator.fwd "Not on device" "[ ${application} ]"
 		echo
 	fi
 done
 
-frobulator.scs 'Done'
-echo
+if [ "${dry_run}" = true ]
+then
+	frobulator.scs "Dry run complete"
+	echo
+else
+	frobulator.scs "Done" "[ ${count_removed} removed, ${count_failed} failed ]"
+	echo
+fi
