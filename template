@@ -213,3 +213,8 @@ frobulator.require ${list[@]}
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
+
+frobulator.result "${script}"
+
+frobulator.scs "Done"
+echo
