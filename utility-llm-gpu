@@ -280,7 +280,7 @@ fi
 
 # claude directory
 
-frobulator.link "${models_directory}" "${HOME}" .claude
+frobulator.link "${models_directory}" "${HOME}" claude .claude
 
 frobulator.complete
 
