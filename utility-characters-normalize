@@ -109,89 +109,57 @@ version="2026-07-30"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
-if [[ "${self}" = "${0}" ]]
-then
-	# implement from local version
+while (($#))
+do
+	case "${1}"
+	in
+		-d|--directory)
+			directory="${2}"
 
-	if [ $# -eq 0 ]
-	then
-		source "${self}"
+			shift
+		;;
 
-		return 0 2> "${sink}"
-
-		if [ "${?}" -ne 0 ]
-		then
-			frobulator.scs "Implemented" "[ ${PWD}/${self} ]"
+		-h|--help)
 			echo
-		fi
-	fi
+			echo -e "Usage: ${script} -d [Directory] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-d, --directory     Directory to normalize filenames in."
+			echo
+			echo -e "                    [ /path/to/directory ]"
+			echo -e "                    [ current directory ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
 
-	file_source="${self}"
+			exit
+		;;
 
-	file_install="${file_source}"
+		"")
+			:
+		;;
 
-	directory_install="${HOME}"/.local/bin
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
 
-	file_target="${directory_install}/${file_install}"
+			exit 1
+		;;
 
-	while (($#))
-	do
-		case "${1}" in
+	esac
 
-			-i|--install)
+	shift
 
-				if [ ! -d "${directory_install}" ]
-				then
-					mkdir -p "${directory_install}"
-				fi
-
-				if [ "${file_source}" != "${file_target}" ]
-				then
-					cp "${file_source}" "${file_target}"
-
-					chmod a+rx "${file_target}"
-
-					source "${file_target}"
-
-					frobulator.scs "Installed" "[ ${file_target} ]"
-
-					echo
-				fi
-			;;
-
-			-h|--help)
-
-				echo
-				echo -e "Usage: ./${script} | [OPTION]"
-				echo
-				echo "Options:"
-				echo
-				echo "	-i, --install    [I]nstall ${script} to ${directory_install}"
-				echo "	-h, --help       Show this [h]elp menu"
-				echo
-
-				exit
-			;;
-
-			*)
-
-				echo
-				echo "${script}: Unknown option '${1}'"
-				echo "Type './${script} --help' for help and usage information."
-				echo
-
-				exit 1
-			;;
-
-		esac
-
-		shift
-	done
-fi
+done
 
 # variables ////////////////////////////////////////////////////////////////////
 
-directory="${PWD}"
+directory="${directory:-${PWD}}"
 
 source_name=""
 
@@ -259,12 +227,12 @@ name_normalize () {
 			character="}"
 
 		elif [ "${character}" = "〈" ] ||
-		     [ "${character}" = "《" ]
+		     [ "${character}" = "《"  ]
 		then
 			character="<"
 
 		elif [ "${character}" = "〉" ] ||
-		     [ "${character}" = "》" ]
+		     [ "${character}" = "》"  ]
 		then
 			character=">"
 
@@ -337,7 +305,7 @@ name_normalize () {
 			character="-"
 
 		elif [ "${character}" = "／" ] ||
-		     [ "${character}" = "⧸" ] ||
+		     [ "${character}" = "⧸"  ] ||
 		     [ "${character}" = "＼" ]
 		then
 			character="-"
@@ -352,8 +320,8 @@ name_normalize () {
 		then
 			character="'"
 
-		elif [ "${character}" = "“" ] ||
-		     [ "${character}" = "”" ] ||
+		elif [ "${character}" = "“"  ] ||
+		     [ "${character}" = "”"  ] ||
 		     [ "${character}" = "＂" ]
 		then
 			character='"'
@@ -371,7 +339,7 @@ name_normalize () {
 			character="..."
 
 		elif [ "${character}" = "・" ] ||
-		     [ "${character}" = "･" ]
+		     [ "${character}" = "･"  ]
 		then
 			character="-"
 
@@ -456,6 +424,8 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
@@ -465,8 +435,10 @@ then
 	frobulator.err "UTF-8 locale unavailable"
 	echo
 
-	return 1
+	exit 1
 fi
+
+frobulator.complete
 
 shopt -s nullglob dotglob
 
@@ -481,7 +453,7 @@ do
 
 	source_name="${source_path##*/}"
 
-	if [ "${source_name}" = "." ] ||
+	if [ "${source_name}" = "."  ] ||
 	   [ "${source_name}" = ".." ]
 	then
 		continue
