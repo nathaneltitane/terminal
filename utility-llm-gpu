@@ -125,15 +125,15 @@ do
 			shift
 		;;
 
-		-l|--label)
-			label="${2}"
+		-d|--directory)
+			directory="${2}"
 
 			shift
 		;;
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -m [Model] -g [Override] -l [Label] | -h"
+			echo -e "Usage: ${script} -m [Model] -g [Override] -d [Directory] | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -144,11 +144,11 @@ do
 			echo -e "-g, --gpu-override  HSA_OVERRIDE_GFX_VERSION value."
 			echo
 			echo -e "                    [ 9.0.0 ]    [ Default ]"
-			echo -e "                    [ 9.0.2 ]    [ Alternate, if GPU offload doesn't take ]"
+			echo -e "                    [ 9.0.2 ]    [ Alternate - GPU offload fails with default method ]"
 			echo
-			echo -e "-l, --label         Mount label under /media/internal for model storage."
+			echo -e "-d, --directory     Base directory for model storage."
 			echo
-			echo -e "                    [ LLM ]    [ Default ]"
+			echo -e "                    [ /language/model/directory/label ]"
 			echo
 			echo -e "-h, --help          Show help and usage information."
 			echo
@@ -179,7 +179,7 @@ done
 
 # variables ////////////////////////////////////////////////////////////////////
 
-label="${label:-LLM}"
+label="LLM"
 
 process="ollama"
 service="${process}.service"
@@ -188,7 +188,9 @@ model="${model:-llama3.2}"
 
 # path to a separate mount so models survive a system reinstall/format
 
-models_directory="/media/internal/${label}"
+directory="${directory:-/media/internal}"
+
+models_directory="${directory}/${label}"
 
 directory_preferences="${models_directory}/claude"
 
@@ -350,7 +352,7 @@ then
 	exit 1
 fi
 
-# claude preferences directory
+# claude directory
 
 if [ -d "${directory_preferences}" ]
 then
@@ -367,7 +369,7 @@ url_install user "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/
 
 frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt:
 
-if it reports CPU instead of a GPU percentage, the gfx902 override did not take.
+if it reports CPU instead of a GPU percentage: the gfx902 override failed to apply.
 
 Try 'HSA_OVERRIDE_GFX_VERSION=9.0.2' as an alternate value in the override.conf.
 
