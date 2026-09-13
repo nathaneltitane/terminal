@@ -392,8 +392,7 @@ path_unique () {
 		return 0
 	fi
 
-	if [ -f "${source_path}" ] &&
-	   [[ "${target_name}" = *.* ]]
+	if [ -f "${source_path}" ] && [[ "${target_name}" = *.* ]]
 	then
 		name="${target_name%.*}"
 		extension=".${target_name##*.}"
@@ -440,24 +439,11 @@ fi
 
 frobulator.complete
 
-shopt -s nullglob dotglob
-
 # process //////////////////////////////////////////////////////////////////////
 
-for source_path in "${directory}"/*
+while IFS= read -r -d '' source_path
 do
-	if [ ! -e "${source_path}" ]
-	then
-		continue
-	fi
-
 	source_name="${source_path##*/}"
-
-	if [ "${source_name}" = "."  ] ||
-	   [ "${source_name}" = ".." ]
-	then
-		continue
-	fi
 
 	target_name=$(name_normalize "${source_name}")
 
@@ -485,7 +471,8 @@ do
 	fi
 
 	(( count_renamed++ ))
-done
+
+done < <(find "${directory}" -mindepth 1 -maxdepth 1 -print0)
 
 # result ///////////////////////////////////////////////////////////////////////
 
