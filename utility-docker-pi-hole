@@ -109,18 +109,71 @@ version="2023-01-10"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
-# prompt ///////////////////////////////////////////////////////////////////////
+while (($#))
+do
+	case "${1}"
+	in
+		-n|--name)
+			docker_image_name="${2}"
+
+			shift
+		;;
+
+		-a|--address)
+			docker_image_address="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -n [Name] -a [Address] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-n, --name          Name of the deployed container."
+			echo
+			echo -e "                    [ pihole ]    [ Default ]"
+			echo
+			echo -e "-a, --address       LAN address to bind for FTL DNS resolution."
+			echo
+			echo -e "                    [ XXX.XXX.XXX.XXX ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
 
 # variables ////////////////////////////////////////////////////////////////////
 
-docker_image_name="pihole"
-docker_image_address="192.168.86.13"
+docker_image_name="${docker_image_name:-pihole}"
+docker_image_address="${docker_image_address:-192.168.86.13}"
 docker_image_base="/var"
 docker_image_container="docker"
 docker_image_directory="${docker_image_base}"/"${docker_image_container}"/"${docker_image_name}"
-docker_image_password=$(docker logs "${docker_image_name}" 2> /dev/null | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
 docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
-docker_image_id=$(docker container ls --all --quiet --filter "name=${docker_image_name}")
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -144,6 +197,8 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
@@ -151,15 +206,24 @@ list=()
 if [[ ! -d "${docker_image_directory}" ]]
 then
 	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+
+	frobulator.complete
 else
 	frobulator.log "docker stop ${docker_image_name}"
+
+	frobulator.complete
+
 	frobulator.log "docker rm -f ${docker_image_name}"
+
+	frobulator.complete
 
 	frobulator.delete "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
 
-	wait
+	frobulator.complete
 
 	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+
+	frobulator.complete
 fi
 
 frobulator.inf "Deploying" "[ ${docker_image_name} ]"
@@ -184,11 +248,34 @@ docker run																					\
 	-e virtual_host="${docker_image_name}"													\
 	-e proxy_location="${docker_image_name}"												\
 	-e ftlconf_local_ipv4="${docker_image_address}"											\
-																							"${docker_image_source}" > /dev/null 2>&1
+																							"${docker_image_source}" > "${sink}" 2>&1
 
-wait
+frobulator.complete
+
+docker_image_id=$(docker container ls --all --quiet --filter "name=${docker_image_name}")
+
+frobulator.complete
+
+seconds="0"
+timeout="30"
+
+while [ -z "${docker_image_password}" ] && [ "${seconds}" -lt "${timeout}" ]
+do
+	docker_image_password=$(docker logs "${docker_image_name}" 2> "${sink}" | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
+
+	if [ -z "${docker_image_password}" ]
+	then
+		sleep 1
+
+		seconds=$(( seconds + 1 ))
+	fi
+done
+
+frobulator.complete
 
 frobulator.write "${docker_image_password}" "${docker_image_directory}" password
+
+frobulator.complete
 
 frobulator.inf "Image ID" "[ ${docker_image_id} ]"
 echo
@@ -196,4 +283,7 @@ echo
 frobulator.inf "Password" "[ ${docker_image_password} ]"
 echo
 
-frobulator.scs "Done."
+frobulator.result "${script}"
+
+frobulator.scs "Done"
+echo
