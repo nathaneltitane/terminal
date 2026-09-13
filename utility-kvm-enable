@@ -189,7 +189,7 @@ nmcli device status
 frobulator.complete
 
 nmcli														\
-		connection add type bridge 							\
+		connection add type bridge 						\
 		con-name bridge0 									\
 		ifname bridge0
 
@@ -268,7 +268,7 @@ usermod 									\
 
 frobulator.complete
 
-echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> "${HOME}"/.bashrc
+frobulator.write "export LIBVIRT_DEFAULT_URI='qemu:///system'" "${HOME}" .bashrc
 
 frobulator.complete
 
