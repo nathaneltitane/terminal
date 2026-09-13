@@ -107,18 +107,90 @@ frobulator.script
 
 version="2026-09-06"
 
+# usage ////////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}"
+	in
+		-m|--model)
+			model="${2}"
+
+			shift
+		;;
+
+		-g|--gpu-override)
+			gpu_override="${2}"
+
+			shift
+		;;
+
+		-l|--label)
+			label="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -m [Model] -g [Override] -l [Label] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-m, --model         Model to pull."
+			echo
+			echo -e "                    [ llama3.2 ]    [ Default ]"
+			echo
+			echo -e "-g, --gpu-override  HSA_OVERRIDE_GFX_VERSION value."
+			echo
+			echo -e "                    [ 9.0.0 ]    [ Default ]"
+			echo -e "                    [ 9.0.2 ]    [ Alternate, if GPU offload doesn't take ]"
+			echo
+			echo -e "-l, --label         Mount label under /media/internal for model storage."
+			echo
+			echo -e "                    [ LLM ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
-label="LLM"
+label="${label:-LLM}"
 
 process="ollama"
 service="${process}.service"
 
-model="llama3.2"
+model="${model:-llama3.2}"
 
 # path to a separate mount so models survive a system reinstall/format
 
 models_directory="/media/internal/${label}"
+
+directory_preferences="${models_directory}/claude"
 
 # 'hades canyon' nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl:
 # not an officially supported rocm target - identifier: gfx902
@@ -126,7 +198,7 @@ models_directory="/media/internal/${label}"
 # hsa_override_gfx_version spoofs the closest supported architecture (gfx900)
 # so ollama attempts gpu offload rather than silently falling back to cpu-only
 
-gpu_override="9.0.0"
+gpu_override="${gpu_override:-9.0.0}"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -278,11 +350,14 @@ then
 	exit 1
 fi
 
-# claude directory
+# claude preferences directory
 
-frobulator.link "${models_directory}" "${HOME}" claude .claude
+if [ -d "${directory_preferences}" ]
+then
+	frobulator.link "${models_directory}" "${HOME}" claude .claude
 
-frobulator.complete
+	frobulator.complete
+fi
 
 # tool install
 
