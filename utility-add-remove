@@ -205,11 +205,17 @@ done
 
 # variables ////////////////////////////////////////////////////////////////////
 
-temporary="$(mktemp -d)"
+frobulator.temporary directory_temporary
 
-list_from="${temporary}/from.list"
-list_to="${temporary}/to.list"
-list_changes="${temporary}/changes.list"
+frobulator.complete
+
+frobulator.trap "${directory_temporary}"
+
+frobulator.complete
+
+list_from="${directory_temporary}/from.list"
+list_to="${directory_temporary}/to.list"
+list_changes="${directory_temporary}/changes.list"
 
 count_differential=0
 
@@ -433,6 +439,8 @@ list=(
 
 frobulator.require "${list[@]}"
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
@@ -490,8 +498,6 @@ else
 		echo
 	fi
 
-	frobulator.delete "${temporary}"
-
 	exit 0
 fi
 
@@ -502,8 +508,6 @@ then
 	frobulator.wrn "Dry run only - ${operation}:"
 	frobulator.nul "Run ${script} again with '--execute' to apply changes."
 	echo
-
-	frobulator.delete "${temporary}"
 
 	exit 0
 fi
@@ -531,8 +535,6 @@ then
 		frobulator.fwd "Operation cancelled."
 		echo
 
-		frobulator.delete "${temporary}"
-
 		exit 0
 	fi
 fi
@@ -552,8 +554,6 @@ then
 	then
 		frobulator.err "File addition failed."
 		echo
-
-		frobulator.delete "${temporary}"
 
 		exit 1
 	fi
@@ -575,8 +575,6 @@ then
 		frobulator.err "File removal failed."
 		echo
 
-		frobulator.delete "${temporary}"
-
 		exit 1
 	fi
 
@@ -591,8 +589,6 @@ then
 		frobulator.err "Failed to remove empty directories."
 		echo
 
-		frobulator.delete "${temporary}"
-
 		exit 1
 	fi
 
@@ -601,7 +597,5 @@ then
 fi
 
 # cleanup
-
-frobulator.delete "${temporary}"
 
 frobulator.scs "Done"
