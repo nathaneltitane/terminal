@@ -109,6 +109,53 @@ version="2026-07-12"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-i|--installer)
+			installer="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -i [Installer] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-i, --installer     Path to the SOLIDWORKS setup.exe."
+			echo
+			echo -e "                    [ /path/to/setup.exe ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 wine_prefix="${HOME}"/.wine
@@ -141,66 +188,146 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-sudo apt-get update
-sudo apt-get upgrade
+frobulator.inf "Updating system"
+echo
 
-yes | sudo dpkg --add-architecture i386
+apt-get update
 
-wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+apt-get --assume-yes upgrade
 
-yes | sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/debian/ bookworm main'
+frobulator.complete
 
-sudo apt-get update
-sudo apt-get upgrade
+frobulator.inf "Adding i386 architecture"
+echo
 
-yes | sudo apt-get install --install-recommends winehq-staging
+dpkg --add-architecture i386
+
+frobulator.complete
+
+frobulator.inf "Adding WineHQ repository"
+echo
+
+wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
+
+add-apt-repository --yes 'deb https://dl.winehq.org/wine-builds/debian/ bookworm main'
+
+apt-get update
+
+apt-get --assume-yes upgrade
+
+frobulator.complete
+
+frobulator.inf "Installing WineHQ" "[ staging ]"
+echo
+
+apt-get --assume-yes install --install-recommends winehq-staging
+
+frobulator.complete
 
 # gecko
 
-curl -s -L https://dl.winehq.org/wine/wine-gecko/2.47.3/wine-gecko-2.47.3-x86.msi > "${HOME}"/Downloads/wine-gecko.msi
+frobulator.download "https://dl.winehq.org/wine/wine-gecko/2.47.3/wine-gecko-2.47.3-x86.msi" "${HOME}/Downloads" wine-gecko.msi
+
+frobulator.complete
 
 WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-gecko.msi /qn
 
+frobulator.complete
+
 # mono
 
-curl -s -L https://dl.winehq.org/wine/wine-mono/7.4.0/wine-mono-7.4.0-x86.msi > "${HOME}"/Downloads/wine-mono.msi
+frobulator.download "https://dl.winehq.org/wine/wine-mono/7.4.0/wine-mono-7.4.0-x86.msi" "${HOME}/Downloads" wine-mono.msi
+
+frobulator.complete
 
 WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-mono.msi /qn
 
+frobulator.complete
+
 # winetricks
 
-curl -s -L https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks > "${HOME}"/.local/bin/winetricks
+frobulator.download "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" "${HOME}/.local/bin" winetricks
 
-chmod +x "${HOME}"/.local/bin/winetricks
+frobulator.complete
 
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q win10
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q allfonts
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dxvk
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q vcrun2019
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q dotnet48
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml6
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml4
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q msxml3
-WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q ie8
+winetricks_list=(
+	win10
+	allfonts
+	dxvk
+	vcrun2019
+	dotnet48
+	msxml6
+	msxml4
+	msxml3
+	ie8
+)
+
+for winetricks_verb in "${winetricks_list[@]}"
+do
+	frobulator.inf "Winetricks" "[ ${winetricks_verb} ]"
+	echo
+
+	WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q "${winetricks_verb}"
+
+	frobulator.complete
+done
 
 # vba 7.1
 
-curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba7.1.zip > "${HOME}"/Downloads/vba7.1.zip
+frobulator.download "https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba7.1.zip" "${HOME}/Downloads" vba7.1.zip
 
-unzip "${HOME}"/Downloads/vba7.1.zip
+frobulator.complete
+
+unzip -q "${HOME}"/Downloads/vba7.1.zip -d "${HOME}"/Downloads
+
+frobulator.complete
 
 cp -r "${HOME}"/Downloads/vba7.1/* "${wine_drive}"
 
+frobulator.complete
+
 # vba 7.1 patch
 
-curl -s -L https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba71-kb2783832-x64.msp > "${HOME}"/Downloads/vba-patch.msp
+frobulator.download "https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba71-kb2783832-x64.msp" "${HOME}/Downloads" vba-patch.msp
+
+frobulator.complete
 
 WINEPREFIX="${wine_prefix}" msiexec /p "${HOME}"/Downloads/vba-patch.msp REINSTALL=ALL REINSTALLMODE=omus /qn
 
+frobulator.complete
+
 # solidworks
 
-wine_prefix="${HOME}"/.wine ; WINEPREFIX="${wine_prefix}" ; wine "${HOME}"/Downloads/SOLIDWORKS 2021 SP05.1/setup.exe
+if [ -z "${installer}" ]
+then
+	frobulator.err "No installer specified"
+	echo
+
+	exit 1
+fi
+
+if [ ! -f "${installer}" ]
+then
+	frobulator.err "Installer not found" "[ ${installer} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.inf "Launching SOLIDWORKS installer"
+echo
+
+WINEPREFIX="${wine_prefix}" wine "${installer}"
+
+frobulator.complete
+
+frobulator.result "${script}"
+
+frobulator.scs "Setup complete"
+echo
