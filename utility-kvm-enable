@@ -109,7 +109,67 @@ version="2026-07-13"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-i|--interface)
+			interface="${2}"
+
+			shift
+		;;
+
+		-b|--bridge)
+			bridge_name="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -i [Interface] -b [Bridge] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-i, --interface     Physical ethernet interface to bridge."
+			echo
+			echo -e "                    [ enp2s0 ]    [ Default ]"
+			echo
+			echo -e "-b, --bridge        Name for the created bridge device."
+			echo
+			echo -e "                    [ bridge0 ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
+
+interface="${interface:-enp2s0}"
+bridge_name="${bridge_name:-bridge0}"
 
 stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
@@ -190,8 +250,8 @@ frobulator.complete
 
 nmcli														\
 		connection add type bridge 						\
-		con-name bridge0 									\
-		ifname bridge0
+		con-name ${bridge_name} 									\
+		ifname ${bridge_name}
 
 frobulator.complete
 
@@ -199,24 +259,24 @@ nmcli														\
 		connection add type ethernet 						\
 		slave-type bridge 									\
 		con-name 'Bridge Connection' 						\
-		ifname enp2s0 										\
-		master bridge0
+		ifname ${interface} 										\
+		master ${bridge_name}
 
 frobulator.complete
 
 nmcli														\
-		connection up bridge0
+		connection up ${bridge_name}
 
 frobulator.complete
 
 nmcli														\
-		connection modify bridge0 							\
+		connection modify ${bridge_name} 							\
 		connection.autoconnect-slaves 1
 
 frobulator.complete
 
 nmcli														\
-		connection up bridge0
+		connection up ${bridge_name}
 
 frobulator.complete
 
@@ -240,11 +300,11 @@ frobulator.complete
 
 file_temporary="${directory_temporary}"/bridge.xml
 
-cat > "${file_temporary}" << 'FILE'
+cat > "${file_temporary}" << FILE
 <network>
 <name>bridge</name>
 <forward mode='bridge'/>
-<bridge name='bridge0'/>
+<bridge name='${bridge_name}'/>
 </network>
 FILE
 
