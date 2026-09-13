@@ -18,9 +18,7 @@ then
 		done
 
 		echo
-
 		echo
-
 	}
 
 	if [[ $(id -u -n) = "root" ]]
@@ -105,7 +103,7 @@ frobulator.script
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="2026-09-06"
+version="2026-09-13"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -119,8 +117,8 @@ do
 			shift
 		;;
 
-		-g|--gpu-override)
-			gpu_override="${2}"
+		-v|--vulkan-device)
+			vulkan_device="${2}"
 
 			shift
 		;;
@@ -133,24 +131,20 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -m [Model] -g [Override] -d [Directory] | -h"
+			echo -e "Usage: ${script} -m [Model] -v [Vulkan device] -d [Directory] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-m, --model         Model to pull."
+			echo -e "-m, --model          Model to pull."
+			echo -e "                     [ qwen3:8b ]    [ Default ]"
 			echo
-			echo -e "                    [ llama3.2 ]    [ Default ]"
+			echo -e "-v, --vulkan-device  Vulkan GPU device index."
+			echo -e "                     [ 0 ]           [ Default ]"
 			echo
-			echo -e "-g, --gpu-override  HSA_OVERRIDE_GFX_VERSION value."
+			echo -e "-d, --directory      Base directory for model storage."
+			echo -e "                     [ /language/model/directory/label ]"
 			echo
-			echo -e "                    [ 9.0.0 ]    [ Default ]"
-			echo -e "                    [ 9.0.2 ]    [ Alternate - GPU offload fails with default method ]"
-			echo
-			echo -e "-d, --directory     Base directory for model storage."
-			echo
-			echo -e "                    [ /language/model/directory/label ]"
-			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help           Show help and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
@@ -174,7 +168,6 @@ do
 	esac
 
 	shift
-
 done
 
 # variables ////////////////////////////////////////////////////////////////////
@@ -184,30 +177,21 @@ label="LLM"
 process="ollama"
 service="${process}.service"
 
-model="${model:-llama3.2}"
+model="${model:-qwen3:8b}"
 model_url="https://ollama.com/install.sh"
-
-tool="claude code"
-tool_command="claude"
-tool_url="https://claude.ai/install.sh"
 
 # path to a separate mount so models survive a system reinstall/format
 
 directory="${directory:-/media/internal}"
-
 models_directory="${directory}/${label}"
-
-directory_preferences="${models_directory}/${tool_command}"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
-# 'hades canyon' nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl:
-# not an officially supported rocm target - identifier: gfx902
+# hades canyon nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl.
+# current ollama builds support vulkan directly, so no rocm gfx spoof is needed.
+# vulkan0 corresponds to the discrete radeon rx vega m gh on this system.
 
-# hsa_override_gfx_version spoofs the closest supported architecture (gfx900)
-# so ollama attempts gpu offload rather than silently falling back to cpu-only
-
-gpu_override="${gpu_override:-9.0.0}"
+vulkan_device="${vulkan_device:-0}"
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -218,6 +202,7 @@ url_install () {
 	local command_name="${3}"
 	local url="${4}"
 	local ownership_paths=("${@:5}")
+	local installer
 
 	if [[ -n $(command -v "${command_name}") ]]
 	then
@@ -232,12 +217,13 @@ url_install () {
 
 	installer="$(mktemp)"
 
-	curl												\
-		--fail											\
-		--silent										\
-		--show-error									\
-		--location										\
-		--output "${installer}" 						"${url}"
+	curl \
+		--fail \
+		--silent \
+		--show-error \
+		--location \
+		--output "${installer}" \
+		"${url}"
 
 	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
 	then
@@ -272,7 +258,7 @@ url_install () {
 
 	if [ "${USER}" != "root" ] && [ "${#ownership_paths[@]}" -gt 0 ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${ownership_paths[@]}" > /dev/null 2>&1
+		chown -R "${USER}:$(id -g "${USER}")" "${ownership_paths[@]}" > "${sink}" 2>&1
 	fi
 
 	frobulator.scs "Installed" "[ ${label} ]"
@@ -291,31 +277,36 @@ frobulator.require "${list[@]}"
 
 list=()
 
-# gpu readiness check
+# vulkan readiness /////////////////////////////////////////////////////////////
 
-if [ ! -e /dev/kfd ]
+if [ ! -e /dev/dri/renderD128 ]
 then
-	frobulator.wrn "AMD GPU compute interface not found" "[ /dev/kfd ]"
+	frobulator.wrn "GPU render device not found" "[ /dev/dri/renderD128 ]"
 	echo
 fi
 
-# process install
+if [[ -z $(command -v vulkaninfo) ]]
+then
+	frobulator.wrn "Vulkan diagnostic utility not found" "[ vulkaninfo ]"
+	echo
+else
+	if ! vulkaninfo --summary 2>"${sink}" | grep -q "AMD Radeon RX Vega M"
+	then
+		frobulator.wrn "Expected Radeon RX Vega M Vulkan device not detected"
+		echo
+	fi
+fi
 
-url_install root "${label}" "${model_url}"
+# process install //////////////////////////////////////////////////////////////
+
+url_install root "${label}" "${process}" "${model_url}"
 
 if [ "${?}" -ne 0 ]
 then
 	exit 1
 fi
 
-# gpu override
-
-frobulator.inf "Configuring GPU override" "[ gfx902 -> ${gpu_override} ]"
-echo
-
-frobulator.directory /etc/systemd/system "${service}".d
-
-# models directory
+# models directory /////////////////////////////////////////////////////////////
 
 frobulator.inf "Configuring models directory" "[ ${models_directory} ]"
 echo
@@ -324,13 +315,38 @@ frobulator.directory "$(dirname "${models_directory}")" "$(basename "${models_di
 
 chown -R "${process}:${process}" "${models_directory}"
 
+# gpu permissions //////////////////////////////////////////////////////////////
+
+if id "${process}" > "${sink}" 2>&1
+then
+	if getent group render > "${sink}" 2>&1
+	then
+		usermod -aG render "${process}"
+	fi
+
+	if getent group video > "${sink}" 2>&1
+	then
+		usermod -aG video "${process}"
+	fi
+fi
+
+# local vulkan configuration //////////////////////////////////////////////////
+
+frobulator.inf "Configuring Vulkan GPU" "[ Vulkan${vulkan_device} ]"
+echo
+
+frobulator.directory /etc/systemd/system "${service}".d
+
 cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"-override.conf
 [Service]
-Environment="HSA_OVERRIDE_GFX_VERSION=${gpu_override}"
+Environment="OLLAMA_VULKAN=1"
+Environment="GGML_VK_VISIBLE_DEVICES=${vulkan_device}"
 Environment="OLLAMA_MODELS=${models_directory}"
+Environment="OLLAMA_HOST=127.0.0.1:11434"
+Environment="OLLAMA_NO_CLOUD=true"
 FILE
 
-# service
+# service //////////////////////////////////////////////////////////////////////
 
 frobulator.service reload
 
@@ -338,7 +354,7 @@ frobulator.service status "${service}"
 
 frobulator.service activate "${service}"
 
-# model
+# model ////////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Pulling model" "[ ${model} ]"
 echo
@@ -353,27 +369,25 @@ then
 	exit 1
 fi
 
-# claude directory
+# verification /////////////////////////////////////////////////////////////////
 
-if [ -d "${directory_preferences}" ]
+if ! ollama show "${model}" > "${sink}" 2>&1
 then
-	frobulator.link "${models_directory}" "${HOME}" claude .claude
+	frobulator.err "Local model verification failed" "[ ${model} ]"
+	echo
 
-	frobulator.complete
+	exit 1
 fi
 
-# tool install
+frobulator.ntf inf "Offline local LLM" "Model: ${model}
+Models: ${models_directory}
+API: http://127.0.0.1:11434
 
-url_install user "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
+Internet access is only required for installation, updates and pulling new models.
+The installed model can be used locally with networking disabled.
 
-# verification
+Run with 'ollama run ${model}'
 
-frobulator.ntf inf "GPU acceleration" "Run 'ollama ps' after a prompt:
-
-if it reports CPU instead of a GPU percentage: the gfx902 override failed to apply.
-
-Try 'HSA_OVERRIDE_GFX_VERSION=9.0.2' as an alternate value in the override.conf.
-
-Run 'frobulator.service reload' then 'frobulator.service restart ${service}'."
+After sending a prompt, verify GPU offload with 'ollama ps'."
 
 frobulator.scs "Done"
