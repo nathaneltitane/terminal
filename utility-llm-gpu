@@ -185,6 +185,11 @@ process="ollama"
 service="${process}.service"
 
 model="${model:-llama3.2}"
+model_url="https://ollama.com/install.sh"
+
+tool="claude code"
+tool_command="claude"
+tool_url="https://claude.ai/install.sh"
 
 # path to a separate mount so models survive a system reinstall/format
 
@@ -192,7 +197,9 @@ directory="${directory:-/media/internal}"
 
 models_directory="${directory}/${label}"
 
-directory_preferences="${models_directory}/claude"
+directory_preferences="${models_directory}/${tool_command}"
+
+# defaults /////////////////////////////////////////////////////////////////////
 
 # 'hades canyon' nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl:
 # not an officially supported rocm target - identifier: gfx902
@@ -201,12 +208,6 @@ directory_preferences="${models_directory}/claude"
 # so ollama attempts gpu offload rather than silently falling back to cpu-only
 
 gpu_override="${gpu_override:-9.0.0}"
-
-# defaults /////////////////////////////////////////////////////////////////////
-
-tool="claude code"
-tool_command="claude"
-tool_url="https://claude.ai/install.sh"
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -300,7 +301,7 @@ fi
 
 # process install
 
-url_install root "${label}" ollama https://ollama.com/install.sh
+url_install root "${label}" "${model_url}"
 
 if [ "${?}" -ne 0 ]
 then
