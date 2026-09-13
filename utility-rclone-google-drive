@@ -356,3 +356,6 @@ frobulator.service activate "${service}"
 frobulator.complete
 
 frobulator.result "${script}"
+
+frobulator.scs "Done"
+echo
