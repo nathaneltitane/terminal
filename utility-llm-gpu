@@ -278,6 +278,12 @@ then
 	exit 1
 fi
 
+# claude directory
+
+frobulator.link "${models_directory}" "${HOME}" .claude
+
+frobulator.complete
+
 # tool install
 
 url_install user "${tool}" "${tool_command}" "${tool_url}" "${HOME}"/.local/bin/claude "${HOME}"/.claude
