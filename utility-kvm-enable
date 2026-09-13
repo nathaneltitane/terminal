@@ -113,8 +113,6 @@ version="2026-07-13"
 
 stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
-# variables ////////////////////////////////////////////////////////////////////
-
 # defaults /////////////////////////////////////////////////////////////////////
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -145,48 +143,96 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
+
 
 # configuration ////////////////////////////////////////////////////////////////
 
-sudo systemctl enable libvirtd.service
+frobulator.inf "Enabling libvirt"
+echo
 
-sudo virt-host-validate qemu
+frobulator.service enable libvirtd.service
 
-sudo systemctl enable tuned
+frobulator.complete
 
-sudo tuned-adm active
+frobulator.inf "Validating host"
+echo
 
-sudo tuned-adm profile virtual-host
+virt-host-validate qemu
 
-sudo nmcli device status
+frobulator.complete
 
-sudo nmcli															\
-		connection add type bridge 									\
-		con-name bridge0 											\
+frobulator.inf "Enabling tuned"
+echo
+
+frobulator.service enable tuned
+
+frobulator.complete
+
+tuned-adm active
+
+frobulator.complete
+
+tuned-adm profile virtual-host
+
+frobulator.complete
+
+# bridge
+
+frobulator.inf "Creating network bridge"
+echo
+
+nmcli device status
+
+frobulator.complete
+
+nmcli														\
+		connection add type bridge 							\
+		con-name bridge0 									\
 		ifname bridge0
 
-sudo nmcli															\
-		connection add type ethernet 								\
-		slave-type bridge 											\
-		con-name 'Bridge Connection' 								\
-		ifname enp2s0 												\
+frobulator.complete
+
+nmcli														\
+		connection add type ethernet 						\
+		slave-type bridge 									\
+		con-name 'Bridge Connection' 						\
+		ifname enp2s0 										\
 		master bridge0
 
-sudo nmcli 															\
+frobulator.complete
+
+nmcli														\
 		connection up bridge0
 
-sudo nmcli 															\
-		connection modify bridge0 									\
+frobulator.complete
+
+nmcli														\
+		connection modify bridge0 							\
 		connection.autoconnect-slaves 1
 
-sudo nmcli 															\
+frobulator.complete
+
+nmcli														\
 		connection up bridge0
 
-sudo nmcli 															\
+frobulator.complete
+
+nmcli														\
 		device status
 
-cat > /tmp/bridge << 'FILE'
+frobulator.complete
+
+# network
+
+frobulator.inf "Defining libvirt network"
+echo
+
+file_temporary="$(mktemp)"
+
+cat > "${file_temporary}" << 'FILE'
 <network>
 <name>bridge</name>
 <forward mode='bridge'/>
@@ -194,30 +240,56 @@ cat > /tmp/bridge << 'FILE'
 </network>
 FILE
 
-sudo virsh net-define /tmp/bridge
+virsh net-define "${file_temporary}"
 
-sudo virsh net-start bridge
+frobulator.complete
 
-sudo virsh net-autostart bridge
+virsh net-start bridge
 
-sudo rm					\
-		--recursive		\
-		--force			 /tmp/bridge
+frobulator.complete
 
-sudo usermod 			\
-	--append			\
-	--groups libvirt	\
-						"${USER}"
+virsh net-autostart bridge
 
-echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> /home/"${USER}"/.bashrc
+frobulator.complete
 
-sudo setfacl 			\
-	--recursive			\
-	--remove-all		/var/lib/libvirt/images
+rm --force "${file_temporary}"
 
-sudo setfacl			\
-	--recursive			\
-	--modify			u:"${USER}":rwX /var/lib/libvirt/images
+frobulator.complete
 
-sudo setfacl			\
-	--modify			d:u:"${USER}":rwx /var/lib/libvirt/images
+# permissions
+
+frobulator.inf "Configuring permissions"
+echo
+
+usermod 									\
+	--append								\
+	--groups libvirt						\
+											"${USER}"
+
+frobulator.complete
+
+echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> "${HOME}"/.bashrc
+
+frobulator.complete
+
+setfacl 									\
+	--recursive								\
+	--remove-all							/var/lib/libvirt/images
+
+frobulator.complete
+
+setfacl										\
+	--recursive								\
+	--modify u:"${USER}":rwX				/var/lib/libvirt/images
+
+frobulator.complete
+
+setfacl										\
+	--modify d:u:"${USER}":rwx				/var/lib/libvirt/images
+
+frobulator.complete
+
+frobulator.result "${script}"
+
+frobulator.scs "KVM host ready"
+echo
