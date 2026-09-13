@@ -390,4 +390,7 @@ Run with 'ollama run ${model}'
 
 After sending a prompt, verify GPU offload with 'ollama ps'."
 
+frobulator.result "${script}"
+
 frobulator.scs "Done"
+echo
