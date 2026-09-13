@@ -109,6 +109,55 @@ version="2023-03-10"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+sites_list=()
+
+while (($#))
+do
+	case "${1}"
+	in
+		-s|--site)
+			sites_list+=("${2}")
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -s [Site] [-s [Site] ...] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-s, --site          Site to configure - repeatable for multiple sites."
+			echo
+			echo -e "                    [ mechablocks ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 web_development_directory=/var/www
@@ -119,7 +168,10 @@ service="${process}.service"
 web="www"
 hostname="${HOSTNAME}"
 
-ip=$(hostname -I | awk '{print $1}')
+ip=$(hostname -I)
+ip="${ip%% *}"
+
+sites_list=("${sites_list[@]:-mechablocks}")
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -139,21 +191,21 @@ list=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
 # sites
 
-list=(
-	mechablocks
-)
-
-for item in ${list[@]}
+for item in "${sites_list[@]}"
 do
 	frobulator.directory "${web_development_directory}" "${item}"
 
-	cat <<- FILE > /etc/apache2/sites-available/"${item}".conf
+	frobulator.complete
+
+	vhost_content=$(cat <<- FILE
 	<VirtualHost *:80>
 		ServerName ${item}.local
 		DocumentRoot /var/www/${item}/
@@ -169,6 +221,11 @@ do
 		CustomLog /var/log/${item}-access.log combined
 	</VirtualHost>
 	FILE
+	)
+
+	frobulator.flag "${vhost_content}" /etc/apache2/sites-available "${item}.conf"
+
+	frobulator.complete
 
 	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
 	then
@@ -182,70 +239,38 @@ do
 		exit 1
 	fi
 
-	cat <<- FILE >> /etc/hosts
-	127.0.0.1		${item}.local
-	FILE
+	if [[ -z $(grep -F "${item}.local" /etc/hosts) ]]
+	then
+		frobulator.write "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
+
+		frobulator.complete
+	fi
 
 	frobulator.inf "Setting ownership"
 	echo
 
 	chmod -R 755 "${web_development_directory}"/"${item}"
 
+	frobulator.complete
+
 	chown -R "${USER}":"${USER}" "${web_development_directory}"/"${item}"
 
-done
+	frobulator.complete
 
-list=()
+done
 
 # service activation
 
-if [[ $(systemctl status "${service}"  | grep -e "active.*running") ]]
+frobulator.service activate "${service}"
+
+if [ "${?}" -ne 0 ]
 then
-	frobulator.wrn "Service running" " [ ${service} ]"
-	echo
-
-	service_actions_list=(
-		disable
-		stop
-	)
-fi
-
-service_actions_list+=(
-	enable
-	start
-)
-
-for service_action in ${service_actions_list[@]}
-do
-	systemctl "${service_action}" "${service}" > "${sink}" 2>&1 &
-
-	frobulator.process "Service ${service_action}" "[ ${service} ]"
-
-	sleep 1
-
-	systemctl daemon-reload > "${sink}" 2>&1 &
-
-	frobulator.process "Reloading"
-
-	sleep 1
-done
-
-service_actions_list=()
-
-# service process verification
-
-if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
-then
-	frobulator.scs "Service activation success" "[ ${service} ]"
-	echo
-
-elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
-then
-	frobulator.err "Service activation failed" "[ ${service} ]"
-	echo
-
 	exit 1
 fi
+
+frobulator.complete
+
+frobulator.result "${script}"
 
 frobulator.scs "Done"
 echo
