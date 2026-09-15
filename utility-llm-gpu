@@ -298,7 +298,7 @@ frobulator.require "${list[@]}"
 
 list=()
 
-# vulkan readiness /////////////////////////////////////////////////////////////
+# vulkan readiness
 
 if [ ! -e /dev/dri/renderD128 ]
 then
@@ -318,7 +318,7 @@ else
 	fi
 fi
 
-# process install //////////////////////////////////////////////////////////////
+# process install
 
 url_install root "${label}" "${process}" "${model_url}"
 
@@ -327,7 +327,7 @@ then
 	exit 1
 fi
 
-# models directory /////////////////////////////////////////////////////////////
+# models directory
 
 frobulator.inf "Configuring models directory" "[ ${models_directory} ]"
 echo
@@ -336,7 +336,7 @@ frobulator.directory "$(dirname "${models_directory}")" "$(basename "${models_di
 
 chown -R "${process}:${process}" "${models_directory}"
 
-# gpu permissions //////////////////////////////////////////////////////////////
+# gpu permissions
 
 if id "${process}" > "${sink}" 2>&1
 then
@@ -351,7 +351,7 @@ then
 	fi
 fi
 
-# local vulkan configuration //////////////////////////////////////////////////
+# local vulkan configuration
 
 frobulator.inf "Configuring Vulkan GPU" "[ Vulkan${vulkan_device} ]"
 echo
@@ -367,7 +367,7 @@ Environment="OLLAMA_HOST=127.0.0.1:11434"
 Environment="OLLAMA_NO_CLOUD=true"
 FILE
 
-# service //////////////////////////////////////////////////////////////////////
+# service
 
 frobulator.service reload
 
@@ -375,7 +375,7 @@ frobulator.service status "${service}"
 
 frobulator.service activate "${service}"
 
-# model ////////////////////////////////////////////////////////////////////////
+# model
 
 frobulator.inf "Pulling model" "[ ${model} ]"
 echo
@@ -390,9 +390,11 @@ then
 	exit 1
 fi
 
-# verification /////////////////////////////////////////////////////////////////
+# verification
 
-if ! ollama show "${model}" > "${sink}" 2>&1
+ollama show "${model}" > "${sink}" 2>&1
+
+if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Local model verification failed" "[ ${model} ]"
 	echo
@@ -404,14 +406,14 @@ frobulator.ntf inf "Offline local LLM" "Model: ${model}
 Models: ${models_directory}
 API: http://127.0.0.1:11434
 
+Run: 'ollama run ${model} --think=false'
+
+After sending a prompt, verify GPU offload with 'ollama ps'.
+
+Note:
+
 Internet access is only required for installation, updates and pulling new models.
-The installed model can be used locally with networking disabled.
-
-Run:
-ollama run ${model} --think=false
-
-After sending a prompt, verify GPU offload with:
-ollama ps"
+The installed model can be used locally with networking disabled."
 
 frobulator.result "${script}"
 
