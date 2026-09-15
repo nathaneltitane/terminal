@@ -239,19 +239,22 @@ fi
 
 # filters //////////////////////////////////////////////////////////////////////
 
-if [[ $(command -v env) && $(command -v grep) ]]
+if [[ $(command -v grep) ]]
 then
-	alias 'efilter'='env | grep -i'
-fi
+	if [[ $(command -v env) ]]
+	then
+		alias 'efilter'='env | grep -i'
+	fi
 
-if [[ $(command -v ls) && $(command -v grep) ]]
-then
-	alias 'ffilter'='ls -a | grep -i'
-fi
+	if [[ $(command -v ls) ]]
+	then
+		alias 'ffilter'='ls -a | grep -i'
+	fi
 
-if [[ $(command -v ps) && $(command -v grep) ]]
-then
-	alias 'pfilter'='ps -a -u -x | grep -i'
+	if [[ $(command -v ps) ]]
+	then
+		alias 'pfilter'='ps -a -u -x | grep -i'
+	fi
 fi
 
 # session //////////////////////////////////////////////////////////////////////
@@ -301,20 +304,12 @@ fi
 if [[ $(command -v du) ]]
 then
 	alias 'du'='du -a -c -h'
-fi
-
-if [[ $(command -v du) ]]
-then
 	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
 fi
 
 if [[ $(command -v htop) ]]
 then
 	alias 'top'='htop'
-fi
-
-if [[ $(command -v htop) ]]
-then
 	alias 'process'='htop -s USER -t'
 fi
 
@@ -356,10 +351,6 @@ fi
 if [[ $(command -v ps) ]]
 then
 	alias 'what'='ps -e'
-fi
-
-if [[ $(command -v ps) ]]
-then
 	alias 'how'='ps -u'
 fi
 
@@ -395,14 +386,10 @@ fi
 if [[ $(command -v tree) ]]
 then
 	alias 'treed'='tree -a -d -p -L'
-fi
-
-if [[ $(command -v tree) ]]
-then
 	alias 'treef'='tree -a -p -L'
 fi
 
-# llm //////////////////////////////////////////////////////////////////////////
+# ai ///////////////////////////////////////////////////////////////////////////
 
 if [ "$(command -v ollama)" ]
 then
