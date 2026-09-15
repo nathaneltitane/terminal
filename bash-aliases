@@ -393,11 +393,11 @@ fi
 
 if [ "$(command -v ollama)" ]
 then
-	ollama_model=$(ollama list | tail -n 1 | cut -d ' ' -f 1)
+	model_ollama=$(ollama list | tail -n 1 | cut -d ' ' -f 1)
 
-	if [ -n "${ollama_model}" ]
+	if [ -n "${model_ollama}" ]
 	then
-		alias 'ada'="ollama run ${ollama_model}"
+		alias 'ada'="ollama run ${model_ollama}"
 	fi
 fi
 
