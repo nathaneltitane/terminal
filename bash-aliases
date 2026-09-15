@@ -162,40 +162,12 @@ fi
 if [[ $(command -v git) ]]
 then
 	alias 'gc'="git clone --depth 1"
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'gi'='git init'
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'gp'='git pull'
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'ga'='git add *'
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'gm'="git commit -a -m ${1}"
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'gs'='git push'
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'gu'='ga && gm "Code & Features Update" && gs'
-fi
-
-if [[ $(command -v git) ]]
-then
 	alias 'gn'='git ls-files | xargs cat | wc -l'
 fi
 
@@ -214,166 +186,44 @@ fi
 
 # packages /////////////////////////////////////////////////////////////////////
 
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
+if [[ $(command -v apt-get) ]]
 then
-	alias 'autoclean'='sudo apt-get autoclean'
+	if [[ $(command -v sudo) ]]
+	then
+		apt_get_prefix="sudo "
+	else
+		apt_get_prefix=""
+	fi
 
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'autoclean'='apt-get autoclean'
+	alias 'autoclean'="${apt_get_prefix}apt-get autoclean"
+	alias 'autoremove'="${apt_get_prefix}apt-get autoremove"
+	alias 'check'="${apt_get_prefix}apt-get check"
+	alias 'clean'="${apt_get_prefix}apt-get clean"
+	alias 'distribution-upgrade'="${apt_get_prefix}apt-get dist-upgrade"
+	alias 'download'="${apt_get_prefix}apt-get download"
+	alias 'install'="${apt_get_prefix}apt-get install --no-install-recommends --no-upgrade"
+	alias 'purge'="${apt_get_prefix}apt-get purge"
+	alias 'reinstall'="${apt_get_prefix}apt-get reinstall"
+	alias 'repair'="${apt_get_prefix}apt-get -f install"
+	alias 'remove'="${apt_get_prefix}apt-get remove"
+	alias 'source'="${apt_get_prefix}apt-get source"
+	alias 'update'="${apt_get_prefix}apt-get update"
+	alias 'upgrade'="${apt_get_prefix}apt-get dist-upgrade"
 fi
 
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
+if [[ $(command -v apt-cache) ]]
 then
-	alias 'autoremove'='sudo apt-get autoremove'
+	if [[ $(command -v sudo) ]]
+	then
+		apt_cache_prefix="sudo "
+	else
+		apt_cache_prefix=""
+	fi
 
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'autoremove'='apt-get autoremove'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'check'='sudo apt-get check'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'check'='apt-get check'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'clean'='sudo apt-get clean'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'clean'='apt-get clean'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'distribution-upgrade'='sudo apt-get dist-upgrade'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'distribution-upgrade'='apt-get dist-upgrade'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'download'='sudo apt-get download'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'download'='apt-get download'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'install'='sudo apt-get install --no-install-recommends --no-upgrade'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'install'='apt-get install --no-install-recommends --no-upgrade'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'purge'='sudo apt-get purge'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'purge'='apt-get purge'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'reinstall'='sudo apt-get reinstall'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'reinstall'='apt-get reinstall'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'repair'='sudo apt-get -f install'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'repair'='apt-get -f install'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'remove'='sudo apt-get remove'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'remove'='apt-get remove'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'source'='sudo apt-get source'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'source'='apt-get source'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'update'='sudo apt-get update'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'update'='apt-get update'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-get) ]]
-then
-	alias 'upgrade'='sudo apt-get dist-upgrade'
-
-elif [[ $(command -v apt-get) ]]
-then
-	alias 'upgrade'='apt-get dist-upgrade'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-cache) ]]
-then
-	alias 'depend'='sudo apt-cache depends'
-
-elif [[ $(command -v apt-cache) ]]
-then
-	alias 'depend'='apt-cache depends'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-cache) ]]
-then
-	alias 'reverse'='sudo apt-cache rdepends'
-
-elif [[ $(command -v apt-cache) ]]
-then
-	alias 'reverse'='apt-cache rdepends'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-cache) ]]
-then
-	alias 'search'='sudo apt-cache search'
-
-elif [[ $(command -v apt-cache) ]]
-then
-	alias 'search'='apt-cache search'
-fi
-
-if [[ $(command -v sudo) && $(command -v apt-cache) ]]
-then
-	alias 'status'='sudo apt-cache stats'
-
-elif [[ $(command -v apt-cache) ]]
-then
-	alias 'status'='apt-cache stats'
+	alias 'depend'="${apt_cache_prefix}apt-cache depends"
+	alias 'reverse'="${apt_cache_prefix}apt-cache rdepends"
+	alias 'search'="${apt_cache_prefix}apt-cache search"
+	alias 'status'="${apt_cache_prefix}apt-cache stats"
 fi
 
 # system ///////////////////////////////////////////////////////////////////////
@@ -381,25 +231,9 @@ fi
 if [[ $(command -v sudo) && $(command -v systemctl) ]]
 then
 	alias 'start'='sudo systemctl start'
-fi
-
-if [[ $(command -v sudo) && $(command -v systemctl) ]]
-then
 	alias 'stop'='sudo systemctl stop'
-fi
-
-if [[ $(command -v sudo) && $(command -v systemctl) ]]
-then
 	alias 'enable'='sudo systemctl enable'
-fi
-
-if [[ $(command -v sudo) && $(command -v systemctl) ]]
-then
 	alias 'disable'='sudo systemctl disable'
-fi
-
-if [[ $(command -v sudo) && $(command -v systemctl) ]]
-then
 	alias 'status'='sudo systemctl status'
 fi
 
@@ -568,12 +402,7 @@ then
 	alias 'treef'='tree -a -p -L'
 fi
 
-if [[ $(command -v rm) ]]
-then
-	alias 'delete'='rm -r -f'
-fi
-
-# ai ///////////////////////////////////////////////////////////////////////////
+# llm //////////////////////////////////////////////////////////////////////////
 
 if [ "$(command -v ollama)" ]
 then
