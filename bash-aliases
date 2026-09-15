@@ -243,17 +243,17 @@ if [[ $(command -v grep) ]]
 then
 	if [[ $(command -v env) ]]
 	then
-		alias 'efilter'='env | grep -i'
+		alias 'environment'='env | grep -i'
 	fi
 
 	if [[ $(command -v ls) ]]
 	then
-		alias 'ffilter'='ls -a | grep -i'
+		alias 'files'='ls -a | grep -i'
 	fi
 
 	if [[ $(command -v ps) ]]
 	then
-		alias 'pfilter'='ps -a -u -x | grep -i'
+		alias 'processes'='ps -a -u -x | grep -i'
 	fi
 fi
 
@@ -273,17 +273,17 @@ fi
 
 if [[ $(command -v chgrp) ]]
 then
-	alias 'chgrp'='chgrp --preserve-root'
+	alias 'group'='chgrp --preserve-root'
 fi
 
 if [[ $(command -v chmod) ]]
 then
-	alias 'chmod'='chmod --preserve-root'
+	alias 'modify'='chmod --preserve-root'
 fi
 
 if [[ $(command -v chown) ]]
 then
-	alias 'chown'='chown --preserve-root'
+	alias 'own'='chown --preserve-root'
 fi
 
 if [[ $(command -v command) ]]
@@ -298,12 +298,12 @@ fi
 
 if [[ $(command -v df) ]]
 then
-	alias 'df'='df -H'
+	alias 'space'='df -H'
 fi
 
 if [[ $(command -v du) ]]
 then
-	alias 'du'='du -a -c -h'
+	alias 'size'='du -a -c -h'
 	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
 fi
 
@@ -328,9 +328,9 @@ then
 	alias 'edit'='nano -c -g -i -l -m -q -D -F -J 80 -T 4'
 fi
 
-if [[ $(command -v netstat) ]]
+if [[ $(command -v ss) ]]
 then
-	alias 'ports'='netstat -t -u -l -a -n -p 2> /dev/null'
+	alias 'ports'='ss -t -u -l -a -n -p'
 fi
 
 if [[ $(command -v pgrep) ]]
@@ -380,7 +380,7 @@ fi
 
 if [[ $(command -v wget) ]]
 then
-	alias 'wget'='wget -c'
+	alias 'get'='wget -c'
 fi
 
 if [[ $(command -v tree) ]]
