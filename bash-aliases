@@ -374,7 +374,7 @@ then
 	alias 'shutdown'='shutdown -h now'
 fi
 
-if [[ $(command -v sudo) ]]
+if [[ $(command -v sudo) && $(command -v tput) ]]
 then
 	alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
 fi
