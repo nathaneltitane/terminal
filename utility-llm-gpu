@@ -413,4 +413,7 @@ ollama run ${model} --think=false
 After sending a prompt, verify GPU offload with:
 ollama ps"
 
+frobulator.result "${script}"
+
 frobulator.scs "Done"
+echo
