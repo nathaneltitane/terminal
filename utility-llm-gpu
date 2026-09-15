@@ -196,8 +196,8 @@ process="ollama"
 service="${process}.service"
 
 model_name="${model_name:-qwen}"
-model_version="${model_version:-3.6}"
-model_size="${model_size:-27b}"
+model_version="${model_version:-3.5}"
+model_size="${model_size:-2b}"
 model="${model_name}${model_version}:${model_size}"
 model_url="https://ollama.com/install.sh"
 
