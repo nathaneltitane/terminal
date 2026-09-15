@@ -238,13 +238,13 @@ url_install () {
 
 	installer="$(mktemp)"
 
-	curl \
-		--fail \
-		--silent \
-		--show-error \
-		--location \
-		--output "${installer}" \
-		"${url}"
+	curl						\
+		--fail					\
+		--silent				\
+		--show-error			\
+		--location				\
+		--output "${installer}"	\
+								"${url}"
 
 	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
 	then
