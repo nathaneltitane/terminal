@@ -112,7 +112,19 @@ do
 	case "${1}"
 	in
 		-m|--model)
-			model="${2}"
+			model_name="${2}"
+
+			shift
+		;;
+
+		-e|--model-version)
+			model_version="${2}"
+
+			shift
+		;;
+
+		-s|--size)
+			model_size="${2}"
 
 			shift
 		;;
@@ -131,12 +143,18 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -m [Model] -v [Vulkan device] -d [Directory] | -h"
+			echo -e "Usage: ${script} -m [Model] -e [Version] -s [Size] -v [Vulkan device] -d [Directory] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-m, --model          Model to pull."
-			echo -e "                     [ qwen3:8b ]    [ Default ]"
+			echo -e "-m, --model          Model name."
+			echo -e "                     [ qwen ]    [ Default ]"
+			echo
+			echo -e "-e, --model-version  Model version."
+			echo -e "                     [ 3.6 ]    [ Default ]"
+			echo
+			echo -e "-s, --size           Model size."
+			echo -e "                     [ 27b ]    [ Default ]"
 			echo
 			echo -e "-v, --vulkan-device  Vulkan GPU device index."
 			echo -e "                     [ 0 ]           [ Default ]"
@@ -177,7 +195,10 @@ label="LLM"
 process="ollama"
 service="${process}.service"
 
-model="${model:-qwen3:8b}"
+model_name="${model_name:-qwen}"
+model_version="${model_version:-3.6}"
+model_size="${model_size:-27b}"
+model="${model_name}${model_version}:${model_size}"
 model_url="https://ollama.com/install.sh"
 
 # path to a separate mount so models survive a system reinstall/format
@@ -386,11 +407,10 @@ API: http://127.0.0.1:11434
 Internet access is only required for installation, updates and pulling new models.
 The installed model can be used locally with networking disabled.
 
-Run with 'ollama run ${model}'
+Run:
+ollama run ${model} --think=false
 
-After sending a prompt, verify GPU offload with 'ollama ps'."
-
-frobulator.result "${script}"
+After sending a prompt, verify GPU offload with:
+ollama ps"
 
 frobulator.scs "Done"
-echo
