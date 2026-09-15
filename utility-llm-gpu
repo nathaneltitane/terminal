@@ -342,12 +342,12 @@ if id "${process}" > "${sink}" 2>&1
 then
 	if getent group render > "${sink}" 2>&1
 	then
-		usermod -aG render "${process}"
+		usermod --append --groups render "${process}"
 	fi
 
 	if getent group video > "${sink}" 2>&1
 	then
-		usermod -aG video "${process}"
+		usermod --append --groups video "${process}"
 	fi
 fi
 
@@ -377,10 +377,9 @@ frobulator.service activate "${service}"
 
 # model
 
-frobulator.inf "Pulling model" "[ ${model} ]"
-echo
+frobulator.silence "ollama pull ${model}" &
 
-ollama pull "${model}"
+frobulator.progress pull
 
 if [ "${?}" -ne 0 ]
 then
@@ -402,13 +401,16 @@ then
 	exit 1
 fi
 
-frobulator.ntf inf "Offline local LLM" "Model: ${model}
-Models: ${models_directory}
-API: http://127.0.0.1:11434
+frobulator.ntf inf "Offline local ${label} [ '${model}' ]" "Model name:            ${model_name}
+Model version:         ${model_version}
+Model size:            ${model_size}
+Model directory:       ${models_directory}
 
-Run: 'ollama run ${model} --think=false'
+API:                   http://127.0.0.1:11434
 
-After sending a prompt, verify GPU offload with 'ollama ps'.
+Run:                   'ollama run ${model} --think=false'
+
+Verify GPU offload:    'ollama ps'.
 
 Note:
 
