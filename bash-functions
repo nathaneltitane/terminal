@@ -1611,8 +1611,10 @@ temperature () {
 	if [[ -d /sys/class/thermal ]]
 	then
 		acpitz_count=0
-		cpu_line=""
+		cpu_label=""
+		cpu_degrees=""
 		lines=()
+		max_length=0
 
 		for zone in /sys/class/thermal/thermal_zone*
 		do
@@ -1643,25 +1645,33 @@ temperature () {
 			degrees=$(cat "${zone}"/temp)
 			degrees=$(( degrees / 1000 ))
 
+			if [ "${#label}" -gt "${max_length}" ]
+			then
+				max_length="${#label}"
+			fi
+
 			if [ "${label}" = "CPU" ]
 			then
-				cpu_line="${label}: ${degrees}°C"
+				cpu_label="${label}"
+				cpu_degrees="${degrees}"
 			else
-				lines+=("${label}: ${degrees}°C")
+				lines+=("${label}|${degrees}")
 			fi
 		done
 
-		echo
+		pad=$(( max_length + 4 ))
 
-		if [ -n "${cpu_line}" ]
+		if [ -n "${cpu_label}" ]
 		then
-			echo "${cpu_line}"
+			printf "%-${pad}s%s°C\n" "${cpu_label}:" "${cpu_degrees}"
 		fi
 
-		printf '%s\n' "${lines[@]}" | sort
+		printf '%s\n' "${lines[@]}" | sort |
+		while IFS='|' read -r label degrees
+		do
+			printf "%-${pad}s%s°C\n" "${label}:" "${degrees}"
+		done
 
-		echo
-
-		unset acpitz_count cpu_line lines
+		unset acpitz_count cpu_label cpu_degrees lines max_length pad
 	fi
 }
