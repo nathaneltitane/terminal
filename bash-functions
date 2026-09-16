@@ -1603,3 +1603,65 @@ countf () {
 	echo "$(find . -type f | wc -l) files under ${PWD}"
 
 }
+
+# system ///////////////////////////////////////////////////////////////////////
+
+temperature () {
+
+	if [[ -d /sys/class/thermal ]]
+	then
+		acpitz_count=0
+		cpu_line=""
+		lines=()
+
+		for zone in /sys/class/thermal/thermal_zone*
+		do
+			label=$(cat "${zone}"/type)
+
+			if [ "${label}" = "acpitz" ]
+			then
+				acpitz_count=$(( acpitz_count + 1 ))
+
+				label="System ${acpitz_count}"
+
+			elif [[ "${label}" = pch_* ]]
+			then
+				label="Chipset"
+
+			elif [[ "${label}" = iwlwifi_* ]]
+			then
+				label="WiFi"
+
+			elif [ "${label}" = "x86_pkg_temp" ]
+			then
+				label="CPU"
+
+			else
+				label="${label//_/ }"
+			fi
+
+			degrees=$(cat "${zone}"/temp)
+			degrees=$(( degrees / 1000 ))
+
+			if [ "${label}" = "CPU" ]
+			then
+				cpu_line="${label}: ${degrees}°C"
+			else
+				lines+=("${label}: ${degrees}°C")
+			fi
+		done
+
+		echo
+
+		if [ -n "${cpu_line}" ]
+		then
+			echo "${cpu_line}"
+		fi
+
+		printf '%s\n' "${lines[@]}" | sort
+
+		echo
+
+		unset acpitz_count cpu_line lines
+	fi
+}
