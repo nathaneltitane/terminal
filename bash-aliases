@@ -390,6 +390,31 @@ then
 	alias 'treef'='tree -a -p -L'
 fi
 
+if [[ $(command -v journalctl) ]]
+then
+	alias 'logs'='journalctl -x -e'
+fi
+
+if [[ $(command -v ip) ]]
+then
+	alias 'myip'='ip addr'
+fi
+
+if [[ $(command -v curl) ]]
+then
+	alias 'publicip'='curl -s ifconfig.me'
+fi
+
+if [[ $(command -v free) ]]
+then
+	alias 'memory'='free -h'
+fi
+
+if [[ $(command -v lsblk) ]]
+then
+	alias 'disks'='lsblk -f'
+fi
+
 # ai ///////////////////////////////////////////////////////////////////////////
 
 if [ "$(command -v ollama)" ]
