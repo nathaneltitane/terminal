@@ -173,15 +173,11 @@ fi
 cat <<- FILE > "${HOME}"/.local/bin/"${process}"
 #!/bin/bash
 
-# variables ////////////////////////////////////////////////////////////////////
-
 cloud_server_directory="drive:"
 local_server_directory="/media/internal"
 
 tracker_run_count="\${HOME}"/.local/bin/rclone-google-drive-run-count
 lock_synchronize="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
-
-# functions ////////////////////////////////////////////////////////////////////
 
 rclone_transfer () {
 
