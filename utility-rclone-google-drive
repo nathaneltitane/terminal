@@ -349,9 +349,9 @@ ${TAB}done
 
 inotifywait																\\
 ${TAB}--monitor															\\
-${TAB}--recursive															\\
+${TAB}--recursive														\\
 ${TAB}--event modify,create,delete,move,attrib							\\
-${TAB}--exclude '(\.?Trash.*|\.?Git.*/)'										\\
+${TAB}--exclude '(\.?Trash.*|\.?Git.*/)'								\\
 ${TAB}																	"\${local_server_directory}" |
 while read -r inotify_directory inotify_event inotify_file
 do
