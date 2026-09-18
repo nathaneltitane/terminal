@@ -1,0 +1,181 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	rm -r -f "${HOME}"/.local/bin/frobulator
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+list=(
+	dbus-x11
+	weston
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# variables ////////////////////////////////////////////////////////////////////
+
+compositor=$(command -v weston)
+
+android_media="${HOME}"/.local/share/waydroid/data/media/
+
+android_storage="${android_storage}"/0
+
+host_media=/media
+
+android_directories_list=(
+	Drive
+	Music
+)
+
+host_directories_list=(
+	internal
+	"${USER}/Samsung T7/music"
+)
+
+# functions ////////////////////////////////////////////////////////////////////
+
+compositor_configure () {
+
+	cat <<- FILE > "${HOME}"/.config/weston.ini
+	[core]
+	idle-time=0
+	xwayland=true
+
+	[shell]
+	background-color=0xff000000
+	panel-position=''
+	locking=false
+	FILE
+
+}
+
+compositor_load () {
+
+	width=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 1)
+	height=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f 2)
+
+	weston --width="${width}" --height="${height}" --fullscreen &
+
+	export WAYLAND_DISPLAY=wayland-1
+
+}
+
+session_start () {
+
+<<<<<<< HEAD
+	for i in ${!android_directories_list[@]}
+	do
+		if ! mountpoint --quiet "${android_storage}"/"${android_directories_list[$i]}"
+		then
+			sudo mkdir --parents "${android_storage}"/"${android_directories_list[$i]}"
+=======
+	for index in ${!android_directories_list[@]}
+	do
+		if ! mountpoint --quiet "${android_storage}"/"${android_directories_list[${index}]}"
+		then
+			sudo mkdir										\
+					--parents "${android_storage}"/"${android_directories_list[$i{ndex}]}"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
+
+			sudo mount										\
+					--bind									\
+					--options uid="${UID}",gid="${UID}"		\
+<<<<<<< HEAD
+					--rw "${host_media}"/"${host_directories_list[$i]}" "${android_storage}"/"${android_directories_list[$i]}"
+=======
+					--rw "${host_media}"/"${host_directories_list[${index}]}" "${android_storage}"/"${android_directories_list[${index}]}"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
+
+		fi
+
+	done
+}
+
+session_stop () {
+
+	# unmount directories
+
+	for index in ${!android_directories_list[@]}
+	do
+<<<<<<< HEAD
+		sudo umount "${android_storage}"/"${android_directories_list[$i]}" 2> "${sink}"
+=======
+		sudo umount "${android_storage}"/"${android_directories_list[${index}]}" 2> "${sink}"
+>>>>>>> 1b129fd0c4464ab918c8d1ee366a9087175f2840
+
+		echo "Unmounting ${android_media}/${android_directories_list[${index}]}"
+		echo
+	done
+}
+
+# compositor setup
+
+if [ ! -f "${HOME}"/.config/weston.ini ]
+then
+	compositor_configure
+fi
+
+if [[ "$(pgrep -f "${compositor}")" ]]
+then
+	pkill -f "${compositor}"
+else
+	compositor_load
+fi
+
+# session start
+
+waydroid session stop
+
+waydroid show-full-ui 2>&1 | while read -r message
+do
+	if echo "${message}" | grep -i 'Android with user 0 is ready'
+	then
+		sudo chmod --recursive 777 "${android_media}"
+
+		session_start
+	fi
+done
+
+# session stop
+
+session_stop
