@@ -306,6 +306,27 @@ server_directories_list=()
 
 synchronize
 
+# inotify watch limit
+
+# raises the per-user watch limit so recursive monitoring of large trees
+# does not silently fail past the default (typically far too low)
+
+inotify_watches_required="524288"
+
+inotify_watches_current=\$(cat /proc/sys/fs/inotify/max_user_watches)
+
+if [ "\${inotify_watches_current}" -lt "\${inotify_watches_required}" ]
+then
+${TAB}frobulator.inf "Raising inotify watch limit" "[ \${inotify_watches_required} ]"
+${TAB}echo
+
+${TAB}sysctl -w fs.inotify.max_user_watches="\${inotify_watches_required}" > /dev/null
+
+${TAB}frobulator.flag "fs.inotify.max_user_watches=\${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
+
+${TAB}frobulator.complete
+fi
+
 periodic_interval="600"
 
 (
