@@ -113,7 +113,7 @@ version="07-13-2026"
 
 process="rclone-google-drive"
 service="${process}.service"
-tracker="${HOME}"/.local/bin/rclone-google-drive-run-count
+tracker_run_count="${HOME}"/.local/bin/rclone-google-drive-run-count
 
 cloud_service="google drive"
 
@@ -178,8 +178,8 @@ cat <<- FILE > "${HOME}"/.local/bin/"${process}"
 cloud_server_directory="drive:"
 local_server_directory="/media/internal"
 
-run_count_tracker="\${HOME}"/.local/bin/rclone-google-drive-run-count
-synchronize_lock="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
+tracker_run_count="\${HOME}"/.local/bin/rclone-google-drive-run-count
+lock_synchronize="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -249,7 +249,7 @@ ${TAB}eval \${transfer_command[@]}
 
 synchronize () {
 
-${TAB}exec 200> "\${synchronize_lock}"
+${TAB}exec 200> "\${lock_synchronize}"
 
 ${TAB}if ! flock -n 200
 ${TAB}then
@@ -257,14 +257,14 @@ ${TAB}${TAB}echo "Synchronize already running - skipping"
 ${TAB}${TAB}return 0
 ${TAB}fi
 
-${TAB}if [ -e "\${run_count_tracker}" ]
+${TAB}if [ -e "\${tracker_run_count}" ]
 ${TAB}then
-${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
+${TAB}${TAB}run_count=\$(cat "\${tracker_run_count}")
 ${TAB}else
 ${TAB}${TAB}run_count=0
 ${TAB}fi
 
-${TAB}echo "\${run_count}" > "\${run_count_tracker}"
+${TAB}echo "\${run_count}" > "\${tracker_run_count}"
 
 ${TAB}echo
 ${TAB}echo "Run start - count: \${run_count}"
@@ -300,7 +300,7 @@ ${TAB}done
 
 ${TAB}run_count=\$((run_count + 1))
 
-${TAB}echo "\${run_count}" > "\${run_count_tracker}"
+${TAB}echo "\${run_count}" > "\${tracker_run_count}"
 
 ${TAB}echo
 ${TAB}echo "Run end - count: \${run_count}"
@@ -336,12 +336,12 @@ ${TAB}frobulator.flag "fs.inotify.max_user_watches=\${inotify_watches_required}"
 ${TAB}frobulator.complete
 fi
 
-periodic_interval="180"
+interval_periodic="180"
 
 (
 ${TAB}while true
 ${TAB}do
-${TAB}${TAB}sleep "\${periodic_interval}"
+${TAB}${TAB}sleep "\${interval_periodic}"
 
 ${TAB}${TAB}synchronize
 ${TAB}done
@@ -412,7 +412,7 @@ frobulator.complete
 
 # prepare
 
-frobulator.delete "$(dirname "${tracker}")" "$(basename "${tracker}")"
+frobulator.delete "$(dirname "${tracker_run_count}")" "$(basename "${tracker_run_count}")"
 
 frobulator.delete "${HOME}"/.cache rclone
 
