@@ -270,7 +270,7 @@ ${TAB}${TAB}${TAB}-maxdepth 1						\\
 ${TAB}${TAB}${TAB}-type d							\\
 ${TAB}${TAB}${TAB}! -iname "*.Trash*"				\\
 ${TAB}${TAB}${TAB}-print0							|
-${TAB}${TAB}${TAB}xargs -0 du -s 2> "\${sink}"		|
+${TAB}${TAB}${TAB}xargs -0 du -s 2> /dev/null		|
 ${TAB}${TAB}${TAB}sort -n							|
 ${TAB}${TAB}${TAB}cut -f 2-
 ${TAB}${TAB})
@@ -319,9 +319,9 @@ ${TAB}done
 
 inotifywait																\\
 ${TAB}--monitor															\\
-${TAB}--recursive														\\
+${TAB}--recursive															\\
 ${TAB}--event modify,create,delete,move,attrib							\\
-${TAB}--exclude '(\.?Trash.*|\.?Git.*/)'								\\
+${TAB}--exclude '(\.?Trash.*|\.?Git.*/)'										\\
 ${TAB}																	"\${local_server_directory}" |
 while read -r inotify_directory inotify_event inotify_file
 do
