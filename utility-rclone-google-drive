@@ -336,7 +336,7 @@ ${TAB}frobulator.flag "fs.inotify.max_user_watches=\${inotify_watches_required}"
 ${TAB}frobulator.complete
 fi
 
-periodic_interval="180"
+periodic_interval="120"
 
 (
 ${TAB}while true
