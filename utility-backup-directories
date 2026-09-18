@@ -1,0 +1,344 @@
+#!/bin/bash
+
+self_arguments="${@}"
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found /////////////////////// [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+fi
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="2026-09-18"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+keep_list=()
+prune=false
+
+while (($#))
+do
+	case "${1}"
+	in
+		-s|--source)
+			directory_source="${2}"
+
+			shift
+		;;
+
+		-d|--destination)
+			destination_base="${2}"
+
+			shift
+		;;
+
+		-i|--interval)
+			interval_periodic="${2}"
+
+			shift
+		;;
+
+		-k|--keep)
+			keep_list+=("${2}")
+
+			shift
+		;;
+
+		-p|--prune)
+			prune=true
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -s [Source] -d [Destination] -i [Interval] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-s, --source        Directory to mirror from."
+			echo
+			echo -e "                    [ /media/internal ]    [ Default ]"
+			echo
+			echo -e "-d, --destination   Base directory for the backup drive - 'external' is appended."
+			echo
+			echo -e "                    [ /media/\${USER} ]    [ Default ]"
+			echo
+			echo -e "-i, --interval      Periodic fallback interval, in seconds."
+			echo
+			echo -e "                    [ 300 ]    [ Default ]"
+			echo
+			echo -e "-k, --keep          Path/pattern to protect on destination - repeatable."
+			echo
+			echo -e "-p, --prune         Delete items on destination not present on source."
+			echo
+			echo -e "                    [ off ]    [ Default - nothing is ever deleted ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+# variables ////////////////////////////////////////////////////////////////////
+
+directory_mount="/media"
+
+directory_source="${directory_source:-${directory_mount}/internal}"
+destination_base="${destination_base:-${directory_mount}/${USER}}"
+directory_destination="${destination_base}/external"
+interval_periodic="${interval_periodic:-300}"
+
+arguments_exclude_keep=()
+
+for keep_item in "${keep_list[@]}"
+do
+	arguments_exclude_keep+=(--exclude "${keep_item}")
+done
+
+arguments_prune=()
+
+if [ "${prune}" = true ]
+then
+	arguments_prune+=(--delete)
+fi
+
+lock_synchronize="${HOME}"/.local/bin/backup-internal-external-sync-lock
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	inotify-tools
+	rsync
+)
+
+frobulator.require ${list[@]}
+
+frobulator.complete
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [ ! -d "${directory_source}" ]
+then
+	frobulator.err "Source directory not found" "[ ${directory_source} ]"
+	echo
+
+	exit 1
+fi
+
+if [ ! -d "${directory_destination}" ]
+then
+	frobulator.err "Destination directory not found" "[ ${directory_destination} ]"
+	echo
+
+	exit 1
+fi
+
+# inotify watch limit
+
+# raises the per-user watch limit so recursive monitoring of large trees
+# does not silently fail past the default (typically far too low)
+
+inotify_watches_required="524288"
+
+inotify_watches_current=$(cat /proc/sys/fs/inotify/max_user_watches)
+
+if [ "${inotify_watches_current}" -lt "${inotify_watches_required}" ]
+then
+	frobulator.inf "Raising inotify watch limit" "[ ${inotify_watches_required} ]"
+	echo
+
+	sysctl -w fs.inotify.max_user_watches="${inotify_watches_required}" > /dev/null
+
+	frobulator.flag "fs.inotify.max_user_watches=${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
+
+	frobulator.complete
+fi
+
+# mirror
+
+synchronize () {
+
+	exec 200> "${lock_synchronize}"
+
+	if ! flock -n 200
+	then
+		echo "Synchronize already running - skipping"
+		return 0
+	fi
+
+	echo
+	echo "Mirror start"
+	echo
+
+	rsync									\
+		--archive							\
+		"${arguments_prune[@]}"			\
+		--exclude '.Trash-*'				\
+		--exclude 'lost+found'				\
+		"${arguments_exclude_keep[@]}"		\
+									"${directory_source}/" "${directory_destination}/"
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "Mirror failed"
+		echo
+	fi
+
+	echo
+	echo "Mirror end"
+	echo
+
+}
+
+# initial mirror, then event-driven for source changes, periodic as a fallback
+
+synchronize
+
+(
+	while true
+	do
+		sleep "${interval_periodic}"
+
+		synchronize
+	done
+) &
+
+inotifywait																\
+	--monitor															\
+	--recursive															\
+	--event modify,create,delete,move,attrib							\
+	--exclude '(\.?Trash.*|lost\+found)'								\
+																		"${directory_source}" |
+while read -r inotify_directory inotify_event inotify_file
+do
+	debounce_pending=true
+
+	while ${debounce_pending}
+	do
+		read -t 2 -r inotify_directory inotify_event inotify_file 2> /dev/null
+		read_status="${?}"
+
+		if [ "${read_status}" -ge 128 ] || [ "${read_status}" -eq 1 ]
+		then
+			debounce_pending=false
+		fi
+	done
+
+	synchronize
+done
