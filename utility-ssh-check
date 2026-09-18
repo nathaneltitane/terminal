@@ -1,0 +1,172 @@
+#!/bin/bash
+set +x
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [ -f "${HOME}"/.local/bin/frobulator ]
+then
+	. "${HOME}"/.local/bin/frobulator
+
+	frobulator.fwd "Updating..."
+	echo
+
+	rm -r -f "${HOME}"/.local/bin/frobulator
+else
+	echo -n -e "[ ▷ ] Updating..."
+	echo
+fi
+
+if [[ -z $(command -v frobulator) ]]
+then
+	if [[ $(id -u -n) = "root" ]]
+	then
+		SUDO_HOME=/root
+
+		USER="${SUDO_USER}"
+
+		HOME=/home/"${USER}"
+	fi
+
+	if [[ -z $(command -v curl) ]]
+	then
+		yes | apt-get install curl
+	fi
+
+	if [ ! -d "${HOME}"/.local/bin ]
+	then
+		mkdir -p "${HOME}"/.local/bin
+	fi
+
+	curl -s -L get.frbltr.app > "${HOME}"/.local/bin/frobulator
+
+	chmod +x "${HOME}"/.local/bin/frobulator
+fi
+
+. "${HOME}"/.local/bin/frobulator
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+export self_arguments="${@}"
+
+# frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script=$(basename -- "${BASH_SOURCE[0]}")
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="04-12-2023"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+# prompt ///////////////////////////////////////////////////////////////////////
+
+frobulator.script "Setting up ${script#*-}"
+
+# variables ////////////////////////////////////////////////////////////////////
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+# functions ////////////////////////////////////////////////////////////////////
+
+ssh_check () {
+
+	timeout="0.25"
+	lan="${1}"
+
+	if [ -z "${lan}" ]
+	then
+		echo "Usage:"
+		echo
+		echo "${script} <LAN_PREFIX>"
+		echo
+
+		return 1
+	fi
+
+	# extract and validate first 3 octets
+
+	lan=$(
+		echo "${lan}"									| \
+			grep -E -o '^([0-9]{1,3}\.){2}[0-9]{1,3}'	| \
+				awk -F'.' '
+					$1 <= 255 && $2 <= 255 && $3 <= 255 {
+						printf("%d.%d.%d.", $1, $2, $3)
+					}'
+	)
+
+	if [ -z "${lan}" ]
+	then
+		frobulator.err "Invalid IP address format."
+
+		return 1
+	fi
+
+	# split ip into individual octets
+
+	IFS='.' read -r octet_01 octet_02 octet_03 <<< "${lan%?}"
+
+	for octet_host in {1..255}
+	do
+		# ip used for networking
+
+		ip_network="${octet_01}.${octet_02}.${octet_03}.${octet_host}"
+
+		# ip used for informational display
+
+		ip_display=$(printf "%03d.%03d.%03d.%03d" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
+
+		frobulator.fwd "Port scan" "[ ${ip_display} ]"
+		echo
+
+		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${ip_network}/22" 2> "${sink}"
+
+		if [ $? -eq 0 ]
+		then
+			list_port_open+=("${ip_display}")
+
+			frobulator.plo 1
+
+			frobulator.scs "Port open" "[ ${ip_display} ]"
+			echo
+		else
+			frobulator.plo 1
+
+			frobulator.err "Port closed" "[ ${ip_display} ]"
+			echo
+		fi
+
+	done
+
+	# unset IFS
+
+	IFS=''
+
+	if [ ${#list_port_open[@]} -gt 0 ]
+	then
+		if [ ${#list_port_open[@]} -eq 1 ]
+		then
+			message="Adress"
+
+		elif [ ${#list_port_open[@]} -ge 2 ]
+		then
+			message="Adresses"
+		fi
+
+		frobulator.inf "${message} with open port found at:"
+		echo
+
+		for address in "${list_port_open[@]}"
+		do
+			echo "     ${address}"
+		done
+
+		echo
+	else
+		frobulator.wrn "No open addresses found"
+		echo
+	fi
+
+}
+
+ssh_check "${@}"

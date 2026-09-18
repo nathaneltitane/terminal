@@ -133,7 +133,7 @@ local_server_directory="/media/internal"
 # requirements /////////////////////////////////////////////////////////////////
 
 list=(
-
+	inotify-tools
 )
 
 frobulator.require ${list[@]}
@@ -246,28 +246,8 @@ ${TAB}eval \${transfer_command[@]}
 
 # set IFS
 
-IFS=\$'\n'
+synchronize () {
 
-server_directories_list=(
-${TAB}\$(find "\${local_server_directory}"	\\
-${TAB}${TAB}-mindepth 1						\\
-${TAB}${TAB}-maxdepth 1						\\
-${TAB}${TAB}-type d							\\
-${TAB}${TAB}! -iname "*.Trash*"				\\
-${TAB})
-)
-
-run_count=0
-
-echo "Run count: \${run_count}"
-echo
-
-# unset IFS
-
-IFS=''
-
-while true
-do
 ${TAB}if [ -e "\${run_count_tracker}" ]
 ${TAB}then
 ${TAB}${TAB}run_count=\$(cat "\${run_count_tracker}")
@@ -281,6 +261,19 @@ ${TAB}echo
 ${TAB}echo "Run start - count: \${run_count}"
 ${TAB}echo
 
+${TAB}IFS=\$'\n'
+
+${TAB}server_directories_list=(
+${TAB}${TAB}\$(find "\${local_server_directory}"	\\
+${TAB}${TAB}${TAB}-mindepth 1						\\
+${TAB}${TAB}${TAB}-maxdepth 1						\\
+${TAB}${TAB}${TAB}-type d							\\
+${TAB}${TAB}${TAB}! -iname "*.Trash*"				\\
+${TAB}${TAB})
+${TAB})
+
+${TAB}IFS=''
+
 ${TAB}rclone_transfer bisync "\${cloud_server_directory}/" "\${local_server_directory}/" --max-depth 1
 
 ${TAB}for server_directory in "\${server_directories_list[@]}"
@@ -289,10 +282,7 @@ ${TAB}${TAB}server_directory=\${server_directory##*/}
 
 ${TAB}${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
 
-${TAB}${TAB}wait
-
 ${TAB}${TAB}sleep 1
-
 ${TAB}done
 
 ${TAB}run_count=\$((run_count + 1))
@@ -302,12 +292,50 @@ ${TAB}echo "\${run_count}" > "\${run_count_tracker}"
 ${TAB}echo
 ${TAB}echo "Run end - count: \${run_count}"
 ${TAB}echo
-
-done
+}
 
 # unset directory list
 
 server_directories_list=()
+
+# initial sync, then event-driven for local changes, periodic for cloud-side changes
+
+synchronize
+
+periodic_interval="600"
+
+(
+${TAB}while true
+${TAB}do
+${TAB}${TAB}sleep "\${periodic_interval}"
+
+${TAB}${TAB}synchronize
+${TAB}done
+) &
+
+inotifywait																\\
+${TAB}--monitor															\\
+${TAB}--recursive															\\
+${TAB}--event modify,create,delete,move,attrib							\\
+${TAB}--exclude '\.Trash-.*'												\\
+${TAB}																	"\${local_server_directory}" |
+while read -r inotify_directory inotify_event inotify_file
+do
+${TAB}debounce_pending=true
+
+${TAB}while \${debounce_pending}
+${TAB}do
+${TAB}${TAB}read -t 2 -r inotify_directory inotify_event inotify_file 2> "\${sink}"
+${TAB}${TAB}read_status="\${?}"
+
+${TAB}${TAB}if [ "\${read_status}" -ge 128 ] || [ "\${read_status}" -eq 1 ]
+${TAB}${TAB}then
+${TAB}${TAB}${TAB}debounce_pending=false
+${TAB}${TAB}fi
+${TAB}done
+
+${TAB}synchronize
+done
 FILE
 
 frobulator.complete
