@@ -179,6 +179,7 @@ cloud_server_directory="drive:"
 local_server_directory="/media/internal"
 
 run_count_tracker="\${HOME}"/.local/bin/rclone-google-drive-run-count
+synchronize_lock="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -247,6 +248,14 @@ ${TAB}eval \${transfer_command[@]}
 # set IFS
 
 synchronize () {
+
+${TAB}exec 200> "\${synchronize_lock}"
+
+${TAB}if ! flock -n 200
+${TAB}then
+${TAB}${TAB}echo "Synchronize already running - skipping"
+${TAB}${TAB}return 0
+${TAB}fi
 
 ${TAB}if [ -e "\${run_count_tracker}" ]
 ${TAB}then
@@ -327,7 +336,7 @@ ${TAB}frobulator.flag "fs.inotify.max_user_watches=\${inotify_watches_required}"
 ${TAB}frobulator.complete
 fi
 
-periodic_interval="600"
+periodic_interval="180"
 
 (
 ${TAB}while true
