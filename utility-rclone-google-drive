@@ -117,8 +117,8 @@ tracker_run_count="${HOME}"/.local/bin/rclone-google-drive-run-count
 
 cloud_service="google drive"
 
-cloud_server_directory="drive:"
-local_server_directory="/media/internal"
+directory_server_cloud="drive:"
+directory_server_local="/media/internal"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -173,8 +173,8 @@ fi
 cat <<- FILE > "${HOME}"/.local/bin/"${process}"
 #!/bin/bash
 
-cloud_server_directory="drive:"
-local_server_directory="/media/internal"
+directory_server_cloud="drive:"
+directory_server_local="/media/internal"
 
 tracker_run_count="\${HOME}"/.local/bin/rclone-google-drive-run-count
 lock_synchronize="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
@@ -269,7 +269,7 @@ ${TAB}echo
 ${TAB}IFS=\$'\n'
 
 ${TAB}server_directories_list=(
-${TAB}${TAB}\$(find "\${local_server_directory}"	\\
+${TAB}${TAB}\$(find "\${directory_server_local}"	\\
 ${TAB}${TAB}${TAB}-mindepth 1						\\
 ${TAB}${TAB}${TAB}-maxdepth 1						\\
 ${TAB}${TAB}${TAB}-type d							\\
@@ -283,13 +283,13 @@ ${TAB})
 
 ${TAB}IFS=''
 
-${TAB}rclone_transfer bisync "\${cloud_server_directory}/" "\${local_server_directory}/" --max-depth 1
+${TAB}rclone_transfer bisync "\${directory_server_cloud}/" "\${directory_server_local}/" --max-depth 1
 
 ${TAB}for server_directory in "\${server_directories_list[@]}"
 ${TAB}do
 ${TAB}${TAB}server_directory=\${server_directory##*/}
 
-${TAB}${TAB}rclone_transfer bisync "\${cloud_server_directory}/\${server_directory}" "\${local_server_directory}/\${server_directory}"
+${TAB}${TAB}rclone_transfer bisync "\${directory_server_cloud}/\${server_directory}" "\${directory_server_local}/\${server_directory}"
 
 ${TAB}${TAB}sleep 1
 ${TAB}done
@@ -343,12 +343,12 @@ ${TAB}${TAB}synchronize
 ${TAB}done
 ) &
 
-inotifywait																\\
-${TAB}--monitor															\\
-${TAB}--recursive														\\
-${TAB}--event modify,create,delete,move,attrib							\\
-${TAB}--exclude '(\.?Trash.*|\.?Git.*/)'								\\
-${TAB}																	"\${local_server_directory}" |
+inotifywait										\
+${TAB}--monitor									\
+${TAB}--recursive									\
+${TAB}--event modify,create,delete,move,attrib	\
+${TAB}--exclude '(\.?Trash.*|\.?Git.*/)'			\
+${TAB}																	"\${directory_server_local}" |
 while read -r inotify_directory inotify_event inotify_file
 do
 ${TAB}debounce_pending=true
