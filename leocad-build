@@ -109,10 +109,57 @@ version="2026-08-02"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-s|--source)
+			url_source="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -s [Source] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-s, --source        Repository URL to build from."
+			echo
+			echo -e "                    [ https://github.com/leozide/leocad.git ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 application="leocad"
-source="https://github.com/leozide/leocad.git"
+url_source="${url_source:-https://github.com/leozide/leocad.git}"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -126,7 +173,7 @@ source="https://github.com/leozide/leocad.git"
 
 # requirements /////////////////////////////////////////////////////////////////
 
-list+=(
+list=(
 	git
 	hub
 	g++
@@ -146,15 +193,17 @@ list+=(
 
 frobulator.require ${list[@]}
 
+frobulator.complete
+
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-frobulator.temporary build_directory
+frobulator.temporary directory_build
 
 frobulator.complete
 
-frobulator.trap "${build_directory}"
+frobulator.trap "${directory_build}"
 
 frobulator.complete
 
@@ -162,17 +211,37 @@ frobulator.complete
 
 command_clone="git clone --quiet"
 
-frobulator.silence "${command_clone} ${source} ${build_directory}" &
+frobulator.silence "${command_clone} ${url_source} ${directory_build}" &
 
 frobulator.progress "clone"
 
 frobulator.complete
 
-cd "${build_directory}"
+if [ -d "${directory_build}" ]
+then
+	cd "${directory_build}"
+
+	frobulator.complete
+else
+	frobulator.err "Directory not found" "[ ${directory_build} ]"
+	echo
+
+	exit 1
+fi
 
 # compile project
 
 frobulator.silence "qmake ${application}.pro"
+
+if [ "${?}" -ne 0 ]
+then
+	frobulator.err "Unable to configure project" "[ ${application} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.complete
 
 # compile binary
 
@@ -186,13 +255,13 @@ frobulator.complete
 
 # update binary
 
-frobulator.copy "${build_directory}"/build/release /usr/bin "${application}"
+frobulator.copy "${directory_build}"/build/release /usr/bin "${application}"
 
 frobulator.complete
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/leocad.desktop
+launcher_content=$(cat <<- 'FILE'
 [Desktop Entry]
 Name=LeoCAD
 Comment=LDraw model editor
@@ -204,6 +273,11 @@ MimeType=application/vnd.leocad;application/x-ldraw;application/x-multi-part-ldr
 Categories=Graphics;3DGraphics;
 Keywords=CAD;LEGO;LDraw;
 FILE
+)
+
+frobulator.flag "${launcher_content}" /usr/share/applications leocad.desktop
+
+frobulator.complete
 
 frobulator.result "${script}"
 
