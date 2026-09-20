@@ -223,7 +223,7 @@ do
 	FILE
 	)
 
-	frobulator.flag "${vhost_content}" /etc/apache2/sites-available "${item}.conf"
+	frobulator.write "write" "${vhost_content}" /etc/apache2/sites-available "${item}.conf"
 
 	frobulator.complete
 

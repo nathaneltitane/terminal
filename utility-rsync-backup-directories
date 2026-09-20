@@ -1,8 +1,8 @@
 #!/bin/bash
 
-self_arguments="${@}"
-
 # dependencies /////////////////////////////////////////////////////////////////
+
+script="$(basename -- ${BASH_SOURCE[0]})"
 
 if [[ "${frobulator_loaded}" != "true" ]]
 then
@@ -91,6 +91,8 @@ then
 	ticker initializing
 
 	source "${frobulator}"
+
+	export self_arguments="${@}"
 fi
 
 # superuser ////////////////////////////////////////////////////////////////////
@@ -99,7 +101,7 @@ frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
-script="$(basename -- ${BASH_SOURCE[0]})"
+frobulator.script
 
 # version //////////////////////////////////////////////////////////////////////
 
@@ -265,7 +267,7 @@ then
 
 	sysctl -w fs.inotify.max_user_watches="${inotify_watches_required}" > /dev/null
 
-	frobulator.flag "fs.inotify.max_user_watches=${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
+	frobulator.write "write" "fs.inotify.max_user_watches=${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
 
 	frobulator.complete
 fi
