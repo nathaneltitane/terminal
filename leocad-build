@@ -275,7 +275,7 @@ Keywords=CAD;LEGO;LDraw;
 FILE
 )
 
-frobulator.flag "${launcher_content}" /usr/share/applications leocad.desktop
+frobulator.write "write" "${launcher_content}" /usr/share/applications leocad.desktop
 
 frobulator.complete
 

@@ -18,7 +18,9 @@ then
 		done
 
 		echo
+
 		echo
+
 	}
 
 	if [[ $(id -u -n) = "root" ]]

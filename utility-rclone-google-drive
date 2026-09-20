@@ -327,7 +327,7 @@ ${TAB}echo
 
 ${TAB}sysctl -w fs.inotify.max_user_watches="\${inotify_watches_required}" > /dev/null
 
-${TAB}frobulator.flag "fs.inotify.max_user_watches=\${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
+${TAB}frobulator.write "write" "fs.inotify.max_user_watches=\${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
 
 ${TAB}frobulator.complete
 fi
