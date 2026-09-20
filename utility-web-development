@@ -241,7 +241,7 @@ do
 
 	if [[ -z $(grep -F "${item}.local" /etc/hosts) ]]
 	then
-		frobulator.write "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
+		frobulator.write "append" "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
 
 		frobulator.complete
 	fi

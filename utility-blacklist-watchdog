@@ -240,7 +240,7 @@ fi
 
 # blacklist module
 
-frobulator.write "blacklist ${module}" "${blacklist_directory}" "${blacklist_file}"
+frobulator.write "append" "blacklist ${module}" "${blacklist_directory}" "${blacklist_file}"
 
 if [ "${?}" -ne 0 ]
 then

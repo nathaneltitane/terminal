@@ -332,7 +332,7 @@ usermod 									\
 
 frobulator.complete
 
-frobulator.write "export LIBVIRT_DEFAULT_URI='qemu:///system'" "${HOME}" .bashrc
+frobulator.write "append" "export LIBVIRT_DEFAULT_URI='qemu:///system'" "${HOME}" .bashrc
 
 frobulator.complete
 

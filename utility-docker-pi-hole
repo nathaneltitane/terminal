@@ -273,7 +273,7 @@ done
 
 frobulator.complete
 
-frobulator.write "${docker_image_password}" "${docker_image_directory}" password
+frobulator.write "append" "${docker_image_password}" "${docker_image_directory}" password
 
 frobulator.complete
 
