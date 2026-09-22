@@ -849,6 +849,10 @@ packages_list_microsoft=(
 	com.microsoft.android.mdx
 )
 
+packages_list_netflix=(
+	com.netflix.mediaclient
+)
+
 packages_list_onyx=(
 	# com.onyx
 	# com.onyx.android.ksync
@@ -897,6 +901,7 @@ packages_list=(
 	${packages_list_amazon[@]}
 	${packages_list_carrier[@]}
 	${packages_list_microsoft[@]}
+	${packages_list_netflix[@]}
 	${packages_list_onyx[@]}
 	${packages_list_samsung[@]}
 	${packages_list_malware[@]}
