@@ -1285,13 +1285,13 @@ media () {
 
 		browser="${browser%.desktop}"
 
-		if [[ "${browser}" = firefox*   ]] ||
-		[[ "${browser}" = librewolf* ]] ||
-		[[ "${browser}" = waterfox*  ]]
+		if [[ "${browser}" = firefox* ]] ||
+		[[ "${browser}" = librewolf*  ]] ||
+		[[ "${browser}" = waterfox*   ]]
 		then
 			browser="firefox"
 
-		elif [[ "${browser}" = chrome*        ]] ||
+		elif [[ "${browser}" = chrome*       ]] ||
 			[[ "${browser}" = google-chrome* ]] ||
 			[[ "${browser}" = chromium*      ]] ||
 			[[ "${browser}" = brave*         ]] ||
