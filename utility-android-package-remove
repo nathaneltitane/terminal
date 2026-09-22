@@ -935,7 +935,7 @@ do
 		frobulator.wrn "Removing package" "[ ${application} ]"
 		echo
 
-		android_debug_bridge uninstall -k --user 0 "${application}"
+		android_debug_bridge uninstall -k --user 0 "${application}" > "${sink}" 2>&1
 
 		if [ "${?}" -ne 0 ]
 		then
@@ -957,6 +957,12 @@ then
 	frobulator.scs "Dry run complete"
 	echo
 else
-	frobulator.scs "Done" "[ ${count_removed} removed, ${count_failed} failed ]"
-	echo
+	if [ "${count_failed}" -eq 0 ]
+	then
+		frobulator.scs "Done" "[ Removed ${count_removed} ]"
+		echo
+	else
+		frobulator.wrn "Done" "[ Removed ${count_removed} // Failed ${count_failed} ]"
+		echo
+	fi
 fi
