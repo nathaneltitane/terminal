@@ -959,10 +959,13 @@ then
 else
 	if [ "${count_failed}" -eq 0 ]
 	then
-		frobulator.scs "Done" "[ Removed ${count_removed} ]"
+		frobulator.inf "Uninstall complete" "[ ${count_removed} ]"
 		echo
 	else
-		frobulator.wrn "Done" "[ Removed ${count_removed} // Failed ${count_failed} ]"
+		frobulator.wrn "Errors encountered" "[ ${count_failed} ]"
+		echo
+
+		frobulator.inf "Removals completed" "[ ${count_removed} ]"
 		echo
 	fi
 fi
