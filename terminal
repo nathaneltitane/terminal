@@ -138,6 +138,7 @@ list=(
 	openssh*
 	pipx
 	ssh*
+	shellcheck
 	tree
 )
 
