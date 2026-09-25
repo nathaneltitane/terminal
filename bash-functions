@@ -1009,7 +1009,7 @@ list () {
 
 # size /////////////////////////////////////////////////////////////////////////
 
-size () {
+dimensions () {
 
 	columns=$(tput cols)
 	lines=$(tput lines)
