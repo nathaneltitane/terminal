@@ -1,0 +1,272 @@
+#!/bin/bash
+
+self_arguments="${@}"
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found /////////////////////// [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+fi
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="2026-09-24"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}"
+	in
+		-d|--directory)
+			directory_base="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -d [Directory] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-d, --directory     Base directory for the clone - 'edl' is appended."
+			echo
+			echo -e "                    [ \${HOME}/.local/share ]    [ Default ]"
+			echo
+			echo -e "-h, --help          Show help and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+# variables ////////////////////////////////////////////////////////////////////
+
+process="edl"
+service="ModemManager"
+
+url_source="https://github.com/bkerler/edl.git"
+
+directory_base="${directory_base:-${HOME}/.local/share}"
+directory_edl="${directory_base}/${process}"
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+	adb
+	fastboot
+	python3-dev
+	python3-pip
+	liblzma-dev
+	git
+)
+
+frobulator.require ${list[@]}
+
+frobulator.complete
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+# conflicting modem service
+
+frobulator.inf "Removing conflicting service" "[ ${service} ]"
+echo
+
+apt-get --assume-yes purge modemmanager > "${sink}" 2>&1
+
+frobulator.complete
+
+if [[ $(command -v systemctl) ]]
+then
+	frobulator.service stop "${service}"
+
+	frobulator.complete
+
+	frobulator.service disable "${service}"
+
+	frobulator.complete
+fi
+
+# source
+
+frobulator.silence "git clone ${url_source} ${directory_edl}" &
+
+frobulator.progress "clone"
+
+frobulator.complete
+
+if [ -d "${directory_edl}" ]
+then
+	cd "${directory_edl}"
+
+	frobulator.complete
+else
+	frobulator.err "Directory not found" "[ ${directory_edl} ]"
+	echo
+
+	exit 1
+fi
+
+# loaders submodule
+
+frobulator.silence "git submodule update --init --recursive" &
+
+frobulator.progress "submodules"
+
+frobulator.complete
+
+# autoinstall
+
+chmod a+rx autoinstall.sh
+
+frobulator.log "./autoinstall.sh" &
+
+frobulator.progress "install"
+
+if [ "${?}" -ne 0 ]
+then
+	frobulator.err "Unable to install" "[ ${process} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.complete
+
+# verification
+
+if [[ $(command -v "${process}") ]]
+then
+	frobulator.scs "Verification success" "[ ${process} ]"
+	echo
+else
+	frobulator.err "Verification failed" "[ ${process} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.ntf inf "EDL" "Device needs a USB PID of 0x9008 to work.
+
+Run 'edl -h' for the full command reference, or 'edl printgpt' to test."
+
+frobulator.result "${script}"
+
+frobulator.scs "Done"
+echo
