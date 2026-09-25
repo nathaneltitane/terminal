@@ -231,21 +231,72 @@ frobulator.progress "submodules"
 
 frobulator.complete
 
-# autoinstall
+# usb drivers
 
-chmod a+rx autoinstall.sh
+chmod a+rx install-linux-edl-drivers.sh
 
-frobulator.log "./autoinstall.sh" &
+frobulator.log "bash install-linux-edl-drivers.sh" &
+
+frobulator.progress "drivers"
+
+if [ "${?}" -ne 0 ]
+then
+	frobulator.err "Unable to install drivers" "[ ${process} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.complete
+
+# python dependencies
+
+frobulator.log "pip3 install -r requirements.txt --break-system-packages" &
+
+frobulator.progress "dependencies"
+
+if [ "${?}" -ne 0 ]
+then
+	frobulator.err "Unable to install dependencies" "[ ${process} ]"
+	echo
+
+	exit 1
+fi
+
+frobulator.complete
+
+# python package
+
+# CFLAGS avoids a build failure against gcc 14 and newer
+
+export CFLAGS="-Wno-int-conversion"
+
+frobulator.log "pip3 install -U . --break-system-packages" &
 
 frobulator.progress "install"
 
-if [ "${?}" -ne 0 ]
+status="${?}"
+
+unset CFLAGS
+
+if [ "${status}" -ne 0 ]
 then
 	frobulator.err "Unable to install" "[ ${process} ]"
 	echo
 
 	exit 1
 fi
+
+frobulator.complete
+
+# initramfs
+
+# safe to run directly - only the reboot itself is left to the user
+
+frobulator.inf "Rebuilding initramfs"
+echo
+
+update-initramfs -u > "${sink}" 2>&1
 
 frobulator.complete
 
