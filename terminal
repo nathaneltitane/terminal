@@ -109,6 +109,132 @@ version="2026-09-20"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-p|--python)
+			option="python"
+		;;
+
+		-x|--pipx)
+			option="pipx"
+		;;
+
+		-w|--storage)
+			option="storage"
+
+			option_storage="${2}"
+
+			shift
+		;;
+
+		-f|--files)
+			option="files"
+		;;
+
+		-o|--home)
+			option="home"
+		;;
+
+		-g|--git)
+			option="git"
+		;;
+
+		-s|--shell)
+			option="shell"
+		;;
+
+		-u|--superuser)
+			option="superuser"
+		;;
+
+		-t|--themes)
+			option="themes"
+		;;
+
+		-l|--applications)
+			option="applications"
+		;;
+
+		-k|--kde-runner)
+			option="kde-runner"
+		;;
+
+		-e|--efi)
+			option="efi"
+		;;
+
+		-a|--all)
+			option="all"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-p, --python        Set up [p]ython."
+			echo
+			echo -e "-x, --pipx          Set up pi[x] packages."
+			echo
+			echo -e "-w, --storage       Set up [w]indows subsystem for linux, chromeos, chromeos android, or removable storage."
+			echo
+			echo -e "                    [ wsl ]"
+			echo -e "                    [ chromeos ]"
+			echo -e "                    [ android ]"
+			echo -e "                    [ removable ]"
+			echo
+			echo -e "-f, --files         Link known [f]iles from storage."
+			echo
+			echo -e "-o, --home          Set up h[o]me directory structure."
+			echo
+			echo -e "-g, --git           Set up [g]it configuration and credentials."
+			echo
+			echo -e "-s, --shell         Set up [s]hell dotfiles."
+			echo
+			echo -e "-u, --superuser     Set up passwordless s[u]do."
+			echo
+			echo -e "-t, --themes        Set up [t]hemes."
+			echo
+			echo -e "-l, --applications  Set up app[l]ications."
+			echo
+			echo -e "-k, --kde           Set up [k]de runner shortcut."
+			echo
+			echo -e "-e, --efi           Set up r[e]find and efi boot theme."
+			echo
+			echo -e "-a, --all           Run every module explicitly."
+			echo
+			echo -e "                    [ No option ]    [ Also runs every module ]"
+			echo
+			echo -e "-h, --help          Show [h]elp and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
 architecture="$(dpkg --print-architecture)"
@@ -116,6 +242,25 @@ architecture="$(dpkg --print-architecture)"
 codename="$(lsb_release -c -s)"
 
 # defaults /////////////////////////////////////////////////////////////////////
+
+if [ -z "${option}" ]
+then
+	option="all"
+fi
+
+if [ "${option}" = "storage" ]
+then
+	if	[ "${option_storage}" != "wsl"       ] && \
+		[ "${option_storage}" != "chromeos"  ] && \
+		[ "${option_storage}" != "android"   ] && \
+		[ "${option_storage}" != "removable" ]
+	then
+		frobulator.err "Unrecognized storage type" "[ ${option_storage} ]"
+		echo
+
+		exit 1
+	fi
+fi
 
 desktop_environment="${XDG_CURRENT_DESKTOP}"
 
@@ -218,363 +363,423 @@ list=()
 
 # python
 
-if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+if [ "${option}" = "python" ] || [ "${option}" = "all" ]
 then
-	frobulator.inf "Setting up" "[ python ]"
-	echo
+	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	then
+		frobulator.inf "Setting up" "[ python ]"
+		echo
 
-	python_directory="/usr/lib/python3.11"
+		python_directory="/usr/lib/python3.11"
 
-	rm					\
-		--recursive		\
-		--force			\
-						"${python_directory}"/EXTERNALLY-MANAGED
+		rm					\
+			--recursive		\
+			--force			\
+							"${python_directory}"/EXTERNALLY-MANAGED
+	fi
 fi
 
 # pipx
 
-pip_install_list=(
-	deno
-	trimesh
-	yt-dlp
-	yt-dlp-ejs
-)
+if [ "${option}" = "pipx" ] || [ "${option}" = "all" ]
+then
+	pip_install_list=(
+		deno
+		trimesh
+		yt-dlp
+		yt-dlp-ejs
+	)
 
-for item in "${pip_install_list[@]}"
-do
-	pipx install --global "${item}"
-done
+	for item in "${pip_install_list[@]}"
+	do
+		pipx install --global "${item}"
+	done
 
-pip_install_list=()
+	pip_install_list=()
+fi
 
 # storage - windows subsystem for linux
 
-if [ -n "${WSL_DISTRO_NAME}" ]
+if [ "${option}" = "storage" ] && [ "${option_storage}" = "wsl" ] || [ "${option}" = "all" ]
 then
-	frobulator.link /mnt /media y internal
-	frobulator.link /mnt /media z external
+	if [ -n "${WSL_DISTRO_NAME}" ]
+	then
+		frobulator.link /mnt /media y internal
+		frobulator.link /mnt /media z external
+	fi
 fi
 
 # storage - linux subsystem for chromeos
 
-if [ -d /mnt/chromeos ]
+if [ "${option}" = "storage" ] && [ "${option_storage}" = "chromeos" ] || [ "${option}" = "all" ]
 then
-	if [ -d /mnt/chromeos/GoogleDrive ]
+	if [ -d /mnt/chromeos ]
 	then
-		frobulator.link /mnt/chromeos /media GoogleDrive Drive
-	fi
+		if [ -d /mnt/chromeos/GoogleDrive ]
+		then
+			frobulator.link /mnt/chromeos /media GoogleDrive Drive
+		fi
 
-	if [ -d /mnt/chromeos/MyFiles ]
-	then
-		frobulator.link /mnt/chromeos/MyFiles "${HOME}" Downloads Downloads
-	fi
+		if [ -d /mnt/chromeos/MyFiles ]
+		then
+			frobulator.link /mnt/chromeos/MyFiles "${HOME}" Downloads Downloads
+		fi
 
-	if [ -d /mnt/chromeos/removable ]
-	then
-		frobulator.link /mnt/chromeos/removable /media Internal Internal
-		frobulator.link /mnt/chromeos/removable /media External External
-	fi
+		if [ -d /mnt/chromeos/removable ]
+		then
+			frobulator.link /mnt/chromeos/removable /media Internal Internal
+			frobulator.link /mnt/chromeos/removable /media External External
+		fi
 
+	fi
 fi
 
 # storage - android subsystem for chrome os
 
-if [ -d /opt/google/containers/android ]
+if [ "${option}" = "storage" ] && [ "${option_storage}" = "android" ] || [ "${option}" = "all" ]
 then
-	if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
+	if [ -d /opt/google/containers/android ]
 	then
-		frobulator.link /opt/google/containers/android/rootfs/android-data/data/media /media 0 Android
-	fi
-
-fi
-
-# staorage - removable
-
-if [ -d /media/"${USER}"/* ]
-then
-	for directory in /media/"${USER}"/*
-	do
-		frobulator.inf "Removable storage found" "[ ${directory}]"
-		echo
-
-		list+=(
-			"${directory}"
-		)
-	done
-
-	unset directory
-
-	for item in ${list[@]}
-	do
-		directory=${item##*/}
-
 		if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
 		then
-			frobulator.link /media/"${USER}" /media "${directory}"
+			frobulator.link /opt/google/containers/android/rootfs/android-data/data/media /media 0 Android
 		fi
-	done
+
+	fi
 fi
 
-list=()
+# storage - removable
 
-# files
-
-list=(
-	.dns
-	.dns-dynamic
-	.modem
-	.router
-	.wifi
-)
-
-storage_list=(
-	/media/[iI]nternal
-)
-
-for storage in ${storage_list[@]}
-do
-	if [ -d "${storage}" ]
+if [ "${option}" = "storage" ] && [ "${option_storage}" = "removable" ] || [ "${option}" = "all" ]
+then
+	if [ -d /media/"${USER}"/* ]
 	then
+		for directory in /media/"${USER}"/*
+		do
+			frobulator.inf "Removable storage found" "[ ${directory}]"
+			echo
+
+			list+=(
+				"${directory}"
+			)
+		done
+
+		unset directory
+
 		for item in ${list[@]}
 		do
-			if [ -e "${storage}"/"${item}" ]
+			directory=${item##*/}
+
+			if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
 			then
-				frobulator.link "${storage}" "${HOME}" "${item}"
+				frobulator.link /media/"${USER}" /media "${directory}"
 			fi
 		done
 	fi
-done
 
-storage_list=()
+	list=()
+fi
 
-list=()
+# files
+
+if [ "${option}" = "files" ] || [ "${option}" = "all" ]
+then
+	list=(
+		.dns
+		.dns-dynamic
+		.modem
+		.router
+		.wifi
+	)
+
+	storage_list=(
+		/media/[iI]nternal
+	)
+
+	for storage in ${storage_list[@]}
+	do
+		if [ -d "${storage}" ]
+		then
+			for item in ${list[@]}
+			do
+				if [ -e "${storage}"/"${item}" ]
+				then
+					frobulator.link "${storage}" "${HOME}" "${item}"
+				fi
+			done
+		fi
+	done
+
+	storage_list=()
+
+	list=()
+fi
 
 # home
 
-frobulator.file "${HOME}" .hushlogin
-
-if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+if [ "${option}" = "home" ] || [ "${option}" = "all" ]
 then
-	# generate home directory structure
+	frobulator.file "${HOME}" .hushlogin
 
-	directories_list+=(
-		Desktop
-		Documents
-		Downloads
-		Music
-		Pictures
-		Public
-		Templates
-		Videos
-	)
+	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	then
+		# generate home directory structure
 
-	frobulator.directory "${HOME}" ${directories_list[@]}
+		directories_list+=(
+			Desktop
+			Documents
+			Downloads
+			Music
+			Pictures
+			Public
+			Templates
+			Videos
+		)
 
-	directories_list=()
+		frobulator.directory "${HOME}" ${directories_list[@]}
 
+		directories_list=()
+
+	fi
 fi
 
 # git
 
-frobulator.inf "Setting up" "[ git ]"
-echo
-
-storage_list=(
-	/media/[aA]ndroid
-	/media/[iI]nternal
-)
-
-for storage in ${storage_list[@]}
-do
-	if [ -d "${storage}" ]
-	then
-		frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
-
-		chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
-
-		frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
-
-		chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
-	fi
-done
-
-# shell
-
-frobulator.inf "Setting up" "[ shell ]"
-echo
-
-frobulator.directory "${HOME}" .local/bin
-
-list+=(
-	bash-aliases
-	bash-configuration
-	bash-functions
-	bash-login
-	bash-logout
-	bash-profile
-)
-
-frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
-
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-aliases       .bash_aliases
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bashrc
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bash_configuration
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-functions     .bash_functions
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-login         .bash_login
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-logout        .bash_logout
-frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-profile       .bash_profile
-
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-aliases       .bash_aliases
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bashrc
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bash_configuration
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-functions     .bash_functions
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-login         .bash_login
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
-frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
-
-if [[ $(id -u -n) = "root" ]]
+if [ "${option}" = "git" ] || [ "${option}" = "all" ]
 then
-	for item in ${list[@]}
-	do
-		chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
+	frobulator.inf "Setting up" "[ git ]"
+	echo
 
-		chmod 777 "${HOME}"/.local/bin/"${item}"
+	storage_list=(
+		/media/[aA]ndroid
+		/media/[iI]nternal
+	)
+
+	for storage in ${storage_list[@]}
+	do
+		if [ -d "${storage}" ]
+		then
+			frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+
+			chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+
+			frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+
+			chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+		fi
 	done
 fi
 
-list=()
+# shell
+
+if [ "${option}" = "shell" ] || [ "${option}" = "all" ]
+then
+	frobulator.inf "Setting up" "[ shell ]"
+	echo
+
+	frobulator.directory "${HOME}" .local/bin
+
+	list+=(
+		bash-aliases
+		bash-configuration
+		bash-functions
+		bash-login
+		bash-logout
+		bash-profile
+	)
+
+	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
+
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-aliases       .bash_aliases
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bashrc
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bash_configuration
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-functions     .bash_functions
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-login         .bash_login
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-logout        .bash_logout
+	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-profile       .bash_profile
+
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-aliases       .bash_aliases
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bashrc
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bash_configuration
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-functions     .bash_functions
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-login         .bash_login
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
+	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		for item in ${list[@]}
+		do
+			chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
+
+			chmod 777 "${HOME}"/.local/bin/"${item}"
+		done
+	fi
+
+	list=()
+fi
 
 # superuser
 
-frobulator.write  "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
+if [ "${option}" = "superuser" ] || [ "${option}" = "all" ]
+then
+	frobulator.write "append" "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
+fi
 
 # themes
 
-if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+if [ "${option}" = "themes" ] || [ "${option}" = "all" ]
 then
-	frobulator.inf "Setting up" "[ themes ]"
-	echo
+	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	then
+		frobulator.inf "Setting up" "[ themes ]"
+		echo
 
-	echo 'gtk-icon-theme-name = "Breeze"'  > /etc/gtk-2.0/gtkrc
-	echo 'gtk-theme-name = "Breeze"'      >> /etc/gtk-2.0/gtkrc
-	echo 'gtk-font-name = "Noto Mono 10"' >> /etc/gtk-2.0/gtkrc
+		gtkrc_content=$(cat <<- 'FILE'
+		gtk-icon-theme-name = "Breeze"
+		gtk-theme-name = "Breeze"
+		gtk-font-name = "Noto Mono 10"
+		FILE
+		)
 
-	echo '[Settings]'                      > /etc/gtk-3.0/settings.ini
-	echo 'gtk-cursor-theme-name = Breeze' >> /etc/gtk-3.0/settings.ini
-	echo 'gtk-icon-theme-name = Breeze'   >> /etc/gtk-3.0/settings.ini
-	echo 'gtk-theme-name = Breeze'        >> /etc/gtk-3.0/settings.ini
-	echo 'gtk-font-name = Noto Mono 10'   >> /etc/gtk-3.0/settings.ini
+		frobulator.write "write" "${gtkrc_content}" /etc/gtk-2.0 gtkrc
 
-	echo '[Qt]'                             > /etc/xdg/Trolltech.conf
-	echo 'style=Breeze'                    >> /etc/xdg/Trolltech.conf
+		settings_content=$(cat <<- 'FILE'
+		[Settings]
+		gtk-cursor-theme-name = Breeze
+		gtk-icon-theme-name = Breeze
+		gtk-theme-name = Breeze
+		gtk-font-name = Noto Mono 10
+		FILE
+		)
 
-	frobulator.scs 'Done'
-	echo
+		frobulator.write "write" "${settings_content}" /etc/gtk-3.0 settings.ini
+
+		trolltech_content=$(cat <<- 'FILE'
+		[Qt]
+		style=Breeze
+		FILE
+		)
+
+		frobulator.write "write" "${trolltech_content}" /etc/xdg Trolltech.conf
+
+		frobulator.scs 'Done'
+		echo
+	fi
 fi
 
 # applications
 
-if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+if [ "${option}" = "applications" ] || [ "${option}" = "all" ]
 then
-	frobulator.inf "Setting up" "[ applications ]"
-	echo
+	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	then
+		frobulator.inf "Setting up" "[ applications ]"
+		echo
 
-	# install
+		# install
 
-	list+=(
-		${kde_list[@]}
-	)
+		list+=(
+			${kde_list[@]}
+		)
 
-	frobulator.assess ${list[@]}
+		frobulator.assess ${list[@]}
 
-	list=()
+		list=()
 
-	# remove
+		# remove
 
-	list=(
-		org.kde.dolphin.desktop
-		org.kde.konsole.desktop
-	)
+		list=(
+			org.kde.dolphin.desktop
+			org.kde.konsole.desktop
+		)
 
-	frobulator.delete /usr/share/applications ${list[@]}
+		frobulator.delete /usr/share/applications ${list[@]}
 
-	list=()
+		list=()
 
-	# uninstall
+		# uninstall
 
-	list=(
-		uxterm
-		vim
-		xterm
-	)
+		list=(
+			uxterm
+			vim
+			xterm
+		)
 
-	frobulator.purge ${list[@]}
+		frobulator.purge ${list[@]}
 
-	list=()
+		list=()
+	fi
 fi
 
 # kde - runner
 
-if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
+if [ "${option}" = "kde-runner" ] || [ "${option}" = "all" ]
 then
-	kwriteconfig5						\
-		--file	kwinrc					\
-		--group	ModifierOnlyShortcuts	\
-		--key	Meta					\
-										"org.kde.krunner,/App,,toggleDisplay"
+	if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
+	then
+		kwriteconfig5						\
+			--file	kwinrc					\
+			--group	ModifierOnlyShortcuts	\
+			--key	Meta					\
+											"org.kde.krunner,/App,,toggleDisplay"
 
-	qdbus org.kde.KWin /KWin reconfigure
+		qdbus org.kde.KWin /KWin reconfigure
+	fi
 fi
 
 # efi
 
-if [ -e /sys/firmware/efi ]
+if [ "${option}" = "efi" ] || [ "${option}" = "all" ]
 then
+	if [ -e /sys/firmware/efi ]
+	then
 
-	# install
+		# install
 
-	list=(
-		refind
-	)
+		list=(
+			refind
+		)
 
-	frobulator.install ${list[@]}
+		frobulator.install ${list[@]}
 
-	list=()
+		list=()
 
-	refind-install --yes > "${sink}" 2>&1
+		refind-install --yes > "${sink}" 2>&1
 
-	# purge
+		# purge
 
-	apt purge grub* > "${sink}" 2>&1
+		apt purge grub* > "${sink}" 2>&1
 
-	list=(
-		grub
-	)
+		list=(
+			grub
+		)
 
-	frobulator.delete /boot ${list[@]}
+		frobulator.delete /boot ${list[@]}
 
-	list=()
+		list=()
 
-	# remove
+		# remove
 
-	list=(
-		refind.conf
-	)
+		list=(
+			refind.conf
+		)
 
-	frobulator.delete /boot/efi/EFI/refind ${list[@]}
+		frobulator.delete /boot/efi/EFI/refind ${list[@]}
 
-	frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
+		frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
 
-	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+		frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
 
-	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
+		frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
 
-	list=()
+		list=()
 
-	rm					\
-		--recursive		\
-		--force			\
-						/boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
+		rm					\
+			--recursive		\
+			--force			\
+							/boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
+	fi
 fi
 
 frobulator.scs 'Done'
