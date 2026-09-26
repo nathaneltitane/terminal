@@ -1549,4 +1549,44 @@ temperature () {
 
 		unset acpitz_count cpu_label cpu_degrees lines max_length pad
 	fi
+
+}
+
+# llm //////////////////////////////////////////////////////////////////////////
+
+
+clo () {
+
+	if [[ -z $(command -v claude) ]]
+	then
+		echo "claude command not found."
+		return 1
+	fi
+
+	directory_projects="${HOME}/.claude/projects"
+
+	if [ ! -d "${directory_projects}" ]
+	then
+		echo "No session history found."
+
+		return 1
+	fi
+
+	file_search=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
+
+	file_session=$("${file_search[@]}" 2>"${sink}" | sort -r -n | head -n 1 | cut -d ' ' -f 2-)
+
+	if [ -z "${file_session}" ]
+	then
+		echo "No saved sessions found."
+
+		return 1
+	fi
+
+	id_session="$(basename "${file_session}" .jsonl)"
+
+	echo "Resuming: ${id_session}"
+
+	claude --resume "${id_session}"
+
 }
