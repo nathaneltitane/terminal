@@ -125,9 +125,10 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --dry-run       Report packages that would be removed, without removing them."
+			echo -e "-d, --dry-run       Perform a [d]ry run:"
+			echo -e                      "report packages that would be removed without removing them."
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
