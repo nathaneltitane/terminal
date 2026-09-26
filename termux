@@ -153,9 +153,7 @@ do
 			echo
 			echo -e "-e, --geany         Set up g[e]any editor configuration."
 			echo
-			echo -e "-a, --all           Run every module explicitly."
-			echo
-			echo -e "                    [ No option ]    [ Also runs every module ]"
+			echo -e "-a, --all           Run [a]ll modules explicitly."
 			echo
 			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
