@@ -131,15 +131,15 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --interface     Physical ethernet interface to bridge."
+			echo -e "-i, --interface     Physical ethernet [i]nterface to bridge."
 			echo
 			echo -e "                    [ enp2s0 ]    [ Default ]"
 			echo
-			echo -e "-b, --bridge        Name for the created bridge device."
+			echo -e "-b, --bridge        Name for the created [b]ridge device."
 			echo
 			echo -e "                    [ bridge0 ]    [ Default ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
