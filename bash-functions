@@ -1556,13 +1556,19 @@ temperature () {
 
 clo () {
 
-	if [[ -z $(command -v claude) ]]
+	local command
+
+	command="claude"
+
+	if [[ -z $(command -v "${command}") ]]
 	then
-		echo "claude command not found."
+		echo "Command not found" "[ ${command} ]"
+		echo
+
 		return 1
 	fi
 
-	directory_projects="${HOME}/.claude/projects"
+	directory_projects="${HOME}/.${command}/projects"
 
 	if [ ! -d "${directory_projects}" ]
 	then
