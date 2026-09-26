@@ -131,15 +131,15 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-n, --name          Name of the deployed container."
+			echo -e "-n, --name          Specify [n]ame of the deployed container."
 			echo
 			echo -e "                    [ pihole ]    [ Default ]"
 			echo
-			echo -e "-a, --address       LAN address to bind for FTL DNS resolution."
+			echo -e "-a, --address       Specify LAN [a]ddress to bind for FTL DNS resolution."
 			echo
 			echo -e "                    [ XXX.XXX.XXX.XXX ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
