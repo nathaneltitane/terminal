@@ -1590,11 +1590,18 @@ clo () {
 		return 1
 	fi
 
+	echo
+
 	id_session="$(basename "${file_session}" .jsonl)"
 
-	frobulator.inf "Resuming" "[ ${id_session} ]"
+	frobulator.scs "Session found."
+	echo
+
+	frobulator.inf "Resuming session" "[ ${id_session} ]"
 	echo
 
 	claude --resume "${id_session}"
+
+	unset command
 
 }
