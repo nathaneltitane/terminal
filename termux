@@ -109,6 +109,100 @@ version="2026-09-20"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+termux=false
+git=false
+shell=false
+adb=false
+geany=false
+
+while (($#))
+do
+	case "${1}"
+	in
+		-t|--termux)
+			termux=true
+		;;
+
+		-g|--git)
+			git=true
+		;;
+
+		-s|--shell)
+			shell=true
+		;;
+
+		-a|--adb)
+			adb=true
+		;;
+
+		-e|--geany)
+			geany=true
+		;;
+
+		-a|--all)
+			termux=true
+			git=true
+			shell=true
+			adb=true
+			geany=true
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ${script} -t | -g | -s | -a | -e | -a | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-t, --termux        Set up [t]ermux colors, font, and properties."
+			echo
+			echo -e "-g, --git           Set up [g]it configuration and credentials."
+			echo
+			echo -e "-s, --shell         Set up [s]hell dotfiles."
+			echo
+			echo -e "-d, --adb           Set up a[d]b, fastboot, and related tools."
+			echo
+			echo -e "-e, --geany         Set up g[e]any editor configuration."
+			echo
+			echo -e "-a, --all           Run every module explicitly."
+			echo
+			echo -e "                    [ No option ]    [ Also runs every module ]"
+			echo
+			echo -e "-h, --help          Show [h]elp and usage information."
+			echo
+			echo -e "'${script}' [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			:
+		;;
+
+		*)
+			echo
+			echo -e "${script}: Unknown option '${1}'"
+			echo -e "Type './${script} --help' for help and usage information."
+			echo
+
+			exit 1
+		;;
+
+	esac
+
+	shift
+
+done
+
+if [ "${termux}" = false ] && [ "${git}" = false ] && [ "${shell}" = false ] && [ "${adb}" = false ] && [ "${geany}" = false ]
+then
+	termux=true
+	git=true
+	shell=true
+	adb=true
+	geany=true
+fi
+
 # variables ////////////////////////////////////////////////////////////////////
 
 # defaults /////////////////////////////////////////////////////////////////////
@@ -149,97 +243,110 @@ list=()
 
 # termux
 
-frobulator.inf "Setting up" "[ termux ]"
-echo
+if [ "${termux}" = true ]
+then
+	frobulator.inf "Setting up" "[ termux ]"
+	echo
 
-list+=(
-	termux-colors
-	termux-font
-	termux-properties
-)
+	list+=(
+		termux-colors
+		termux-font
+		termux-properties
+	)
 
-frobulator.download get.trmx.app "${HOME}"/.local/bin ${list[@]}
+	frobulator.download get.trmx.app "${HOME}"/.local/bin ${list[@]}
 
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-colors     colors.properties
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-font       font.ttf
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-properties termux.properties
+	frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-colors     colors.properties
+	frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-font       font.ttf
+	frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-properties termux.properties
 
-settings_intent
+	settings_intent
 
-list=()
+	list=()
+fi
 
 # git
 
-frobulator.inf "Setting up" "[ git ]"
-echo
-
-if [ -z "${TERMUX_VERSION}" ]
+if [ "${git}" = true ]
 then
-	storage=/media/internal
-else
-	if [ -d "${PREFIX}"/media/internal ]
-	then
-		storage="${PREFIX}"/media/internal
-	else
-		storage=/storage/emulated/0
-	fi
-fi
+	frobulator.inf "Setting up" "[ git ]"
+	echo
 
-frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
-frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+	if [ -z "${TERMUX_VERSION}" ]
+	then
+		storage=/media/internal
+	else
+		if [ -d "${PREFIX}"/media/internal ]
+		then
+			storage="${PREFIX}"/media/internal
+		else
+			storage=/storage/emulated/0
+		fi
+	fi
+
+	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+fi
 
 # shell
 
-frobulator.inf "Setting up" "[ shell ]"
-echo
+if [ "${shell}" = true ]
+then
+	frobulator.inf "Setting up" "[ shell ]"
+	echo
 
-list+=(
-	bash-aliases
-	bash-configuration
-	bash-functions
-	bash-login
-	bash-logout
-	bash-profile
-)
+	list+=(
+		bash-aliases
+		bash-configuration
+		bash-functions
+		bash-login
+		bash-logout
+		bash-profile
+	)
 
-frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
+	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
 
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-aliases       .bash_aliases
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bashrc
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bash_configuration
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-functions     .bash_functions
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-login         .bash_login
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-logout        .bash_logout
-frobulator.link "${HOME}"/.local/bin "${HOME}" bash-profile       .bash_profile
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-aliases       .bash_aliases
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bashrc
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bash_configuration
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-functions     .bash_functions
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-login         .bash_login
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-logout        .bash_logout
+	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-profile       .bash_profile
 
-list=()
+	list=()
+fi
 
 # adb
 
-frobulator.inf "Setting up" "[ adb ]"
-echo
+if [ "${adb}" = true ]
+then
+	frobulator.inf "Setting up" "[ adb ]"
+	echo
 
-list+=(
-	adb
-	fastboot
-	e2fsdroid
-	f2fs_sload
-	make_f2fs
-)
+	list+=(
+		adb
+		fastboot
+		e2fsdroid
+		f2fs_sload
+		make_f2fs
+	)
 
-frobulator.download get.trmnl.me/android "${HOME}"/.local/bin ${list[@]}
+	frobulator.download get.trmnl.me/android "${HOME}"/.local/bin ${list[@]}
 
-list=()
+	list=()
+fi
 
 # geany
 
+if [ "${geany}" = true ]
+then
+	frobulator.inf "Setting up" "[ geany ]"
+	echo
 
-frobulator.inf "Setting up" "[ geany ]"
-echo
+	frobulator.directory "${HOME}"/.config/geany
 
-frobulator.directory "${HOME}"/.config/geany
-
-frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-configuration geany.conf
-frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keybindings   keybindings.conf
-frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
-
+	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-configuration geany.conf
+	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keybindings   keybindings.conf
+	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
+fi
