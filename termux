@@ -109,47 +109,37 @@ version="2026-09-20"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
-termux=false
-git=false
-shell=false
-adb=false
-geany=false
-
 while (($#))
 do
 	case "${1}"
 	in
 		-t|--termux)
-			termux=true
+			option="termux"
 		;;
 
 		-g|--git)
-			git=true
+			option="git"
 		;;
 
 		-s|--shell)
-			shell=true
+			option="shell"
 		;;
 
-		-a|--adb)
-			adb=true
+		-d|--adb)
+			option="adb"
 		;;
 
 		-e|--geany)
-			geany=true
+			option="geany"
 		;;
 
 		-a|--all)
-			termux=true
-			git=true
-			shell=true
-			adb=true
-			geany=true
+			option="all"
 		;;
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -t | -g | -s | -a | -e | -a | -h"
+			echo -e "Usage: ${script} -t | -g | -s | -d | -e | -a | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -194,18 +184,14 @@ do
 
 done
 
-if [ "${termux}" = false ] && [ "${git}" = false ] && [ "${shell}" = false ] && [ "${adb}" = false ] && [ "${geany}" = false ]
-then
-	termux=true
-	git=true
-	shell=true
-	adb=true
-	geany=true
-fi
-
 # variables ////////////////////////////////////////////////////////////////////
 
 # defaults /////////////////////////////////////////////////////////////////////
+
+if [ -z "${option}" ]
+then
+	option="all"
+fi
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -243,7 +229,7 @@ list=()
 
 # termux
 
-if [ "${termux}" = true ]
+if [ "${option}" = "termux" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ termux ]"
 	echo
@@ -267,7 +253,7 @@ fi
 
 # git
 
-if [ "${git}" = true ]
+if [ "${option}" = "git" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ git ]"
 	echo
@@ -290,7 +276,7 @@ fi
 
 # shell
 
-if [ "${shell}" = true ]
+if [ "${option}" = "shell" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ shell ]"
 	echo
@@ -319,7 +305,7 @@ fi
 
 # adb
 
-if [ "${adb}" = true ]
+if [ "${option}" = "adb" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ adb ]"
 	echo
@@ -339,7 +325,7 @@ fi
 
 # geany
 
-if [ "${geany}" = true ]
+if [ "${option}" = "geany" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ geany ]"
 	echo
@@ -350,3 +336,4 @@ then
 	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keybindings   keybindings.conf
 	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
 fi
+
