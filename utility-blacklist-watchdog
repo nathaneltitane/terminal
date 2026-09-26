@@ -125,7 +125,7 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-m, --module        Blacklist specified [m]odule instead of auto-detecting."
+			echo -e "-m, --module        Blacklist specified [m]odule: do not rely on auto-detection."
 			echo
 			echo -e "-h, --help          Show help and usage information."
 			echo
