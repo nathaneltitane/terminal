@@ -158,11 +158,11 @@ do
 			echo
 			echo "Options:"
 			echo
-			echo "-i, --input    Search and download a single track."
+			echo "-i, --input    Search and download s[i]ngle track."
 			echo
-			echo "-f, --file     Search and download tracks from list."
+			echo "-f, --file     Search and download tracks from list in [f]ile."
 			echo
-			echo "-h, --help     Show help and usage information."
+			echo "-h, --help     Show [h]elp and usage information."
 			echo
 			echo "'${script}' [ Version // ${version} ]"
 			echo
