@@ -125,11 +125,11 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --installer     Path to the SOLIDWORKS setup.exe."
+			echo -e "-i, --installer     Path to the SOLIDWORKS 'setup.exe'."
 			echo
 			echo -e "                    [ /path/to/setup.exe ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
