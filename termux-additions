@@ -139,7 +139,7 @@ do
 			echo -e "                      [ google-mail ]   | [ gmail ]"
 			echo -e "                      [ terminal ]"
 			echo
-			echo -e "-n, --handle          Run desktop environment handles through [n]ative Android applications."
+			echo -e "-n, --handle          Run [n]ative desktop environment handles using installed Android applications."
 			echo
 			echo -e "                      [ email ]   | [ mail ]"
 			echo -e "                      [ browser ] | [ link ] | [ web ]"
