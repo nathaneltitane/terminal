@@ -125,7 +125,7 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --directory     Directory to normalize filenames in."
+			echo -e "-d, --directory     Specify [d]irectory location for file characters normalization."
 			echo
 			echo -e "                    [ /path/to/directory ]"
 			echo -e "                    [ current directory ]    [ Default ]"
