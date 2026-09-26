@@ -125,12 +125,12 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-p, --platform      Target platform to pull and repackage images for."
+			echo -e "-p, --platform      Target [p]latform to pull and repackage images for."
 			echo
 			echo -e "                    [ linux/amd64 ]"
 			echo -e "                    [ linux/aarch64 ]    [ Default ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
