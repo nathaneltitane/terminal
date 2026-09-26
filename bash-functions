@@ -1562,7 +1562,7 @@ clo () {
 
 	if [[ -z $(command -v "${command}") ]]
 	then
-		echo "Command not found" "[ ${command} ]"
+		frobulator.err "Command not found" "[ ${command} ]"
 		echo
 
 		return 1
@@ -1572,7 +1572,8 @@ clo () {
 
 	if [ ! -d "${directory_projects}" ]
 	then
-		echo "No session history found."
+		frobulator.wrn "No session history found."
+		echo
 
 		return 1
 	fi
@@ -1583,14 +1584,16 @@ clo () {
 
 	if [ -z "${file_session}" ]
 	then
-		echo "No saved sessions found."
+		frobulator.wrn "No saved session(s) found."
+		echo
 
 		return 1
 	fi
 
 	id_session="$(basename "${file_session}" .jsonl)"
 
-	echo "Resuming: ${id_session}"
+	frobulator.inf "Resuming" "[ ${id_session} ]"
+	echo
 
 	claude --resume "${id_session}"
 
