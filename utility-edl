@@ -123,11 +123,11 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --directory     Base directory for the clone - 'edl' is appended."
+			echo -e "-d, --directory     Base [d]irectory for the clone - 'edl' is appended."
 			echo
 			echo -e "                    [ \${HOME}/.local/share ]    [ Default ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
