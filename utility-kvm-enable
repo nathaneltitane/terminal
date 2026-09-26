@@ -248,39 +248,39 @@ nmcli device status
 
 frobulator.complete
 
-nmcli														\
+nmcli													\
 		connection add type bridge 						\
-		con-name ${bridge_name} 									\
+		con-name ${bridge_name} 						\
 		ifname ${bridge_name}
 
 frobulator.complete
 
-nmcli														\
-		connection add type ethernet 						\
-		slave-type bridge 									\
-		con-name 'Bridge Connection' 						\
-		ifname ${interface} 										\
+nmcli													\
+		connection add type ethernet 					\
+		slave-type bridge 								\
+		con-name 'Bridge Connection' 					\
+		ifname ${interface} 							\
 		master ${bridge_name}
 
 frobulator.complete
 
-nmcli														\
+nmcli													\
 		connection up ${bridge_name}
 
 frobulator.complete
 
-nmcli														\
-		connection modify ${bridge_name} 							\
+nmcli													\
+		connection modify ${bridge_name} 				\
 		connection.autoconnect-slaves 1
 
 frobulator.complete
 
-nmcli														\
+nmcli													\
 		connection up ${bridge_name}
 
 frobulator.complete
 
-nmcli														\
+nmcli													\
 		device status
 
 frobulator.complete
