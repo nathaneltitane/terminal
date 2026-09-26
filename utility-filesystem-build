@@ -135,9 +135,10 @@ do
 			echo -e "Options:"
 			echo
 			echo -e "-i, --image        Input distribution [i]mage name and version."
+			echo
 			echo -e "-s, --selection    Show setup [s]election options."
 			echo
-			echo -e "-h, --help     Show help and usage information."
+			echo -e "-h, --help         Show [h]elp and usage information."
 			echo
 			echo -e "'${script}' [ Version // ${version} ]"
 			echo
