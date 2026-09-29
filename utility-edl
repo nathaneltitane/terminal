@@ -1,8 +1,8 @@
 #!/bin/bash
 
-self_arguments="${@}"
-
 # dependencies /////////////////////////////////////////////////////////////////
+
+script="$(basename -- ${BASH_SOURCE[0]})"
 
 if [[ "${frobulator_loaded}" != "true" ]]
 then
@@ -75,9 +75,9 @@ then
 
 	frobulator="${HOME}"/.local/bin/frobulator
 
-	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^# version=' | cut -d '"' -f 2)
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^update=' | cut -d '"' -f 2)
 
-	version_local=$(grep -m 1 '^# version=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+	version_local=$(grep -m 1 '^update=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
 
 	version_local="${version_local:-1970-01-01}"
 
@@ -91,6 +91,8 @@ then
 	ticker initializing
 
 	source "${frobulator}"
+
+	export self_arguments="${@}"
 fi
 
 # superuser ////////////////////////////////////////////////////////////////////
@@ -99,11 +101,11 @@ frobulator.escalate
 
 # script ///////////////////////////////////////////////////////////////////////
 
-script="$(basename -- ${BASH_SOURCE[0]})"
+frobulator.script
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="2026-09-24"
+version="2026-09-28"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
