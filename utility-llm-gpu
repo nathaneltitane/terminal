@@ -206,7 +206,7 @@ model_url="https://ollama.com/install.sh"
 # path to a separate mount so models survive a system reinstall/format
 
 directory="${directory:-/media/internal}"
-models_directory="${directory}/${label}"
+models_directory="${directory}/${label}/${process}"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
