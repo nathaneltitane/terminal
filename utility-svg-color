@@ -344,7 +344,9 @@ process_color () {
 
 	if [[ -z "${colors[${color_name}]}" ]]
 	then
-		echo error
+		frobulator.err "Specified color not found" "[ ${color_name} ]"
+		echo
+
 		exit 1
 	fi
 
