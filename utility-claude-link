@@ -1,0 +1,378 @@
+#!/bin/bash
+
+# dependencies /////////////////////////////////////////////////////////////////
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found /////////////////////// [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^update=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^update=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+
+	# script arguments for escalation
+
+	self_arguments=("${@}")
+fi
+
+# superuser ////////////////////////////////////////////////////////////////////
+
+frobulator.escalate
+
+# script ///////////////////////////////////////////////////////////////////////
+
+frobulator.script
+
+# version //////////////////////////////////////////////////////////////////////
+
+version="2026-09-30"
+
+# usage ////////////////////////////////////////////////////////////////////////
+
+while (($#))
+do
+	case "${1}"
+	in
+		-d|--directory)
+			directory_storage="${2}"
+
+			shift
+		;;
+
+		-i|--install)
+			option="install"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -d [Directory] -i | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-d, --directory    Specify storage [d]irectory for claude configuration."
+			echo
+			echo -e "                   [ /media/internal/LLM/claude ] [ Default ]"
+			echo
+			echo -e "-i, --install      Run [i]nstallation of claude code before linking."
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'        [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -d [Directory] -i | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ////////////////////////////////////////////////////////////////////
+
+items_list=(
+	.claude
+	.claude.json
+)
+
+url_install="https://claude.ai/install.sh"
+
+# defaults /////////////////////////////////////////////////////////////////////
+
+if [ -z "${directory_storage}" ]
+then
+	directory_storage="/media/internal/LLM/claude"
+fi
+
+# validate arguments
+
+if [[ "${directory_storage}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+	echo
+
+	exit 1
+
+elif [ ! -d "${directory_storage}/.claude" ]
+then
+	frobulator.err "Configuration not found" "[ ${directory_storage}/.claude ]"
+	echo
+
+	exit 1
+fi
+
+# claude code must not run while linking
+
+if [ -n "$(pgrep -x claude)" ]
+then
+	frobulator.wrn "Claude code is running"
+	echo
+
+	frobulator.ask "Close claude code?"
+
+	frobulator.read reply
+
+	if [[ "${reply}" != [yY]         ]] && \
+	   [[ "${reply}" != [yY][eE][sS] ]]
+	then
+		frobulator.fwd "Operation cancelled."
+		echo
+
+		exit 0
+	fi
+
+	# terminate then kill after 5 seconds
+
+	pkill -x claude
+
+	for second in {1..5}
+	do
+		if [ -z "$(pgrep -x claude)" ]
+		then
+			break
+		fi
+
+		sleep 1
+	done
+
+	if [ -n "$(pgrep -x claude)" ]
+	then
+		pkill -9 -x claude
+
+		sleep 1
+	fi
+
+	if [ -n "$(pgrep -x claude)" ]
+	then
+		frobulator.err "Unable to close claude code."
+		echo
+
+		exit 1
+	fi
+
+	frobulator.scs "Closed" "[ claude code ]"
+	echo
+fi
+
+# functions ////////////////////////////////////////////////////////////////////
+
+claude_install () {
+
+	local status_list
+
+	frobulator.inf "Installing" "[ claude code ]"
+	echo
+
+	# official installer
+
+	curl -fsSL "${url_install}" | bash
+
+	status_list=("${PIPESTATUS[@]}")
+
+	if [ "${status_list[0]}" -ne 0 ] || [ "${status_list[1]}" -ne 0 ]
+	then
+		frobulator.err "Unable to install claude code" "[ ${url_install} ]"
+		echo
+
+		return 1
+	fi
+
+	frobulator.scs "Installed" "[ claude code ]"
+	echo
+}
+
+claude_link () {
+
+	local item="${1}"
+	local item_home="${HOME}/${item}"
+	local item_storage="${directory_storage}/${item}"
+
+	# already linked
+
+	if [ -L "${item_home}" ] && [ "${item_home}" -ef "${item_storage}" ]
+	then
+		frobulator.inf "Already linked" "[ ${item} ]"
+		echo
+
+		return 0
+	fi
+
+	if [ -e "${item_home}" ] || [ -L "${item_home}" ]
+	then
+		# add missing files to storage: stored files win
+
+		if [ -d "${item_home}" ] && [ ! -L "${item_home}" ]
+		then
+			cp -a -n "${item_home}/." "${item_storage}/" 2> "${sink}"
+
+		elif [ -f "${item_home}" ] && [ ! -L "${item_home}" ] && [ ! -e "${item_storage}" ]
+		then
+			cp -p "${item_home}" "${item_storage}"
+		fi
+
+		if [ ! -e "${item_storage}" ]
+		then
+			frobulator.err "Unable to merge into storage" "[ ${item} ]"
+			echo
+
+			return 1
+		fi
+
+		# move replaced item to trash
+
+		gio trash "${item_home}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Unable to move to trash" "[ ${item_home} ]"
+			echo
+
+			return 1
+		fi
+
+		frobulator.inf "Moved to trash" "[ ${item_home} ]"
+		echo
+	fi
+
+	frobulator.link "${directory_storage}" "${HOME}" "${item}"
+}
+
+# update ///////////////////////////////////////////////////////////////////////
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements /////////////////////////////////////////////////////////////////
+
+list=(
+
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ////////////////////////////////////////////////////////////////
+
+if [ "${option}" = "install" ]
+then
+	claude_install
+
+	if [ "${?}" -ne 0 ]
+	then
+		exit 1
+	fi
+fi
+
+for item in "${items_list[@]}"
+do
+	claude_link "${item}"
+done
+
+frobulator.result "${script}"
+
+frobulator.scs "Done"
+echo
