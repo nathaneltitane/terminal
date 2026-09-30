@@ -128,11 +128,11 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-m, --module        Blacklist specified [m]odule: do not rely on auto-detection."
+			echo -e "-m, --module    Blacklist specified [m]odule: do not rely on auto-detection."
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help      Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'     [ Version // ${version} ]"
 			echo
 
 			exit

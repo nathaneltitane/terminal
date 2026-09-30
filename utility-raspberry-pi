@@ -128,14 +128,14 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --device        Specify target block [d]evice to write the image to."
+			echo -e "-d, --device    Specify target block [d]evice to write the image to."
 			echo
-			echo -e "                    [ /dev/sdX ]"
-			echo -e "                    [ /dev/mmcblkX ]"
+			echo -e "                [ /dev/sdX ]"
+			echo -e "                [ /dev/mmcblkX ]"
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help      Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'     [ Version // ${version} ]"
 			echo
 
 			exit

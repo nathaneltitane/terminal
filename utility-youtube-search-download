@@ -161,13 +161,13 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --input         Search and download s[i]ngle track."
+			echo -e "-i, --input    Search and download s[i]ngle track."
 			echo
-			echo -e "-f, --file          Search and download tracks from list in [f]ile."
+			echo -e "-f, --file     Search and download tracks from list in [f]ile."
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help     Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'    [ Version // ${version} ]"
 			echo
 
 			exit

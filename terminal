@@ -178,40 +178,40 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-p, --python         Set up [p]ython."
+			echo -e "-p, --python          Set up [p]ython."
 			echo
-			echo -e "-x, --pipx           Set up pi[x] packages."
+			echo -e "-x, --pipx            Set up pi[x] packages."
 			echo
-			echo -e "-w, --storage        Set up [w]indows subsystem for linux, chromeos, chromeos android, or removable storage."
+			echo -e "-w, --storage         Set up [w]indows subsystem for linux, chromeos, chromeos android, or removable storage."
 			echo
-			echo -e "                     [ wsl ]"
-			echo -e "                     [ chromeos ]"
-			echo -e "                     [ android ]"
-			echo -e "                     [ removable ]"
+			echo -e "                      [ wsl ]"
+			echo -e "                      [ chromeos ]"
+			echo -e "                      [ android ]"
+			echo -e "                      [ removable ]"
 			echo
-			echo -e "-f, --files          Link known [f]iles from storage."
+			echo -e "-f, --files           Link known [f]iles from storage."
 			echo
-			echo -e "-o, --home           Set up h[o]me directory structure."
+			echo -e "-o, --home            Set up h[o]me directory structure."
 			echo
-			echo -e "-g, --git            Set up [g]it configuration and credentials."
+			echo -e "-g, --git             Set up [g]it configuration and credentials."
 			echo
-			echo -e "-s, --shell          Set up [s]hell dotfiles."
+			echo -e "-s, --shell           Set up [s]hell dotfiles."
 			echo
-			echo -e "-u, --superuser      Set up passwordless s[u]do."
+			echo -e "-u, --superuser       Set up passwordless s[u]do."
 			echo
-			echo -e "-t, --themes         Set up [t]hemes."
+			echo -e "-t, --themes          Set up [t]hemes."
 			echo
-			echo -e "-l, --applications   Set up app[l]ications."
+			echo -e "-l, --applications    Set up app[l]ications."
 			echo
-			echo -e "-k, --kde            Set up [k]de runner shortcut."
+			echo -e "-k, --kde             Set up [k]de runner shortcut."
 			echo
-			echo -e "-e, --efi            Set up r[e]find and efi boot theme."
+			echo -e "-e, --efi             Set up r[e]find and efi boot theme."
 			echo
-			echo -e "-a, --all            Run [a]ll modules explicitly."
+			echo -e "-a, --all             Run [a]ll modules explicitly."
 			echo
-			echo -e "-h, --help           Show [h]elp and usage information."
+			echo -e "-h, --help            Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'          [ Version // ${version} ]"
+			echo -e "'${script}'           [ Version // ${version} ]"
 			echo
 
 			exit

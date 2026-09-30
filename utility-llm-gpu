@@ -152,29 +152,29 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-m, --model           Specify [m]odel name."
+			echo -e "-m, --model            Specify [m]odel name."
 			echo
-			echo -e "                      [ qwen ] [ Default ]"
+			echo -e "                       [ qwen ] [ Default ]"
 			echo
-			echo -e "-e, --model-version   Specify mod[e]l version."
+			echo -e "-e, --model-version    Specify mod[e]l version."
 			echo
-			echo -e "                      [ 3.6 ] [ Default ]"
+			echo -e "                       [ 3.6 ] [ Default ]"
 			echo
-			echo -e "-s, --size            Specify model [s]ize."
+			echo -e "-s, --size             Specify model [s]ize."
 			echo
-			echo -e "                      [ 27b ] [ Default ]"
+			echo -e "                       [ 27b ] [ Default ]"
 			echo
-			echo -e "-v, --vulkan-device   Specify [v]ulkan GPU device index."
+			echo -e "-v, --vulkan-device    Specify [v]ulkan GPU device index."
 			echo
-			echo -e "                      [ 0 ] [ Default ]"
+			echo -e "                       [ 0 ] [ Default ]"
 			echo
-			echo -e "-d, --directory       Specify base [d]irectory for model storage."
+			echo -e "-d, --directory        Specify base [d]irectory for model storage."
 			echo
-			echo -e "                      [ /language/model/directory/label ]"
+			echo -e "                       [ /language/model/directory/label ]"
 			echo
-			echo -e "-h, --help            Show [h]elp and usage information."
+			echo -e "-h, --help             Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'           [ Version // ${version} ]"
+			echo -e "'${script}'            [ Version // ${version} ]"
 			echo
 
 			exit

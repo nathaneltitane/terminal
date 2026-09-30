@@ -169,11 +169,11 @@ then
 				echo
 				echo -e "Options:"
 				echo
-				echo -e "-i, --install       Run [i]nstallation of ${script} to ${directory_install}."
+				echo -e "-i, --install    Run [i]nstallation of ${script} to ${directory_install}."
 				echo
-				echo -e "-h, --help          Show [h]elp and usage information."
+				echo -e "-h, --help       Show [h]elp and usage information."
 				echo
-				echo -e "'${script}'         [ Version // ${version} ]"
+				echo -e "'${script}'      [ Version // ${version} ]"
 				echo
 
 				exit
