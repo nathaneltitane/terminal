@@ -111,7 +111,88 @@ version="2026-09-29"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-f|--file)
+			input_file="${2}"
+
+			shift
+		;;
+
+		-a|--all)
+			option="all"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -f [File] -a | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-f, --file    Specify svg [f]ile to recolor."
+			echo
+			echo -e "-a, --all     Create recolored files for [a]ll colors."
+			echo
+			echo -e "-h, --help    Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'   [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -f [File] -a | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
 # defaults /////////////////////////////////////////////////////////////////////
+
+# validate arguments
+
+if [ -z "${input_file}" ]
+then
+	frobulator.err "Missing svg file."
+	echo
+
+	exit 1
+
+elif [[ "${input_file}" = -* ]]
+then
+	frobulator.err "Missing argument for '--file'."
+	echo
+
+	exit 1
+
+elif [ ! -f "${input_file}" ]
+then
+	frobulator.err "File not found" "[ ${input_file} ]"
+	echo
+
+	exit 1
+fi
 
 # variables ////////////////////////////////////////////////////////////////////
 
@@ -342,7 +423,7 @@ process_color () {
 
 	color_name=${color_name,,}
 
-	color_name=${color_name/ /_}
+	color_name=${color_name// /_}
 
 	if [[ -z "${colors[${color_name}]}" ]]
 	then
@@ -354,7 +435,7 @@ process_color () {
 
 	color_value="${colors[${color_name}]}"
 
-	output_file="${input_file%.${extension}}-${color_name/_/-}.${extension}"
+	output_file="${input_file%.${extension}}-${color_name//_/-}.${extension}"
 
     sed "s/#000000/${color_value}/g" "${input_file}" > "${output_file}"
 
@@ -379,38 +460,25 @@ list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-if [ -z "${1}" ]
-then
-    echo "Usage: ${0} <input_file>"
-    exit 1
-fi
-
-input_file="${1}"
-
-if [ ! -f "${input_file}" ]
-then
-    echo "Error: File '${input_file}' not found!"
-    exit 1
-fi
-
-if [ $# -eq 2 ] && [ "${2}" = "all" ]
+if [ "${option}" = "all" ]
 then
     for color_name in "${!colors[@]}"
     do
         process_color "${color_name}"
     done
 
-elif [ $# -eq 1 ]
-then
+else
 	echo "Available colors:"
 	echo
 
-	for color_name in "${!colors[@]}"
+	# list colors sorted
+
+	while IFS= read -r color_name
 	do
-		formatted_color_name=$(echo "${color_name}" | sed 's/_/ /g' | sed 's/\b\(.\)/\u\1/g' | sort )
+		formatted_color_name=$(echo "${color_name}" | sed 's/_/ /g' | sed 's/\b\(.\)/\u\1/g')
 
 		echo "    ${formatted_color_name}"
-	done
+	done < <(printf '%s\n' "${!colors[@]}" | sort)
 
 	echo
 	echo "Please enter the name of the color you want to use:"
