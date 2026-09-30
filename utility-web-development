@@ -126,36 +126,42 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -s [Site] [-s [Site] ...] | -h"
+			echo -e "Usage: ./${script} -s [Site] [-s [Site] ...] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-s, --site          Site to configure - repeatable for multiple sites."
+			echo -e "-s, --site          Specify [s]ite to configure - repeatable for multiple sites."
 			echo
-			echo -e "                    [ mechablocks ]    [ Default ]"
+			echo -e "                    [ mechablocks ] [ Default ]"
 			echo
 			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
-			echo -e "'${script}' [ Version // ${version} ]"
+			echo -e "'${script}'         [ Version // ${version} ]"
 			echo
 
 			exit
 		;;
 
 		"")
+			# handle empty argument:
+			# use default values specified in script
+
 			:
 		;;
 
 		*)
 			echo
-			echo -e "${script}: Unknown option '${1}'"
-			echo -e "Type './${script} --help' for help and usage information."
+			echo -e "Usage: ./${script} -s [Site] [-s [Site] ...] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
 			echo
 
 			exit 1
+
 		;;
 
-	esac
+		esac
 
 	shift
 

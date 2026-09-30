@@ -148,49 +148,61 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -m [Model] -e [Version] -s [Size] -v [Vulkan device] -d [Directory] | -h"
+			echo -e "Usage: ./${script} -m [Model] -e [Version] -s [Size] -v [Vulkan device] -d [Directory] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-m, --model          Model name."
-			echo -e "                     [ qwen ]    [ Default ]"
+			echo -e "-m, --model           Specify [m]odel name."
 			echo
-			echo -e "-e, --model-version  Model version."
-			echo -e "                     [ 3.6 ]    [ Default ]"
+			echo -e "                      [ qwen ] [ Default ]"
 			echo
-			echo -e "-s, --size           Model size."
-			echo -e "                     [ 27b ]    [ Default ]"
+			echo -e "-e, --model-version   Specify mod[e]l version."
 			echo
-			echo -e "-v, --vulkan-device  Vulkan GPU device index."
-			echo -e "                     [ 0 ]           [ Default ]"
+			echo -e "                      [ 3.6 ] [ Default ]"
 			echo
-			echo -e "-d, --directory      Base directory for model storage."
-			echo -e "                     [ /language/model/directory/label ]"
+			echo -e "-s, --size            Specify model [s]ize."
 			echo
-			echo -e "-h, --help           Show help and usage information."
+			echo -e "                      [ 27b ] [ Default ]"
 			echo
-			echo -e "'${script}' [ Version // ${version} ]"
+			echo -e "-v, --vulkan-device   Specify [v]ulkan GPU device index."
+			echo
+			echo -e "                      [ 0 ] [ Default ]"
+			echo
+			echo -e "-d, --directory       Specify base [d]irectory for model storage."
+			echo
+			echo -e "                      [ /language/model/directory/label ]"
+			echo
+			echo -e "-h, --help            Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'           [ Version // ${version} ]"
 			echo
 
 			exit
 		;;
 
 		"")
+			# handle empty argument:
+			# use default values specified in script
+
 			:
 		;;
 
 		*)
 			echo
-			echo -e "${script}: Unknown option '${1}'"
-			echo -e "Type './${script} --help' for help and usage information."
+			echo -e "Usage: ./${script} -m [Model] -e [Version] -s [Size] -v [Vulkan device] -d [Directory] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
 			echo
 
 			exit 1
+
 		;;
 
-	esac
+		esac
 
 	shift
+
 done
 
 # variables ////////////////////////////////////////////////////////////////////

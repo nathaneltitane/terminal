@@ -124,37 +124,43 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -d [Directory] | -h"
+			echo -e "Usage: ./${script} -d [Directory] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --directory     Specify [d]irectory location for file characters normalization."
+			echo -e "-d, --directory     Specify [d]irectory of files to normalize."
 			echo
 			echo -e "                    [ /path/to/directory ]"
-			echo -e "                    [ current directory ]    [ Default ]"
+			echo -e "                    [ current directory ]  [ Default ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
-			echo -e "'${script}' [ Version // ${version} ]"
+			echo -e "'${script}'         [ Version // ${version} ]"
 			echo
 
 			exit
 		;;
 
 		"")
+			# handle empty argument:
+			# use default values specified in script
+
 			:
 		;;
 
 		*)
 			echo
-			echo -e "${script}: Unknown option '${1}'"
-			echo -e "Type './${script} --help' for help and usage information."
+			echo -e "Usage: ./${script} -d [Directory] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
 			echo
 
 			exit 1
+
 		;;
 
-	esac
+		esac
 
 	shift
 

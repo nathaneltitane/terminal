@@ -157,17 +157,17 @@ do
 
 		-h|--help)
 			echo
-			echo "Usage: ${script} -i ['Artist - Track'] | -f [File] | -h [OPTION]"
+			echo -e "Usage: ./${script} -i ['Artist - Track'] | -f [File] | -h [OPTION]"
 			echo
-			echo "Options:"
+			echo -e "Options:"
 			echo
-			echo "-i, --input    Search and download s[i]ngle track."
+			echo -e "-i, --input         Search and download s[i]ngle track."
 			echo
-			echo "-f, --file     Search and download tracks from list in [f]ile."
+			echo -e "-f, --file          Search and download tracks from list in [f]ile."
 			echo
-			echo "-h, --help     Show [h]elp and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
-			echo "'${script}' [ Version // ${version} ]"
+			echo -e "'${script}'         [ Version // ${version} ]"
 			echo
 
 			exit
@@ -182,16 +182,17 @@ do
 
 		*)
 			echo
-			echo "Usage: ${script} -i [Track] | -f [File] | -h [OPTION]"
+			echo -e "Usage: ./${script} -i ['Artist - Track'] | -f [File] | -h [OPTION]"
 			echo
-			echo "${script}: Unknown option '${1}'"
-			echo "Type './${script} --help' for help and usage information."
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
 			echo
 
 			exit 1
+
 		;;
 
-	esac
+		esac
 
 	shift
 
