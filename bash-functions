@@ -20,60 +20,25 @@ self="${BASH_SOURCE[0]}"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+# executed directly (not sourced as a dotfile): installation only
+
 if [[ "${self}" = "${0}" ]]
 then
-	# implement from local version
-
-	if [ $# -eq 0 ]
-	then
-		source "${self}"
-
-		return 0 2> "${sink}"
-
-		if [ "${?}" -ne 0 ]
-		then
-			frobulator.scs "Implemented" "[ ${PWD}/${self} ]"
-			echo
-		fi
-	fi
-
-	file_source="${self}"
-
-	file_install="${file_source}"
+	script="$(basename -- "${self}")"
 
 	directory_install="${HOME}"/.local/bin
-
-	file_target="${directory_install}/${file_install}"
 
 	while (($#))
 	do
 		case "${1}"
 		in
-
 			-i|--install)
-
-				if [ ! -d "${directory_install}" ]
-				then
-					mkdir -p "${directory_install}"
-				fi
-
-				if [ "${file_source}" != "${file_target}" ]
-				then
-					cp "${file_source}" "${file_target}"
-
-					chmod a+rx "${file_target}"
-
-					source "${file_target}"
-
-					frobulator.scs "Installed" "[ ${file_target} ]"
-
-					echo
-				fi
+				option="install"
 			;;
 
 			-h|--help)
 				echo
-				echo -e "Usage: ./${script} | [OPTION]"
+				echo -e "Usage: ./${script} -i | -h"
 				echo
 				echo -e "Options:"
 				echo
@@ -96,7 +61,7 @@ then
 
 			*)
 				echo
-				echo -e "Usage: ./${script} | [OPTION]"
+				echo -e "Usage: ./${script} -i | -h"
 				echo
 				echo -e "Unknown option: '${script} ${1}':"
 				echo -e "Type './${script} -h' for help and usage information."
@@ -111,6 +76,37 @@ then
 		shift
 
 	done
+
+	# default to install when run without arguments
+
+	if [ -z "${option}" ]
+	then
+		option="install"
+	fi
+
+	# install
+
+	if [ "${option}" = "install" ]
+	then
+		file_script="$(realpath "${self}")"
+
+		directory_script="$(dirname "${file_script}")"
+
+		if [ "${directory_script}" -ef "${directory_install}" ]
+		then
+			frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
+			echo
+		else
+			frobulator.copy "${directory_script}" "${directory_install}" "${script}"
+
+			frobulator.permissions public execute "${directory_install}/${script}"
+
+			frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
+			echo
+		fi
+	fi
+
+	exit
 fi
 
 # adb //////////////////////////////////////////////////////////////////////////
