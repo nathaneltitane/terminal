@@ -217,7 +217,7 @@ then
 	if [[ "${reply}" != [yY]         ]] && \
 	   [[ "${reply}" != [yY][eE][sS] ]]
 	then
-		frobulator.fwd "Operation cancelled."
+		frobulator.stp "Operation cancelled."
 		echo
 
 		exit 0
