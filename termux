@@ -146,21 +146,21 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-t, --termux        Set up [t]ermux colors, font, and properties."
+			echo -e "-t, --termux    Set up [t]ermux colors, font, and properties."
 			echo
-			echo -e "-g, --git           Set up [g]it configuration and credentials."
+			echo -e "-g, --git       Set up [g]it configuration and credentials."
 			echo
-			echo -e "-s, --shell         Set up [s]hell dotfiles."
+			echo -e "-s, --shell     Set up [s]hell dotfiles."
 			echo
-			echo -e "-d, --adb           Set up a[d]b, fastboot, and related tools."
+			echo -e "-d, --adb       Set up a[d]b, fastboot, and related tools."
 			echo
-			echo -e "-e, --geany         Set up g[e]any editor configuration."
+			echo -e "-e, --geany     Set up g[e]any editor configuration."
 			echo
-			echo -e "-a, --all           Run [a]ll modules explicitly."
+			echo -e "-a, --all       Run [a]ll modules explicitly."
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help      Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'     [ Version // ${version} ]"
 			echo
 
 			exit

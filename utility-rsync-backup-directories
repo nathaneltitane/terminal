@@ -153,27 +153,27 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-s, --source        Specify [s]ource directory to mirror from."
+			echo -e "-s, --source         Specify [s]ource directory to mirror from."
 			echo
-			echo -e "                    [ /media/internal ] [ Default ]"
+			echo -e "                     [ /media/internal ] [ Default ]"
 			echo
-			echo -e "-d, --destination   Specify [d]estination directory for the backup drive - 'external' is appended."
+			echo -e "-d, --destination    Specify [d]estination directory for the backup drive - 'external' is appended."
 			echo
-			echo -e "                    [ /media/\${USER} ] [ Default ]"
+			echo -e "                     [ /media/\${USER} ] [ Default ]"
 			echo
-			echo -e "-i, --interval      Specify periodic fallback [i]nterval, in seconds."
+			echo -e "-i, --interval       Specify periodic fallback [i]nterval, in seconds."
 			echo
-			echo -e "                    [ 300 ] [ Default ]"
+			echo -e "                     [ 300 ] [ Default ]"
 			echo
-			echo -e "-k, --keep          Specify path/pattern to [k]eep on destination - repeatable."
+			echo -e "-k, --keep           Specify path/pattern to [k]eep on destination - repeatable."
 			echo
-			echo -e "-p, --prune         Delete items on destination not [p]resent on source."
+			echo -e "-p, --prune          Delete items on destination not [p]resent on source."
 			echo
-			echo -e "                    [ off ] [ Default - nothing is ever deleted ]"
+			echo -e "                     [ off ] [ Default - nothing is ever deleted ]"
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help           Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'          [ Version // ${version} ]"
 			echo
 
 			exit

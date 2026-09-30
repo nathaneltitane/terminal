@@ -128,14 +128,14 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --directory     Specify [d]irectory of files to normalize."
+			echo -e "-d, --directory    Specify [d]irectory of files to normalize."
 			echo
-			echo -e "                    [ /path/to/directory ]"
-			echo -e "                    [ current directory ]  [ Default ]"
+			echo -e "                   [ /path/to/directory ]"
+			echo -e "                   [ current directory ]  [ Default ]"
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help         Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'        [ Version // ${version} ]"
 			echo
 
 			exit

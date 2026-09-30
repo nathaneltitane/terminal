@@ -136,21 +136,21 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-a, --activity      Run native Android [a]ctivities via Dextop environment defaults."
+			echo -e "-a, --activity    Run native Android [a]ctivities via Dextop environment defaults."
 			echo
-			echo -e "                    [ google-chrome ] | [ chrome ]"
-			echo -e "                    [ google-mail ]   | [ gmail ]"
-			echo -e "                    [ terminal ]"
+			echo -e "                  [ google-chrome ] | [ chrome ]"
+			echo -e "                  [ google-mail ]   | [ gmail ]"
+			echo -e "                  [ terminal ]"
 			echo
-			echo -e "-n, --handle        Run [n]ative desktop environment handles using installed Android applications."
+			echo -e "-n, --handle      Run [n]ative desktop environment handles using installed Android applications."
 			echo
-			echo -e "                    [ email ]   | [ mail ]"
-			echo -e "                    [ browser ] | [ link ] | [ web ]"
-			echo -e "                    [ message ] | [ text ] | [ sms ]"
+			echo -e "                  [ email ]   | [ mail ]"
+			echo -e "                  [ browser ] | [ link ] | [ web ]"
+			echo -e "                  [ message ] | [ text ] | [ sms ]"
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-h, --help        Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'         [ Version // ${version} ]"
+			echo -e "'${script}'       [ Version // ${version} ]"
 			echo
 
 			exit
