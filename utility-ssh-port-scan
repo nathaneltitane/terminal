@@ -115,14 +115,19 @@ while (($#))
 do
 	case "${1}"
 	in
+		-p|--prefix)
+			lan="${2}"
+
+			shift
+		;;
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} [LAN Prefix] | -h"
+			echo -e "Usage: ./${script} -p [Prefix] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "[LAN Prefix]    Scan the given LAN prefix for open ports."
+			echo -e "-p, --prefix    Specify lan [p]refix to scan for open ports."
 			echo
 			echo -e "                [ XXX.XXX.XXX ]"
 			echo -e "                [ (empty) ]     [ Default - detects via 'hostname -I' ]"
@@ -143,7 +148,15 @@ do
 		;;
 
 		*)
-			lan="${1}"
+			echo
+			echo -e "Usage: ./${script} -p [Prefix] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
 		;;
 
 		esac
@@ -155,6 +168,23 @@ done
 # variables ////////////////////////////////////////////////////////////////////
 
 # defaults /////////////////////////////////////////////////////////////////////
+
+# validate arguments
+
+if [[ "${lan}" = -* ]]
+then
+	frobulator.err "Missing argument for '--prefix'."
+	echo
+
+	exit 1
+
+elif [[ "${lan}" =~ [a-zA-Z] ]]
+then
+	frobulator.err "Invalid IP address format."
+	echo
+
+	exit 1
+fi
 
 # functions ////////////////////////////////////////////////////////////////////
 
@@ -329,14 +359,6 @@ list=()
 
 # configuration ////////////////////////////////////////////////////////////////
 
-if [[ "${lan}" =~ [a-zA-Z] ]]
-then
-	frobulator.err "Invalid IP address format."
-	echo
-
-	exit 1
-fi
-
 if [ -z "${lan}" ]
 then
 	lan="$(hostname -I 2> "${sink}")"
@@ -373,11 +395,7 @@ fi
 
 if [ -z "${lan}" ]
 then
-	echo "Usage:"
-	echo
-	echo "${script} <LAN PREFIX>"
-	echo
-	echo "LAN Prefix	XXX.XXX.XXX"
+	frobulator.err "Invalid lan prefix."
 	echo
 
 	exit 1
