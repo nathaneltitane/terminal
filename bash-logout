@@ -20,7 +20,7 @@ self="${BASH_SOURCE[0]}"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
-# executed directly (not sourced as a dotfile): installation only
+# executed directly: install only
 
 if [[ "${self}" = "${0}" ]]
 then
@@ -77,7 +77,7 @@ then
 
 	done
 
-	# default to install when run without arguments
+	# default to install
 
 	if [ -z "${option}" ]
 	then
