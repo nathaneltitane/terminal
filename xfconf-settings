@@ -111,22 +111,79 @@ version="2026-09-29"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
-settings_file="${1}"
+while (($#))
+do
+	case "${1}"
+	in
+		-f|--file)
+			settings_file="${2}"
 
-if [[ $# -lt 1 ]]
-then
-	echo
-	echo "Usage: ${script} [SETTINGS FILE] | [OPTION]"
-	echo
+			shift
+		;;
 
-	exit 1
-fi
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -f [File] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-f, --file    Specify settings [f]ile to generate."
+			echo
+			echo -e "-h, --help    Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'   [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -f [File] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
 
 # variables ////////////////////////////////////////////////////////////////////
 
 stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
 # defaults /////////////////////////////////////////////////////////////////////
+
+# validate arguments
+
+if [ -z "${settings_file}" ]
+then
+	frobulator.err "Missing settings file."
+	echo
+
+	exit 1
+
+elif [[ "${settings_file}" = -* ]]
+then
+	frobulator.err "Missing argument for '--file'."
+	echo
+
+	exit 1
+fi
 
 # functions ////////////////////////////////////////////////////////////////////
 

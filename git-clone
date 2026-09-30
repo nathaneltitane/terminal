@@ -111,11 +111,72 @@ version="2026-09-29"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
+while (($#))
+do
+	case "${1}"
+	in
+		-p|--project)
+			project="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -p [Project] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-p, --project    Specify [p]roject to clone."
+			echo
+			echo -e "                 [ (empty) ] [ Default - all projects ]"
+			echo
+			echo -e "-h, --help       Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'      [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -p [Project] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
 # variables ////////////////////////////////////////////////////////////////////
 
-project="${1}"
-
 # defaults /////////////////////////////////////////////////////////////////////
+
+# validate arguments
+
+if [[ "${project}" = -* ]]
+then
+	frobulator.err "Missing argument for '--project'."
+	echo
+
+	exit 1
+fi
 
 url="https://github.com/"
 username="nathaneltitane"
