@@ -116,20 +116,21 @@ while (($#))
 do
 	case "${1}"
 	in
+
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} [LAN Prefix] | -h"
+			echo -e "Usage: ./${script} [LAN Prefix] | -h"
 			echo
 			echo -e "Options:"
 			echo
 			echo -e "[LAN Prefix]        Scan the given LAN prefix for open ports."
 			echo
 			echo -e "                    [ XXX.XXX.XXX ]"
-			echo -e "                    [ (empty) ]    [ Default - detects via 'hostname -I' ]"
+			echo -e "                    [ (empty) ]     [ Default - detects via 'hostname -I' ]"
 			echo
-			echo -e "-h, --help          Show help and usage information."
+			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
-			echo -e "'${script}' [ Version // ${version} ]"
+			echo -e "'${script}'         [ Version // ${version} ]"
 			echo
 
 			exit
@@ -146,7 +147,7 @@ do
 			lan="${1}"
 		;;
 
-	esac
+		esac
 
 	shift
 

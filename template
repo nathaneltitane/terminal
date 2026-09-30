@@ -139,7 +139,8 @@ then
 
 	while (($#))
 	do
-		case "${1}" in
+		case "${1}"
+		in
 
 			-i|--install)
 
@@ -163,30 +164,41 @@ then
 			;;
 
 			-h|--help)
-
 				echo
 				echo -e "Usage: ./${script} | [OPTION]"
 				echo
-				echo "Options:"
+				echo -e "Options:"
 				echo
-				echo "	-i, --install    [I]nstall "${script}" to ${directory_install}"
-				echo "	-h, --help       Show this [h]elp menu"
+				echo -e "-i, --install       Run [i]nstallation of ${script} to ${directory_install}."
+				echo
+				echo -e "-h, --help          Show [h]elp and usage information."
+				echo
+				echo -e "'${script}'         [ Version // ${version} ]"
 				echo
 
 				exit
 			;;
 
-			*)
+			"")
+				# handle empty argument:
+				# use default values specified in script
 
+				:
+			;;
+
+			*)
 				echo
-				echo "${script}: Unknown option '${1}'"
-				echo "Type './${script} --help' for help and usage information."
+				echo -e "Usage: ./${script} | [OPTION]"
+				echo
+				echo -e "Unknown option: '${script} ${1}':"
+				echo -e "Type './${script} -h' for help and usage information."
 				echo
 
 				exit 1
+
 			;;
 
-		esac
+			esac
 
 		shift
 

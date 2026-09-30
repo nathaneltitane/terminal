@@ -114,7 +114,8 @@ version="2026-09-29"
 
 while (($#))
 do
-	case "${1}" in
+	case "${1}"
+	in
 		-d|--directory)
 			directory="${2}"
 
@@ -207,29 +208,32 @@ do
 			echo
 			echo -e "Usage: ./${script} [EXTENSION] | [OPTION] [PARAMETER]"
 			echo
-			echo -e "Utility options:"
+			echo -e "Options:"
 			echo
-			echo -e "-directory        Specify directory to load models from."
+			echo -e "-directory          Specify [d]irectory to load models from."
 			echo
-			echo -e "-all              Selects all supported file formats as target."
-			echo -e "-stl              Selects stl file format as target."
+			echo -e "-all                Select [a]ll supported file formats as target."
 			echo
-			echo -e "-render           Renders model files using the following parameters:"
+			echo -e "-stl                Select [s]tl file format as target."
 			echo
-			echo -e "0                 Render image using a quarter-back view preset.          [ 0 ] [ Lat.:30, Lon.: 0 ]"
-			echo -e "1                 Render image using a quarter-back view preset.          [ 1 ] [ Lat.:30, Lon.: 45 ]"
-			echo -e "2                 Render image using a quarter-back view preset.          [ 2 ] [ Lat.:30, Lon.: 90 ]"
-			echo -e "3                 Render image using a quarter-back view preset.          [ 3 ] [ Lat.:30, Lon.: 135 ]"
-			echo -e "4                 Render image using a quarter-back view preset.          [ 4 ] [ Lat.:30, Lon.: 180 ]"
-			echo -e "5                 Render image using a quarter-back view preset.          [ 5 ] [ Lat.:30, Lon.: 225 ]"
-			echo -e "6                 Render image using a quarter-back view preset.          [ 6 ] [ Lat.:30, Lon.: 270 ]"
-			echo -e "7                 Render image using a quarter-back view preset.          [ 7 ] [ Lat.:30, Lon.: 315 ]"
+			echo -e "-render             Run model file [r]endering using the following parameters:"
 			echo
-			echo -e "full              Render series of images using options 0 to 7."
-			echo -e "render            Render series of images using option 1."
-			echo -e "thumbnail         Render image using option 0 without edges or shading at 25% of the original size."
+			echo -e "                    0           Render image using a quarter-back view preset. [ 0 ] [ Lat.:30, Lon.: 0 ]"
+			echo -e "                    1           Render image using a quarter-back view preset. [ 1 ] [ Lat.:30, Lon.: 45 ]"
+			echo -e "                    2           Render image using a quarter-back view preset. [ 2 ] [ Lat.:30, Lon.: 90 ]"
+			echo -e "                    3           Render image using a quarter-back view preset. [ 3 ] [ Lat.:30, Lon.: 135 ]"
+			echo -e "                    4           Render image using a quarter-back view preset. [ 4 ] [ Lat.:30, Lon.: 180 ]"
+			echo -e "                    5           Render image using a quarter-back view preset. [ 5 ] [ Lat.:30, Lon.: 225 ]"
+			echo -e "                    6           Render image using a quarter-back view preset. [ 6 ] [ Lat.:30, Lon.: 270 ]"
+			echo -e "                    7           Render image using a quarter-back view preset. [ 7 ] [ Lat.:30, Lon.: 315 ]"
 			echo
-			echo -e "'${script}'       [ Version ${version} ]"
+			echo -e "                    full        Render series of images using options 0 to 7."
+			echo -e "                    render      Render series of images using option 1."
+			echo -e "                    thumbnail   Render image using option 0 without edges or shading at 25% of the original size."
+			echo
+			echo -e "-h, --help          Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'         [ Version // ${version} ]"
 			echo
 
 			exit
@@ -246,8 +250,8 @@ do
 			echo
 			echo -e "Usage: ./${script} [EXTENSION] | [OPTION] [PARAMETER]"
 			echo
-			echo -e "${script}: Unknown option '${1}'"
-			echo -e "Type './${script} --help' for help and usage information."
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
 			echo
 
 			exit 1
@@ -256,7 +260,8 @@ do
 
 		esac
 
-		shift
+	shift
+
 done
 
 # variables ////////////////////////////////////////////////////////////////////

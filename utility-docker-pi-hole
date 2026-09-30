@@ -130,13 +130,13 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ${script} -n [Name] -a [Address] | -h"
+			echo -e "Usage: ./${script} -n [Name] -a [Address] | -h"
 			echo
 			echo -e "Options:"
 			echo
 			echo -e "-n, --name          Specify [n]ame of the deployed container."
 			echo
-			echo -e "                    [ pihole ]    [ Default ]"
+			echo -e "                    [ pihole ] [ Default ]"
 			echo
 			echo -e "-a, --address       Specify LAN [a]ddress to bind for FTL DNS resolution."
 			echo
@@ -144,26 +144,32 @@ do
 			echo
 			echo -e "-h, --help          Show [h]elp and usage information."
 			echo
-			echo -e "'${script}' [ Version // ${version} ]"
+			echo -e "'${script}'         [ Version // ${version} ]"
 			echo
 
 			exit
 		;;
 
 		"")
+			# handle empty argument:
+			# use default values specified in script
+
 			:
 		;;
 
 		*)
 			echo
-			echo -e "${script}: Unknown option '${1}'"
-			echo -e "Type './${script} --help' for help and usage information."
+			echo -e "Usage: ./${script} -n [Name] -a [Address] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
 			echo
 
 			exit 1
+
 		;;
 
-	esac
+		esac
 
 	shift
 
