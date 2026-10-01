@@ -967,6 +967,13 @@ frobulator.inf "Querying installed packages"
 
 packages_installed=$(android_debug_bridge list packages --user 0)
 
+if [ -z "${packages_installed}" ]
+then
+	frobulator.err "Unable to query installed packages"
+
+	exit 1
+fi
+
 frobulator.complete
 
 count_removed=0
