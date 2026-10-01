@@ -263,6 +263,57 @@ android_platform_tools_update () {
 
 }
 
+android_device_wait () {
+
+	local state
+	local state_last="none"
+	local seconds=0
+	local timeout=300
+
+	adb start-server > "${sink}" 2>&1
+
+	while true
+	do
+		state="$(adb devices | awk 'NR > 1 && NF { print $2; exit }')"
+
+		if [ "${state}" = "device" ]
+		then
+			frobulator.scs "Device ready"
+
+			return 0
+		fi
+
+		# report each state once
+
+		if [ "${state}" != "${state_last}" ]
+		then
+			if [ -z "${state}" ]
+			then
+				frobulator.wrn "No device found" "[ connect and enable usb debugging ]"
+
+			elif [ "${state}" = "unauthorized" ] || [ "${state}" = "authorizing" ]
+			then
+				frobulator.wrn "Device not authorized" "[ accept debugging prompt on device ]"
+			else
+				frobulator.wrn "Device not ready" "[ ${state} ]"
+			fi
+
+			state_last="${state}"
+		fi
+
+		if [ "${seconds}" -ge "${timeout}" ]
+		then
+			frobulator.err "Device not ready" "[ ${timeout} seconds ]"
+
+			exit 1
+		fi
+
+		sleep 2
+
+		seconds=$(( seconds + 2 ))
+	done
+}
+
 android_debug_bridge () {
 
 	adb shell pm "${@}"
@@ -909,6 +960,8 @@ packages_list=(
 	${packages_list_samsung[@]}
 	${packages_list_malware[@]}
 )
+
+android_device_wait
 
 frobulator.inf "Querying installed packages"
 
