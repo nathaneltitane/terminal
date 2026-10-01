@@ -95,14 +95,12 @@ then
 		if [ "${directory_script}" -ef "${directory_install}" ]
 		then
 			frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
-			echo
 		else
 			frobulator.copy "${directory_script}" "${directory_install}" "${script}"
 
 			frobulator.permissions public execute "${directory_install}/${script}"
 
 			frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
-			echo
 		fi
 	fi
 
@@ -122,7 +120,6 @@ adb_download () {
 	if [ -z "${directory_temporary}" ] || [ ! -d "${directory_temporary}" ]
 	then
 		frobulator.err "Unable to create temporary directory"
-		echo
 
 		exit 1
 	fi
@@ -131,7 +128,6 @@ adb_download () {
 	path_extracted="${directory_temporary}/platform-tools"
 
 	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
-	echo
 
 	curl						\
 		--silent				\
@@ -145,7 +141,6 @@ adb_download () {
 		frobulator.delete "${directory_temporary}"
 
 		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
-		echo
 
 		exit 1
 	fi
@@ -157,7 +152,6 @@ adb_download () {
 		frobulator.delete "${directory_temporary}"
 
 		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
-		echo
 
 		exit 1
 	fi
@@ -167,7 +161,6 @@ adb_download () {
 		frobulator.delete "${directory_temporary}"
 
 		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
-		echo
 
 		exit 1
 	fi
@@ -206,10 +199,8 @@ adb_download () {
 	hash -r
 
 	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
-	echo
 
 	frobulator.scs "Utilities deployment ready" "[ Android Platform Tools ]"
-	echo
 
 }
 
@@ -765,7 +756,6 @@ extract () {
 				--directory="${directory}"
 
 				frobulator.inf "Extracting" "[ ${archive} ]"
-				echo
 		;;
 
 		tar.gz|tgz)
@@ -776,7 +766,6 @@ extract () {
 				--directory="${directory}"
 
 				frobulator.inf "Extracting" "[ ${archive} ]"
-				echo
 		;;
 
 		tar)
@@ -786,7 +775,6 @@ extract () {
 				--directory="${directory}"
 
 				frobulator.inf "Extracting" "[ ${archive} ]"
-				echo
 
 		;;
 
@@ -796,14 +784,12 @@ extract () {
 				-o							"${directory}"
 
 				frobulator.inf "Extracting" "[ ${archive} ]"
-				echo
 		;;
 
 		rar)
 			unrar e "${file}" "${directory}"
 
 				frobulator.inf "Extracting" "[ ${archive} ]"
-				echo
 		;;
 
 		zip)
@@ -813,12 +799,10 @@ extract () {
 				-d							"${directory}"
 
 				frobulator.inf "Extracting" "[ ${archive} ]"
-				echo
 		;;
 
 		*)
 			frobulator.err "Unsupported archive type" "[ '${archive}' ]"
-			echo
 
 			exit 1
 		;;
@@ -856,10 +840,8 @@ icons () {
 					gtk-update-icon-cache -f -q "${theme}"
 
 					frobulator.scs "Cache update success" "[ ${theme_name} ]"
-					echo
 				else
 					frobulator.wrn "Skipping" "[ ${theme_name} ]"
-					echo
 				fi
 			done
 		fi
@@ -907,7 +889,6 @@ preview () {
 	   [[ $(command -v head) ]]
 	then
 		frobulator.inf "Previewing file" "[ ${count} lines // ${file} ]"
-		echo
 
 		frobulator.separate
 
@@ -972,7 +953,6 @@ list () {
 	if [ ! -d "${directory}" ]
 	then
 		frobulator.err "Directory not found" "[ ${directory} ]"
-		echo
 
 		return 1
 	fi
@@ -1073,7 +1053,6 @@ media () {
 	if [ -z "${type}" ]
 	then
 		frobulator.err "No type specified" "[ audio | video ]"
-		echo
 
 		return 1
 	fi
@@ -1081,7 +1060,6 @@ media () {
 	if [ "${type}" != "audio" ] && [ "${type}" != "video" ]
 	then
 		frobulator.err "Invalid type" "[ ${type} ]"
-		echo
 
 		return 1
 	fi
@@ -1089,7 +1067,6 @@ media () {
 	if [ -z "${source}" ]
 	then
 		frobulator.err "No source specified"
-		echo
 
 		return 1
 	fi
@@ -1114,7 +1091,6 @@ media () {
 	if [ ! -x "${directory_binary}/yt-dlp" ]
 	then
 		frobulator.err "Downloader unavailable" "[ yt-dlp ]"
-		echo
 
 		return 1
 	fi
@@ -1137,7 +1113,6 @@ media () {
 	if [ ! -x "${directory_binary}/deno" ]
 	then
 		frobulator.err "Solver unavailable" "[ deno ]"
-		echo
 
 		return 1
 	fi
@@ -1189,7 +1164,6 @@ media () {
 
 		else
 			frobulator.err "No compatible browser found on system"
-			echo
 
 			return 1
 		fi
@@ -1575,7 +1549,6 @@ clo () {
 	if [[ -z $(command -v "${command}") ]]
 	then
 		frobulator.err "Command not found" "[ ${command} ]"
-		echo
 
 		return 1
 	fi
@@ -1585,7 +1558,6 @@ clo () {
 	if [ ! -d "${directory_projects}" ]
 	then
 		frobulator.wrn "No session history found."
-		echo
 
 		return 1
 	fi
@@ -1597,7 +1569,6 @@ clo () {
 	if [ -z "${file_session}" ]
 	then
 		frobulator.wrn "No saved session(s) found."
-		echo
 
 		return 1
 	fi
@@ -1607,10 +1578,8 @@ clo () {
 	id_session="$(basename "${file_session}" .jsonl)"
 
 	frobulator.scs "Session found."
-	echo
 
 	frobulator.inf "Resuming session" "[ ${id_session} ]"
-	echo
 
 	claude --resume "${id_session}"
 

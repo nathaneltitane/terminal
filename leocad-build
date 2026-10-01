@@ -232,7 +232,6 @@ then
 	frobulator.complete
 else
 	frobulator.err "Directory not found" "[ ${directory_build} ]"
-	echo
 
 	exit 1
 fi
@@ -244,7 +243,6 @@ frobulator.silence "qmake ${application}.pro"
 if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Unable to configure project" "[ ${application} ]"
-	echo
 
 	exit 1
 fi
@@ -290,4 +288,3 @@ frobulator.complete
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

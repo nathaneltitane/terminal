@@ -283,10 +283,8 @@ then
 		directory=$(frobulator.dialog "Directory")
 	else
 		frobulator.err "No directory specified."
-		echo
 
 		frobulator.fwd "Assuming defaults..."
-		echo
 
 		directory="${PWD}"
 	fi
@@ -312,7 +310,6 @@ then
 			then
 				frobulator.wrn "Unrecognized model file extension."
 				frobulator.wrn "Try again."
-				echo
 			else
 				if [[ "${extension_option}" = "all" ]]
 				then
@@ -333,10 +330,8 @@ then
 		# mpd file extension officially deprecated in favor of ldr
 
 		frobulator.err "No file type specified."
-		echo
 
 		frobulator.fwd "Assuming defaults..."
-		echo
 
 		extension_option="mpd"
 
@@ -359,10 +354,8 @@ f3d_render () {
 	# render model
 
 	frobulator.inf "Rendering" "[ ${view[coordinates]} // ${model_name} ]"
-	echo
 
 	frobulator.fwd "Output" "[ ${render_file} ]"
-	echo
 
 	model_path="${1}"
 	coordinates="${2}"
@@ -606,4 +599,3 @@ then
 fi
 
 frobulator.scs "Done."
-echo

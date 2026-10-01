@@ -203,7 +203,6 @@ list=()
 # configuration ////////////////////////////////////////////////////////////////
 
 frobulator.inf "Updating system"
-echo
 
 apt-get update
 
@@ -212,14 +211,12 @@ apt-get --assume-yes upgrade
 frobulator.complete
 
 frobulator.inf "Adding i386 architecture"
-echo
 
 dpkg --add-architecture i386
 
 frobulator.complete
 
 frobulator.inf "Adding WineHQ repository"
-echo
 
 wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
 
@@ -232,7 +229,6 @@ apt-get --assume-yes upgrade
 frobulator.complete
 
 frobulator.inf "Installing WineHQ" "[ staging ]"
-echo
 
 apt-get --assume-yes install --install-recommends winehq-staging
 
@@ -279,7 +275,6 @@ winetricks_list=(
 for winetricks_verb in "${winetricks_list[@]}"
 do
 	frobulator.inf "Winetricks" "[ ${winetricks_verb} ]"
-	echo
 
 	WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q "${winetricks_verb}"
 
@@ -315,7 +310,6 @@ frobulator.complete
 if [ -z "${installer}" ]
 then
 	frobulator.err "No installer specified"
-	echo
 
 	exit 1
 fi
@@ -323,13 +317,11 @@ fi
 if [ ! -f "${installer}" ]
 then
 	frobulator.err "Installer not found" "[ ${installer} ]"
-	echo
 
 	exit 1
 fi
 
 frobulator.inf "Launching SOLIDWORKS installer"
-echo
 
 WINEPREFIX="${wine_prefix}" wine "${installer}"
 
@@ -338,4 +330,3 @@ frobulator.complete
 frobulator.result "${script}"
 
 frobulator.scs "Setup complete"
-echo

@@ -188,4 +188,3 @@ wmctrl -r "Parts — LeoCAD"         -e 0,1660,0720,0900,0360
 wmctrl -r "Timeline — LeoCAD"      -e 0,2110,0000,0450,0720
 
 frobulator.scs "Done"
-echo

@@ -219,21 +219,18 @@ list=()
 # configuration ////////////////////////////////////////////////////////////////
 
 frobulator.inf "Enabling libvirt"
-echo
 
 frobulator.service enable libvirtd.service
 
 frobulator.complete
 
 frobulator.inf "Validating host"
-echo
 
 virt-host-validate qemu
 
 frobulator.complete
 
 frobulator.inf "Enabling tuned"
-echo
 
 frobulator.service enable tuned
 
@@ -250,7 +247,6 @@ frobulator.complete
 # bridge
 
 frobulator.inf "Creating network bridge"
-echo
 
 nmcli device status
 
@@ -296,7 +292,6 @@ frobulator.complete
 # network
 
 frobulator.inf "Defining libvirt network"
-echo
 
 frobulator.temporary directory_temporary
 
@@ -331,7 +326,6 @@ frobulator.complete
 # permissions
 
 frobulator.inf "Configuring permissions"
-echo
 
 usermod 									\
 	--append								\
@@ -364,4 +358,3 @@ frobulator.complete
 frobulator.result "${script}"
 
 frobulator.scs "KVM host ready"
-echo

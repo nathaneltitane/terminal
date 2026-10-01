@@ -243,35 +243,30 @@ reply=""
 if [ -z "${from}" ]
 then
 	frobulator.err "Missing from directory."
-	echo
 
 	exit 1
 
 elif [[ "${from}" = -* ]]
 then
 	frobulator.err "Missing argument for '--from'."
-	echo
 
 	exit 1
 
 elif [ -z "${to}" ]
 then
 	frobulator.err "Missing to directory."
-	echo
 
 	exit 1
 
 elif [[ "${to}" = -* ]]
 then
 	frobulator.err "Missing argument for '--to'."
-	echo
 
 	exit 1
 
 elif [ "${add}" = true ] && [ "${remove}" = true ]
 then
 	frobulator.err "Add and remove cannot be used together."
-	echo
 
 	exit 1
 
@@ -279,14 +274,12 @@ elif [ "${add}" = false ] && [ "${remove}" = false ]
 then
 	frobulator.err "Missing operation."
 	frobulator.nul "Specify either '--add' or '--remove'."
-	echo
 
 	exit 1
 
 elif [ "${confirm}" = false ] && [ "${execute}" = false ]
 then
 	frobulator.err "'--yes' requires '--execute'."
-	echo
 
 	exit 1
 fi
@@ -296,14 +289,12 @@ fi
 if [ ! -d "${from}" ]
 then
 	frobulator.err "From directory not found" "[ ${from} ]"
-	echo
 
 	exit 1
 
 elif [ ! -d "${to}" ]
 then
 	frobulator.err "To directory not found" "[ ${to} ]"
-	echo
 
 	exit 1
 fi
@@ -315,7 +306,6 @@ to=$(cd "${to}" && pwd -P)
 if [ "${from}" = "${to}" ]
 then
 	frobulator.err "From and to directories cannot be the same."
-	echo
 
 	exit 1
 fi
@@ -389,13 +379,11 @@ add () {
 		if [ "${status}" -ne 0 ]
 		then
 			frobulator.err "Failed to create directory" "[ ${destination} ]"
-			echo
 
 			return 1
 		fi
 
 		frobulator.add "Adding" "[ ${file} ]"
-		echo
 
 		cp -a -- "${from}/${file}" "${destination}"
 
@@ -404,7 +392,6 @@ add () {
 		if [ "${status}" -ne 0 ]
 		then
 			frobulator.err "Failed to add" "[ ${file} ]"
-			echo
 
 			return 1
 		fi
@@ -420,7 +407,6 @@ remove () {
 	while IFS= read -r file
 	do
 		frobulator.rem "Removing" "[ ${file} ]"
-		echo
 
 		rm -f -- "${to}/${file}"
 
@@ -429,7 +415,6 @@ remove () {
 		if [ "${status}" -ne 0 ]
 		then
 			frobulator.err "Failed to remove" "[ ${file} ]"
-			echo
 
 			return 1
 		fi
@@ -496,8 +481,6 @@ then
 		frobulator.rem "Files to be removed" "[ ${count_differential} ]"
 	fi
 
-	echo
-
 	display "${list_changes}"
 
 	echo
@@ -505,12 +488,10 @@ else
 	if [ "${operation}" = "add" ]
 	then
 		frobulator.inf "No files to be added."
-		echo
 
 	elif [ "${operation}" = "remove" ]
 	then
 		frobulator.inf "No files to be removed."
-		echo
 	fi
 
 	exit 0
@@ -522,7 +503,6 @@ if [ "${execute}" = false ]
 then
 	frobulator.wrn "Dry run only - ${operation}:"
 	frobulator.nul "Run ${script} again with '--execute' to apply changes."
-	echo
 
 	exit 0
 fi
@@ -548,7 +528,6 @@ then
 	   [[ "${reply}" != [yY][eE][sS] ]]
 	then
 		frobulator.stp "Operation cancelled."
-		echo
 
 		exit 0
 	fi
@@ -559,7 +538,6 @@ fi
 if [ "${operation}" = "add" ]
 then
 	frobulator.fwd "Adding..."
-	echo
 
 	add
 
@@ -568,18 +546,15 @@ then
 	if [ "${status}" -ne 0 ]
 	then
 		frobulator.err "File addition failed."
-		echo
 
 		exit 1
 	fi
 
 	frobulator.inf "Files added to destination" "[ ${count_differential} ]"
-	echo
 
 elif [ "${operation}" = "remove" ]
 then
 	frobulator.fwd "Removing..."
-	echo
 
 	remove
 
@@ -588,7 +563,6 @@ then
 	if [ "${status}" -ne 0 ]
 	then
 		frobulator.err "File removal failed."
-		echo
 
 		exit 1
 	fi
@@ -602,13 +576,11 @@ then
 	if [ "${status}" -ne 0 ]
 	then
 		frobulator.err "Failed to remove empty directories."
-		echo
 
 		exit 1
 	fi
 
 	frobulator.inf "Files removed from destination" "[ ${count_differential} ]"
-	echo
 fi
 
 # cleanup

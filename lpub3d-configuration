@@ -190,7 +190,6 @@ then
 		if [ -f /media/[iI]nternal/[lL]ego/lpub3d/lpub3d.conf ]
 		then
 			frobulator.inf "Linking configuration"
-			echo
 
 			frobulator.directory "${HOME}" .config/"LPub3D Software"
 
@@ -200,7 +199,6 @@ then
 		if [ -f /media/[iI]nternal/[lL]ego/ldraw.zip ]
 		then
 			frobulator.inf "Generating library setup"
-			echo
 
 			frobulator.directory "${HOME}"/.local/share/"LPub3D Software" lpub3d/libraries
 
@@ -240,4 +238,3 @@ Keywords=;Building;CAD;CAI;Editor;Education;Instructions;LDraw;LEGO;Publishing;R
 FILE
 
 frobulator.scs "Done"
-echo

@@ -238,7 +238,6 @@ list=()
 if [ "${option}" = "termux" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ termux ]"
-	echo
 
 	list+=(
 		termux-colors
@@ -262,7 +261,6 @@ fi
 if [ "${option}" = "git" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ git ]"
-	echo
 
 	if [ -z "${TERMUX_VERSION}" ]
 	then
@@ -285,7 +283,6 @@ fi
 if [ "${option}" = "shell" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ shell ]"
-	echo
 
 	list+=(
 		bash-aliases
@@ -314,7 +311,6 @@ fi
 if [ "${option}" = "adb" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ adb ]"
-	echo
 
 	list+=(
 		adb
@@ -334,7 +330,6 @@ fi
 if [ "${option}" = "geany" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ geany ]"
-	echo
 
 	frobulator.directory "${HOME}"/.config/geany
 

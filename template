@@ -202,18 +202,15 @@ then
 	if [ "${directory_script}" -ef "${directory_install}" ]
 	then
 		frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
-		echo
 	else
 		frobulator.copy "${directory_script}" "${directory_install}" "${script}"
 
 		frobulator.permissions public execute "${directory_install}/${script}"
 
 		frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
-		echo
 	fi
 fi
 
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

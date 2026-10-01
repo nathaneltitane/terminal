@@ -262,7 +262,6 @@ then
 		[ "${option_storage}" != "removable" ]
 	then
 		frobulator.err "Unrecognized storage type" "[ ${option_storage} ]"
-		echo
 
 		exit 1
 	fi
@@ -374,7 +373,6 @@ then
 	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 	then
 		frobulator.inf "Setting up" "[ python ]"
-		echo
 
 		python_directory="/usr/lib/python3.11"
 
@@ -463,7 +461,6 @@ then
 		for directory in /media/"${USER}"/*
 		do
 			frobulator.inf "Removable storage found" "[ ${directory}]"
-			echo
 
 			list+=(
 				"${directory}"
@@ -554,7 +551,6 @@ fi
 if [ "${option}" = "git" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ git ]"
-	echo
 
 	storage_list=(
 		/media/[aA]ndroid
@@ -581,7 +577,6 @@ fi
 if [ "${option}" = "shell" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ shell ]"
-	echo
 
 	frobulator.directory "${HOME}" .local/bin
 
@@ -639,7 +634,6 @@ then
 	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 	then
 		frobulator.inf "Setting up" "[ themes ]"
-		echo
 
 		gtkrc_content=$(cat <<- 'FILE'
 		gtk-icon-theme-name = "Breeze"
@@ -670,7 +664,6 @@ then
 		frobulator.write "write" "${trolltech_content}" /etc/xdg Trolltech.conf
 
 		frobulator.scs 'Done'
-		echo
 	fi
 fi
 
@@ -681,7 +674,6 @@ then
 	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
 	then
 		frobulator.inf "Setting up" "[ applications ]"
-		echo
 
 		# install
 
@@ -789,4 +781,3 @@ then
 fi
 
 frobulator.scs 'Done'
-echo

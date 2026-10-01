@@ -220,7 +220,6 @@ then
 	frobulator.complete
 else
 	frobulator.err "Directory not found" "[ ${directory_temporary} ]"
-	echo
 
 	exit 1
 fi
@@ -270,10 +269,8 @@ do
 				mv "${archive_output}" "${directory_origin}"/"${archive_output}"
 
 				frobulator.scs "Repackaged" "[ ${archive_output} ]"
-				echo
 			else
 				frobulator.err "'layer.tar' not found in extracted content" "[ ${archive_input} ]"
-				echo
 			fi
 
 			rm -r -f "${directory_extraction}"
@@ -290,7 +287,6 @@ then
 	frobulator.complete
 else
 	frobulator.err "Directory not found" "[ ${directory_origin} ]"
-	echo
 
 	exit 1
 fi
@@ -298,4 +294,3 @@ fi
 frobulator.result "${script}"
 
 frobulator.scs "Repackaging complete" "[ ${platform} ]"
-echo

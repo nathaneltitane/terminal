@@ -235,10 +235,8 @@ else
 fi
 
 frobulator.inf "Deploying" "[ ${docker_image_name} ]"
-echo
 
 frobulator.fwd "Deploying..."
-echo
 
 docker run																					\
 	--detach																				\
@@ -286,12 +284,9 @@ frobulator.write "append" "${docker_image_password}" "${docker_image_directory}"
 frobulator.complete
 
 frobulator.inf "Image ID" "[ ${docker_image_id} ]"
-echo
 
 frobulator.inf "Password" "[ ${docker_image_password} ]"
-echo
 
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

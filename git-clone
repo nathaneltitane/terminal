@@ -173,7 +173,6 @@ done
 if [[ "${project}" = -* ]]
 then
 	frobulator.err "Missing argument for '--project'."
-	echo
 
 	exit 1
 fi
@@ -227,7 +226,6 @@ do
 	if [[ -d "${project}" ]]
 	then
 		frobulator.wrn "Project directory exists" "[ ${project} ]"
-		echo
 
 		frobulator.delete "${project}"
 	fi

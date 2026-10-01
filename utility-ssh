@@ -185,7 +185,6 @@ frobulator.process "Starting service"
 # authorized keys file check
 
 frobulator.fwd "Copying keys..."
-echo
 
 if [ -f "${PREFIX}"/media/internal/.ssh/authorized_keys ]
 then
@@ -218,7 +217,6 @@ fi
 # set permissions
 
 frobulator.fwd "Setting permissions..."
-echo
 
 list=(
 	"${HOME}"/.ssh

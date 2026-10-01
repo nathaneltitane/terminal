@@ -95,14 +95,12 @@ then
 		if [ "${directory_script}" -ef "${directory_install}" ]
 		then
 			frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
-			echo
 		else
 			frobulator.copy "${directory_script}" "${directory_install}" "${script}"
 
 			frobulator.permissions public execute "${directory_install}/${script}"
 
 			frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
-			echo
 		fi
 	fi
 
@@ -129,7 +127,6 @@ fi
 if [ -n "${TERMUX_VERSION}" ]
 then
 	frobulator.fwd "Loading profile..."
-	echo
 
 	frobulator.clear
 fi
@@ -315,23 +312,17 @@ then
 	session_title="${session_title^}"
 
 	frobulator.fwd "Login count" "[ ${ticker} ]" ">"
-	echo
 
 	frobulator.fwd "Welcome to Dextop" "[ ${session_title} ]"
-	echo
 
 	frobulator.inf "Graphical session:"
-	echo
 
 	frobulator.inf "'container-session -o | -x'"
 	frobulator.nul "'container-session -u [User Name] | -d [Directory] | -f [Application]'"
-	echo
 
 	frobulator.inf "Update utilities:"
-	echo
 
 	frobulator.nul "'dextop -u shell [Shell Name | all] | utility [Utility Name | all]'"
-	echo
 
 	# increment session login count
 
@@ -346,7 +337,6 @@ then
 	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
 	then
 		frobulator.wrn "Automatic session start enabled"
-		echo
 
 		session_level="termux"
 
@@ -360,7 +350,6 @@ then
 		session_level="${session_level^}"
 
 		frobulator.cpt "Loading ${session_level} level session" "[ ${session_interface} ]"
-		echo
 
 		container-session -o
 	fi

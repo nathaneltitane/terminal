@@ -203,7 +203,6 @@ then
 	if [ -f /media/[iI]nternal/[rR][cC]lone/rclone.conf ]
 	then
 		frobulator.inf "Linking configuration"
-		echo
 
 		frobulator.directory "${HOME}" .config/rclone
 
@@ -468,4 +467,3 @@ frobulator.complete
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

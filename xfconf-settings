@@ -173,14 +173,12 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 if [ -z "${settings_file}" ]
 then
 	frobulator.err "Missing settings file."
-	echo
 
 	exit 1
 
 elif [[ "${settings_file}" = -* ]]
 then
 	frobulator.err "Missing argument for '--file'."
-	echo
 
 	exit 1
 fi
@@ -208,7 +206,6 @@ list=()
 # read settings
 
 frobulator.inf "Generating" "[ ${settings_file} ]"
-echo
 
 xfconf-query -l | sed '/Channel.*/d' | while read channel
 do
@@ -319,8 +316,6 @@ echo ${command} >> "${settings_file}"
 echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
 
 frobulator.scs "Done."
-echo
 
 frobulator.msg "Use newly generated settings file as follows:"
 frobulator.msg "'bash <settings_file>'"
-echo

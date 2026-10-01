@@ -182,7 +182,6 @@ list=()
 if [ -d /media/[iI]nternal/[pP]rinter/cura/configuration ]
 then
 	frobulator.inf "Linking configuration"
-	echo
 
 	frobulator.copy /media/[iI]nternal/[pP]rinter/cura/configuration "${HOME}"/.config/cura/4.13/ cura.cfg
 fi
@@ -201,4 +200,3 @@ done
 list=()
 
 frobulator.scs "Done"
-echo

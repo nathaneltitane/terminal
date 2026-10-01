@@ -191,14 +191,12 @@ fi
 if [[ "${directory_storage}" = -* ]]
 then
 	frobulator.err "Missing argument for '--directory'."
-	echo
 
 	exit 1
 
 elif [ ! -d "${directory_storage}/.claude" ]
 then
 	frobulator.err "Configuration not found" "[ ${directory_storage}/.claude ]"
-	echo
 
 	exit 1
 fi
@@ -208,7 +206,6 @@ fi
 if [ -n "$(pgrep -x claude)" ]
 then
 	frobulator.wrn "Claude code is running"
-	echo
 
 	frobulator.ask "Close claude code?"
 
@@ -218,7 +215,6 @@ then
 	   [[ "${reply}" != [yY][eE][sS] ]]
 	then
 		frobulator.stp "Operation cancelled."
-		echo
 
 		exit 0
 	fi
@@ -247,13 +243,11 @@ then
 	if [ -n "$(pgrep -x claude)" ]
 	then
 		frobulator.err "Unable to close claude code."
-		echo
 
 		exit 1
 	fi
 
 	frobulator.scs "Closed" "[ claude code ]"
-	echo
 fi
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -263,7 +257,6 @@ claude_install () {
 	local status_list
 
 	frobulator.inf "Installing" "[ claude code ]"
-	echo
 
 	# official installer
 
@@ -274,13 +267,11 @@ claude_install () {
 	if [ "${status_list[0]}" -ne 0 ] || [ "${status_list[1]}" -ne 0 ]
 	then
 		frobulator.err "Unable to install claude code" "[ ${url_install} ]"
-		echo
 
 		return 1
 	fi
 
 	frobulator.scs "Installed" "[ claude code ]"
-	echo
 }
 
 claude_link () {
@@ -294,7 +285,6 @@ claude_link () {
 	if [ -L "${item_home}" ] && [ "${item_home}" -ef "${item_storage}" ]
 	then
 		frobulator.inf "Already linked" "[ ${item} ]"
-		echo
 
 		return 0
 	fi
@@ -315,7 +305,6 @@ claude_link () {
 		if [ ! -e "${item_storage}" ]
 		then
 			frobulator.err "Unable to merge into storage" "[ ${item} ]"
-			echo
 
 			return 1
 		fi
@@ -327,13 +316,11 @@ claude_link () {
 		if [ "${?}" -ne 0 ]
 		then
 			frobulator.err "Unable to move to trash" "[ ${item_home} ]"
-			echo
 
 			return 1
 		fi
 
 		frobulator.inf "Moved to trash" "[ ${item_home} ]"
-		echo
 	fi
 
 	frobulator.link "${directory_storage}" "${HOME}" "${item}"
@@ -375,4 +362,3 @@ done
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

@@ -185,7 +185,6 @@ android_platform_tools_update () {
 	if [ -z "${directory_temporary}" ] || [ ! -d "${directory_temporary}" ]
 	then
 		frobulator.err "Unable to create temporary directory"
-		echo
 
 		exit 1
 	fi
@@ -196,7 +195,6 @@ android_platform_tools_update () {
 	path_extracted="${directory_temporary}/platform-tools"
 
 	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
-	echo
 
 	curl						\
 		--silent				\
@@ -208,7 +206,6 @@ android_platform_tools_update () {
 	if [ "${?}" -ne 0 ]
 	then
 		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
-		echo
 
 		exit 1
 	fi
@@ -218,7 +215,6 @@ android_platform_tools_update () {
 	if [ "${?}" -ne 0 ]
 	then
 		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
-		echo
 
 		exit 1
 	fi
@@ -226,7 +222,6 @@ android_platform_tools_update () {
 	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
 	then
 		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
-		echo
 
 		exit 1
 	fi
@@ -263,10 +258,8 @@ android_platform_tools_update () {
 	hash -r
 
 	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
-	echo
 
 	frobulator.scs "Utilities deployment ready" "[ Android Platform Tools ]"
-	echo
 
 }
 
@@ -918,7 +911,6 @@ packages_list=(
 )
 
 frobulator.inf "Querying installed packages"
-echo
 
 packages_installed=$(android_debug_bridge list packages --user 0)
 
@@ -932,25 +924,21 @@ do
 	if [[ $(echo "${packages_installed}" | grep -F -x "package:${application}") ]]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
-		echo
 
 		if [ "${dry_run}" = true ]
 		then
 			frobulator.wrn "Would be removed" "[ ${application} ]"
-			echo
 
 			continue
 		fi
 
 		frobulator.wrn "Removing package" "[ ${application} ]"
-		echo
 
 		android_debug_bridge uninstall -k --user 0 "${application}" > "${sink}" 2>&1
 
 		if [ "${?}" -ne 0 ]
 		then
 			frobulator.err "Failed to remove" "[ ${application} ]"
-			echo
 
 			count_failed=$(( count_failed + 1 ))
 		else
@@ -958,24 +946,19 @@ do
 		fi
 	else
 		frobulator.fwd "Not on device" "[ ${application} ]"
-		echo
 	fi
 done
 
 if [ "${dry_run}" = true ]
 then
 	frobulator.scs "Dry run complete"
-	echo
 else
 	if [ "${count_failed}" -eq 0 ]
 	then
 		frobulator.inf "Uninstall complete" "[ ${count_removed} ]"
-		echo
 	else
 		frobulator.wrn "Errors encountered" "[ ${count_failed} ]"
-		echo
 
 		frobulator.inf "Removals completed" "[ ${count_removed} ]"
-		echo
 	fi
 fi
