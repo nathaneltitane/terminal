@@ -211,7 +211,6 @@ image_select () {
 	   [ -z "${distribution_codename}" ]
 	then
 		frobulator.msg "Select distribution version to generate."
-		echo
 
 		# list supported distribution versions
 
@@ -295,10 +294,8 @@ image_select () {
 		do
 			echo
 			frobulator.err "Invalid selection:"
-			echo
 
 			frobulator.wrn "Select image [ 1 - ${number} ]"
-			echo
 
 			frobulator.ipt "Selection:"
 
@@ -343,7 +340,6 @@ image_select () {
 		fi
 
 		frobulator.inf "User selection" "[ ${selection} // ${name} ${version} - '${codename}' ]"
-		echo
 
 	fi
 }
@@ -364,27 +360,22 @@ image_handle () {
 			distribution_name="${distribution_name,,}"
 
 			frobulator.scs "Supported distribution name."
-			echo
 		;;
 
 		"")
 			distribution_name="debian"
 
 			frobulator.err "Empty distribution name."
-			echo
 
 			frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-			echo
 		;;
 
 		*)
 			distribution_name="debian"
 
 			frobulator.err "Unsupported distribution name."
-			echo
 
 			frobulator.wrn "Defaulting" "[ ${distribution_name} ]"
-			echo
 		;;
 
 	esac
@@ -410,20 +401,16 @@ image_handle () {
 				distribution_version=12
 
 				frobulator.err "Distribution version not specified."
-				echo
 
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			 *)
 				distribution_version=12
 
 				frobulator.err "Unsupported distribution version."
-				echo
 
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-				echo
 			;;
 
 		esac
@@ -449,20 +436,16 @@ image_handle () {
 				distribution_version=41
 
 				frobulator.err "Distribution version not specified."
-				echo
 
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			 *)
 				distribution_version=35
 
 				frobulator.err "Unsupported distribution version."
-				echo
 
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-				echo
 			;;
 
 		esac
@@ -476,48 +459,40 @@ image_handle () {
 				distribution_version="18.04"
 
 				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			20*04|20*04*)
 				distribution_version="20.04"
 
 				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			22*04|22*04*)
 				distribution_version="22.04"
 
 				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			24*04|24*04*)
 				distribution_version="24.04"
 
 				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			"")
 				distribution_version="${distribution_version}"
 
 				frobulator.err "Distribution version not specified."
-				echo
 
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-				echo
 			;;
 
 			 *)
 				distribution_version="${distribution_version}"
 
 				frobulator.err "Unsupported distribution version."
-				echo
 
 				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
-				echo
 			;;
 
 		esac
@@ -620,4 +595,3 @@ image_archive &
 frobulator.progress "archive"
 
 frobulator.scs "Done"
-echo

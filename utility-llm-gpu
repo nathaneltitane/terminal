@@ -244,13 +244,11 @@ url_install () {
 	if [[ -n $(command -v "${command_name}") ]]
 	then
 		frobulator.wrn "Already installed" "[ ${label} ]"
-		echo
 
 		return 0
 	fi
 
 	frobulator.inf "Installing" "[ ${label} ]"
-	echo
 
 	installer="$(mktemp)"
 
@@ -265,7 +263,6 @@ url_install () {
 	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
 	then
 		frobulator.err "Unable to fetch installer" "[ ${label} ]"
-		echo
 
 		rm -f "${installer}"
 
@@ -284,7 +281,6 @@ url_install () {
 	if [ "${?}" -ne 0 ]
 	then
 		frobulator.err "Installation failed" "[ ${label} ]"
-		echo
 
 		rm -f "${installer}"
 
@@ -299,7 +295,6 @@ url_install () {
 	fi
 
 	frobulator.scs "Installed" "[ ${label} ]"
-	echo
 
 	return 0
 }
@@ -319,18 +314,15 @@ list=()
 if [ ! -e /dev/dri/renderD128 ]
 then
 	frobulator.wrn "GPU render device not found" "[ /dev/dri/renderD128 ]"
-	echo
 fi
 
 if [[ -z $(command -v vulkaninfo) ]]
 then
 	frobulator.wrn "Vulkan diagnostic utility not found" "[ vulkaninfo ]"
-	echo
 else
 	if ! vulkaninfo --summary 2>"${sink}" | grep -q "AMD Radeon RX Vega M"
 	then
 		frobulator.wrn "Expected Radeon RX Vega M Vulkan device not detected"
-		echo
 	fi
 fi
 
@@ -346,7 +338,6 @@ fi
 # models directory
 
 frobulator.inf "Configuring models directory" "[ ${models_directory} ]"
-echo
 
 frobulator.directory "$(dirname "${models_directory}")" "$(basename "${models_directory}")"
 
@@ -370,7 +361,6 @@ fi
 # local vulkan configuration
 
 frobulator.inf "Configuring Vulkan GPU" "[ Vulkan${vulkan_device} ]"
-echo
 
 frobulator.directory /etc/systemd/system "${service}".d
 
@@ -400,7 +390,6 @@ frobulator.progress pull
 if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Unable to pull model" "[ ${model} ]"
-	echo
 
 	exit 1
 fi
@@ -412,7 +401,6 @@ ollama show "${model}" > "${sink}" 2>&1
 if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Local model verification failed" "[ ${model} ]"
-	echo
 
 	exit 1
 fi
@@ -436,4 +424,3 @@ The installed model can be used locally with networking disabled."
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

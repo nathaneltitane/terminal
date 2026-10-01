@@ -210,7 +210,6 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 if [ -z "${option}" ]
 then
 	frobulator.err 'No option selected'
-	echo
 
 	exit 1
 fi
@@ -218,10 +217,8 @@ fi
 if [ -z "${download_directory}" ]
 then
 	frobulator.wrn "No download directory specified"
-	echo
 
 	frobulator.inf "Defaulting" "[ ${HOME}/tracks ]"
-	echo
 
 	download_directory="${HOME}"/tracks
 
@@ -243,7 +240,6 @@ if [ "${option}" = "file" ] &&
    [ -z "${input_file}"   ]
 then
 	frobulator.err 'No input file specified'
-	echo
 
 	exit 1
 fi
@@ -252,7 +248,6 @@ if [ "${option}" = 'file' ] &&
    [ ! -f "${input_file}" ]
 then
 	frobulator.err "No input file found" "[ ${input_file} ]"
-	echo
 
 	exit 1
 fi
@@ -284,7 +279,6 @@ browser_identify () {
 
 	else
 		frobulator.err "No compatible browser found on system"
-		echo
 
 		exit 1
 	fi
@@ -310,7 +304,6 @@ sleep_randomize () {
 	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
 
 	frobulator.inf "Seeping" "[ ${duration_sleep} second(s) ]"
-	echo
 
 	sleep "${duration_sleep}"
 }
@@ -409,7 +402,6 @@ list=()
 browser_identify
 
 frobulator.inf "Browser identification" "[ ${browser} ]"
-echo
 
 # download directory
 
@@ -443,12 +435,10 @@ if [[ -d "${download_directory}" ]]
 then
 
 	frobulator.inf "Download directory present"
-	echo
 
 	# initiate comparative analysis
 
 	frobulator.fwd "Comparing${marker_elp}"
-	echo
 
 	# downloads - existing
 
@@ -522,12 +512,10 @@ then
 		if [ "${found}" = 'false' ]
 		then
 			frobulator.ret "Adding ${track}"
-			echo
 
 			tracks_pending+=("${track}")
 		else
 			frobulator.rel "Skipping ${track}"
-			echo
 		fi
 
 	done
@@ -536,7 +524,6 @@ fi
 # summary //////////////////////////////////////////////////////////////////////
 
 frobulator.inf "Tracks pending" "[ ${#tracks_pending[@]} ]"
-echo
 
 # download
 
@@ -585,7 +572,6 @@ then
 			if [ "${duration_track}" = 'null' ]
 			then
 				frobulator.wrn "No valid duration match" "[ ${track} ]"
-				echo
 
 				continue
 			fi
@@ -609,13 +595,11 @@ then
 		if [ -z "${url}" ]
 		then
 			frobulator.err "No valid match found" "[ ${track} ]"
-			echo
 
 			continue
 		fi
 
 		frobulator.url "Match found" "[ ${url} ]"
-		echo
 
 		# download
 
@@ -630,7 +614,6 @@ then
 		echo
 
 		frobulator.scs "${download_directory}/${filename}.${extension_track}"
-		echo
 
 		# increment file count
 
@@ -643,5 +626,4 @@ then
 	frobulator.delete "${search_file}"
 
 	frobulator.scs "${count} downloads saved" "[ ${download_directory} ]"
-	echo
 fi

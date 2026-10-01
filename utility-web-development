@@ -238,11 +238,9 @@ do
 	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
 	then
 		frobulator.scs "Configuration validation success" "[ ${item} ]"
-		echo
 	elif [[ $(a2ensite "${item}".conf | grep -e "error") ]]
 	then
 		frobulator.err "Configuration validation failed" "[ ${item} ]"
-		echo
 
 		exit 1
 	fi
@@ -255,7 +253,6 @@ do
 	fi
 
 	frobulator.inf "Setting ownership"
-	echo
 
 	chmod -R 755 "${web_development_directory}"/"${item}"
 
@@ -281,4 +278,3 @@ frobulator.complete
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

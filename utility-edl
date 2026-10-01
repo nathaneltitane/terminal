@@ -196,7 +196,6 @@ list=()
 # conflicting modem service
 
 frobulator.inf "Removing conflicting service" "[ ${service} ]"
-echo
 
 apt-get --assume-yes purge modemmanager > "${sink}" 2>&1
 
@@ -228,7 +227,6 @@ then
 	frobulator.complete
 else
 	frobulator.err "Directory not found" "[ ${directory_edl} ]"
-	echo
 
 	exit 1
 fi
@@ -252,7 +250,6 @@ frobulator.progress "drivers"
 if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Unable to install drivers" "[ ${process} ]"
-	echo
 
 	exit 1
 fi
@@ -268,7 +265,6 @@ frobulator.progress "dependencies"
 if [ "${?}" -ne 0 ]
 then
 	frobulator.err "Unable to install dependencies" "[ ${process} ]"
-	echo
 
 	exit 1
 fi
@@ -292,7 +288,6 @@ unset CFLAGS
 if [ "${status}" -ne 0 ]
 then
 	frobulator.err "Unable to install" "[ ${process} ]"
-	echo
 
 	exit 1
 fi
@@ -304,7 +299,6 @@ frobulator.complete
 # safe to run directly - only the reboot itself is left to the user
 
 frobulator.inf "Rebuilding initramfs"
-echo
 
 update-initramfs -u > "${sink}" 2>&1
 
@@ -315,10 +309,8 @@ frobulator.complete
 if [[ $(command -v "${process}") ]]
 then
 	frobulator.scs "Verification success" "[ ${process} ]"
-	echo
 else
 	frobulator.err "Verification failed" "[ ${process} ]"
-	echo
 
 	exit 1
 fi
@@ -330,4 +322,3 @@ Run 'edl -h' for the full command reference, or 'edl printgpt' to test."
 frobulator.result "${script}"
 
 frobulator.scs "Done"
-echo

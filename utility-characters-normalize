@@ -440,7 +440,6 @@ list=()
 if [[ $(locale charmap 2> "${sink}") != "UTF-8" ]]
 then
 	frobulator.err "UTF-8 locale unavailable"
-	echo
 
 	exit 1
 fi
@@ -468,12 +467,10 @@ do
 
 	frobulator.inf "Renaming" "[ ${source_name} ]"
 	frobulator.inf "To" "[ ${target_path##*/} ]"
-	echo
 
 	if ! mv -- "${source_path}" "${target_path}"
 	then
 		frobulator.err "Unable to rename" "[ ${source_name} ]"
-		echo
 
 		continue
 	fi
@@ -487,14 +484,11 @@ done < <(find "${directory}" -mindepth 1 -maxdepth 1 -print0)
 if [ "${count_renamed}" -gt 0 ]
 then
 	frobulator.scs "Renamed" "[ ${count_renamed} ]"
-	echo
 else
 	frobulator.inf "No filenames required normalization"
-	echo
 fi
 
 if [ "${count_unchanged}" -gt 0 ]
 then
 	frobulator.inf "Unchanged" "[ ${count_unchanged} ]"
-	echo
 fi

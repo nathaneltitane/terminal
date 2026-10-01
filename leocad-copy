@@ -181,10 +181,8 @@ list=()
 if [ -f /media/[iI]nternal/[lL]ego/leocad/leocad ]
 then
 	frobulator.inf "Copying binary"
-	echo
 
 	frobulator.copy /media/[iI]nternal/[lL]ego/leocad /usr/bin leocad
 fi
 
 frobulator.scs "Done"
-echo

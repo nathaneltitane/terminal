@@ -206,10 +206,8 @@ list=()
 if [ ! -e "${configuration_directory}"/"${configuration}" ]
 then
 	frobulator.err "Configuration file not found" "[ ${configuration} ]"
-	echo
 
 	frobulator.fwd "Aborting"
-	echo
 
 	exit 1
 fi
@@ -255,7 +253,6 @@ fi
 if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
 then
 	frobulator.wrn "Service running" " [ ${service} ]"
-	echo
 
 	service_actions_list=(
 		disable
@@ -290,12 +287,10 @@ service_actions_list=()
 if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
-	echo
 
 elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
 then
 	frobulator.err "Service activation failed" "[ ${service} ]"
-	echo
 
 	exit 1
 fi

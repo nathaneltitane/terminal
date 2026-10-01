@@ -246,7 +246,6 @@ list=()
 if [ ! -d "${directory_source}" ]
 then
 	frobulator.err "Source directory not found" "[ ${directory_source} ]"
-	echo
 
 	exit 1
 fi
@@ -254,7 +253,6 @@ fi
 if [ ! -d "${directory_destination}" ]
 then
 	frobulator.err "Destination directory not found" "[ ${directory_destination} ]"
-	echo
 
 	exit 1
 fi
@@ -271,7 +269,6 @@ inotify_watches_current=$(cat /proc/sys/fs/inotify/max_user_watches)
 if [ "${inotify_watches_current}" -lt "${inotify_watches_required}" ]
 then
 	frobulator.inf "Raising inotify watch limit" "[ ${inotify_watches_required} ]"
-	echo
 
 	sysctl -w fs.inotify.max_user_watches="${inotify_watches_required}" > /dev/null
 
@@ -307,7 +304,6 @@ synchronize () {
 	if [ "${?}" -ne 0 ]
 	then
 		frobulator.err "Mirror failed"
-		echo
 	fi
 
 	echo

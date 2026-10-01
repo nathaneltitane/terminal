@@ -168,10 +168,8 @@ done
 if [ -z "${device}" ]
 then
 	frobulator.err "No target device specified"
-	echo
 
 	frobulator.inf "Available block devices"
-	echo
 
 	lsblk --nodeps --output NAME,SIZE,MODEL,TRAN,TYPE | grep -e "disk" -e "NAME"
 	echo
@@ -185,7 +183,6 @@ fi
 if [ ! -b "${device}" ]
 then
 	frobulator.err "Not a block device" "[ '${device}' ]"
-	echo
 
 	exit 1
 fi
@@ -231,7 +228,6 @@ list=()
 # prompt for and validate values required for headless setup
 
 frobulator.inf "Headless configuration"
-echo
 
 credentials_list=(
 	"hostname"
@@ -299,7 +295,6 @@ fi
 if [ "${#credentials_missing_list[@]}" -gt 0 ]
 then
 	frobulator.err "Missing required credential(s)" "[ ${credentials_missing_list[*]} ]"
-	echo
 
 	exit 1
 fi
@@ -315,7 +310,6 @@ frobulator.directory "${download_directory}"
 url_install=$(curl -s -I -L -o "${sink}" -w '%{url_effective}' "${image_url_latest}")
 
 frobulator.inf "Resolved image" "[ ${url_install} ]"
-echo
 
 checksum_expected=$(curl -s -L "${url_install}.sha256" | cut -d ' ' -f 1)
 
@@ -330,7 +324,6 @@ then
 	if [ -n "${checksum_expected}" ] && [ "${checksum_actual}" != "${checksum_expected}" ]
 	then
 		frobulator.err "Checksum verification failed"
-		echo
 
 		rm -f "${image_archive}"
 
@@ -338,10 +331,8 @@ then
 	fi
 
 	frobulator.scs "Checksum verified"
-	echo
 else
 	frobulator.wrn "Already downloaded and verified"
-	echo
 fi
 
 # confirmation
@@ -359,7 +350,6 @@ read -r device_confirm
 if [ "${device_confirm}" != "${device}" ]
 then
 	frobulator.err "Confirmation did not match - aborting"
-	echo
 
 	exit 1
 fi
@@ -381,7 +371,6 @@ done
 # decompress and write image directly to device
 
 frobulator.inf "Writing image" "[ ${device} ]"
-echo
 
 xz -dc "${image_archive}" | dd of="${device}" bs=4M conv=fsync status=progress oflag=direct
 
@@ -409,7 +398,6 @@ fi
 if [ ! -b "${partition_boot}" ] || [ ! -b "${partition_root}" ]
 then
 	frobulator.err "Expected partitions not found" "[ '${partition_boot}' '${partition_root}' ]"
-	echo
 
 	exit 1
 fi
@@ -504,4 +492,3 @@ frobulator.complete
 frobulator.result "${script}"
 
 frobulator.scs "Boot device ready" "[ ${device} ]"
-echo

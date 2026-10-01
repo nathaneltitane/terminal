@@ -188,7 +188,6 @@ list+=(
 if [ -d /media/internal/Printer/freecad/configuration ]
 then
 	frobulator.inf "Linking configuration"
-	echo
 
 	for configuration in ${list[@]}
 	do
@@ -203,7 +202,6 @@ list=()
 if [ -d /media/internal/Printer/freecad/macros ]
 then
 	frobulator.inf "Linking macros"
-	echo
 
 		frobulator.link /media/internal/Printer/freecad "${HOME}"/.config/FreeCAD macros
 fi

@@ -204,7 +204,6 @@ do
 		if [ -f "/media/${directory}/${subdirectory}/leocad/leocad.conf" ]
 		then
 			frobulator.inf "Linking configuration"
-			echo
 
 			frobulator.link "/media/${directory}/${subdirectory}/leocad" "${HOME}/.config/LeoCAD Software" leocad.conf LeoCAD.conf
 
@@ -217,4 +216,3 @@ do
 done
 
 frobulator.scs "Done"
-echo
