@@ -267,6 +267,9 @@ android_device_wait () {
 
 	local state
 	local state_last="none"
+	local serial
+	local line
+	local -a devices_list
 	local seconds=0
 	local timeout=300
 
@@ -274,7 +277,21 @@ android_device_wait () {
 
 	while true
 	do
-		state="$(adb devices | awk 'NR > 1 && NF { print $2; exit }')"
+		# first device listed after the header line
+
+		state=""
+
+		mapfile -t devices_list < <(adb devices)
+
+		for line in "${devices_list[@]:1}"
+		do
+			if [ -n "${line}" ]
+			then
+				read -r serial state <<< "${line}"
+
+				break
+			fi
+		done
 
 		if [ "${state}" = "device" ]
 		then
