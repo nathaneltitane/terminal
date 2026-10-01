@@ -279,7 +279,7 @@ android_device_wait () {
 	do
 		# first device listed after the header line
 
-		state=""
+		unset state
 
 		mapfile -t devices_list < <(adb devices)
 
