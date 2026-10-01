@@ -220,7 +220,7 @@ then
 	alias 'reinstall'="${apt_get_prefix}apt-get reinstall"
 	alias 'repair'="${apt_get_prefix}apt-get -f install"
 	alias 'remove'="${apt_get_prefix}apt-get remove"
-	alias 'source'="${apt_get_prefix}apt-get source"
+	alias 'retrieve'="apt-get source"
 	alias 'update'="${apt_get_prefix}apt-get update"
 	alias 'upgrade'="${apt_get_prefix}apt-get dist-upgrade"
 fi
