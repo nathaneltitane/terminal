@@ -129,15 +129,15 @@ do
 			shift
 		;;
 
-		-i|--identity)
-			identity_directory="${2}"
+		-k|--key)
+			file_identity_key="${2}"
 
 			shift
 		;;
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -b | -r -d [Directory] -i [Directory] | -h"
+			echo -e "Usage: ./${script} -b | -r -d [Directory] -k [File] | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -149,10 +149,10 @@ do
 			echo
 			echo -e "                   [ script directory ] [ Default ]"
 			echo
-			echo -e "-i, --identity     Specify private directory for this computer's [i]dentity."
+			echo -e "-k, --key          Specify this computer's private [k]ey file."
 			echo
-			echo -e "                   [ private key - never a public repository ]"
-			echo -e "                   [ required for devices to recognize this computer ]"
+			echo -e "                   [ /media/internal/.kde-connect-key ] [ Default ]"
+			echo -e "                   [ private - never a public repository ]"
 			echo
 			echo -e "-h, --help         Show [h]elp and usage information."
 			echo
@@ -171,7 +171,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -b | -r -d [Directory] -i [Directory] | -h"
+			echo -e "Usage: ./${script} -b | -r -d [Directory] -k [File] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -193,7 +193,9 @@ directory_kde_connect="${HOME}/.config/kdeconnect"
 
 file_trusted_devices="${directory_kde_connect}/trusted_devices"
 
-file_identity_archive="kde-connect-identity.tar.gz"
+# this computer's identity: private key kept out of the repository
+
+file_identity_key_default="/media/internal/.kde-connect-key"
 
 # plugin configuration for devices restored without one
 
@@ -224,9 +226,9 @@ then
 
 	exit 1
 
-elif [[ "${identity_directory}" = -* ]]
+elif [[ "${file_identity_key}" = -* ]]
 then
-	frobulator.err "Missing argument for '--identity'."
+	frobulator.err "Missing argument for '--key'."
 
 	exit 1
 fi
@@ -241,6 +243,11 @@ fi
 directory="${directory%/}"
 
 file_device_index="${directory}/kde-connect-devices-list"
+
+file_identity_certificate="${directory}/kde-connect-certificate.pem"
+file_identity_config="${directory}/kde-connect-config"
+
+file_identity_key="${file_identity_key:-${file_identity_key_default}}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -397,35 +404,24 @@ devices_backup () {
 
 identity_backup () {
 
-	# this computer's certificate, private key and name: private location only
+	# certificate and name into the directory, private key to its private file
 
-	if [ -z "${identity_directory}" ]
-	then
-		frobulator.wrn "Identity not saved - use '--identity [directory]'"
-		frobulator.nul "Without it, devices will not recognize this computer after a reinstall."
+	frobulator.directory "$(dirname -- "${file_identity_key}")"
 
-		return 0
-	fi
-
-	frobulator.directory "${identity_directory}"
-
-	tar									\
-		--create						\
-		--gzip							\
-		--file "${identity_directory}/${file_identity_archive}"	\
-		--directory "${directory_kde_connect}"				\
-										certificate.pem privateKey.pem config
+	cp -f "${directory_kde_connect}/privateKey.pem" "${file_identity_key}" &&
+	cp -f "${directory_kde_connect}/certificate.pem" "${file_identity_certificate}" &&
+	cp -f "${directory_kde_connect}/config" "${file_identity_config}"
 
 	if [ "${?}" -ne 0 ]
 	then
-		frobulator.err "Backup failure - identity" "[ '${file_identity_archive}'${marker_spc}${marker_hnt}${marker_spc}${identity_directory} ]"
+		frobulator.err "Backup failure - identity" "[ '${file_identity_key##*/}'${marker_spc}${marker_hnt}${marker_spc}private ]"
 
 		return 1
 	fi
 
-	frobulator.permissions private "${identity_directory}/${file_identity_archive}" > "${sink}"
+	frobulator.permissions private "${file_identity_key}" > "${sink}"
 
-	frobulator.scs "Backup success - identity" "[ 'identity'${marker_spc}${marker_hnt}${marker_spc}private ]"
+	frobulator.scs "Backup success - identity" "[ '${file_identity_key##*/}'${marker_spc}${marker_hnt}${marker_spc}private ]"
 }
 
 service_stop () {
@@ -548,37 +544,32 @@ devices_restore () {
 
 identity_restore () {
 
-	if [ -z "${identity_directory}" ]
+	if [ ! -f "${file_identity_key}" ] || [ ! -f "${file_identity_certificate}" ]
 	then
-		frobulator.wrn "Identity not restored - use '--identity [directory]'"
+		frobulator.wrn "Identity not restored - key or certificate missing" "[ '${file_identity_key##*/}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
 		frobulator.nul "Devices will need to pair again with this computer."
 
 		return 0
 	fi
 
-	if [ ! -f "${identity_directory}/${file_identity_archive}" ]
+	cp -f "${file_identity_key}" "${directory_kde_connect}/privateKey.pem" &&
+	cp -f "${file_identity_certificate}" "${directory_kde_connect}/certificate.pem"
+
+	if [ "${?}" -ne 0 ]
 	then
-		frobulator.err "Restore failure - identity" "[ '${file_identity_archive}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+		frobulator.err "Restore failure - identity" "[ '${file_identity_key##*/}'${marker_spc}${marker_hnt}${marker_spc}private ]"
 
 		return 1
 	fi
 
-	tar									\
-		--extract						\
-		--gzip							\
-		--file "${identity_directory}/${file_identity_archive}"	\
-		--directory "${directory_kde_connect}"
-
-	if [ "${?}" -ne 0 ]
+	if [ -f "${file_identity_config}" ]
 	then
-		frobulator.err "Restore failure - identity" "[ '${file_identity_archive}'${marker_spc}${marker_hnt}${marker_spc}${identity_directory} ]"
-
-		return 1
+		cp -f "${file_identity_config}" "${directory_kde_connect}/config"
 	fi
 
 	frobulator.permissions private "${directory_kde_connect}/privateKey.pem" "${directory_kde_connect}/certificate.pem" > "${sink}"
 
-	frobulator.scs "Restore success - identity" "[ 'identity'${marker_spc}${marker_hnt}${marker_spc}private ]"
+	frobulator.scs "Restore success - identity" "[ '${file_identity_key##*/}'${marker_spc}${marker_hnt}${marker_spc}private ]"
 }
 
 # update ───────────────────────────────────────────────────────────────────────
