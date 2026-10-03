@@ -462,6 +462,7 @@ devices_restore () {
 	local adapter_archived
 	local device_directory
 	local device_address
+	local device_name
 	local file_keys_archive
 
 	if [ ! -f "${file_bluetooth_keys}" ]
@@ -517,7 +518,10 @@ devices_restore () {
 
 			frobulator.track
 
-			frobulator.scs "Restore success - device" "[ '$(info_value "${device_directory}/info" Name)'${marker_spc}${marker_hnt}${marker_spc}${device_address} ]"
+			device_name="$(info_value "${device_directory}/info" Alias)"
+			device_name="${device_name:-$(info_value "${device_directory}/info" Name)}"
+
+			frobulator.scs "Restore success - device" "[ '$(device_label "${device_name}")'${marker_spc}${marker_hnt}${marker_spc}${device_address} ]"
 		done
 
 		# adapter settings (name, discoverable) only for the same adapter
@@ -655,9 +659,9 @@ then
 
 	sleep 3
 
-	frobulator.inf "Known devices"
+	frobulator.inf "Paired devices"
 
-	bluetoothctl devices 2> "${sink}"
+	bluetoothctl devices Paired 2> "${sink}"
 fi
 
 frobulator.result "${script}"
