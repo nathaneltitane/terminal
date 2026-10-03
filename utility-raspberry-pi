@@ -341,7 +341,7 @@ fi
 
 device_details="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
 
-frobulator.ntf err "Destructive operation" "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${device_details}"
+frobulator.ntf err "Destructive operation" err "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${device_details}"
 
 frobulator.ask "Type the device path exactly to confirm" "[ ${device} ]"
 
