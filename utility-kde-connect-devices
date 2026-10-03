@@ -137,7 +137,7 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -b | -r -d [Directory] -k [File] | -h"
+			echo -e "Usage: ./${script} -b | -r [-d [Directory]] [-k [File]] | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -171,7 +171,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -b | -r -d [Directory] -k [File] | -h"
+			echo -e "Usage: ./${script} -b | -r [-d [Directory]] [-k [File]] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -258,7 +258,7 @@ device_file_name () {
 	local device_name="${1,,}"
 
 	device_name="${device_name// /-}"
-	device_name="${device_name//[^a-z0-9._-]/}"
+	device_name="${device_name//[^a-z0-9_-]/}"
 
 	echo "${device_name:-device}"
 }
@@ -376,15 +376,11 @@ devices_backup () {
 		fi
 
 		# plugin settings: run commands, clipboard, enabled plugins
+		# archive holds the device id directory itself
 
 		if [ -d "${directory_kde_connect}/${device_id}" ]
 		then
-			tar									\
-				--create						\
-				--gzip							\
-				--file "${directory}/kde-connect-settings-${device_name}.tar.gz"	\
-				--directory "${directory_kde_connect}/${device_id}"				\
-												.
+			frobulator.archive "${directory}/kde-connect-settings-${device_name}" "tar.gz" "${directory_kde_connect}/${device_id}"
 
 			if [ "${?}" -ne 0 ]
 			then
@@ -498,13 +494,7 @@ devices_restore () {
 
 		if [ -f "${directory}/kde-connect-settings-${device_name}.tar.gz" ]
 		then
-			mkdir -p "${directory_kde_connect}/${device_id}"
-
-			tar									\
-				--extract						\
-				--gzip							\
-				--file "${directory}/kde-connect-settings-${device_name}.tar.gz"	\
-				--directory "${directory_kde_connect}/${device_id}"
+			frobulator.extract "${directory}/kde-connect-settings-${device_name}.tar.gz" "${directory_kde_connect}"
 
 			if [ "${?}" -ne 0 ]
 			then
