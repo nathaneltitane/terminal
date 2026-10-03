@@ -269,11 +269,11 @@ reply=""
 
 if [ "${count_arguments}" -eq 0 ]
 then
-	frobulator.ask "'From' directory:"
+	frobulator.ask "Set 'from' directory:"
 
 	frobulator.read -e from
 
-	frobulator.ask "'To' directory:"
+	frobulator.ask "Set 'to' directory:"
 
 	frobulator.read -e to
 
