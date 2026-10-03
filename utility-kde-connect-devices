@@ -1,0 +1,634 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found ─────────────────────── [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^update=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^update=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+
+	# script arguments for escalation
+
+	self_arguments=("${@}")
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-03"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (($#))
+do
+	case "${1}"
+	in
+		-b|--backup)
+			option="backup"
+		;;
+
+		-r|--restore)
+			option="restore"
+		;;
+
+		-d|--directory)
+			directory="${2}"
+
+			shift
+		;;
+
+		-i|--identity)
+			identity_directory="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -b | -r -d [Directory] -i [Directory] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-b, --backup       Run [b]ackup of paired devices into the directory."
+			echo
+			echo -e "-r, --restore      Run [r]estore of paired devices from the directory."
+			echo
+			echo -e "-d, --directory    Specify device files [d]irectory."
+			echo
+			echo -e "                   [ script directory ] [ Default ]"
+			echo
+			echo -e "-i, --identity     Specify private directory for this computer's [i]dentity."
+			echo
+			echo -e "                   [ private key - never a public repository ]"
+			echo -e "                   [ required for devices to recognize this computer ]"
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'     [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -b | -r -d [Directory] -i [Directory] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+directory_kde_connect="${HOME}/.config/kdeconnect"
+
+file_trusted_devices="${directory_kde_connect}/trusted_devices"
+
+file_identity_archive="kde-connect-identity.tar.gz"
+
+declare -A device_names
+declare -A device_types
+declare -A device_certificates
+
+device_order=()
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ -z "${option}" ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Specify either '--backup' or '--restore'."
+
+	exit 1
+
+elif [[ "${directory}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+
+	exit 1
+
+elif [[ "${identity_directory}" = -* ]]
+then
+	frobulator.err "Missing argument for '--identity'."
+
+	exit 1
+fi
+
+# device files are kept in the repository holding this script
+
+if [ -z "${directory}" ]
+then
+	directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+fi
+
+directory="${directory%/}"
+
+file_device_index="${directory}/kde-connect-devices-list"
+
+# functions ────────────────────────────────────────────────────────────────────
+
+device_file_name () {
+
+	# device name as file name part: lowercase, spaces as '-', safe characters only
+
+	local device_name="${1,,}"
+
+	device_name="${device_name// /-}"
+	device_name="${device_name//[^a-z0-9._-]/}"
+
+	echo "${device_name:-device}"
+}
+
+devices_read () {
+
+	# trusted devices from kde connect configuration
+
+	local device_line
+	local device_id
+	local device_certificate
+
+	if [ ! -f "${file_trusted_devices}" ]
+	then
+		frobulator.err "Backup failure - no paired devices" "[ '${file_trusted_devices}'${marker_spc}${marker_hnt}${marker_spc}none ]"
+
+		return 1
+	fi
+
+	while IFS= read -r device_line
+	do
+		if [[ "${device_line}" =~ ^\[(.+)\]$ ]]
+		then
+			device_id="${BASH_REMATCH[1]}"
+
+			device_order+=("${device_id}")
+
+		elif [[ "${device_line}" = name=* ]]
+		then
+			device_names["${device_id}"]="${device_line#name=}"
+
+		elif [[ "${device_line}" = type=* ]]
+		then
+			device_types["${device_id}"]="${device_line#type=}"
+
+		elif [[ "${device_line}" = certificate=* ]]
+		then
+			# stored on one line: quoted when padded, newlines escaped as '\n'
+
+			device_certificate="${device_line#certificate=}"
+			device_certificate="${device_certificate#\"}"
+			device_certificate="${device_certificate%\"}"
+
+			device_certificates["${device_id}"]="${device_certificate//\\n/${NLN}}"
+		fi
+	done < "${file_trusted_devices}"
+}
+
+index_tabs () {
+
+	# tabs from a text position to a column, tab width 4
+
+	local index_position="${1}"
+	local index_column="${2}"
+	local index_tab_count=$(( (index_column - index_position / 4 * 4) / 4 ))
+
+	while [ "${index_tab_count}" -gt 0 ]
+	do
+		printf '\t'
+
+		index_tab_count=$(( index_tab_count - 1 ))
+	done
+}
+
+devices_backup () {
+
+	local backup_status=0
+	local index_label_width
+	local index_label_column
+	local device_id
+	local device_name
+	local device_file
+	local device_certificate_name
+
+	devices_read || return
+
+	# index columns aligned on tab stops (tab width 4):
+	# label column one tab wider than the longest label: label, id, type
+
+	index_label_width=0
+
+	for device_id in "${device_order[@]}"
+	do
+		device_name="$(device_file_name "${device_names[${device_id}]}")"
+
+		if [ "${#device_name}" -gt "${index_label_width}" ]
+		then
+			index_label_width="${#device_name}"
+		fi
+	done
+
+	index_label_column=$(( (index_label_width / 4 + 2) * 4 ))
+
+	: > "${file_device_index}"
+
+	for device_id in "${device_order[@]}"
+	do
+		device_name="$(device_file_name "${device_names[${device_id}]}")"
+
+		device_certificate_name="kde-connect-device-${device_name}.pem"
+
+		# certificate: public key the device paired with
+
+		device_file="${directory}/${device_certificate_name}"
+
+		printf '%s\n' "${device_certificates[${device_id}]%${NLN}}" > "${device_file}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Backup failure - certificate" "[ '${device_certificate_name}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+
+			backup_status=1
+
+			continue
+		fi
+
+		# plugin settings: run commands, clipboard, enabled plugins
+
+		if [ -d "${directory_kde_connect}/${device_id}" ]
+		then
+			tar									\
+				--create						\
+				--gzip							\
+				--file "${directory}/kde-connect-settings-${device_name}.tar.gz"	\
+				--directory "${directory_kde_connect}/${device_id}"				\
+												.
+
+			if [ "${?}" -ne 0 ]
+			then
+				frobulator.err "Backup failure - settings" "[ '${device_name}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+
+				backup_status=1
+			fi
+		fi
+
+		printf '%s%s%s\t%s\n' "${device_name}" "$(index_tabs "${#device_name}" "${index_label_column}")" "${device_id}" "${device_types[${device_id}]}" >> "${file_device_index}"
+
+		frobulator.scs "Backup success - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+	done
+
+	return "${backup_status}"
+}
+
+identity_backup () {
+
+	# this computer's certificate, private key and name: private location only
+
+	if [ -z "${identity_directory}" ]
+	then
+		frobulator.wrn "Identity not saved - use '--identity [directory]'"
+		frobulator.nul "Without it, devices will not recognize this computer after a reinstall."
+
+		return 0
+	fi
+
+	frobulator.directory "${identity_directory}"
+
+	tar									\
+		--create						\
+		--gzip							\
+		--file "${identity_directory}/${file_identity_archive}"	\
+		--directory "${directory_kde_connect}"				\
+										certificate.pem privateKey.pem config
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "Backup failure - identity" "[ '${file_identity_archive}'${marker_spc}${marker_hnt}${marker_spc}${identity_directory} ]"
+
+		return 1
+	fi
+
+	frobulator.permissions private "${identity_directory}/${file_identity_archive}" > "${sink}"
+
+	frobulator.scs "Backup success - identity" "[ 'identity'${marker_spc}${marker_hnt}${marker_spc}private ]"
+}
+
+service_stop () {
+
+	if [ -n "$(pgrep -x -u "${USER}" kdeconnectd)" ]
+	then
+		frobulator.stp "Stopping" "[ kdeconnectd ]"
+
+		pkill -x -u "${USER}" kdeconnectd
+
+		sleep 2
+	fi
+}
+
+service_start () {
+
+	# kde connect service starts on demand through its command line client
+
+	frobulator.fwd "Starting" "[ kdeconnectd ]"
+
+	kdeconnect-cli --refresh > "${sink}" 2>&1
+
+	sleep 3
+}
+
+devices_restore () {
+
+	local restore_status=0
+	local device_name
+	local device_id
+	local device_type
+	local device_file
+	local device_certificate
+
+	if [ ! -f "${file_device_index}" ]
+	then
+		frobulator.err "Restore failure - no device index" "[ '${file_device_index}'${marker_spc}${marker_hnt}${marker_spc}none ]"
+
+		return 1
+	fi
+
+	# keep devices already paired on this computer, replace those being restored
+
+	if [ -f "${file_trusted_devices}" ]
+	then
+		devices_read
+	fi
+
+	while IFS=$'\t' read -r device_name device_id device_type
+	do
+		device_file="${directory}/kde-connect-device-${device_name}.pem"
+
+		if [ ! -f "${device_file}" ]
+		then
+			frobulator.err "Restore failure - certificate" "[ 'kde-connect-device-${device_name}.pem'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+			restore_status=1
+
+			continue
+		fi
+
+		device_certificate="$(< "${device_file}")"
+
+		if [ -z "${device_certificates[${device_id}]+set}" ]
+		then
+			device_order+=("${device_id}")
+		fi
+
+		device_names["${device_id}"]="${device_name}"
+		device_types["${device_id}"]="${device_type}"
+		device_certificates["${device_id}"]="${device_certificate}${NLN}"
+
+		# plugin settings
+
+		if [ -f "${directory}/kde-connect-settings-${device_name}.tar.gz" ]
+		then
+			mkdir -p "${directory_kde_connect}/${device_id}"
+
+			tar									\
+				--extract						\
+				--gzip							\
+				--file "${directory}/kde-connect-settings-${device_name}.tar.gz"	\
+				--directory "${directory_kde_connect}/${device_id}"
+
+			if [ "${?}" -ne 0 ]
+			then
+				frobulator.err "Restore failure - settings" "[ '${device_name}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+
+				restore_status=1
+			fi
+		fi
+
+		frobulator.scs "Restore success - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+	done < "${file_device_index}"
+
+	# trusted devices written back in kde connect format
+
+	for device_id in "${device_order[@]}"
+	do
+		device_certificate="${device_certificates[${device_id}]}"
+
+		echo "[${device_id}]"
+		echo "certificate=${device_certificate//${NLN}/\\n}"
+		echo "name=${device_names[${device_id}]}"
+		echo "type=${device_types[${device_id}]}"
+		echo
+	done > "${file_trusted_devices}"
+
+	return "${restore_status}"
+}
+
+identity_restore () {
+
+	if [ -z "${identity_directory}" ]
+	then
+		frobulator.wrn "Identity not restored - use '--identity [directory]'"
+		frobulator.nul "Devices will need to pair again with this computer."
+
+		return 0
+	fi
+
+	if [ ! -f "${identity_directory}/${file_identity_archive}" ]
+	then
+		frobulator.err "Restore failure - identity" "[ '${file_identity_archive}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+		return 1
+	fi
+
+	tar									\
+		--extract						\
+		--gzip							\
+		--file "${identity_directory}/${file_identity_archive}"	\
+		--directory "${directory_kde_connect}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "Restore failure - identity" "[ '${file_identity_archive}'${marker_spc}${marker_hnt}${marker_spc}${identity_directory} ]"
+
+		return 1
+	fi
+
+	frobulator.permissions private "${directory_kde_connect}/privateKey.pem" "${directory_kde_connect}/certificate.pem" > "${sink}"
+
+	frobulator.scs "Restore success - identity" "[ 'identity'${marker_spc}${marker_hnt}${marker_spc}private ]"
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+if [ -z "$(command -v kdeconnect-cli)" ]
+then
+	frobulator.err "KDE Connect not installed" "[ kdeconnect-cli ]"
+
+	exit 1
+fi
+
+if [ ! -d "${directory}" ]
+then
+	frobulator.err "Directory not found" "[ ${directory} ]"
+
+	exit 1
+fi
+
+frobulator.inf "Device files directory" "[ ${directory} ]"
+
+if [ "${option}" = "backup" ]
+then
+	devices_backup
+
+	frobulator.complete continue "Backup failure - devices"
+
+	identity_backup
+
+	frobulator.complete continue "Backup failure - identity"
+
+elif [ "${option}" = "restore" ]
+then
+	frobulator.directory "${directory_kde_connect}"
+
+	service_stop
+
+	identity_restore
+
+	frobulator.complete continue "Restore failure - identity"
+
+	devices_restore
+
+	frobulator.complete continue "Restore failure - devices"
+
+	frobulator.ownership "${directory_kde_connect}"
+
+	service_start
+
+	frobulator.inf "Paired devices"
+
+	kdeconnect-cli --list-devices 2> "${sink}"
+fi
+
+frobulator.result "${script}"
