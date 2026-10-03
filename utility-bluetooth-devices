@@ -1,0 +1,663 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found ─────────────────────── [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^update=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^update=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+
+	# script arguments for escalation
+
+	self_arguments=("${@}")
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-03"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (($#))
+do
+	case "${1}"
+	in
+		-b|--backup)
+			option="backup"
+		;;
+
+		-r|--restore)
+			option="restore"
+		;;
+
+		-d|--directory)
+			directory="${2}"
+
+			shift
+		;;
+
+		-k|--key)
+			file_bluetooth_keys="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -b | -r [-d [Directory]] [-k [File]] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-b, --backup       Run [b]ackup of bluetooth devices and audio settings."
+			echo
+			echo -e "-r, --restore      Run [r]estore of bluetooth devices and audio settings."
+			echo
+			echo -e "-d, --directory    Specify device files [d]irectory."
+			echo
+			echo -e "                   [ script directory ] [ Default ]"
+			echo
+			echo -e "-k, --key          Specify the private bluetooth [k]eys file."
+			echo
+			echo -e "                   [ /media/internal/.bluetooth-keys ] [ Default ]"
+			echo -e "                   [ private - never a public repository ]"
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'     [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -b | -r [-d [Directory]] [-k [File]] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+# bluez device store: pairing keys, names, aliases, trust - root only
+
+directory_bluetooth="/var/lib/bluetooth"
+
+# pulseaudio per-user settings, prefixed with the machine id
+
+directory_pulse="${HOME}/.config/pulse"
+
+audio_files_list=(
+	device-volumes.tdb
+	card-database.tdb
+	stream-volumes.tdb
+	default-sink
+	default-source
+)
+
+file_bluetooth_keys_default="/media/internal/.bluetooth-keys"
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ -z "${option}" ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Specify either '--backup' or '--restore'."
+
+	exit 1
+
+elif [[ "${directory}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+
+	exit 1
+
+elif [[ "${file_bluetooth_keys}" = -* ]]
+then
+	frobulator.err "Missing argument for '--key'."
+
+	exit 1
+fi
+
+# device files are kept in the repository holding this script
+
+if [ -z "${directory}" ]
+then
+	directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+fi
+
+directory="${directory%/}"
+
+file_device_index="${directory}/bluetooth-devices-list"
+
+file_bluetooth_keys="${file_bluetooth_keys:-${file_bluetooth_keys_default}}"
+
+machine_id="$(< /etc/machine-id)"
+
+# functions ────────────────────────────────────────────────────────────────────
+
+adapter_address () {
+
+	# address of the default bluetooth adapter, or the only one already stored
+
+	local adapter_line
+	local adapter_directory
+	local adapter_directories=()
+
+	adapter_line="$(bluetoothctl list 2> "${sink}" | grep -m 1 '^Controller')"
+
+	if [ -n "${adapter_line}" ]
+	then
+		adapter_line="${adapter_line#Controller }"
+
+		echo "${adapter_line%% *}"
+
+		return 0
+	fi
+
+	for adapter_directory in "${directory_bluetooth}"/??:??:??:??:??:??
+	do
+		if [ -d "${adapter_directory}" ]
+		then
+			adapter_directories+=("${adapter_directory##*/}")
+		fi
+	done
+
+	if [ "${#adapter_directories[@]}" -eq 1 ]
+	then
+		echo "${adapter_directories[0]}"
+
+		return 0
+	fi
+
+	return 1
+}
+
+device_label () {
+
+	# device name as label: lowercase, spaces as '-', safe characters only
+
+	local device_name="${1,,}"
+
+	device_name="${device_name// /-}"
+	device_name="${device_name//[^a-z0-9_-]/}"
+
+	echo "${device_name:-device}"
+}
+
+info_value () {
+
+	# value of a key in the [General] section of a bluez info file
+
+	local info_file="${1}"
+	local info_key="${2}"
+	local info_line
+	local info_section
+
+	while IFS= read -r info_line
+	do
+		if [[ "${info_line}" =~ ^\[(.+)\]$ ]]
+		then
+			info_section="${BASH_REMATCH[1]}"
+
+		elif [ "${info_section}" = "General" ] && [[ "${info_line}" = "${info_key}="* ]]
+		then
+			echo "${info_line#*=}"
+
+			return 0
+		fi
+	done < "${info_file}"
+}
+
+index_tabs () {
+
+	# tabs from a text position to a column, tab width 4
+
+	local index_position="${1}"
+	local index_column="${2}"
+	local index_tab_count=$(( (index_column - index_position / 4 * 4) / 4 ))
+
+	while [ "${index_tab_count}" -gt 0 ]
+	do
+		printf '\t'
+
+		index_tab_count=$(( index_tab_count - 1 ))
+	done
+}
+
+devices_backup () {
+
+	local status=0
+	local adapter
+	local device_directory
+	local device_address
+	local device_name
+	local device_labels=()
+	local device_addresses=()
+	local device_names=()
+	local index_label_width=0
+	local index_label_column
+	local device_index
+	local file_keys_archive
+
+	adapter="$(adapter_address)"
+
+	if [ -z "${adapter}" ] || [ ! -d "${directory_bluetooth}/${adapter}" ]
+	then
+		frobulator.err "Backup failure - no bluetooth adapter" "[ ${directory_bluetooth}${marker_spc}${marker_hnt}${marker_spc}none ]"
+
+		return 1
+	fi
+
+	# device list: label, address, name
+
+	for device_directory in "${directory_bluetooth}/${adapter}"/??:??:??:??:??:??
+	do
+		if [ ! -f "${device_directory}/info" ]
+		then
+			continue
+		fi
+
+		device_address="${device_directory##*/}"
+
+		device_name="$(info_value "${device_directory}/info" Alias)"
+		device_name="${device_name:-$(info_value "${device_directory}/info" Name)}"
+
+		device_labels+=("$(device_label "${device_name}")")
+		device_addresses+=("${device_address}")
+		device_names+=("${device_name}")
+	done
+
+	for device_index in "${!device_labels[@]}"
+	do
+		if [ "${#device_labels[${device_index}]}" -gt "${index_label_width}" ]
+		then
+			index_label_width="${#device_labels[${device_index}]}"
+		fi
+	done
+
+	# columns aligned on tab stops (tab width 4): label column one tab wider than the longest label
+
+	index_label_column=$(( (index_label_width / 4 + 2) * 4 ))
+
+	: > "${file_device_index}"
+
+	for device_index in "${!device_labels[@]}"
+	do
+		printf '%s%s%s\t%s\n'																				\
+			"${device_labels[${device_index}]}"																\
+			"$(index_tabs "${#device_labels[${device_index}]}" "${index_label_column}")"					\
+			"${device_addresses[${device_index}]}"															\
+			"${device_names[${device_index}]}"	>> "${file_device_index}"
+
+		frobulator.scs "Backup success - device" "[ '${device_labels[${device_index}]}'${marker_spc}${marker_hnt}${marker_spc}${device_addresses[${device_index}]} ]"
+	done
+
+	# full bluez store with pairing keys: private file only
+
+	frobulator.temporary directory_keys_temporary
+
+	frobulator.trap "${directory_keys_temporary}"
+
+	file_keys_archive="${directory_keys_temporary}/bluetooth-keys"
+
+	frobulator.archive "${file_keys_archive}" "tar.gz" "${directory_bluetooth}" > "${sink}"
+
+	frobulator.track || return 1
+
+	frobulator.directory "$(dirname -- "${file_bluetooth_keys}")" > "${sink}"
+
+	mv -f "${file_keys_archive}.tar.gz" "${file_bluetooth_keys}"
+
+	frobulator.track || return 1
+
+	frobulator.permissions private "${file_bluetooth_keys}" > "${sink}"
+
+	frobulator.ownership "${file_bluetooth_keys}" > "${sink}"
+
+	frobulator.scs "Backup success - keys" "[ '${file_bluetooth_keys##*/}'${marker_spc}${marker_hnt}${marker_spc}private ]"
+
+	return "${status}"
+}
+
+audio_backup () {
+
+	# pulseaudio volumes and defaults, stored without the machine id prefix
+
+	local status=0
+	local audio_file
+
+	for audio_file in "${audio_files_list[@]}"
+	do
+		if [ -f "${directory_pulse}/${machine_id}-${audio_file}" ]
+		then
+			cp -f "${directory_pulse}/${machine_id}-${audio_file}" "${directory}/bluetooth-audio-${audio_file}"
+
+			frobulator.track
+		fi
+	done
+
+	if [ "${status}" -eq 0 ]
+	then
+		frobulator.scs "Backup success - audio settings" "[ 'bluetooth-audio'${marker_spc}${marker_hnt}${marker_spc}${#audio_files_list[@]} ]"
+	fi
+
+	return "${status}"
+}
+
+devices_restore () {
+
+	local status=0
+	local adapter
+	local adapter_archived
+	local device_directory
+	local device_address
+	local file_keys_archive
+
+	if [ ! -f "${file_bluetooth_keys}" ]
+	then
+		frobulator.err "Restore failure - no keys file" "[ '${file_bluetooth_keys##*/}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+		return 1
+	fi
+
+	adapter="$(adapter_address)"
+
+	if [ -z "${adapter}" ]
+	then
+		frobulator.err "Restore failure - no bluetooth adapter" "[ bluetoothctl${marker_spc}${marker_hnt}${marker_spc}none ]"
+
+		return 1
+	fi
+
+	# keys file is a tar.gz archive holding the bluetooth directory
+
+	frobulator.temporary directory_keys_temporary
+
+	frobulator.trap "${directory_keys_temporary}"
+
+	file_keys_archive="${directory_keys_temporary}/bluetooth-keys.tar.gz"
+
+	cp -f "${file_bluetooth_keys}" "${file_keys_archive}"
+
+	frobulator.extract "${file_keys_archive}" "${directory_keys_temporary}" > "${sink}"
+
+	frobulator.track || return 1
+
+	frobulator.stp "Stopping" "[ bluetooth ]"
+
+	systemctl stop bluetooth
+
+	# devices go under the current adapter, even when it changed
+
+	mkdir -p "${directory_bluetooth}/${adapter}"
+
+	for adapter_archived in "${directory_keys_temporary}"/bluetooth/??:??:??:??:??:??
+	do
+		for device_directory in "${adapter_archived}"/??:??:??:??:??:??
+		do
+			if [ ! -f "${device_directory}/info" ]
+			then
+				continue
+			fi
+
+			device_address="${device_directory##*/}"
+
+			cp -a "${device_directory}" "${directory_bluetooth}/${adapter}/"
+
+			frobulator.track
+
+			frobulator.scs "Restore success - device" "[ '$(info_value "${device_directory}/info" Name)'${marker_spc}${marker_hnt}${marker_spc}${device_address} ]"
+		done
+
+		# adapter settings (name, discoverable) only for the same adapter
+
+		if [ "${adapter_archived##*/}" = "${adapter}" ] && [ -f "${adapter_archived}/settings" ]
+		then
+			cp -f "${adapter_archived}/settings" "${directory_bluetooth}/${adapter}/settings"
+		fi
+	done
+
+	chmod -R go-rwx "${directory_bluetooth}"
+
+	frobulator.fwd "Starting" "[ bluetooth ]"
+
+	systemctl start bluetooth
+
+	frobulator.track
+
+	return "${status}"
+}
+
+audio_user () {
+
+	# run a command as the desktop user, inside their session
+
+	local audio_user_name="${SUDO_USER:-${USER}}"
+
+	sudo -u "${audio_user_name}" XDG_RUNTIME_DIR="/run/user/$(id -u "${audio_user_name}")" "${@}"
+}
+
+audio_restore () {
+
+	# pulseaudio settings under this machine's id, with pulseaudio stopped
+
+	local status=0
+	local audio_file
+	local audio_found=false
+
+	for audio_file in "${audio_files_list[@]}"
+	do
+		if [ -f "${directory}/bluetooth-audio-${audio_file}" ]
+		then
+			audio_found=true
+		fi
+	done
+
+	if [ "${audio_found}" != true ]
+	then
+		frobulator.wrn "Audio settings not restored - none saved" "[ 'bluetooth-audio'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+		return 0
+	fi
+
+	audio_user systemctl --user stop pulseaudio.socket pulseaudio.service 2> "${sink}"
+
+	mkdir -p "${directory_pulse}"
+
+	for audio_file in "${audio_files_list[@]}"
+	do
+		if [ -f "${directory}/bluetooth-audio-${audio_file}" ]
+		then
+			cp -f "${directory}/bluetooth-audio-${audio_file}" "${directory_pulse}/${machine_id}-${audio_file}"
+
+			frobulator.track
+		fi
+	done
+
+	frobulator.ownership "${directory_pulse}" > "${sink}"
+
+	audio_user systemctl --user start pulseaudio.socket pulseaudio.service 2> "${sink}"
+
+	if [ "${status}" -eq 0 ]
+	then
+		frobulator.scs "Restore success - audio settings" "[ 'bluetooth-audio'${marker_spc}${marker_hnt}${marker_spc}${machine_id:0:8} ]"
+	fi
+
+	return "${status}"
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+if [ -z "$(command -v bluetoothctl)" ]
+then
+	frobulator.err "BlueZ not installed" "[ bluetoothctl ]"
+
+	exit 1
+fi
+
+if [ ! -d "${directory}" ]
+then
+	frobulator.err "Directory not found" "[ ${directory} ]"
+
+	exit 1
+fi
+
+frobulator.inf "Device files directory" "[ ${directory} ]"
+
+if [ "${option}" = "backup" ]
+then
+	devices_backup
+
+	frobulator.complete continue "Backup failure - devices"
+
+	audio_backup
+
+	frobulator.complete continue "Backup failure - audio settings"
+
+	frobulator.ownership "${file_device_index}" "${directory}"/bluetooth-audio-* > "${sink}"
+
+elif [ "${option}" = "restore" ]
+then
+	devices_restore
+
+	frobulator.complete continue "Restore failure - devices"
+
+	audio_restore
+
+	frobulator.complete continue "Restore failure - audio settings"
+
+	sleep 3
+
+	frobulator.inf "Known devices"
+
+	bluetoothctl devices 2> "${sink}"
+fi
+
+frobulator.result "${script}"
