@@ -392,7 +392,7 @@ ollama show "${model}" > "${sink}" 2>&1
 
 frobulator.complete halt "Local model verification failed" "[ ${model} ]"
 
-frobulator.ntf inf "Offline local ${label} [ '${model}' ]" "Model name:            ${model_name}
+frobulator.ntf inf "Offline local ${label} [ '${model}' ]" inf "Model name:            ${model_name}
 Model version:         ${model_version}
 Model size:            ${model_size}
 Model directory:       ${models_directory}

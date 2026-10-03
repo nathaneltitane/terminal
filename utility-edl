@@ -305,7 +305,7 @@ else
 	exit 1
 fi
 
-frobulator.ntf inf "EDL" "Device needs a USB PID of 0x9008 to work.
+frobulator.ntf inf "EDL" inf "Device needs a USB PID of 0x9008 to work.
 
 Run 'edl -h' for the full command reference, or 'edl printgpt' to test."
 
