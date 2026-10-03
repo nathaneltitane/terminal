@@ -195,6 +195,14 @@ file_trusted_devices="${directory_kde_connect}/trusted_devices"
 
 file_identity_archive="kde-connect-identity.tar.gz"
 
+# plugin configuration for devices restored without one
+
+device_default_config=(
+	"[Plugins]"
+	"kdeconnect_notificationsEnabled=false"
+	"kdeconnect_telephonyEnabled=false"
+)
+
 declare -A device_names
 declare -A device_types
 declare -A device_certificates
@@ -508,6 +516,15 @@ devices_restore () {
 
 				restore_status=1
 			fi
+		fi
+
+		# default plugin configuration when the device has none
+
+		if [ ! -f "${directory_kde_connect}/${device_id}/config" ]
+		then
+			mkdir -p "${directory_kde_connect}/${device_id}"
+
+			printf '%s\n' "${device_default_config[@]}" > "${directory_kde_connect}/${device_id}/config"
 		fi
 
 		frobulator.scs "Restore success - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
