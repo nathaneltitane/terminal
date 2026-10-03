@@ -194,7 +194,7 @@ dimension="full"
 # large:  75%
 # full:   100%
 
-source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null
+source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
 
 # set dimension flags
 

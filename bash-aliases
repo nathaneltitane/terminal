@@ -146,27 +146,27 @@ then
 	alias '..'='cd ..'
 fi
 
-if [[ $(ls -d "${HOME}" 2> /dev/null) ]]
+if [[ $(ls -d "${HOME}" 2> "${sink}") ]]
 then
 	alias 'hd'='cd "${HOME}"'
 fi
 
-if [[ $(ls -d /media 2> /dev/null) ]]
+if [[ $(ls -d /media 2> "${sink}") ]]
 then
 	alias 'md'='cd /media'
 fi
 
-if [[ $(ls -d /media/[eE]xternal 2> /dev/null) ]]
+if [[ $(ls -d /media/[eE]xternal 2> "${sink}") ]]
 then
 	alias 'ex'='cd /media/[eE]xternal'
 fi
 
-if [[ $(ls -d /media/[iI]nternal 2> /dev/null) ]]
+if [[ $(ls -d /media/[iI]nternal 2> "${sink}") ]]
 then
 	alias 'in'='cd /media/[iI]nternal'
 fi
 
-if [[ $(ls -d /media/[fF]iles 2> /dev/null) ]]
+if [[ $(ls -d /media/[fF]iles 2> "${sink}") ]]
 then
 	alias 'fl'='cd /media/[fF]iles'
 fi
@@ -185,15 +185,15 @@ then
 	alias 'gn'='git ls-files | xargs cat | wc -l'
 fi
 
-if [[ $(ls -d "${HOME}"/[gG]it 2> /dev/null) ]]
+if [[ $(ls -d "${HOME}"/[gG]it 2> "${sink}") ]]
 then
 	alias 'gd'='cd "${HOME}"/[gG]it'
 
-elif [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> /dev/null) ]]
+elif [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> "${sink}") ]]
 then
 	alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
 
-elif [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> /dev/null) ]]
+elif [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> "${sink}") ]]
 then
 	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
 fi

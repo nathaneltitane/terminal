@@ -270,7 +270,7 @@ if [ "${inotify_watches_current}" -lt "${inotify_watches_required}" ]
 then
 	frobulator.inf "Raising inotify watch limit" "[ ${inotify_watches_required} ]"
 
-	sysctl -w fs.inotify.max_user_watches="${inotify_watches_required}" > /dev/null
+	sysctl -w fs.inotify.max_user_watches="${inotify_watches_required}" > "${sink}"
 
 	frobulator.write "write" "fs.inotify.max_user_watches=${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
 
@@ -337,7 +337,7 @@ do
 
 	while ${debounce_pending}
 	do
-		read -t 2 -r inotify_directory inotify_event inotify_file 2> /dev/null
+		read -t 2 -r inotify_directory inotify_event inotify_file 2> "${sink}"
 		read_status="${?}"
 
 		if [ "${read_status}" -ge 128 ] || [ "${read_status}" -eq 1 ]

@@ -185,7 +185,7 @@ cat <<- 'FILE' > /usr/bin/background-cycler
 
 # background cycler #
 
-directory=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> /dev/null
+directory=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
 
 gsettings set org.gnome.desktop.background picture-options "zoom"
 

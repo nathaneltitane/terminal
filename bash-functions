@@ -244,7 +244,7 @@ adb_record () {
 
 	read -r -p 'Press enter to stop recording...'
 
-	kill ${adb_record_PID} > /dev/null 2&>1
+	kill ${adb_record_PID} > "${sink}" 2>&1
 
 	sleep 0.5
 
@@ -1323,13 +1323,13 @@ audio-combine () {
 		bluetooth_address="${1}"
 		timeout="${2:-10}"
 		i=0
-		bluetoothctl disconnect "${bluetooth_address}" >/dev/null 2>&1
+		bluetoothctl disconnect "${bluetooth_address}" > "${sink}" 2>&1
 
 		while [ "${i}" -lt "${timeout}" ]
 		do
-			bluetoothctl connect "${bluetooth_address}" > /dev/null 2>&1
+			bluetoothctl connect "${bluetooth_address}" > "${sink}" 2>&1
 
-			if bluetoothctl info "${bluetooth_address}" 2>/dev/null | grep -F 'Connected: yes' > /dev/null 2>&1
+			if bluetoothctl info "${bluetooth_address}" 2> "${sink}" | grep -F 'Connected: yes' > "${sink}" 2>&1
 			then
 				return 0
 			fi
@@ -1349,7 +1349,7 @@ audio-combine () {
 
 		while [ "${seconds}" -lt "${timeout}" ]
 		do
-			if pactl list short sinks | grep -F "	${sink_name}	" > /dev/null 2>&1
+			if pactl list short sinks | grep -F "	${sink_name}	" > "${sink}" 2>&1
 			then
 				return 0
 			fi
