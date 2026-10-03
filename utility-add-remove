@@ -597,11 +597,11 @@ mirror_rename () {
 
 		mv -- "${to}/${file}" "${temporary}"
 
-		frobulator.complete "Failed to rename" "[ ${file} ]" || return
+		frobulator.fail "Failed to rename" "[ ${file} ]" || return
 
 		mv -- "${temporary}" "${to}/${file}"
 
-		frobulator.complete "Failed to rename" "[ ${file} ]" || return
+		frobulator.fail "Failed to rename" "[ ${file} ]" || return
 
 	done < "${list_rename}"
 
@@ -616,13 +616,13 @@ mirror_copy () {
 	do
 		mkdir -p "$(dirname -- "${to}/${file}")"
 
-		frobulator.complete "Failed to create directory" "[ ${file} ]" || return
+		frobulator.fail "Failed to create directory" "[ ${file} ]" || return
 
 		frobulator.add "Copying" "[ ${file} ]"
 
 		cp -- "${from}/${file}" "${to}/${file}"
 
-		frobulator.complete "Failed to copy" "[ ${file} ]" || return
+		frobulator.fail "Failed to copy" "[ ${file} ]" || return
 
 	done < "${list_copy}"
 
@@ -639,7 +639,7 @@ mirror_remove () {
 
 		rm -f -- "${to}/${file}"
 
-		frobulator.complete "Failed to remove" "[ ${file} ]" || return
+		frobulator.fail "Failed to remove" "[ ${file} ]" || return
 
 	done < "${list_remove}"
 
@@ -749,7 +749,7 @@ then
 
 	mirror_rename
 
-	frobulator.complete "File rename failed."
+	frobulator.complete halt "File rename failed."
 
 	# index again: renamed files now match
 
@@ -759,11 +759,11 @@ then
 
 	mirror_copy
 
-	frobulator.complete "File copy failed."
+	frobulator.complete halt "File copy failed."
 
 	mirror_remove
 
-	frobulator.complete "File removal failed."
+	frobulator.complete halt "File removal failed."
 
 	find "${to}" -mindepth 1 -depth -type d -empty -delete
 

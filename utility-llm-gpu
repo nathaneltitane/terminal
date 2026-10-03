@@ -330,7 +330,7 @@ fi
 
 url_install root "${label}" "${process}" "${model_url}"
 
-frobulator.halt
+frobulator.complete halt
 
 # models directory
 
@@ -384,13 +384,13 @@ frobulator.silence "ollama pull ${model}" &
 
 frobulator.progress pull
 
-frobulator.complete "Unable to pull model" "[ ${model} ]"
+frobulator.complete halt "Unable to pull model" "[ ${model} ]"
 
 # verification
 
 ollama show "${model}" > "${sink}" 2>&1
 
-frobulator.complete "Local model verification failed" "[ ${model} ]"
+frobulator.complete halt "Local model verification failed" "[ ${model} ]"
 
 frobulator.ntf inf "Offline local ${label} [ '${model}' ]" "Model name:            ${model_name}
 Model version:         ${model_version}

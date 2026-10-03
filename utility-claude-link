@@ -313,7 +313,7 @@ claude_link () {
 
 		gio trash "${item_home}"
 
-		frobulator.complete "Unable to move to trash" "[ ${item_home} ]" || return
+		frobulator.fail "Unable to move to trash" "[ ${item_home} ]" || return
 
 		frobulator.inf "Moved to trash" "[ ${item_home} ]"
 	fi
@@ -343,7 +343,7 @@ if [ "${option}" = "install" ]
 then
 	claude_install
 
-	frobulator.halt
+	frobulator.complete halt
 fi
 
 for item in "${items_list[@]}"
