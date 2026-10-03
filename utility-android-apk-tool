@@ -340,12 +340,7 @@ apk_tool_decode () {
 
 	java -jar "${file_apk_tool}" d "${input}" -o "${output}" "${arguments[@]}"
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Decode failed" "[ ${input} ]"
-
-		return 1
-	fi
+	frobulator.complete "Decode failed" "[ ${input} ]" || return
 }
 
 keystore_create () {
@@ -370,12 +365,7 @@ keystore_create () {
 		-validity 10000							\
 		-dname "CN=Android Debug,O=Android,C=US"	> "${sink}" 2>&1
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Unable to create signing key."
-
-		return 1
-	fi
+	frobulator.complete "Unable to create signing key." || return
 
 	frobulator.ownership "$(dirname -- "${file_keystore}")"
 }
@@ -389,12 +379,7 @@ apk_tool_build () {
 
 	java -jar "${file_apk_tool}" b "${input}" -o "${file_unsigned}" -f
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Build failed" "[ ${input} ]"
-
-		return 1
-	fi
+	frobulator.complete "Build failed" "[ ${input} ]" || return
 
 	# align before signing
 
@@ -402,19 +387,11 @@ apk_tool_build () {
 
 	zipalign -p -f 4 "${file_unsigned}" "${file_aligned}"
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Align failed" "[ ${output##*/} ]"
-
-		return 1
-	fi
+	frobulator.complete "Align failed" "[ ${output##*/} ]" || return
 
 	keystore_create
 
-	if [ "${?}" -ne 0 ]
-	then
-		return 1
-	fi
+	frobulator.fail || return
 
 	frobulator.fwd "Signing" "[ ${output##*/} ]"
 
@@ -426,21 +403,11 @@ apk_tool_build () {
 		--out "${output}"							\
 												"${file_aligned}"
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Signing failed" "[ ${output##*/} ]"
-
-		return 1
-	fi
+	frobulator.complete "Signing failed" "[ ${output##*/} ]" || return
 
 	apksigner verify "${output}" > "${sink}" 2>&1
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Signature verification failed" "[ ${output##*/} ]"
-
-		return 1
-	fi
+	frobulator.complete "Signature verification failed" "[ ${output##*/} ]" || return
 
 	# signature file written next to the apk
 
@@ -477,28 +444,19 @@ frobulator.trap "${directory_temporary}"
 
 apk_tool_update
 
-if [ "${?}" -ne 0 ]
-then
-	exit 1
-fi
+frobulator.halt
 
 if [ "${option}" = "decode" ]
 then
 	apk_tool_decode
 
-	if [ "${?}" -ne 0 ]
-	then
-		exit 1
-	fi
+	frobulator.halt
 
 elif [ "${option}" = "build" ]
 then
 	apk_tool_build
 
-	if [ "${?}" -ne 0 ]
-	then
-		exit 1
-	fi
+	frobulator.halt
 fi
 
 frobulator.ownership "${output}"

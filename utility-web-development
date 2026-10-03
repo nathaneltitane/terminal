@@ -268,10 +268,7 @@ done
 
 frobulator.service activate "${service}"
 
-if [ "${?}" -ne 0 ]
-then
-	exit 1
-fi
+frobulator.halt
 
 frobulator.complete
 

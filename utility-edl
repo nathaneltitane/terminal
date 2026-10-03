@@ -247,12 +247,7 @@ frobulator.log "bash install-linux-edl-drivers.sh" &
 
 frobulator.progress "drivers"
 
-if [ "${?}" -ne 0 ]
-then
-	frobulator.err "Unable to install drivers" "[ ${process} ]"
-
-	exit 1
-fi
+frobulator.complete "Unable to install drivers" "[ ${process} ]"
 
 frobulator.complete
 
@@ -262,12 +257,7 @@ frobulator.log "pip3 install -r requirements.txt --break-system-packages" &
 
 frobulator.progress "dependencies"
 
-if [ "${?}" -ne 0 ]
-then
-	frobulator.err "Unable to install dependencies" "[ ${process} ]"
-
-	exit 1
-fi
+frobulator.complete "Unable to install dependencies" "[ ${process} ]"
 
 frobulator.complete
 

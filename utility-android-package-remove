@@ -203,21 +203,11 @@ android_platform_tools_update () {
 		--output "${archive}"	\
 								"${url_android_platform_tools}"
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
-
-		exit 1
-	fi
+	frobulator.halt "Unable to fetch" "[ Android Platform Tools ]"
 
 	unzip -q "${archive}" -d "${directory_temporary}"
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
-
-		exit 1
-	fi
+	frobulator.halt "Unable to extract" "[ Android Platform Tools ]"
 
 	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
 	then

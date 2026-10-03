@@ -240,12 +240,7 @@ fi
 
 frobulator.silence "qmake ${application}.pro"
 
-if [ "${?}" -ne 0 ]
-then
-	frobulator.err "Unable to configure project" "[ ${application} ]"
-
-	exit 1
-fi
+frobulator.complete "Unable to configure project" "[ ${application} ]"
 
 frobulator.complete
 
