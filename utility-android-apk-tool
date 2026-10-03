@@ -193,12 +193,12 @@ done
 
 path_android="${HOME}/.local/lib/android"
 
-file_apktool="${path_android}/apktool.jar"
-file_apktool_version="${path_android}/apktool.version"
+file_apk_tool="${path_android}/apk-tool.jar"
+file_apk_tool_version="${path_android}/apk-tool.version"
 
 file_keystore="${HOME}/.android/debug.keystore"
 
-url_apktool_release="https://api.github.com/repos/iBotPeaches/Apktool/releases/latest"
+url_apk_tool_release="https://api.github.com/repos/iBotPeaches/Apktool/releases/latest"
 
 # defaults /////////////////////////////////////////////////////////////////////
 
@@ -259,66 +259,75 @@ fi
 
 # functions ////////////////////////////////////////////////////////////////////
 
-apktool_update () {
+apk_tool_update () {
 
 	local release
 	local tag
 	local url
 	local version_installed
 
-	release="$(curl -fsSL "${url_apktool_release}" 2> "${sink}")"
+	release="$(curl -fsSL "${url_apk_tool_release}" 2> "${sink}")"
 
 	tag="$(jq -r '.tag_name // empty' <<< "${release}" 2> "${sink}")"
 
 	url="$(jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url' <<< "${release}" 2> "${sink}")"
 
-	if [ -f "${file_apktool_version}" ]
+	if [ -f "${file_apk_tool_version}" ]
 	then
-		version_installed="$(< "${file_apktool_version}")"
+		version_installed="$(< "${file_apk_tool_version}")"
 	fi
 
 	# offline: keep the installed jar
 
 	if [ -z "${tag}" ] || [ -z "${url}" ]
 	then
-		if [ -f "${file_apktool}" ]
+		if [ -f "${file_apk_tool}" ]
 		then
-			frobulator.wrn "Release check unavailable - using installed" "[ apktool ${version_installed} ]"
+			frobulator.wrn "Release check unavailable - using installed" "[ apk-tool ${version_installed} ]"
 
 			return 0
 		fi
 
-		frobulator.err "Unable to fetch" "[ apktool ]"
+		frobulator.err "Unable to fetch" "[ apk-tool ]"
 
 		return 1
 	fi
 
-	if [ -f "${file_apktool}" ] && [ "${version_installed}" = "${tag}" ]
+	if [ -f "${file_apk_tool}" ] && [ "${version_installed}" = "${tag}" ]
 	then
-		frobulator.inf "Latest version installed" "[ apktool ${tag} ]"
+		frobulator.inf "Latest version installed" "[ apk-tool ${tag} ]"
 
 		return 0
 	fi
 
 	frobulator.directory "${path_android}"
 
-	frobulator.download "${url%/*}" "${url##*/}" "${path_android}" "apktool.jar"
+	frobulator.dwl "Fetching" "[ apk-tool ${tag} ]"
 
-	if [ ! -s "${file_apktool}" ]
+	curl									\
+		--silent							\
+		--fail								\
+		--location							\
+		--output "${file_apk_tool}.part"		\
+											"${url}"
+
+	if [ "${?}" -ne 0 ] || [ ! -s "${file_apk_tool}.part" ]
 	then
-		frobulator.err "Unable to fetch" "[ apktool ${tag} ]"
+		frobulator.err "Unable to fetch" "[ apk-tool ${tag} ]"
 
 		return 1
 	fi
 
-	echo "${tag}" > "${file_apktool_version}"
+	mv -- "${file_apk_tool}.part" "${file_apk_tool}"
+
+	echo "${tag}" > "${file_apk_tool_version}"
 
 	frobulator.ownership "${path_android}"
 
-	frobulator.scs "Installed" "[ apktool ${tag} ]"
+	frobulator.scs "Installed" "[ apk-tool ${tag} ]"
 }
 
-apktool_decode () {
+apk_tool_decode () {
 
 	local arguments=()
 
@@ -329,7 +338,7 @@ apktool_decode () {
 
 	frobulator.fwd "Decoding" "[ ${input} ]"
 
-	java -jar "${file_apktool}" d "${input}" -o "${output}" "${arguments[@]}"
+	java -jar "${file_apk_tool}" d "${input}" -o "${output}" "${arguments[@]}"
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -371,14 +380,14 @@ keystore_create () {
 	frobulator.ownership "$(dirname -- "${file_keystore}")"
 }
 
-apktool_build () {
+apk_tool_build () {
 
 	local file_unsigned="${directory_temporary}/unsigned.apk"
 	local file_aligned="${directory_temporary}/aligned.apk"
 
 	frobulator.fwd "Building" "[ ${input} ]"
 
-	java -jar "${file_apktool}" b "${input}" -o "${file_unsigned}" -f
+	java -jar "${file_apk_tool}" b "${input}" -o "${file_unsigned}" -f
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -452,7 +461,6 @@ apktool_build () {
 list=(
 	apksigner
 	curl
-	default-jre-headless
 	jq
 	zipalign
 )
@@ -467,7 +475,7 @@ frobulator.temporary directory_temporary
 
 frobulator.trap "${directory_temporary}"
 
-apktool_update
+apk_tool_update
 
 if [ "${?}" -ne 0 ]
 then
@@ -476,7 +484,7 @@ fi
 
 if [ "${option}" = "decode" ]
 then
-	apktool_decode
+	apk_tool_decode
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -485,7 +493,7 @@ then
 
 elif [ "${option}" = "build" ]
 then
-	apktool_build
+	apk_tool_build
 
 	if [ "${?}" -ne 0 ]
 	then
