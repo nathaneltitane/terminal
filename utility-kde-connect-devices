@@ -193,6 +193,10 @@ directory_kde_connect="${HOME}/.config/kdeconnect"
 
 file_trusted_devices="${directory_kde_connect}/trusted_devices"
 
+# dolphin places: one kdeconnect bookmark per device
+
+file_places="${HOME}/.local/share/user-places.xbel"
+
 # this computer's identity: private key kept out of the repository
 
 file_identity_key_default="/media/internal/.kde-connect-key"
@@ -562,6 +566,82 @@ identity_restore () {
 	frobulator.scs "Restore success - identity" "[ '${file_identity_key##*/}'${marker_spc}${marker_hnt}${marker_spc}private ]"
 }
 
+places_update () {
+
+	# add a dolphin place for every paired device that has none
+
+	local status=0
+	local places_content
+	local places_entries
+	local places_index=0
+	local places_stamp
+	local device_id
+	local device_title
+
+	if [ ! -f "${file_places}" ]
+	then
+		frobulator.wrn "Places not updated - no dolphin places file" "[ '${file_places##*/}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+		frobulator.nul "Open dolphin once, then run the restore again."
+
+		return 0
+	fi
+
+	places_content="$(< "${file_places}")"
+	places_stamp="$(date +%s)"
+
+	for device_id in "${device_order[@]}"
+	do
+		if [[ "${places_content}" = *"href=\"kdeconnect://${device_id}/\""* ]]
+		then
+			frobulator.inf "Place present - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+
+			continue
+		fi
+
+		# title escaped for xml
+
+		device_title="${device_names[${device_id}]//&/&amp;}"
+		device_title="${device_title//</&lt;}"
+		device_title="${device_title//>/&gt;}"
+
+		places_entries+=" <bookmark href=\"kdeconnect://${device_id}/\">${NLN}"
+		places_entries+="  <title>${device_title}</title>${NLN}"
+		places_entries+="  <info>${NLN}"
+		places_entries+="   <metadata owner=\"http://freedesktop.org\">${NLN}"
+		places_entries+="    <bookmark:icon name=\"kdeconnect\"/>${NLN}"
+		places_entries+="   </metadata>${NLN}"
+		places_entries+="   <metadata owner=\"http://www.kde.org\">${NLN}"
+		places_entries+="    <ID>${places_stamp}/${places_index}</ID>${NLN}"
+		places_entries+="   </metadata>${NLN}"
+		places_entries+="  </info>${NLN}"
+		places_entries+=" </bookmark>${NLN}"
+
+		places_index=$(( places_index + 1 ))
+
+		frobulator.add "Place added - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+	done
+
+	if [ -z "${places_entries}" ]
+	then
+		return 0
+	fi
+
+	# new entries go right before the closing tag
+
+	if [[ "${places_content}" != *"</xbel>"* ]]
+	then
+		frobulator.err "Places failure - unexpected file format" "[ '${file_places##*/}'${marker_spc}${marker_hnt}${marker_spc}xbel ]"
+
+		return 1
+	fi
+
+	printf '%s%s</xbel>\n' "${places_content%</xbel>*}" "${places_entries}" > "${file_places}"
+
+	frobulator.track
+
+	return "${status}"
+}
+
 # update ───────────────────────────────────────────────────────────────────────
 
 # frobulator.update
@@ -623,6 +703,10 @@ then
 	frobulator.ownership "${directory_kde_connect}"
 
 	service_start
+
+	places_update
+
+	frobulator.complete continue "Places failure - devices"
 
 	frobulator.inf "Paired devices"
 
