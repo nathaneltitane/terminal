@@ -113,6 +113,7 @@ version="2026-09-29"
 
 add=false
 remove=false
+mirror=false
 
 execute=false
 confirm=true
@@ -141,6 +142,10 @@ do
 			remove=true
 		;;
 
+		-m|--mirror)
+			mirror=true
+		;;
+
 		-e|--execute)
 			execute=true
 		;;
@@ -151,17 +156,19 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -f [From] -t [To] -a | -r | -e | -y | -h"
+			echo -e "Usage: ./${script} -f [From] -t [To] -a | -r | -m | -e | -y | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-f, --from       Set [f]rom directory reference."
+			echo -e "-f, --from       Set '[f]rom' (origin) directory reference."
 			echo
-			echo -e "-t, --to         Set destination [t]o directory."
+			echo -e "-t, --to         Set '[t]o' (destination) directory."
 			echo
-			echo -e "-a, --add        Run [a]dd operation for files missing from to directory."
+			echo -e "-a, --add        Run [a]dd operation for files missing from 'to' directory."
 			echo
-			echo -e "-r, --remove     Run [r]emove operation for files missing from from directory."
+			echo -e "-r, --remove     Run [r]emove operation for files missing from 'from' directory."
+			echo
+			echo -e "-m, --mirror     Run [m]irror operation to make to directory an exact copy of 'from' directory."
 			echo
 			echo -e "-e, --execute    Ex[e]cute selected operation."
 			echo
@@ -175,17 +182,23 @@ do
 			echo
 			echo -e "./${script} -f /path/from -t /path/to -r"
 			echo
+			echo -e "./${script} -f /path/from -t /path/to -m"
+			echo
 			echo -e "Execute with confirmation:"
 			echo
 			echo -e "./${script} -f /path/from -t /path/to -a -e"
 			echo
 			echo -e "./${script} -f /path/from -t /path/to -r -e"
 			echo
+			echo -e "./${script} -f /path/from -t /path/to -m -e"
+			echo
 			echo -e "Execute without confirmation:"
 			echo
 			echo -e "./${script} -f /path/from -t /path/to -a -e -y"
 			echo
 			echo -e "./${script} -f /path/to/from -t /path/to/to -r -e -y"
+			echo
+			echo -e "./${script} -f /path/from -t /path/to -m -e -y"
 			echo
 			echo -e "'${script}'      [ Version // ${version} ]"
 			echo
@@ -202,7 +215,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -f [From] -t [To] -a | -r | -e | -y | -h"
+			echo -e "Usage: ./${script} -f [From] -t [To] -a | -r | -m | -e | -y | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -232,6 +245,12 @@ list_from="${directory_temporary}/from.list"
 list_to="${directory_temporary}/to.list"
 list_changes="${directory_temporary}/changes.list"
 
+list_sizes_from="${directory_temporary}/from.sizes"
+list_sizes_to="${directory_temporary}/to.sizes"
+list_rename="${directory_temporary}/rename.list"
+list_copy="${directory_temporary}/copy.list"
+list_remove="${directory_temporary}/remove.list"
+
 count_differential=0
 
 reply=""
@@ -239,6 +258,16 @@ reply=""
 # defaults /////////////////////////////////////////////////////////////////////
 
 # validate arguments
+
+count_operations=0
+
+for flag in "${add}" "${remove}" "${mirror}"
+do
+	if [ "${flag}" = true ]
+	then
+		count_operations=$(( count_operations + 1 ))
+	fi
+done
 
 if [ -z "${from}" ]
 then
@@ -264,16 +293,16 @@ then
 
 	exit 1
 
-elif [ "${add}" = true ] && [ "${remove}" = true ]
+elif [ "${count_operations}" -gt 1 ]
 then
-	frobulator.err "Add and remove cannot be used together."
+	frobulator.err "Only one operation can be used."
 
 	exit 1
 
-elif [ "${add}" = false ] && [ "${remove}" = false ]
+elif [ "${count_operations}" -eq 0 ]
 then
 	frobulator.err "Missing operation."
-	frobulator.nul "Specify either '--add' or '--remove'."
+	frobulator.nul "Specify either '--add', '--remove' or '--mirror'."
 
 	exit 1
 
@@ -319,6 +348,10 @@ then
 elif [ "${remove}" = true ]
 then
 	operation="remove"
+
+elif [ "${mirror}" = true ]
+then
+	operation="mirror"
 fi
 
 # functions ////////////////////////////////////////////////////////////////////
@@ -425,6 +458,194 @@ remove () {
 
 }
 
+# mirror: file name and size index
+
+index_size () {
+
+	local source="${1}"
+	local destination="${2}"
+
+	find "${source}" -type f -printf '%P\t%s\n' > "${destination}"
+}
+
+# mirror: case and accent insensitive name for matching renamed files
+
+fold_name () {
+
+	local folded
+
+	folded="$(iconv -f UTF-8 -t ASCII//TRANSLIT <<< "${1}" 2> "${sink}")"
+
+	echo "${folded,,}"
+}
+
+# mirror: rename, copy and remove lists from both indexes
+
+mirror_plan () {
+
+	local predict="${1}"
+	local file
+	local size
+	local -A sizes_from
+	local -A sizes_to
+	local -A renamed_folds
+
+	while IFS=$'\t' read -r file size
+	do
+		sizes_from["${file}"]="${size}"
+	done < "${list_sizes_from}"
+
+	while IFS=$'\t' read -r file size
+	do
+		sizes_to["${file}"]="${size}"
+	done < "${list_sizes_to}"
+
+	: > "${list_rename}"
+	: > "${list_copy}"
+	: > "${list_remove}"
+
+	for file in "${!sizes_from[@]}"
+	do
+		if [ -n "${sizes_to[${file}]+set}" ]
+		then
+			# same name: update when size differs
+
+			if [ "${sizes_to[${file}]}" != "${sizes_from[${file}]}" ]
+			then
+				echo "${file}" >> "${list_copy}"
+			fi
+
+		elif [ -e "${to}/${file}" ]
+		then
+			# listed under another case or accent form
+
+			echo "${file}" >> "${list_rename}"
+
+			renamed_folds["$(fold_name "${file}")"]=1
+
+			size="$(stat -c '%s' "${to}/${file}")"
+
+			if [ "${size}" != "${sizes_from[${file}]}" ]
+			then
+				echo "${file}" >> "${list_copy}"
+			fi
+		else
+			echo "${file}" >> "${list_copy}"
+		fi
+	done
+
+	for file in "${!sizes_to[@]}"
+	do
+		if [ -n "${sizes_from[${file}]+set}" ]
+		then
+			continue
+		fi
+
+		# stale spelling of a renamed file: gone once renamed
+
+		if [ "${predict}" = true ] && [ -n "${renamed_folds[$(fold_name "${file}")]+set}" ]
+		then
+			continue
+		fi
+
+		echo "${file}" >> "${list_remove}"
+	done
+
+	sort -o "${list_rename}" "${list_rename}"
+	sort -o "${list_copy}" "${list_copy}"
+	sort -o "${list_remove}" "${list_remove}"
+}
+
+mirror_rename () {
+
+	local file
+	local temporary
+	local number=0
+
+	while IFS= read -r file
+	do
+		(( number++ ))
+
+		temporary="$(dirname -- "${to}/${file}")/.mirror-rename-${number}"
+
+		frobulator.inf "Renaming" "[ ${file} ]"
+
+		mv -- "${to}/${file}" "${temporary}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Failed to rename" "[ ${file} ]"
+
+			return 1
+		fi
+
+		mv -- "${temporary}" "${to}/${file}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Failed to rename" "[ ${file} ]"
+
+			return 1
+		fi
+
+	done < "${list_rename}"
+
+	return 0
+}
+
+mirror_copy () {
+
+	local file
+
+	while IFS= read -r file
+	do
+		mkdir -p "$(dirname -- "${to}/${file}")"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Failed to create directory" "[ ${file} ]"
+
+			return 1
+		fi
+
+		frobulator.add "Copying" "[ ${file} ]"
+
+		cp -- "${from}/${file}" "${to}/${file}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Failed to copy" "[ ${file} ]"
+
+			return 1
+		fi
+
+	done < "${list_copy}"
+
+	return 0
+}
+
+mirror_remove () {
+
+	local file
+
+	while IFS= read -r file
+	do
+		frobulator.rem "Removing" "[ ${file} ]"
+
+		rm -f -- "${to}/${file}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			frobulator.err "Failed to remove" "[ ${file} ]"
+
+			return 1
+		fi
+
+	done < "${list_remove}"
+
+	return 0
+}
+
 # update ///////////////////////////////////////////////////////////////////////
 
 # frobulator.update
@@ -444,6 +665,129 @@ frobulator.complete
 list=()
 
 # configuration ////////////////////////////////////////////////////////////////
+
+# mirror
+
+if [ "${operation}" = "mirror" ]
+then
+	index_size "${from}" "${list_sizes_from}" &
+
+	frobulator.progress index "[ from ]"
+
+	index_size "${to}" "${list_sizes_to}" &
+
+	frobulator.progress index "[ to ]"
+
+	mirror_plan true
+
+	count_rename=$(wc -l < "${list_rename}")
+	count_copy=$(wc -l < "${list_copy}")
+	count_remove=$(wc -l < "${list_remove}")
+
+	if [ "$(( count_rename + count_copy + count_remove ))" -eq 0 ]
+	then
+		frobulator.scs "Directories already mirrored."
+
+		exit 0
+	fi
+
+	if [ "${count_rename}" -gt 0 ]
+	then
+		frobulator.inf "Files to be renamed" "[ ${count_rename} ]"
+
+		display "${list_rename}"
+
+		echo
+	fi
+
+	if [ "${count_copy}" -gt 0 ]
+	then
+		frobulator.add "Files to be copied" "[ ${count_copy} ]"
+
+		display "${list_copy}"
+
+		echo
+	fi
+
+	if [ "${count_remove}" -gt 0 ]
+	then
+		frobulator.rem "Files to be removed" "[ ${count_remove} ]"
+
+		display "${list_remove}"
+
+		echo
+	fi
+
+	if [ "${execute}" = false ]
+	then
+		frobulator.wrn "Dry run only - mirror:"
+		frobulator.nul "Run ${script} again with '--execute' to apply changes."
+
+		exit 0
+	fi
+
+	if [ "${confirm}" = true ]
+	then
+		frobulator.separate
+
+		frobulator.ask "Proceed with mirror?"
+
+		frobulator.read reply
+
+		if [[ "${reply}" != [yY]         ]] && \
+		   [[ "${reply}" != [yY][eE][sS] ]]
+		then
+			frobulator.stp "Operation cancelled."
+
+			exit 0
+		fi
+	fi
+
+	frobulator.fwd "Mirroring..."
+
+	mirror_rename
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "File rename failed."
+
+		exit 1
+	fi
+
+	# index again: renamed files now match
+
+	index_size "${to}" "${list_sizes_to}"
+
+	mirror_plan false
+
+	mirror_copy
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "File copy failed."
+
+		exit 1
+	fi
+
+	mirror_remove
+
+	if [ "${?}" -ne 0 ]
+	then
+		frobulator.err "File removal failed."
+
+		exit 1
+	fi
+
+	find "${to}" -mindepth 1 -depth -type d -empty -delete
+
+	frobulator.inf "Files renamed" "[ ${count_rename} ]"
+	frobulator.inf "Files copied" "[ $(wc -l < "${list_copy}") ]"
+	frobulator.inf "Files removed" "[ $(wc -l < "${list_remove}") ]"
+
+	frobulator.scs "Done"
+
+	exit 0
+fi
 
 # index directories
 
