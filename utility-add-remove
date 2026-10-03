@@ -269,11 +269,11 @@ reply=""
 
 if [ "${count_arguments}" -eq 0 ]
 then
-	frobulator.ask "Set 'from' directory:"
+	frobulator.qst "Set 'from' directory:"
 
 	frobulator.read -e from
 
-	frobulator.ask "Set 'to' directory:"
+	frobulator.qst "Set 'to' directory:"
 
 	frobulator.read -e to
 
@@ -732,7 +732,7 @@ then
 
 		frobulator.wrn "Changes are permanent" "[ ${to} ]"
 
-		frobulator.ask "Proceed with mirror?"
+		frobulator.qst "Proceed with mirror?"
 
 		frobulator.read reply
 
@@ -846,11 +846,11 @@ then
 
 	if [ "${operation}" = "add" ]
 	then
-		frobulator.ask "Proceed with addition?"
+		frobulator.qst "Proceed with addition?"
 
 	elif [ "${operation}" = "remove" ]
 	then
-		frobulator.ask "Proceed with removal?"
+		frobulator.qst "Proceed with removal?"
 	fi
 
 	frobulator.read reply

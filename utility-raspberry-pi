@@ -343,7 +343,7 @@ device_details="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tai
 
 frobulator.ntf err "Destructive operation" err "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${device_details}"
 
-frobulator.ask "Type the device path exactly to confirm" "[ ${device} ]"
+frobulator.qst "Type the device path exactly to confirm" "[ ${device} ]"
 
 read -r device_confirm
 

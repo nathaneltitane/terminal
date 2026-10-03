@@ -207,7 +207,7 @@ if [ -n "$(pgrep -x claude)" ]
 then
 	frobulator.wrn "Claude code is running"
 
-	frobulator.ask "Close claude code?"
+	frobulator.qst "Close claude code?"
 
 	frobulator.read reply
 

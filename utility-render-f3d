@@ -271,7 +271,7 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
 if [ -z "${directory}" ]
 then
-	frobulator.ask "Specify directory?"
+	frobulator.qst "Specify directory?"
 	echo
 
 	read reply
@@ -292,7 +292,7 @@ fi
 
 if [ -z "${file}" ]
 then
-	frobulator.ask "Specify model file type? [ simple / multipart ]"
+	frobulator.qst "Specify model file type? [ simple / multipart ]"
 
 	frobulator.read reply
 
