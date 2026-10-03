@@ -885,7 +885,7 @@ preview () {
 
 	file="${2}"
 
-	if [[ $(command -v cat) ]] && \
+	if [[ $(command -v cat) ]] &&
 	   [[ $(command -v head) ]]
 	then
 		frobulator.inf "Previewing file" "[ ${count} lines // ${file} ]"
@@ -1002,7 +1002,7 @@ terminate () {
 
 	process_name="${1}"
 
-	if [[ $(command -v pgrep) ]] && \
+	if [[ $(command -v pgrep) ]] &&
 	   [[ $(command -v pkill) ]]
 	then
 		while [[ $(pgrep -f "${process_name}") ]]
