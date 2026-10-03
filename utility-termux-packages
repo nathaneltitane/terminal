@@ -1,0 +1,439 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found ─────────────────────── [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^update=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^update=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+
+	# script arguments for escalation
+
+	self_arguments=("${@}")
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-03"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+selection=()
+
+while (($#))
+do
+	case "${1}"
+	in
+		-a|--all)
+			selection+=(all)
+		;;
+
+		-t|--termux)
+			selection+=(termux)
+		;;
+
+		-i|--api)
+			selection+=(api)
+		;;
+
+		-g|--gui)
+			selection+=(gui)
+		;;
+
+		-s|--styling)
+			selection+=(styling)
+		;;
+
+		-k|--tasker)
+			selection+=(tasker)
+		;;
+
+		-x|--x11)
+			selection+=(x11)
+		;;
+
+		-d|--directory)
+			directory="${2}"
+
+			shift
+		;;
+
+		-f|--force)
+			force=true
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -a | -t -i -g -s -k -x -d [Directory] -f | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-a, --all          Update [a]ll packages - default without selection."
+			echo
+			echo -e "-t, --termux       Update the [t]ermux app."
+			echo
+			echo -e "-i, --api          Update the termux-ap[i] addon."
+			echo
+			echo -e "-g, --gui          Update the termux-[g]ui addon."
+			echo
+			echo -e "-s, --styling      Update the termux-[s]tyling addon."
+			echo
+			echo -e "-k, --tasker       Update the termux-tas[k]er addon."
+			echo
+			echo -e "-x, --x11          Update the termux-[x]11 addon and package."
+			echo
+			echo -e "-d, --directory    Specify target [d]irectory."
+			echo
+			echo -e "                   [ script directory ] [ Default ]"
+			echo
+			echo -e "-f, --force        Allow [f]orced download of unchanged packages."
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'     [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -a | -t -i -g -s -k -x -d [Directory] -f | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+url_github_api="${marker_hts}api.github.com/repos/termux"
+
+# package sources:
+# package | repository | release (latest / newest / tag) | asset name ending | file
+
+package_sources=(
+	"termux|termux-app|latest|_arm64-v8a.apk|package-termux.apk"
+	"termux|termux-app|latest|_x86_64.apk|package-termux-x86-64.apk"
+	"api|termux-api|latest|.apk|package-termux-api.apk"
+	"gui|termux-gui|newest|.apk|package-termux-gui.apk"
+	"styling|termux-styling|latest|.apk|package-termux-styling.apk"
+	"tasker|termux-tasker|latest|.apk|package-termux-tasker.apk"
+	"x11|termux-x11|nightly|-universal-debug.apk|package-termux-x11.apk"
+	"x11|termux-x11|nightly|-universal-debug.apk|package-termux-x11-x86-64.apk"
+	"x11|termux-x11|nightly|-all.deb|package-termux-x11.deb"
+)
+
+declare -A release_cache
+declare -A package_versions
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ "${#selection[@]}" -eq 0 ] || [[ " ${selection[*]} " = *" all "* ]]
+then
+	selection=(termux api gui styling tasker x11)
+fi
+
+if [[ "${directory}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+
+	exit 1
+fi
+
+# packages are served from the repository holding this script
+
+if [ -z "${directory}" ]
+then
+	directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+fi
+
+directory="${directory%/}"
+
+# asset ids of downloaded packages, to skip unchanged ones
+
+file_versions="${directory}/package-termux.versions"
+
+# functions ────────────────────────────────────────────────────────────────────
+
+versions_load () {
+
+	local versions_file_name
+	local versions_asset_id
+
+	if [ ! -f "${file_versions}" ]
+	then
+		return 0
+	fi
+
+	while read -r versions_file_name versions_asset_id
+	do
+		if [ -n "${versions_file_name}" ]
+		then
+			package_versions["${versions_file_name}"]="${versions_asset_id}"
+		fi
+	done < "${file_versions}"
+}
+
+versions_save () {
+
+	local versions_file_name
+
+	for versions_file_name in "${!package_versions[@]}"
+	do
+		echo "${versions_file_name} ${package_versions[${versions_file_name}]}"
+	done | sort > "${file_versions}"
+}
+
+release_fetch () {
+
+	# release json of a repository, fetched once per run
+
+	local release_repository="${1}"
+	local release_selector="${2}"
+	local release_key="${release_repository}|${release_selector}"
+	local release_url
+
+	if [ -n "${release_cache[${release_key}]}" ]
+	then
+		return 0
+	fi
+
+	if [ "${release_selector}" = "latest" ]
+	then
+		release_url="${url_github_api}/${release_repository}/releases/latest"
+
+	elif [ "${release_selector}" = "newest" ]
+	then
+		release_url="${url_github_api}/${release_repository}/releases?per_page=1"
+	else
+		release_url="${url_github_api}/${release_repository}/releases/tags/${release_selector}"
+	fi
+
+	release_cache["${release_key}"]="$(
+		curl --silent --fail --location --connect-timeout 30 "${release_url}" 2> "${sink}" |
+			jq -c 'if type == "array" then .[0] else . end' 2> "${sink}"
+	)"
+}
+
+package_update () {
+
+	# download every file of one package that changed upstream
+
+	local package="${1}"
+	local package_status=0
+	local source_entry
+	local source_package
+	local source_repository
+	local source_release
+	local source_suffix
+	local source_file
+	local release_json
+	local release_tag
+	local asset_id
+	local asset_url
+
+	for source_entry in "${package_sources[@]}"
+	do
+		IFS='|' read -r source_package source_repository source_release source_suffix source_file <<< "${source_entry}"
+
+		if [ "${source_package}" != "${package}" ]
+		then
+			continue
+		fi
+
+		release_fetch "${source_repository}" "${source_release}"
+
+		release_json="${release_cache[${source_repository}|${source_release}]}"
+
+		release_tag="$(jq -r '.tag_name // empty' <<< "${release_json}" 2> "${sink}")"
+
+		read -r asset_id asset_url < <(
+			jq -r --arg suffix "${source_suffix}" \
+				'[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"' \
+				<<< "${release_json}" 2> "${sink}"
+		)
+
+		if [ -z "${asset_url}" ]
+		then
+			frobulator.err "Release unavailable - ${package}" "[ '${source_file}'${marker_spc}${marker_hnt}${marker_spc}${source_repository} ]"
+
+			package_status=1
+
+			continue
+		fi
+
+		if [ "${force}" != true ] && [ -f "${directory}/${source_file}" ] &&
+		   [ "${package_versions[${source_file}]}" = "${asset_id}" ]
+		then
+			frobulator.inf "Up to date - ${package}" "[ '${source_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+
+			continue
+		fi
+
+		frobulator.download "${asset_url}" "${directory}/${source_file}"
+
+		if [ "${?}" -ne 0 ]
+		then
+			package_status=1
+
+			continue
+		fi
+
+		package_versions["${source_file}"]="${asset_id}"
+	done
+
+	return "${package_status}"
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+	curl
+	jq
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+if [ ! -d "${directory}" ]
+then
+	frobulator.err "Directory not found" "[ ${directory} ]"
+
+	exit 1
+fi
+
+frobulator.inf "Target directory" "[ ${directory} ]"
+
+versions_load
+
+for package in "${selection[@]}"
+do
+	package_update "${package}"
+
+	frobulator.complete continue "Package update failure" "[ ${package} ]"
+done
+
+versions_save
+
+frobulator.ownership "${directory}"
+
+frobulator.result "${script}"
