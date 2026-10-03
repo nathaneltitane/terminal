@@ -346,8 +346,6 @@ image_select () {
 
 image_handle () {
 
-	frobulator.continue
-
 	# handle manual input:
 	# validate input selections
 	# set container image name and version
