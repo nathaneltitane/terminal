@@ -268,7 +268,7 @@ done
 
 frobulator.service activate "${service}"
 
-frobulator.halt
+frobulator.complete halt
 
 frobulator.complete
 

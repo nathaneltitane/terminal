@@ -247,7 +247,7 @@ fi
 
 frobulator.write "append" "blacklist ${module}" "${blacklist_directory}" "${blacklist_file}"
 
-frobulator.complete "Failed to write blacklist entry" "[ ${blacklist_entry} ]"
+frobulator.complete halt "Failed to write blacklist entry" "[ ${blacklist_entry} ]"
 
 frobulator.complete
 
@@ -259,7 +259,7 @@ frobulator.silence "update-initramfs -u" &
 
 frobulator.progress rebuild "[ initramfs ]"
 
-frobulator.complete "Failed to rebuild initramfs."
+frobulator.complete halt "Failed to rebuild initramfs."
 
 frobulator.complete
 

@@ -340,7 +340,7 @@ apk_tool_decode () {
 
 	java -jar "${file_apk_tool}" d "${input}" -o "${output}" "${arguments[@]}"
 
-	frobulator.complete "Decode failed" "[ ${input} ]" || return
+	frobulator.fail "Decode failed" "[ ${input} ]" || return
 }
 
 keystore_create () {
@@ -365,7 +365,7 @@ keystore_create () {
 		-validity 10000							\
 		-dname "CN=Android Debug,O=Android,C=US"	> "${sink}" 2>&1
 
-	frobulator.complete "Unable to create signing key." || return
+	frobulator.fail "Unable to create signing key." || return
 
 	frobulator.ownership "$(dirname -- "${file_keystore}")"
 }
@@ -379,7 +379,7 @@ apk_tool_build () {
 
 	java -jar "${file_apk_tool}" b "${input}" -o "${file_unsigned}" -f
 
-	frobulator.complete "Build failed" "[ ${input} ]" || return
+	frobulator.fail "Build failed" "[ ${input} ]" || return
 
 	# align before signing
 
@@ -387,7 +387,7 @@ apk_tool_build () {
 
 	zipalign -p -f 4 "${file_unsigned}" "${file_aligned}"
 
-	frobulator.complete "Align failed" "[ ${output##*/} ]" || return
+	frobulator.fail "Align failed" "[ ${output##*/} ]" || return
 
 	keystore_create
 
@@ -403,11 +403,11 @@ apk_tool_build () {
 		--out "${output}"							\
 												"${file_aligned}"
 
-	frobulator.complete "Signing failed" "[ ${output##*/} ]" || return
+	frobulator.fail "Signing failed" "[ ${output##*/} ]" || return
 
 	apksigner verify "${output}" > "${sink}" 2>&1
 
-	frobulator.complete "Signature verification failed" "[ ${output##*/} ]" || return
+	frobulator.fail "Signature verification failed" "[ ${output##*/} ]" || return
 
 	# signature file written next to the apk
 
@@ -444,21 +444,23 @@ frobulator.trap "${directory_temporary}"
 
 apk_tool_update
 
-frobulator.halt
+frobulator.complete halt
 
 if [ "${option}" = "decode" ]
 then
 	apk_tool_decode
 
-	frobulator.halt
+	frobulator.complete halt
 
 elif [ "${option}" = "build" ]
 then
 	apk_tool_build
 
-	frobulator.halt
+	frobulator.complete halt
 fi
 
 frobulator.ownership "${output}"
 
 frobulator.scs "Done" "[ ${output} ]"
+
+frobulator.result "${script}"

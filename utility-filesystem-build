@@ -501,7 +501,7 @@ image_handle () {
 
 	esac
 
-	frobulator.complete "${script} : ${FUNCNAME}"
+	frobulator.complete
 
 }
 
