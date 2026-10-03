@@ -118,6 +118,8 @@ mirror=false
 execute=false
 confirm=true
 
+count_arguments="${#}"
+
 while (($#))
 do
 	case "${1}"
@@ -168,13 +170,19 @@ do
 			echo
 			echo -e "-r, --remove     Run [r]emove operation for files missing from 'from' directory."
 			echo
-			echo -e "-m, --mirror     Run [m]irror operation to make to directory an exact copy of 'from' directory."
+			echo -e "-m, --mirror     Run [m]irror operation to make 'to' directory an exact copy of 'from' directory."
+			echo
+			echo -e "                 [ mirror ] [ Default ]"
 			echo
 			echo -e "-e, --execute    Ex[e]cute selected operation."
 			echo
 			echo -e "-y, --yes        Assume [y]es and skip confirmation."
 			echo
 			echo -e "-h, --help       Show [h]elp and usage information."
+			echo
+			echo -e "Interactive mirror - prompts for 'from' and 'to', dry run, then confirmation:"
+			echo
+			echo -e "./${script}"
 			echo
 			echo -e "Dry run:"
 			echo
@@ -196,7 +204,7 @@ do
 			echo
 			echo -e "./${script} -f /path/from -t /path/to -a -e -y"
 			echo
-			echo -e "./${script} -f /path/to/from -t /path/to/to -r -e -y"
+			echo -e "./${script} -f /path/from -t /path/to -r -e -y"
 			echo
 			echo -e "./${script} -f /path/from -t /path/to -m -e -y"
 			echo
@@ -257,6 +265,24 @@ reply=""
 
 # defaults /////////////////////////////////////////////////////////////////////
 
+# interactive: prompt for directories, dry run, then confirm
+
+if [ "${count_arguments}" -eq 0 ]
+then
+	frobulator.ask "'From' directory:"
+
+	frobulator.read -e from
+
+	frobulator.ask "'To' directory:"
+
+	frobulator.read -e to
+
+	from="${from/#\~/${HOME}}"
+	to="${to/#\~/${HOME}}"
+
+	execute=true
+fi
+
 # validate arguments
 
 count_operations=0
@@ -271,7 +297,7 @@ done
 
 if [ -z "${from}" ]
 then
-	frobulator.err "Missing from directory."
+	frobulator.err "Missing 'from' directory."
 
 	exit 1
 
@@ -283,7 +309,7 @@ then
 
 elif [ -z "${to}" ]
 then
-	frobulator.err "Missing to directory."
+	frobulator.err "Missing 'to' directory."
 
 	exit 1
 
@@ -299,12 +325,6 @@ then
 
 	exit 1
 
-elif [ "${count_operations}" -eq 0 ]
-then
-	frobulator.err "Missing operation."
-	frobulator.nul "Specify either '--add', '--remove' or '--mirror'."
-
-	exit 1
 
 elif [ "${confirm}" = false ] && [ "${execute}" = false ]
 then
@@ -317,13 +337,13 @@ fi
 
 if [ ! -d "${from}" ]
 then
-	frobulator.err "From directory not found" "[ ${from} ]"
+	frobulator.err "'From' directory not found" "[ ${from} ]"
 
 	exit 1
 
 elif [ ! -d "${to}" ]
 then
-	frobulator.err "To directory not found" "[ ${to} ]"
+	frobulator.err "'To' directory not found" "[ ${to} ]"
 
 	exit 1
 fi
@@ -334,12 +354,17 @@ to=$(cd "${to}" && pwd -P)
 
 if [ "${from}" = "${to}" ]
 then
-	frobulator.err "From and to directories cannot be the same."
+	frobulator.err "'From' and 'to' directories cannot be the same."
 
 	exit 1
 fi
 
-# determine operation
+# determine operation: mirror by default
+
+if [ "${count_operations}" -eq 0 ]
+then
+	mirror=true
+fi
 
 if [ "${add}" = true ]
 then
@@ -729,6 +754,8 @@ then
 	if [ "${confirm}" = true ]
 	then
 		frobulator.separate
+
+		frobulator.wrn "Changes are permanent" "[ ${to} ]"
 
 		frobulator.ask "Proceed with mirror?"
 
