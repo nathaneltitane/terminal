@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# dependencies /////////////////////////////////////////////////////////////////
+# dependencies ─────────────────────────────────────────────────────────────────
 
 script="$(basename -- ${BASH_SOURCE[0]})"
 
@@ -64,7 +64,7 @@ then
 
 		if [[ -z $(command -v "${package}") ]]
 		then
-			echo "[  !  ] Unable to install or binary not found /////////////////////// [ '${package}' ]"
+			echo "[  !  ] Unable to install or binary not found ─────────────────────── [ '${package}' ]"
 			echo
 
 			exit 1
@@ -97,19 +97,19 @@ then
 	self_arguments=("${@}")
 fi
 
-# superuser ////////////////////////////////////////////////////////////////////
+# superuser ────────────────────────────────────────────────────────────────────
 
 frobulator.escalate
 
-# script ///////////////////////////////////////////////////////////////////////
+# script ───────────────────────────────────────────────────────────────────────
 
 frobulator.script
 
-# version //////////////////////////////////////////////////////////////////////
+# version ──────────────────────────────────────────────────────────────────────
 
 version="2026-09-29"
 
-# usage ////////////////////////////////////////////////////////////////////////
+# usage ────────────────────────────────────────────────────────────────────────
 
 while (($#))
 do
@@ -204,7 +204,7 @@ do
 
 done
 
-# variables ////////////////////////////////////////////////////////////////////
+# variables ────────────────────────────────────────────────────────────────────
 
 label="LLM"
 
@@ -222,7 +222,7 @@ model_url="https://ollama.com/install.sh"
 directory="${directory:-/media/internal}"
 models_directory="${directory}/${label}/${process}"
 
-# defaults /////////////////////////////////////////////////////////////////////
+# defaults ─────────────────────────────────────────────────────────────────────
 
 # hades canyon nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl.
 # current ollama builds support vulkan directly, so no rocm gfx spoof is needed.
@@ -230,7 +230,7 @@ models_directory="${directory}/${label}/${process}"
 
 vulkan_device="${vulkan_device:-0}"
 
-# functions ////////////////////////////////////////////////////////////////////
+# functions ────────────────────────────────────────────────────────────────────
 
 url_install () {
 
@@ -299,7 +299,7 @@ url_install () {
 	return 0
 }
 
-# requirements /////////////////////////////////////////////////////////////////
+# requirements ─────────────────────────────────────────────────────────────────
 
 list=(
 	curl
