@@ -262,14 +262,14 @@ gsettings set org.gnome.desktop.background picture-uri "''"
 	picture_option+=" zoom"
 	picture_option+=" spanned"
 
-	${picture_option} 2> /dev/null
+	${picture_option} 2> "${sink}"
 
 picture_uri+="zenity"
 picture_uri+=" --file-selection"
 picture_uri+=" --separator=$'\n'"
 picture_uri+=" --title='Select a Directory'"
 
-${picture_uri} 2> /dev/null
+${picture_uri} 2> "${sink}"
 
 # desktop #
 

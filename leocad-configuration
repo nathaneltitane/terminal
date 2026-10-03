@@ -187,7 +187,7 @@ matches=()
 
 for directory in ${directories_list[@]}
 do
-	match=$(ls /media 2>/dev/null | grep -i "^${directory}$" | head -n 1)
+	match=$(ls /media 2> "${sink}" | grep -i "^${directory}$" | head -n 1)
 
 	if [ -n "$match" ]
 	then
@@ -197,7 +197,7 @@ done
 
 for directory in ${matches[@]}
 do
-	subdirectory=$(ls "/media/${directory}" 2>/dev/null | grep -i "^lego$" | head -n 1)
+	subdirectory=$(ls "/media/${directory}" 2> "${sink}" | grep -i "^lego$" | head -n 1)
 
 	if [ -n "${subdirectory}" ] && [ -d "/media/${directory}/${subdirectory}" ]
 	then

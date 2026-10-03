@@ -384,7 +384,7 @@ f3d_render () {
 		--camera-elevation-angle=${longitude[$coordinates]}				\
 		--no-background													\
 		--output="${model_name}-${view[$coordinates]}.${extension}"		\
-																		"${model_path}" > /dev/null 2>&1
+																		"${model_path}" > "${sink}" 2>&1
 
 		wait
 }
