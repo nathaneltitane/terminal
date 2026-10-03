@@ -107,7 +107,7 @@ frobulator.script
 
 # version //////////////////////////////////////////////////////////////////////
 
-version="2026-09-29"
+version="2026-10-02"
 
 # usage ////////////////////////////////////////////////////////////////////////
 
@@ -182,7 +182,7 @@ if [ -f /media/[iI]nternal/[lL]ego/leocad/leocad ]
 then
 	frobulator.inf "Copying binary"
 
-	frobulator.copy /media/[iI]nternal/[lL]ego/leocad /usr/bin leocad
+	frobulator.copy /media/[iI]nternal/[lL]ego/leocad /usr/bin binary-leocad leocad
 fi
 
 frobulator.scs "Done"
