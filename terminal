@@ -256,9 +256,9 @@ fi
 
 if [ "${option}" = "storage" ]
 then
-	if	[ "${option_storage}" != "wsl"       ] && \
-		[ "${option_storage}" != "chromeos"  ] && \
-		[ "${option_storage}" != "android"   ] && \
+	if	[ "${option_storage}" != "wsl"       ] &&
+		[ "${option_storage}" != "chromeos"  ] &&
+		[ "${option_storage}" != "android"   ] &&
 		[ "${option_storage}" != "removable" ]
 	then
 		frobulator.err "Unrecognized storage type" "[ ${option_storage} ]"

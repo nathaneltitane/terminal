@@ -206,8 +206,8 @@ image_select () {
 
 	# list distributions
 
-	if [ -z "${distribution_name}"     ] || \
-	   [ -z "${distribution_version}"  ] || \
+	if [ -z "${distribution_name}"     ] ||
+	   [ -z "${distribution_version}"  ] ||
 	   [ -z "${distribution_codename}" ]
 	then
 		frobulator.msg "Select distribution version to generate."

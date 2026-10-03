@@ -262,17 +262,17 @@ browser_identify () {
 
 	browser=${browser%.desktop}
 
-	if [[ "${browser}" = firefox*         ]] || \
-	   [[ "${browser}" = librewolf*       ]] || \
+	if [[ "${browser}" = firefox*         ]] ||
+	   [[ "${browser}" = librewolf*       ]] ||
 	   [[ "${browser}" = waterfox*        ]]
 	then
 		browser="firefox"
 
-	elif [[ "${browser}" = chrome*        ]] || \
-	     [[ "${browser}" = google-chrome* ]] || \
-	     [[ "${browser}" = chromium*      ]] || \
-	     [[ "${browser}" = brave*         ]] || \
-	     [[ "${browser}" = vivaldi*       ]] || \
+	elif [[ "${browser}" = chrome*        ]] ||
+	     [[ "${browser}" = google-chrome* ]] ||
+	     [[ "${browser}" = chromium*      ]] ||
+	     [[ "${browser}" = brave*         ]] ||
+	     [[ "${browser}" = vivaldi*       ]] ||
 	     [[ "${browser}" = opera*         ]]
 	then
 		browser="chrome"
