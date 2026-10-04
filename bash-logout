@@ -156,6 +156,4 @@ then
 	fi
 fi
 
-# detection variables are not kept in the shell
-
 unset dextop_logout process_pulseaudio process_x11
