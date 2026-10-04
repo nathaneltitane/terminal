@@ -1283,7 +1283,7 @@ then
     exit 1
 fi
 
-# extract the first 3 octets from the input:
+# extract the first 3 octets from user input:
 # sanitize to nnn.nnn.nnn.
 
 lan=$(
