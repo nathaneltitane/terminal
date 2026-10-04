@@ -100,6 +100,16 @@ then
 
 			frobulator.permissions public execute "${directory_install}/${script}"
 
+			# one file per function, installed beside this one
+
+			for bash_function in "${directory_script}"/bash-function-*
+			do
+				if [ -f "${bash_function}" ]
+				then
+					frobulator.copy "${directory_script}" "${directory_install}" "$(basename -- "${bash_function}")"
+				fi
+			done
+
 			frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
 		fi
 	fi

@@ -589,6 +589,10 @@ then
 		bash-profile
 	)
 
+	# one file per function, loaded by bash-functions: names listed from the repository
+
+	list+=($(curl --silent --location --connect-timeout 30 "${marker_hts}api.github.com/repos/nathaneltitane/terminal/contents" | jq -r '.[].name | select(startswith("bash-function-"))'))
+
 	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
 
 	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-aliases       .bash_aliases
