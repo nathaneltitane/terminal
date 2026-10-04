@@ -203,7 +203,11 @@ fi
 
 # claude code must not run while linking
 
-if [ -n "$(pgrep -x claude)" ]
+# process id of a running claude code, empty when it is not running
+
+claude_process="$(pgrep -x claude)"
+
+if [ -n "${claude_process}" ]
 then
 	frobulator.wrn "Claude code is running"
 
@@ -225,7 +229,9 @@ then
 
 	for second in {1..5}
 	do
-		if [ -z "$(pgrep -x claude)" ]
+		claude_process="$(pgrep -x claude)"
+
+		if [ -z "${claude_process}" ]
 		then
 			break
 		fi
@@ -233,14 +239,18 @@ then
 		sleep 1
 	done
 
-	if [ -n "$(pgrep -x claude)" ]
+	claude_process="$(pgrep -x claude)"
+
+	if [ -n "${claude_process}" ]
 	then
 		pkill -9 -x claude
 
 		sleep 1
 	fi
 
-	if [ -n "$(pgrep -x claude)" ]
+	claude_process="$(pgrep -x claude)"
+
+	if [ -n "${claude_process}" ]
 	then
 		frobulator.err "Unable to close claude code."
 

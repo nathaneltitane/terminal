@@ -332,6 +332,7 @@ index_tabs () {
 devices_backup () {
 
 	local backup_status=0
+
 	local index_label_width
 	local index_label_column
 	local device_id
@@ -428,7 +429,13 @@ identity_backup () {
 
 service_stop () {
 
-	if [ -n "$(pgrep -x -u "${USER}" kdeconnectd)" ]
+	# process id of this user's kde connect service, empty when not running
+
+	local service_process
+
+	service_process="$(pgrep -x -u "${USER}" kdeconnectd)"
+
+	if [ -n "${service_process}" ]
 	then
 		frobulator.stp "Stopping" "[ kdeconnectd ]"
 
@@ -452,6 +459,7 @@ service_start () {
 devices_restore () {
 
 	local restore_status=0
+
 	local device_name
 	local device_id
 	local device_type
@@ -573,9 +581,10 @@ places_update () {
 	# add a dolphin place for every paired device that has none
 
 	local status=0
+	local places_index=0
+
 	local places_content
 	local places_entries
-	local places_index=0
 	local places_stamp
 	local device_id
 	local device_title
@@ -662,7 +671,11 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -z "$(command -v kdeconnect-cli)" ]
+# kde connect command line client, empty when not installed
+
+kde_connect_client="$(command -v kdeconnect-cli)"
+
+if [ -z "${kde_connect_client}" ]
 then
 	frobulator.err "KDE Connect not installed" "[ kdeconnect-cli ]"
 
