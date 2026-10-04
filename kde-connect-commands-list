@@ -1,0 +1,8 @@
+Lock					loginctl lock-session
+Sleep					systemctl suspend
+Reboot					systemctl reboot
+Power Off				systemctl poweroff
+Bluetooth On			bluetoothctl power on
+Bluetooth Off			bluetoothctl power off
+Audio Combine Start		bash -c 'source "${HOME}/.local/bin/bash-functions" && audio-combine'
+Audio Combine Stop		bash -c 'source "${HOME}/.local/bin/bash-functions" && audio-combine stop'

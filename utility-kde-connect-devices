@@ -81,6 +81,10 @@ do
 			option="restore"
 		;;
 
+		-c|--commands)
+			option="commands"
+		;;
+
 		-d|--directory)
 			directory="${2}"
 
@@ -95,13 +99,15 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -b | -r [-d [Directory]] [-k [File]] | -h"
+			echo -e "Usage: ./${script} -b | -r | -c [-d [Directory]] [-k [File]] | -h"
 			echo
 			echo -e "Options:"
 			echo
 			echo -e "-b, --backup       Run [b]ackup of paired devices into the directory."
 			echo
 			echo -e "-r, --restore      Run [r]estore of paired devices from the directory."
+			echo
+			echo -e "-c, --commands     Apply the run [c]ommands list to every paired device."
 			echo
 			echo -e "-d, --directory    Specify device files [d]irectory."
 			echo
@@ -129,7 +135,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -b | -r [-d [Directory]] [-k [File]] | -h"
+			echo -e "Usage: ./${script} -b | -r | -c [-d [Directory]] [-k [File]] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -178,7 +184,7 @@ device_order=()
 if [ -z "${option}" ]
 then
 	frobulator.err "Missing operation."
-	frobulator.nul "Specify either '--backup' or '--restore'."
+	frobulator.nul "Specify '--backup' / '--restore' or '--commands'."
 
 	exit 1
 
@@ -207,6 +213,10 @@ fi
 directory="${directory%/}"
 
 file_device_index="${directory}/kde-connect-devices-list"
+
+# run commands offered to every paired device: name and command - tab separated
+
+file_commands_list="${directory}/kde-connect-commands-list"
 
 file_identity_certificate="${directory}/kde-connect-certificate.pem"
 file_identity_config="${directory}/kde-connect-config"
@@ -611,6 +621,81 @@ places_update () {
 	return "${status}"
 }
 
+commands_apply () {
+
+	# same run commands on every paired device - written as kde connect stores them:
+	# json object of '_uuid_' keys inside @ByteArray - keys derived from the command name
+
+	local status=0
+
+	local command_name
+	local command_line
+	local command_hash
+	local command_key
+	local commands_json
+	local commands_value
+	local device_id
+	local directory_run_command
+
+	if [ ! -f "${file_commands_list}" ]
+	then
+		frobulator.wrn "Run commands not applied - no commands list" "[ '${file_commands_list##*/}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+		return 0
+	fi
+
+	commands_json="{"
+
+	while IFS=$'\t' read -r command_name command_line
+	do
+		if [ -z "${command_name}" ] || [[ "${command_name}" = \#* ]]
+		then
+			continue
+		fi
+
+		# stable key from the name - unchanged commands keep their key
+
+		command_hash="$(printf '%s' "${command_name}" | md5sum)"
+		command_key="_${command_hash:0:8}_${command_hash:8:4}_${command_hash:12:4}_${command_hash:16:4}_${command_hash:20:12}_"
+
+		# json string escaping: backslash then quote
+
+		command_name="${command_name//\\/\\\\}"
+		command_name="${command_name//\"/\\\"}"
+		command_line="${command_line//\\/\\\\}"
+		command_line="${command_line//\"/\\\"}"
+
+		if [ "${commands_json}" != "{" ]
+		then
+			commands_json+=","
+		fi
+
+		commands_json+="\"${command_key}\":{\"command\":\"${command_line}\",\"name\":\"${command_name}\"}"
+	done < "${file_commands_list}"
+
+	commands_json+="}"
+
+	# kde config value: quoted - backslashes and quotes escaped again
+
+	commands_value="${commands_json//\\/\\\\}"
+	commands_value="${commands_value//\"/\\\"}"
+
+	for device_id in "${device_order[@]}"
+	do
+		directory_run_command="${directory_kde_connect}/${device_id}/kdeconnect_runcommand"
+
+		mkdir -p "${directory_run_command}"
+
+		printf '[General]\ncommands="@ByteArray(%s)"\n' "${commands_value}" > "${directory_run_command}/config"
+
+		frobulator.track || continue
+
+		frobulator.scs "Run commands applied - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+	done
+
+	return "${status}"
+}
+
 # update ───────────────────────────────────────────────────────────────────────
 
 # frobulator.update
@@ -673,6 +758,10 @@ then
 
 	frobulator.complete continue "Restore failure - devices"
 
+	commands_apply
+
+	frobulator.complete continue "Run commands failure - devices"
+
 	frobulator.ownership "${directory_kde_connect}"
 
 	service_start
@@ -684,6 +773,22 @@ then
 	frobulator.inf "Paired devices"
 
 	kdeconnect-cli --list-devices 2> "${sink}"
+
+elif [ "${option}" = "commands" ]
+then
+	service_stop
+
+	devices_read
+
+	frobulator.complete halt "Run commands failure - no paired devices"
+
+	commands_apply
+
+	frobulator.complete continue "Run commands failure - devices"
+
+	frobulator.ownership "${directory_kde_connect}" > "${sink}"
+
+	service_start
 fi
 
 frobulator.result "${script}"
