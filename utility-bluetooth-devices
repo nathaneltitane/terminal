@@ -193,19 +193,16 @@ done
 
 directory_bluetooth="/var/lib/bluetooth"
 
-# pulseaudio per-user settings, prefixed with the machine id
-
-directory_pulse="${HOME}/.config/pulse"
-
-audio_files_list=(
-	device-volumes.tdb
-	card-database.tdb
-	stream-volumes.tdb
-	default-sink
-	default-source
-)
+# audio settings per device as plain text, applied through pulseaudio on restore
 
 file_bluetooth_keys_default="/media/internal/.bluetooth-keys"
+
+# paired devices and list column, shared by the device and audio backups
+
+device_labels=()
+device_addresses=()
+device_names=()
+index_label_column=0
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -239,10 +236,9 @@ fi
 directory="${directory%/}"
 
 file_device_index="${directory}/bluetooth-devices-list"
+file_audio_settings="${directory}/bluetooth-audio-settings"
 
 file_bluetooth_keys="${file_bluetooth_keys:-${file_bluetooth_keys_default}}"
-
-machine_id="$(< /etc/machine-id)"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -342,11 +338,7 @@ devices_backup () {
 	local device_directory
 	local device_address
 	local device_name
-	local device_labels=()
-	local device_addresses=()
-	local device_names=()
 	local index_label_width=0
-	local index_label_column
 	local device_index
 	local file_keys_archive
 
@@ -430,27 +422,125 @@ devices_backup () {
 	return "${status}"
 }
 
+audio_user () {
+
+	# run a command as the desktop user, inside their session
+
+	local audio_user_name="${SUDO_USER:-${USER}}"
+
+	sudo -u "${audio_user_name}" XDG_RUNTIME_DIR="/run/user/$(id -u "${audio_user_name}")" "${@}"
+}
+
+audio_sink_name () {
+
+	# pulseaudio sink of a bluetooth device, whatever its profile
+
+	local audio_address="${1//:/_}"
+	local audio_sink_index
+	local audio_sink_name
+
+	while IFS=$'\t' read -r audio_sink_index audio_sink_name _
+	do
+		if [[ "${audio_sink_name}" = "bluez_sink.${audio_address}."* ]]
+		then
+			echo "${audio_sink_name}"
+
+			return 0
+		fi
+	done < <(audio_user pactl list short sinks 2> "${sink}")
+
+	return 1
+}
+
+audio_card_profile () {
+
+	# active profile of a bluetooth device's pulseaudio card
+
+	local audio_card="bluez_card.${1//:/_}"
+	local audio_line
+	local audio_in_card=false
+
+	while IFS= read -r audio_line
+	do
+		if [[ "${audio_line}" =~ ^[[:space:]]*Name:[[:space:]]*(.+)$ ]]
+		then
+			if [ "${BASH_REMATCH[1]}" = "${audio_card}" ]
+			then
+				audio_in_card=true
+			else
+				audio_in_card=false
+			fi
+
+		elif [ "${audio_in_card}" = true ] && [[ "${audio_line}" =~ ^[[:space:]]*Active\ Profile:[[:space:]]*(.+)$ ]]
+		then
+			echo "${BASH_REMATCH[1]}"
+
+			return 0
+		fi
+	done < <(audio_user pactl list cards 2> "${sink}")
+
+	return 1
+}
+
 audio_backup () {
 
-	# pulseaudio volumes and defaults, stored without the machine id prefix
+	# profile, volume, mute and default output of each connected device, as plain text
 
 	local status=0
-	local audio_file
+	local audio_index
+	local audio_sink
+	local audio_profile
+	local audio_volume
+	local audio_mute
+	local audio_default
+	local audio_default_sink
+	local audio_line_count=0
 
-	for audio_file in "${audio_files_list[@]}"
+	audio_default_sink="$(audio_user pactl get-default-sink 2> "${sink}")"
+
+	: > "${file_audio_settings}"
+
+	for audio_index in "${!device_addresses[@]}"
 	do
-		if [ -f "${directory_pulse}/${machine_id}-${audio_file}" ]
-		then
-			cp -f "${directory_pulse}/${machine_id}-${audio_file}" "${directory}/bluetooth-audio-${audio_file}"
+		audio_sink="$(audio_sink_name "${device_addresses[${audio_index}]}")"
 
-			frobulator.track
+		if [ -z "${audio_sink}" ]
+		then
+			frobulator.wrn "Audio settings skipped - not connected" "[ '${device_labels[${audio_index}]}'${marker_spc}${marker_hnt}${marker_spc}${device_addresses[${audio_index}]} ]"
+
+			continue
 		fi
+
+		audio_profile="$(audio_card_profile "${device_addresses[${audio_index}]}")"
+
+		audio_volume="$(audio_user pactl get-sink-volume "${audio_sink}" 2> "${sink}")"
+		audio_volume="${audio_volume#*/ }"
+		audio_volume="${audio_volume%%%*}%"
+		audio_volume="${audio_volume// /}"
+
+		audio_mute="$(audio_user pactl get-sink-mute "${audio_sink}" 2> "${sink}")"
+		audio_mute="${audio_mute#Mute: }"
+
+		unset audio_default
+
+		if [ "${audio_sink}" = "${audio_default_sink}" ]
+		then
+			audio_default="default"
+		fi
+
+		printf '%s%s%s\t%s\t%s\t%s%s\n'																	\
+			"${device_labels[${audio_index}]}"																\
+			"$(index_tabs "${#device_labels[${audio_index}]}" "${index_label_column}")"					\
+			"${device_addresses[${audio_index}]}"															\
+			"${audio_profile}"																				\
+			"${audio_volume}"																				\
+			"${audio_mute}"																					\
+			"${audio_default:+$'\t'${audio_default}}"	>> "${file_audio_settings}"
+
+		audio_line_count=$(( audio_line_count + 1 ))
 	done
 
-	if [ "${status}" -eq 0 ]
-	then
-		frobulator.scs "Backup success - audio settings" "[ 'bluetooth-audio'${marker_spc}${marker_hnt}${marker_spc}${#audio_files_list[@]} ]"
-	fi
+	frobulator.scs "Backup success - audio settings" "[ '${file_audio_settings##*/}'${marker_spc}${marker_hnt}${marker_spc}${audio_line_count} ]"
 
 	return "${status}"
 }
@@ -543,60 +633,97 @@ devices_restore () {
 	return "${status}"
 }
 
-audio_user () {
-
-	# run a command as the desktop user, inside their session
-
-	local audio_user_name="${SUDO_USER:-${USER}}"
-
-	sudo -u "${audio_user_name}" XDG_RUNTIME_DIR="/run/user/$(id -u "${audio_user_name}")" "${@}"
-}
-
 audio_restore () {
 
-	# pulseaudio settings under this machine's id, with pulseaudio stopped
+	# connect each device, then apply its saved profile, volume, mute and default output
 
 	local status=0
-	local audio_file
-	local audio_found=false
+	local audio_label
+	local audio_address
+	local audio_profile
+	local audio_volume
+	local audio_mute
+	local audio_default
+	local audio_sink
+	local audio_attempt
+	local audio_second
 
-	for audio_file in "${audio_files_list[@]}"
-	do
-		if [ -f "${directory}/bluetooth-audio-${audio_file}" ]
-		then
-			audio_found=true
-		fi
-	done
-
-	if [ "${audio_found}" != true ]
+	if [ ! -f "${file_audio_settings}" ]
 	then
-		frobulator.wrn "Audio settings not restored - none saved" "[ 'bluetooth-audio'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+		frobulator.wrn "Audio settings not restored - none saved" "[ '${file_audio_settings##*/}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
 
 		return 0
 	fi
 
-	audio_user systemctl --user stop pulseaudio.socket pulseaudio.service 2> "${sink}"
-
-	mkdir -p "${directory_pulse}"
-
-	for audio_file in "${audio_files_list[@]}"
+	while IFS=$'\t' read -r audio_label audio_address audio_profile audio_volume audio_mute audio_default
 	do
-		if [ -f "${directory}/bluetooth-audio-${audio_file}" ]
+		# speakers often answer only after a few page timeouts
+
+		for audio_attempt in {1..6}
+		do
+			if [[ "$(bluetoothctl info "${audio_address}" 2> "${sink}")" = *"Connected: yes"* ]]
+			then
+				break
+			fi
+
+			bluetoothctl connect "${audio_address}" > "${sink}" 2>&1
+
+			sleep 2
+		done
+
+		unset audio_sink
+
+		for audio_second in {1..15}
+		do
+			audio_sink="$(audio_sink_name "${audio_address}")"
+
+			if [ -n "${audio_sink}" ]
+			then
+				break
+			fi
+
+			sleep 1
+		done
+
+		if [ -z "${audio_sink}" ]
 		then
-			cp -f "${directory}/bluetooth-audio-${audio_file}" "${directory_pulse}/${machine_id}-${audio_file}"
+			frobulator.wrn "Audio settings skipped - not connected" "[ '${audio_label}'${marker_spc}${marker_hnt}${marker_spc}${audio_address} ]"
+
+			status=1
+
+			continue
+		fi
+
+		if [ -n "${audio_profile}" ]
+		then
+			audio_user pactl set-card-profile "bluez_card.${audio_address//:/_}" "${audio_profile}" 2> "${sink}"
+
+			frobulator.track
+
+			# the sink name follows the profile
+
+			sleep 2
+
+			audio_sink="$(audio_sink_name "${audio_address}")"
+		fi
+
+		audio_user pactl set-sink-volume "${audio_sink}" "${audio_volume}"
+
+		frobulator.track
+
+		audio_user pactl set-sink-mute "${audio_sink}" "${audio_mute}"
+
+		frobulator.track
+
+		if [ "${audio_default}" = "default" ]
+		then
+			audio_user pactl set-default-sink "${audio_sink}"
 
 			frobulator.track
 		fi
-	done
 
-	frobulator.ownership "${directory_pulse}" > "${sink}"
-
-	audio_user systemctl --user start pulseaudio.socket pulseaudio.service 2> "${sink}"
-
-	if [ "${status}" -eq 0 ]
-	then
-		frobulator.scs "Restore success - audio settings" "[ 'bluetooth-audio'${marker_spc}${marker_hnt}${marker_spc}${machine_id:0:8} ]"
-	fi
+		frobulator.scs "Restore success - audio settings" "[ '${audio_label}'${marker_spc}${marker_hnt}${marker_spc}${audio_volume} ]"
+	done < "${file_audio_settings}"
 
 	return "${status}"
 }
@@ -645,7 +772,7 @@ then
 
 	frobulator.complete continue "Backup failure - audio settings"
 
-	frobulator.ownership "${file_device_index}" "${directory}"/bluetooth-audio-* > "${sink}"
+	frobulator.ownership "${file_device_index}" "${file_audio_settings}" > "${sink}"
 
 elif [ "${option}" = "restore" ]
 then
