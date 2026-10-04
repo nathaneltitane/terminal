@@ -1307,11 +1307,101 @@ lan=$(
 
 }
 
+# music mirror ─────────────────────────────────────────────────────────────────
+
+music-mirror () {
+
+	# mirror external drive music to the phone, folder by folder, for the folders the phone keeps:
+	# a folder's subfolders on the phone are each mirrored, or the folder itself when it has none
+	# usage: music-mirror [utility-add-remove options: -e execute, -y skip confirmation]
+	# without options every folder is a dry run
+
+	local music_external="/media/${USER}/external/Music"
+	local music_phone
+	local music_utility
+	local music_candidate
+	local music_folder
+	local music_subfolder
+	local music_subfolders=()
+	local music_relative
+	local music_list=()
+	local music_options=("${@}")
+
+	# phone storage mounted by kde connect
+
+	for music_candidate in /run/user/"$(id -u)"/*/storage/emulated/0/Music
+	do
+		if [ -d "${music_candidate}" ]
+		then
+			music_phone="${music_candidate}"
+
+			break
+		fi
+	done
+
+	if [ -z "${music_phone}" ]
+	then
+		frobulator.err "Phone music folder not mounted" "[ kde connect ]"
+		frobulator.nul "Open the phone in dolphin or browse it through kde connect first."
+
+		return 1
+	fi
+
+	if [ ! -d "${music_external}" ]
+	then
+		frobulator.err "External music folder not found" "[ ${music_external} ]"
+
+		return 1
+	fi
+
+	music_utility="$(command -v utility-add-remove)"
+
+	if [ -z "${music_utility}" ]
+	then
+		frobulator.download get.trmnl.me "${HOME}/.local/bin" utility-add-remove || return
+
+		music_utility="${HOME}/.local/bin/utility-add-remove"
+	fi
+
+	# folder list: subfolders kept on the phone or the folder itself when it has none
+
+	for music_folder in "${music_phone}"/*/
+	do
+		music_subfolders=("${music_folder}"*/)
+
+		if [ -d "${music_subfolders[0]}" ]
+		then
+			for music_subfolder in "${music_subfolders[@]}"
+			do
+				music_list+=("$(basename -- "${music_folder}")/$(basename -- "${music_subfolder}")")
+			done
+		else
+			music_list+=("$(basename -- "${music_folder}")")
+		fi
+	done
+
+	# each folder mirrored on its own from the external drive
+
+	for music_relative in "${music_list[@]}"
+	do
+		if [ ! -d "${music_external}/${music_relative}" ]
+		then
+			frobulator.wrn "Skipped - not on external drive" "[ '${music_relative}' ]"
+
+			continue
+		fi
+
+		frobulator.fwd "Mirroring" "[ '${music_relative}' ]"
+
+		bash "${music_utility}" -f "${music_external}/${music_relative}" -t "${music_phone}/${music_relative}" -m "${music_options[@]}"
+	done
+}
+
 # audio control ────────────────────────────────────────────────────────────────
 
 audio_combine_connect () {
 
-	# connect a bluetooth device unless already connected, waiting for each attempt:
+	# connect a bluetooth device unless already connected - wait for each attempt:
 	# speakers often answer only after a few page timeouts
 
 	local bluetooth_address="${1}"
