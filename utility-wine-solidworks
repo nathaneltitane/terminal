@@ -74,24 +74,53 @@ do
 	case "${1}"
 	in
 		-i|--installer)
+			option="install"
 			installer="${2}"
 
 			shift
 		;;
 
+		-s|--setup)
+			option="setup"
+		;;
+
+		-l|--launch)
+			option="launch"
+		;;
+
+		-p|--prefix)
+			wine_prefix="${2}"
+
+			shift
+		;;
+
+		-r|--reset)
+			option="reset"
+		;;
+
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -i [Installer] | -h"
+			echo -e "Usage: ./${script} -i [Installer] | -s | -l | -r [-p [Prefix]] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --installer    Specify path to the SOLIDWORKS [i]nstaller 'setup.exe'."
+			echo -e "-i, --installer    Specify SOLIDWORKS 'setup.exe' - set up wine then run the [i]nstaller."
 			echo
 			echo -e "                   [ /path/to/setup.exe ]"
 			echo
+			echo -e "-s, --setup        Run environment [s]etup only - wine / components / vba."
+			echo
+			echo -e "-l, --launch       Run SOLIDWORKS - [l]aunch the installed application."
+			echo
+			echo -e "-r, --reset        Move the wine prefix to the trash - [r]eset to start over."
+			echo
+			echo -e "-p, --prefix       Specify wine [p]refix directory."
+			echo
+			echo -e "                   [ \${HOME}/.local/share/solidworks/prefix ] [ Default ]"
+			echo
 			echo -e "-h, --help         Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'        [ Version // ${version} ]"
+			echo -e "'${script}'     [ Version // ${version} ]"
 			echo
 
 			exit
@@ -106,7 +135,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -i [Installer] | -h"
+			echo -e "Usage: ./${script} -i [Installer] | -s | -l | -r [-p [Prefix]] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -124,14 +153,438 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-wine_prefix="${HOME}"/.wine
-wine_drive="${wine_prefix}"/drive_c
+# everything solidworks lives under one folder - prefix / downloads / checkpoints
 
-WINEPREFIX="${wine_prefix}"
+directory_solidworks="${HOME}/.local/share/solidworks"
+directory_downloads="${directory_solidworks}/downloads"
+directory_checkpoints="${directory_solidworks}/checkpoints"
+
+file_winetricks="${HOME}/.local/bin/winetricks"
+directory_applications="${HOME}/.local/share/applications"
+
+file_desktop_entry="${directory_applications}/solidworks.desktop"
+
+url_winetricks="${marker_hts}raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
+url_wine_key="${marker_hts}dl.winehq.org/wine-builds/winehq.key"
+url_vba="${marker_hts}codeberg.org/cryinkfly/SolidWorks-on-Linux/raw/branch/main/files/builds/stable-branch/extensions/vba/vba7"
+
+# components from the cryinkfly SOLIDWORKS for Linux recipe - win10 set last
+
+winetricks_verbs=(
+	atmlib
+	gdiplus
+	corefonts
+	msxml4
+	msxml6
+	vcrun2019
+	ie8
+	dxvk
+	win10
+)
+
+# installed application inside the prefix
+
+solidworks_executable="drive_c/Program Files/SOLIDWORKS Corp/SOLIDWORKS/SLDWORKS.exe"
+solidworks_executable_windows='C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe'
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
+if [ -z "${option}" ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Specify '--installer [setup.exe]' / '--setup' / '--launch' or '--reset'."
+
+	exit 1
+
+elif [ "${option}" = "install" ] && [[ -z "${installer}" || "${installer}" = -* ]]
+then
+	frobulator.err "Missing argument for '--installer'."
+
+	exit 1
+
+elif [[ "${wine_prefix}" = -* ]]
+then
+	frobulator.err "Missing argument for '--prefix'."
+
+	exit 1
+fi
+
+wine_prefix="${wine_prefix:-${directory_solidworks}/prefix}"
+wine_prefix="${wine_prefix%/}"
+
+if [ "${option}" = "install" ] && [ ! -f "${installer}" ]
+then
+	frobulator.err "Installer not found" "[ ${installer} ]"
+
+	exit 1
+fi
+
+# installer path as the desktop user sees it
+
+if [ -n "${installer}" ]
+then
+	installer="$(readlink -f -- "${installer}")"
+fi
+
 # functions ────────────────────────────────────────────────────────────────────
+
+wine_user () {
+
+	# run a command as the desktop user - inside their session and the solidworks prefix
+
+	local status=0
+	local wine_user_name="${SUDO_USER:-${USER}}"
+
+	local wine_user_id
+
+	wine_user_id="$(id -u "${wine_user_name}")"
+
+	sudo -u "${wine_user_name}"										\
+		env															\
+			HOME="${HOME}"											\
+			DISPLAY="${DISPLAY}"									\
+			XAUTHORITY="${XAUTHORITY}"								\
+			WAYLAND_DISPLAY="${WAYLAND_DISPLAY}"					\
+			XDG_RUNTIME_DIR="/run/user/${wine_user_id}"				\
+			WINEPREFIX="${wine_prefix}"								\
+			WINEARCH="win64"										\
+			"${@}"
+
+	frobulator.track
+
+	return "${status}"
+}
+
+system_detect () {
+
+	# distribution family and release name from os-release
+
+	local status=0
+
+	if [ ! -f /etc/os-release ]
+	then
+		frobulator.err "Unsupported system - no os-release" "[ /etc/os-release ]"
+
+		return 1
+	fi
+
+	. /etc/os-release
+
+	system_codename="${UBUNTU_CODENAME:-${VERSION_CODENAME}}"
+
+	if [ "${ID}" = "ubuntu" ] || [[ " ${ID_LIKE} " = *" ubuntu "* ]]
+	then
+		system_family="ubuntu"
+
+	elif [ "${ID}" = "debian" ] || [[ " ${ID_LIKE} " = *" debian "* ]]
+	then
+		system_family="debian"
+
+	elif [ "${ID}" = "fedora" ] || [[ " ${ID_LIKE} " = *" fedora "* ]]
+	then
+		system_family="fedora"
+
+	elif [ "${ID}" = "arch" ] || [[ " ${ID_LIKE} " = *" arch "* ]]
+	then
+		system_family="arch"
+
+	elif [[ "${ID}" = opensuse* ]] || [[ " ${ID_LIKE} " = *" suse "* ]]
+	then
+		system_family="opensuse"
+	else
+		frobulator.err "Unsupported system" "[ ${PRETTY_NAME} ]"
+
+		return 1
+	fi
+
+	frobulator.inf "System" "[ ${PRETTY_NAME}${marker_spc}${marker_hnt}${marker_spc}${system_family} ]"
+
+	return "${status}"
+}
+
+system_wine_install () {
+
+	# wine and the tools winetricks needs - winehq staging on debian / ubuntu - distribution wine elsewhere
+
+	local status=0
+
+	local wine_sources_url
+	local wine_sources_status
+
+	frobulator.fwd "Installing" "[ wine${marker_spc}${marker_hnt}${marker_spc}${system_family} ]"
+
+	if [ "${system_family}" = "debian" ] || [ "${system_family}" = "ubuntu" ]
+	then
+		# winehq repository for this release - 200 if published
+
+		wine_sources_url="${marker_hts}dl.winehq.org/wine-builds/${system_family}/dists/${system_codename}/winehq-${system_codename}.sources"
+		wine_sources_status="$(curl --silent --location --output "${sink}" --write-out '%{http_code}' "${wine_sources_url}")"
+
+		if [ "${wine_sources_status}" != "200" ]
+		then
+			frobulator.err "WineHQ has no packages for this release" "[ ${system_codename}${marker_spc}${marker_hnt}${marker_spc}${wine_sources_status} ]"
+
+			return 1
+		fi
+
+		dpkg --add-architecture i386
+
+		frobulator.fail "Unable to add the i386 architecture" || return
+
+		mkdir --parents --mode 755 /etc/apt/keyrings
+
+		curl --silent --fail --location --output /etc/apt/keyrings/winehq-archive.key "${url_wine_key}"
+
+		frobulator.fail "Unable to fetch the WineHQ key" "[ winehq.key ]" || return
+
+		curl --silent --fail --location --output "/etc/apt/sources.list.d/winehq-${system_codename}.sources" "${wine_sources_url}"
+
+		frobulator.fail "Unable to fetch the WineHQ sources" "[ ${system_codename} ]" || return
+
+		apt-get update
+
+		frobulator.fail "Unable to update package lists" || return
+
+		# winehq-staging replaces the distribution's own wine packages
+
+		apt-get install --assume-yes --install-recommends winehq-staging cabextract p7zip-full winbind unzip curl
+
+		frobulator.fail "Unable to install WineHQ staging" "[ winehq-staging ]" || return
+
+	elif [ "${system_family}" = "fedora" ]
+	then
+		dnf install --assumeyes wine cabextract p7zip p7zip-plugins samba-winbind-clients unzip curl
+
+		frobulator.fail "Unable to install wine" "[ dnf ]" || return
+
+	elif [ "${system_family}" = "arch" ]
+	then
+		# needs the multilib repository enabled in /etc/pacman.conf
+
+		pacman --sync --refresh --needed --noconfirm wine wine-mono wine-gecko cabextract p7zip samba unzip curl
+
+		frobulator.fail "Unable to install wine - is multilib enabled?" "[ pacman ]" || return
+
+	elif [ "${system_family}" = "opensuse" ]
+	then
+		zypper --non-interactive install wine cabextract p7zip samba-winbind unzip curl
+
+		frobulator.fail "Unable to install wine" "[ zypper ]" || return
+	fi
+
+	return "${status}"
+}
+
+winetricks_fetch () {
+
+	# latest winetricks - distribution versions lag behind
+
+	local status=0
+
+	frobulator.download "${url_winetricks}" "${file_winetricks}"
+
+	frobulator.fail "Unable to fetch winetricks" "[ winetricks ]" || return
+
+	frobulator.ownership "${file_winetricks}" > "${sink}"
+
+	return "${status}"
+}
+
+prefix_create () {
+
+	# new 64-bit prefix - wine offers to install its matching mono and gecko
+
+	local status=0
+
+	frobulator.directory "${wine_prefix}" > "${sink}"
+
+	frobulator.fwd "Creating wine prefix" "[ ${wine_prefix} ]"
+
+	wine_user wineboot --init
+
+	frobulator.fail "Unable to create the wine prefix" "[ ${wine_prefix} ]" || return
+
+	wine_user wineserver --wait
+
+	return "${status}"
+}
+
+prefix_components () {
+
+	# windows components solidworks expects - one winetricks run each so a failure names its verb
+
+	local status=0
+
+	local winetricks_verb
+
+	for winetricks_verb in "${winetricks_verbs[@]}"
+	do
+		frobulator.fwd "Installing component" "[ ${winetricks_verb} ]"
+
+		wine_user bash "${file_winetricks}" --unattended "${winetricks_verb}"
+
+		frobulator.fail "Component failure" "[ ${winetricks_verb} ]" || return
+	done
+
+	wine_user wineserver --wait
+
+	return "${status}"
+}
+
+vba_install () {
+
+	# visual basic for applications 7.1 - files copied into the prefix then patched
+
+	local status=0
+	local directory_vba="${directory_downloads}/vba7.1"
+
+	frobulator.download "${url_vba}/vba7.1.zip" "${directory_downloads}/vba7.1.zip"
+
+	frobulator.fail "Unable to fetch VBA" "[ vba7.1.zip ]" || return
+
+	frobulator.download "${url_vba}/vba71-kb2783832-x64.msp" "${directory_downloads}/vba71-kb2783832-x64.msp"
+
+	frobulator.fail "Unable to fetch the VBA patch" "[ vba71-kb2783832-x64.msp ]" || return
+
+	frobulator.ownership "${directory_solidworks}" > "${sink}"
+
+	wine_user unzip -q -o "${directory_downloads}/vba7.1.zip" -d "${directory_downloads}"
+
+	frobulator.fail "Unable to extract VBA" "[ vba7.1.zip ]" || return
+
+	# program files / program files (x86) / windows folders go to drive c
+
+	wine_user cp -r "${directory_vba}"/Program*s "${directory_vba}"/Program*x86* "${directory_vba}"/windows "${wine_prefix}/drive_c/"
+
+	frobulator.fail "Unable to copy VBA into the prefix" "[ drive_c ]" || return
+
+	wine_user wine msiexec /p "${directory_downloads}/vba71-kb2783832-x64.msp" REINSTALL=ALL REINSTALLMODE=omus /qn
+
+	frobulator.fail "Unable to apply the VBA patch" "[ kb2783832 ]" || return
+
+	wine_user wineserver --wait
+
+	return "${status}"
+}
+
+environment_setup () {
+
+	# each step recorded as a checkpoint - a rerun continues where it stopped
+
+	local status=0
+
+	frobulator.directory "${directory_checkpoints}" > "${sink}"
+	frobulator.directory "${directory_downloads}" > "${sink}"
+
+	frobulator.complete halt "${directory_checkpoints}" "system-wine" system_wine_install
+	frobulator.complete halt "${directory_checkpoints}" "winetricks" winetricks_fetch
+	frobulator.complete halt "${directory_checkpoints}" "prefix" prefix_create
+	frobulator.complete halt "${directory_checkpoints}" "components" prefix_components
+	frobulator.complete halt "${directory_checkpoints}" "vba" vba_install
+
+	return "${status}"
+}
+
+solidworks_install () {
+
+	# the solidworks installation manager - follow its steps in the window
+
+	local status=0
+
+	frobulator.inf "Launching SOLIDWORKS installer" "[ ${installer##*/} ]"
+	frobulator.nul "Keep the default installation folder so the launcher finds SOLIDWORKS."
+
+	wine_user wine "${installer}"
+
+	frobulator.fail "SOLIDWORKS installer failure" "[ ${installer##*/} ]" || return
+
+	wine_user wineserver --wait
+
+	return "${status}"
+}
+
+launcher_create () {
+
+	# application menu entry - only once solidworks is installed
+
+	local status=0
+
+	if [ ! -f "${wine_prefix}/${solidworks_executable}" ]
+	then
+		frobulator.wrn "Launcher not created - SOLIDWORKS not installed" "[ SLDWORKS.exe ]"
+
+		return 0
+	fi
+
+	frobulator.directory "${directory_applications}" > "${sink}"
+
+	cat <<- DESKTOP > "${file_desktop_entry}"
+	[Desktop Entry]
+	Type=Application
+	Name=SOLIDWORKS
+	Comment=SOLIDWORKS through wine
+	Exec=env WINEPREFIX="${wine_prefix}" wine "${solidworks_executable_windows}"
+	Icon=wine
+	Categories=Graphics;Engineering;
+	DESKTOP
+
+	frobulator.track || return 1
+
+	frobulator.ownership "${file_desktop_entry}" > "${sink}"
+
+	frobulator.scs "Launcher created" "[ ${file_desktop_entry##*/} ]"
+
+	return "${status}"
+}
+
+solidworks_launch () {
+
+	local status=0
+
+	if [ ! -f "${wine_prefix}/${solidworks_executable}" ]
+	then
+		frobulator.err "SOLIDWORKS not installed" "[ ${wine_prefix} ]"
+
+		return 1
+	fi
+
+	frobulator.fwd "Launching" "[ SOLIDWORKS ]"
+
+	wine_user wine "${solidworks_executable_windows}" > "${sink}" 2>&1 &
+
+	return "${status}"
+}
+
+prefix_reset () {
+
+	# prefix and checkpoints to the trash - downloads are kept
+
+	local status=0
+
+	frobulator.wrn "Reset moves the wine prefix and its checkpoints to the trash" "[ ${wine_prefix} ]"
+
+	frobulator.qst "Reset the SOLIDWORKS prefix?"
+
+	frobulator.read reply
+
+	if [[ "${reply}" != [yY]         ]] &&
+	   [[ "${reply}" != [yY][eE][sS] ]]
+	then
+		frobulator.stp "Reset cancelled."
+
+		return 0
+	fi
+
+	wine_user wineserver --kill > "${sink}" 2>&1
+
+	wine_user gio trash "${wine_prefix}" "${directory_checkpoints}"
+
+	frobulator.fail "Unable to move the prefix to the trash" "[ ${wine_prefix} ]" || return
+
+	frobulator.scs "Prefix moved to the trash" "[ ${wine_prefix} ]"
+
+	return "${status}"
+}
 
 # update ───────────────────────────────────────────────────────────────────────
 
@@ -142,149 +595,45 @@ WINEPREFIX="${wine_prefix}"
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	cabextract
-	curl
-	p7zip
-	p7zip-full
-	p7zip-rar
-	rfkill
-	wget
-	winbind
+
 )
 
 frobulator.require ${list[@]}
-
-frobulator.complete
 
 list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-frobulator.inf "Updating system"
-
-apt-get update
-
-apt-get --assume-yes upgrade
-
-frobulator.complete
-
-frobulator.inf "Adding i386 architecture"
-
-dpkg --add-architecture i386
-
-frobulator.complete
-
-frobulator.inf "Adding WineHQ repository"
-
-wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
-
-add-apt-repository --yes 'deb https://dl.winehq.org/wine-builds/debian/ bookworm main'
-
-apt-get update
-
-apt-get --assume-yes upgrade
-
-frobulator.complete
-
-frobulator.inf "Installing WineHQ" "[ staging ]"
-
-apt-get --assume-yes install --install-recommends winehq-staging
-
-frobulator.complete
-
-# gecko
-
-frobulator.download "https://dl.winehq.org/wine/wine-gecko/2.47.3/wine-gecko-2.47.3-x86.msi" "${HOME}/Downloads" wine-gecko.msi
-
-frobulator.complete
-
-WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-gecko.msi /qn
-
-frobulator.complete
-
-# mono
-
-frobulator.download "https://dl.winehq.org/wine/wine-mono/7.4.0/wine-mono-7.4.0-x86.msi" "${HOME}/Downloads" wine-mono.msi
-
-frobulator.complete
-
-WINEPREFIX="${wine_prefix}" msiexec /i "${HOME}"/Downloads/wine-mono.msi /qn
-
-frobulator.complete
-
-# winetricks
-
-frobulator.download "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" "${HOME}/.local/bin" winetricks
-
-frobulator.complete
-
-winetricks_list=(
-	win10
-	allfonts
-	dxvk
-	vcrun2019
-	dotnet48
-	msxml6
-	msxml4
-	msxml3
-	ie8
-)
-
-for winetricks_verb in "${winetricks_list[@]}"
-do
-	frobulator.inf "Winetricks" "[ ${winetricks_verb} ]"
-
-	WINEPREFIX="${wine_prefix}" "${SHELL}" "${HOME}"/.local/bin/winetricks -q "${winetricks_verb}"
-
-	frobulator.complete
-done
-
-# vba 7.1
-
-frobulator.download "https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba7.1.zip" "${HOME}/Downloads" vba7.1.zip
-
-frobulator.complete
-
-unzip -q "${HOME}"/Downloads/vba7.1.zip -d "${HOME}"/Downloads
-
-frobulator.complete
-
-cp -r "${HOME}"/Downloads/vba7.1/* "${wine_drive}"
-
-frobulator.complete
-
-# vba 7.1 patch
-
-frobulator.download "https://github.com/cryinkfly/SOLIDWORKS-Linux-Wine-Version-/raw/main/files/VBA/vba71-kb2783832-x64.msp" "${HOME}/Downloads" vba-patch.msp
-
-frobulator.complete
-
-WINEPREFIX="${wine_prefix}" msiexec /p "${HOME}"/Downloads/vba-patch.msp REINSTALL=ALL REINSTALLMODE=omus /qn
-
-frobulator.complete
-
-# solidworks
-
-if [ -z "${installer}" ]
+if [ "${option}" = "launch" ]
 then
-	frobulator.err "No installer specified"
+	solidworks_launch
 
-	exit 1
+	frobulator.complete halt
+
+elif [ "${option}" = "reset" ]
+then
+	prefix_reset
+
+	frobulator.complete halt
+else
+	system_detect
+
+	frobulator.complete halt
+
+	environment_setup
+
+	if [ "${option}" = "install" ]
+	then
+		solidworks_install
+
+		frobulator.complete continue
+
+		launcher_create
+
+		frobulator.complete continue
+	fi
 fi
 
-if [ ! -f "${installer}" ]
-then
-	frobulator.err "Installer not found" "[ ${installer} ]"
-
-	exit 1
-fi
-
-frobulator.inf "Launching SOLIDWORKS installer"
-
-WINEPREFIX="${wine_prefix}" wine "${installer}"
-
-frobulator.complete
+frobulator.ownership "${directory_solidworks}" > "${sink}"
 
 frobulator.result "${script}"
-
-frobulator.scs "Setup complete"
