@@ -250,7 +250,7 @@ fi
 
 # service activation
 
-# status line when the service is running, empty otherwise
+# status line if the service is running - empty otherwise
 
 service_running="$(systemctl status "${service}" | grep -e "active.*running")"
 
@@ -288,7 +288,7 @@ service_actions_list=()
 
 # service process verification
 
-# status lines when the service is running, or when it is inactive - empty otherwise
+# status lines if the service is running or inactive - empty otherwise
 
 service_running="$(systemctl status "${service}" | grep -e "active.*running")"
 service_inactive="$(systemctl status "${service}" | grep -e "inactive.*")"

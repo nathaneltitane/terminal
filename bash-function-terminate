@@ -12,7 +12,7 @@ terminate () {
 
 	process_name="${1}"
 
-	# paths of 'pgrep' and 'pkill', empty when not installed
+	# 'pgrep' and 'pkill' paths - empty if not installed
 
 	command_pgrep="$(command -v pgrep)"
 	command_pkill="$(command -v pkill)"
@@ -20,7 +20,7 @@ terminate () {
 	if [ -n "${command_pgrep}" ] &&
 	   [ -n "${command_pkill}" ]
 	then
-		# process ids still matching the name, empty once all are gone
+		# process ids still matching the name - empty once all are gone
 
 		process_found="$(pgrep -f "${process_name}")"
 

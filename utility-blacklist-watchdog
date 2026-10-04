@@ -236,7 +236,7 @@ frobulator.inf "Watchdog module" "[ ${module_label} ]"
 
 # avoid duplicate blacklist entries
 
-# existing blacklist line for the module, empty when not blacklisted yet
+# existing module blacklist line - empty if not blacklisted yet
 
 blacklist_line="$(grep -F -x "blacklist ${module}" "${blacklist_entry}" 2> "${sink}")"
 

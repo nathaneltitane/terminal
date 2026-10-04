@@ -8,7 +8,7 @@ play () {
 
 	local command_mpv
 
-	# path of 'mpv', empty when not installed
+	# 'mpv' path - empty if not installed
 
 	command_mpv="$(command -v mpv)"
 

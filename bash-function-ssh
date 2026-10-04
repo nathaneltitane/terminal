@@ -13,7 +13,7 @@ ssh () {
 
 	destination=${!#}
 
-	# password prompt colors: destination in yellow, then back to normal
+	# password prompt colors: destination in yellow - then back to normal
 
 	color_prompt_destination="$(tput setaf 3)"
 	color_prompt_reset="$(tput sgr 0)"

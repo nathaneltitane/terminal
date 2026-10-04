@@ -26,7 +26,7 @@ locate () {
 		exit 1
 	fi
 
-	# path of 'find', empty when not installed
+	# 'find' path - empty if not installed
 
 	command_find="$(command -v find)"
 

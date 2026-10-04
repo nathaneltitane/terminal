@@ -261,7 +261,7 @@ fi
 
 directory="${directory%/}"
 
-# asset ids of downloaded packages, to skip unchanged ones
+# asset ids of downloaded packages - unchanged ones are skipped
 
 file_versions="${directory}/package-termux.versions"
 
@@ -298,7 +298,7 @@ versions_save () {
 
 release_fetch () {
 
-	# release json of a repository, fetched once per run
+	# repository release json - fetched once per run
 
 	local release_repository="${1}"
 	local release_selector="${2}"

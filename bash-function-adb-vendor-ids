@@ -21,7 +21,7 @@ adb_vendor_ids () {
 
 	chmod -R 777 "${HOME}"/.android
 
-	# package listing for udev, empty when it is not installed
+	# udev package listing - empty if not installed
 
 	package_udev="$(dpkg -l udev)"
 

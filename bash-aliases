@@ -141,7 +141,7 @@ fi
 
 # directories ──────────────────────────────────────────────────────────────────
 
-# path of 'cd', empty when not installed
+# 'cd' path - empty if not installed
 
 command_cd="$(command -v cd)"
 
@@ -150,7 +150,7 @@ then
 	alias '..'='cd ..'
 fi
 
-# folders present on this system, empty when absent
+# folders present on this system - empty if absent
 
 directory_home="$(ls -d "${HOME}" 2> "${sink}")"
 directory_media="$(ls -d /media 2> "${sink}")"
@@ -185,7 +185,7 @@ fi
 
 # git  ─────────────────────────────────────────────────────────────────────────
 
-# path of 'git', empty when not installed
+# 'git' path - empty if not installed
 
 command_git="$(command -v git)"
 
@@ -201,7 +201,7 @@ then
 	alias 'gn'='git ls-files | xargs cat | wc -l'
 fi
 
-# git folders, the first one found is used - empty when absent
+# git folders - first one found is used - empty if absent
 
 directory_git_home="$(ls -d "${HOME}"/[gG]it 2> "${sink}")"
 directory_git_external="$(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> "${sink}")"
@@ -222,13 +222,13 @@ fi
 
 # packages ─────────────────────────────────────────────────────────────────────
 
-# path of 'apt-get', empty when not installed
+# 'apt-get' path - empty if not installed
 
 command_apt_get="$(command -v apt-get)"
 
 if [ -n "${command_apt_get}" ]
 then
-	# path of 'sudo', empty when not installed
+	# 'sudo' path - empty if not installed
 
 	command_sudo="$(command -v sudo)"
 
@@ -255,13 +255,13 @@ then
 	alias 'upgrade'="${apt_get_prefix}apt-get dist-upgrade"
 fi
 
-# path of 'apt-cache', empty when not installed
+# 'apt-cache' path - empty if not installed
 
 command_apt_cache="$(command -v apt-cache)"
 
 if [ -n "${command_apt_cache}" ]
 then
-	# path of 'sudo', empty when not installed
+	# 'sudo' path - empty if not installed
 
 	command_sudo="$(command -v sudo)"
 
@@ -280,7 +280,7 @@ fi
 
 # system ───────────────────────────────────────────────────────────────────────
 
-# paths of 'sudo' and 'systemctl', empty when not installed
+# 'sudo' and 'systemctl' paths - empty if not installed
 
 command_sudo="$(command -v sudo)"
 command_systemctl="$(command -v systemctl)"
@@ -296,13 +296,13 @@ fi
 
 # filters ──────────────────────────────────────────────────────────────────────
 
-# path of 'grep', empty when not installed
+# 'grep' path - empty if not installed
 
 command_grep="$(command -v grep)"
 
 if [ -n "${command_grep}" ]
 then
-	# path of 'env', empty when not installed
+	# 'env' path - empty if not installed
 
 	command_env="$(command -v env)"
 
@@ -311,7 +311,7 @@ then
 		alias 'environment'='env | grep -i'
 	fi
 
-	# path of 'ls', empty when not installed
+	# 'ls' path - empty if not installed
 
 	command_ls="$(command -v ls)"
 
@@ -320,7 +320,7 @@ then
 		alias 'files'='ls -a | grep -i'
 	fi
 
-	# path of 'ps', empty when not installed
+	# 'ps' path - empty if not installed
 
 	command_ps="$(command -v ps)"
 
@@ -332,7 +332,7 @@ fi
 
 # session ──────────────────────────────────────────────────────────────────────
 
-# path of 'exit', empty when not installed
+# 'exit' path - empty if not installed
 
 command_exit="$(command -v exit)"
 
@@ -341,7 +341,7 @@ then
 	alias 'exit'='exit > /dev/null 2>&1'
 fi
 
-# path of 'logout', empty when not installed
+# 'logout' path - empty if not installed
 
 command_logout="$(command -v logout)"
 
@@ -352,7 +352,7 @@ fi
 
 # commands ─────────────────────────────────────────────────────────────────────
 
-# path of 'chgrp', empty when not installed
+# 'chgrp' path - empty if not installed
 
 command_chgrp="$(command -v chgrp)"
 
@@ -361,7 +361,7 @@ then
 	alias 'group'='chgrp --preserve-root'
 fi
 
-# path of 'chmod', empty when not installed
+# 'chmod' path - empty if not installed
 
 command_chmod="$(command -v chmod)"
 
@@ -370,7 +370,7 @@ then
 	alias 'modify'='chmod --preserve-root'
 fi
 
-# path of 'chown', empty when not installed
+# 'chown' path - empty if not installed
 
 command_chown="$(command -v chown)"
 
@@ -379,7 +379,7 @@ then
 	alias 'own'='chown --preserve-root'
 fi
 
-# path of 'command', empty when not installed
+# 'command' path - empty if not installed
 
 command_command="$(command -v command)"
 
@@ -388,7 +388,7 @@ then
 	alias 'which'='command -v'
 fi
 
-# path of 'curl', empty when not installed
+# 'curl' path - empty if not installed
 
 command_curl="$(command -v curl)"
 
@@ -397,7 +397,7 @@ then
 	alias 'header'='curl -I'
 fi
 
-# path of 'df', empty when not installed
+# 'df' path - empty if not installed
 
 command_df="$(command -v df)"
 
@@ -406,7 +406,7 @@ then
 	alias 'space'='df -H'
 fi
 
-# path of 'du', empty when not installed
+# 'du' path - empty if not installed
 
 command_du="$(command -v du)"
 
@@ -416,7 +416,7 @@ then
 	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
 fi
 
-# path of 'htop', empty when not installed
+# 'htop' path - empty if not installed
 
 command_htop="$(command -v htop)"
 
@@ -426,7 +426,7 @@ then
 	alias 'process'='htop -s USER -t'
 fi
 
-# path of 'ls', empty when not installed
+# 'ls' path - empty if not installed
 
 command_ls="$(command -v ls)"
 
@@ -435,7 +435,7 @@ then
 	alias last='echo ; ls -a -h -l -t | head -11 ; echo'
 	fi
 
-# paths of 'mount' and 'column', empty when not installed
+# 'mount' and 'column' paths - empty if not installed
 
 command_mount="$(command -v mount)"
 command_column="$(command -v column)"
@@ -445,7 +445,7 @@ then
 	alias 'mounts'='mount | column -t'
 fi
 
-# path of 'nano', empty when not installed
+# 'nano' path - empty if not installed
 
 command_nano="$(command -v nano)"
 
@@ -454,7 +454,7 @@ then
 	alias 'edit'='nano -c -g -i -l -m -q -D -F -J 80 -T 4'
 fi
 
-# path of 'ss', empty when not installed
+# 'ss' path - empty if not installed
 
 command_ss="$(command -v ss)"
 
@@ -463,7 +463,7 @@ then
 	alias 'ports'='ss -t -u -l -a -n -p'
 fi
 
-# path of 'pgrep', empty when not installed
+# 'pgrep' path - empty if not installed
 
 command_pgrep="$(command -v pgrep)"
 
@@ -472,7 +472,7 @@ then
 	alias 'pgrep'='pgrep -f'
 fi
 
-# path of 'pstree', empty when not installed
+# 'pstree' path - empty if not installed
 
 command_pstree="$(command -v pstree)"
 
@@ -481,7 +481,7 @@ then
 	alias 'ptree'='pstree -C age -p'
 fi
 
-# path of 'ping', empty when not installed
+# 'ping' path - empty if not installed
 
 command_ping="$(command -v ping)"
 
@@ -490,7 +490,7 @@ then
 	alias 'sonar'='ping -c 5'
 fi
 
-# path of 'ps', empty when not installed
+# 'ps' path - empty if not installed
 
 command_ps="$(command -v ps)"
 
@@ -500,7 +500,7 @@ then
 	alias 'how'='ps -u'
 fi
 
-# path of 'rm', empty when not installed
+# 'rm' path - empty if not installed
 
 command_rm="$(command -v rm)"
 
@@ -509,7 +509,7 @@ then
 	alias 'delete'='rm -r -f'
 fi
 
-# path of 'rsync', empty when not installed
+# 'rsync' path - empty if not installed
 
 command_rsync="$(command -v rsync)"
 
@@ -518,7 +518,7 @@ then
 	alias 'archive'='rsync -a -r -q --progress -h'
 fi
 
-# path of 'cp', empty when not installed
+# 'cp' path - empty if not installed
 
 command_cp="$(command -v cp)"
 
@@ -527,7 +527,7 @@ then
 	alias 'copy'='cp -r -f'
 fi
 
-# path of 'shutdown', empty when not installed
+# 'shutdown' path - empty if not installed
 
 command_shutdown="$(command -v shutdown)"
 
@@ -536,14 +536,14 @@ then
 	alias 'shutdown'='shutdown -h now'
 fi
 
-# paths of 'sudo' and 'tput', empty when not installed
+# 'sudo' and 'tput' paths - empty if not installed
 
 command_sudo="$(command -v sudo)"
 command_tput="$(command -v tput)"
 
 if [ -n "${command_sudo}" ] && [ -n "${command_tput}" ]
 then
-	# password prompt colors: user name in yellow, then back to normal
+	# password prompt colors: user name in yellow - then back to normal
 
 	color_prompt_user="$(tput setaf 3)"
 	color_prompt_reset="$(tput sgr 0)"
@@ -551,7 +551,7 @@ then
 	alias 'sudo'="sudo -p \"[ ${color_prompt_user}${USER}${color_prompt_reset} ] >_ ? \""
 fi
 
-# path of 'wget', empty when not installed
+# 'wget' path - empty if not installed
 
 command_wget="$(command -v wget)"
 
@@ -560,7 +560,7 @@ then
 	alias 'get'='wget -c'
 fi
 
-# path of 'tree', empty when not installed
+# 'tree' path - empty if not installed
 
 command_tree="$(command -v tree)"
 
@@ -570,7 +570,7 @@ then
 	alias 'treef'='tree -a -p -L'
 fi
 
-# path of 'journalctl', empty when not installed
+# 'journalctl' path - empty if not installed
 
 command_journalctl="$(command -v journalctl)"
 
@@ -579,7 +579,7 @@ then
 	alias 'logs'='journalctl -x -e'
 fi
 
-# path of 'ip', empty when not installed
+# 'ip' path - empty if not installed
 
 command_ip="$(command -v ip)"
 
@@ -588,7 +588,7 @@ then
 	alias 'myip'='ip addr'
 fi
 
-# path of 'curl', empty when not installed
+# 'curl' path - empty if not installed
 
 command_curl="$(command -v curl)"
 
@@ -597,7 +597,7 @@ then
 	alias 'publicip'='curl -s ifconfig.me'
 fi
 
-# path of 'free', empty when not installed
+# 'free' path - empty if not installed
 
 command_free="$(command -v free)"
 
@@ -606,7 +606,7 @@ then
 	alias 'memory'='free -h'
 fi
 
-# path of 'lsblk', empty when not installed
+# 'lsblk' path - empty if not installed
 
 command_lsblk="$(command -v lsblk)"
 
@@ -617,7 +617,7 @@ fi
 
 # ai ───────────────────────────────────────────────────────────────────────────
 
-# path of 'ollama', empty when not installed
+# 'ollama' path - empty if not installed
 
 command_ollama="$(command -v ollama)"
 
@@ -635,7 +635,7 @@ fi
 
 if [ -n "${TERMUX_VERSION}" ]
 then
-	# path of 'dextop', empty when not installed
+	# 'dextop' path - empty if not installed
 
 	command_dextop="$(command -v dextop)"
 
@@ -658,7 +658,7 @@ then
 		alias 'dua'='bash dextop -u utility all'
 	fi
 
-	# path of 'am', empty when not installed
+	# 'am' path - empty if not installed
 
 	command_am="$(command -v am)"
 

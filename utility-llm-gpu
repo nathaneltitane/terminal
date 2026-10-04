@@ -244,7 +244,7 @@ url_install () {
 
 	local -a ownership_paths=("${@:5}")
 
-	# path of the command named in ${command_name}, empty when not installed
+	# ${command_name} command path - empty if not installed
 
 	command_path="$(command -v "${command_name}")"
 
@@ -323,7 +323,7 @@ then
 	frobulator.wrn "GPU render device not found" "[ /dev/dri/renderD128 ]"
 fi
 
-# path of 'vulkaninfo', empty when not installed
+# 'vulkaninfo' path - empty if not installed
 
 command_vulkaninfo="$(command -v vulkaninfo)"
 

@@ -437,7 +437,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-# character encoding of the current locale, e.g. UTF-8
+# current locale character encoding - e.g. UTF-8
 
 locale_charmap="$(locale charmap 2> "${sink}")"
 

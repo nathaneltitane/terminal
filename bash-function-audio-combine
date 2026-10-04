@@ -17,7 +17,7 @@ audio_combine_connect () {
 
 	for connect_attempt in {1..6}
 	do
-		# bluez device details, including its 'Connected: yes / no' line
+		# bluez device details - including its 'Connected: yes / no' line
 
 		bluetooth_information="$(bluetoothctl info "${bluetooth_address}" 2> "${sink}")"
 
@@ -56,7 +56,7 @@ audio_combine_sink_wait () {
 
 	for (( sink_second=0 ; sink_second<sink_timeout ; sink_second++ ))
 	do
-		# one line per sink: index, name, driver, format, state - tab separated
+		# one line per sink: index / name / driver / format / state - tab separated
 
 		sink_list="$(pactl list short sinks)"
 
@@ -92,7 +92,7 @@ audio_combine_outputs () {
 
 audio_combine_load () {
 
-	# (re)create the combined sink, make it default and move playing streams to it
+	# (re)create the combined sink - make it default - move playing streams to it
 
 	local sink_combined="${1}"
 
@@ -110,7 +110,7 @@ audio_combine_load () {
 	slaves_joined="${sink_slaves[*]}"
 
 	# adjust_time=0: no rate adjustment timer - pulseaudio 16.1 aborts in its callback
-	# ('u->time_event == e' in module-combine-sink time_callback), dropping both speakers
+	# ('u->time_event == e' in module-combine-sink time_callback) - dropping both speakers
 
 	pactl load-module module-combine-sink sink_name="${sink_combined}" slaves="${slaves_joined// /,}" adjust_time=0 > "${sink}" || return
 
@@ -134,7 +134,7 @@ audio_combine_load () {
 
 audio_combine_watch () {
 
-	# background watcher: reconnect dropped speakers, rebuild the combined sink when they return
+	# background watcher: reconnect dropped speakers - rebuild the combined sink once they return
 
 	local file_watch_pid="${1}"
 	local sink_combined="${2}"
@@ -170,7 +170,7 @@ audio_combine_watch () {
 					fi
 				done
 
-				# speakers the combined sink currently plays to
+				# speakers the combined sink plays to
 
 				sink_outputs="$(audio_combine_outputs)"
 
@@ -222,7 +222,7 @@ audio_combine_unload () {
 
 audio-combine () {
 
-	# combine two bluetooth speakers into one output, kept alive across dropouts
+	# combine two bluetooth speakers into one output - kept alive across dropouts
 	# usage: audio-combine [stop]
 
 	local sink_combined="bluez_sink_combined"

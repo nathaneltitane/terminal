@@ -201,7 +201,7 @@ apt-get --assume-yes purge modemmanager > "${sink}" 2>&1
 
 frobulator.complete
 
-# path of 'systemctl', empty when not installed
+# 'systemctl' path - empty if not installed
 
 command_systemctl="$(command -v systemctl)"
 
@@ -300,7 +300,7 @@ frobulator.complete
 
 # verification
 
-# path of the command named in ${process}, empty when not installed
+# ${process} command path - empty if not installed
 
 command_path="$(command -v "${process}")"
 

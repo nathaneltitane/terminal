@@ -243,7 +243,7 @@ cat << 'MAIN' > /usr/bin/write-conky
 
 # write conky #
 
-# name of the user running the script
+# user running the script
 
 user_name="$(id -u -n)"
 

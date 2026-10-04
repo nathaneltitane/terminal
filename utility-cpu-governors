@@ -201,7 +201,7 @@ do
 
 	# cpu governor (${governors_list[governor]}) #
 
-	# number of processor cores listed by the kernel
+	# processor core count
 
 	cpu_count="\$(grep -c processor /proc/cpuinfo)"
 
@@ -217,7 +217,7 @@ do
 			-g ${governors_list[governor]}
 	done
 
-	# path of 'notify-send', empty when not installed
+	# 'notify-send' path - empty if not installed
 
 	command_notify_send="\$(command -v notify-send)"
 
@@ -268,7 +268,7 @@ do
 		-g "${governor}"
 done
 
-# path of 'notify-send', empty when not installed
+# 'notify-send' path - empty if not installed
 
 command_notify_send="$(command -v notify-send)"
 

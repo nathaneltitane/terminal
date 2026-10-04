@@ -130,7 +130,7 @@ then
 	then
 		# audio
 
-		# process ids of a running pulseaudio, empty when stopped
+		# running pulseaudio process ids - empty if stopped
 
 		process_pulseaudio="$(pgrep -f pulseaudio)"
 
@@ -141,7 +141,7 @@ then
 
 		# display
 
-		# process ids of the running termux x11 display, empty when stopped
+		# running termux x11 display process ids - empty if stopped
 
 		process_x11="$(pgrep -f com.termux.x11)"
 
