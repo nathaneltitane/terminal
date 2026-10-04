@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# temperature ──────────────────────────────────────────────────────────────────
+
+temperature () {
+
+	if [[ -d /sys/class/thermal ]]
+	then
+		acpitz_count=0
+		cpu_label=""
+		cpu_degrees=""
+		lines=()
+		max_length=0
+
+		for zone in /sys/class/thermal/thermal_zone*
+		do
+			label=$(cat "${zone}"/type)
+
+			if [ "${label}" = "acpitz" ]
+			then
+				acpitz_count=$(( acpitz_count + 1 ))
+
+				label="System ${acpitz_count}"
+
+			elif [[ "${label}" = pch_* ]]
+			then
+				label="Chipset"
+
+			elif [[ "${label}" = iwlwifi_* ]]
+			then
+				label="WiFi"
+
+			elif [ "${label}" = "x86_pkg_temp" ]
+			then
+				label="CPU"
+
+			else
+				label="${label//_/ }"
+			fi
+
+			degrees=$(cat "${zone}"/temp)
+			degrees=$(( degrees / 1000 ))
+
+			if [ "${#label}" -gt "${max_length}" ]
+			then
+				max_length="${#label}"
+			fi
+
+			if [ "${label}" = "CPU" ]
+			then
+				cpu_label="${label}"
+				cpu_degrees="${degrees}"
+			else
+				lines+=("${label}|${degrees}")
+			fi
+		done
+
+		pad=$(( max_length + 4 ))
+
+		if [ -n "${cpu_label}" ]
+		then
+			printf "%-${pad}s%s°C\n" "${cpu_label}:" "${cpu_degrees}"
+		fi
+
+		printf '%s\n' "${lines[@]}" | sort |
+		while IFS='|' read -r label degrees
+		do
+			printf "%-${pad}s%s°C\n" "${label}:" "${degrees}"
+		done
+
+		unset acpitz_count cpu_label cpu_degrees lines max_length pad
+	fi
+
+}

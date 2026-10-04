@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# hex ──────────────────────────────────────────────────────────────────────────
+
+hex () {
+
+	# set IFS
+
+	IFS=' '
+
+	read r g b <<< "${@}"
+
+	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+
+	# unset IFS
+
+	IFS=''
+}

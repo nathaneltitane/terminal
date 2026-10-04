@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# countd ───────────────────────────────────────────────────────────────────────
+
+countd () {
+
+	echo "$(find "${PWD}" -maxdepth 1 -type d | wc -l) directories under ${PWD}"
+
+}

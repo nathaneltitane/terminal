@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# weather ──────────────────────────────────────────────────────────────────────
+
+weather () {
+
+	url="wttr.in"
+
+	echo
+
+	curl -s "${url}" | head -n -2
+
+	echo
+
+	unset url
+
+}

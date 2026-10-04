@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-pull-package ─────────────────────────────────────────────────────────────
+
+adb_pull_package () {
+
+	adb_download
+
+	adb_set_environment
+
+	if [[ ! -d ./apk ]]
+	then
+		mkdir -p "${HOME}"/Android
+
+		cd "${HOME}"/Android
+	fi
+
+	for package in $(adb shell pm list packages | sed -n 's/^package://p')
+	do
+		adb pull "$(adb shell pm path "${package}" | grep /data/app | sed -n "s/^package://p")"
+
+		mv base.apk "${package}".apk
+	done
+}

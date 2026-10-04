@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# list ─────────────────────────────────────────────────────────────────────────
+
+list () {
+
+	directory="${1}"
+
+	if [ -z "${directory}" ]
+	then
+		directory="${PWD}"
+	fi
+
+	if [ ! -d "${directory}" ]
+	then
+		frobulator.err "Directory not found" "[ ${directory} ]"
+
+		return 1
+	fi
+
+	ls								\
+		-a							\
+		-h							\
+		-l							\
+		--group-directories-first	\
+									"${directory}"
+
+	echo
+	echo "$(find "${directory}" -type d | wc -l) directories"
+	echo
+	echo "$(find "${directory}" -type f | wc -l) files"
+	echo
+}

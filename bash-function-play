@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# play ─────────────────────────────────────────────────────────────────────────
+
+play () {
+
+	if [ -z "$(command -v mpv)" ]
+	then
+		frobulator.require mpv
+	fi
+
+	before="[${marker_spc}"
+	after="${marker_spc}]"
+
+	action="Playing"
+
+	file="${1}"
+
+	if [ $# -eq 2 ]
+	then
+		action="${1}"
+
+		file="${2}"
+	fi
+
+	title="${file##*/}"
+
+
+	# frobulator.pmt "${@}"
+
+	# substitute standard input for function specific criteria:
+	# [ ... ] action ───────────────────────────────────────────...─── [ title ]
+
+	frobulator.pmt "${action}" "${title}"
+
+	prompt="${prompt_string[@]}"
+
+	ticker=(
+		".  "
+		".. "
+		"..."
+		" .."
+		"  ."
+		"   "
+	)
+
+	instance=0
+
+	mpv					\
+		--no-video		\
+		--really-quiet	\
+						"${file}" < "${sink}" > "${sink}" 2>&1 &
+
+	PID=$!
+
+	while [ -d /proc/"${PID}" ]
+	do
+		ticker_frame="${ticker[instance++%${#ticker[@]}]}"
+
+		echo -n -e "\r${before}${ticker_frame}${after}${reset}${marker_spc}${prompt}\c"
+
+		sleep 0.25
+	done
+}

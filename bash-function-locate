@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# locate ───────────────────────────────────────────────────────────────────────
+
+locate () {
+
+	type="${1}"
+
+	query="${2}"
+
+	if [[ "${type}" =~ ^(d|dir|directory)$ ]]
+	then
+		type='d'
+
+	elif [[ "${type}" =~ ^(f|file)$ ]]
+	then
+		type='f'
+	else
+		echo "unsupported type"
+		echo
+
+		exit 1
+	fi
+
+	if [[ $(command -v find) ]]
+	then
+		find								\
+			"${PWD}"						\
+				-type			"${type}"	\
+				-iname 			"*${query}*"
+	fi
+
+}

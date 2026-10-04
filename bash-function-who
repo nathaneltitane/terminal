@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# who ──────────────────────────────────────────────────────────────────────────
+
+who () {
+
+	echo
+
+	echo "Current user: ${USER}"
+
+	echo
+
+}

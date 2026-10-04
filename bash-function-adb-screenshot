@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-screenshot ───────────────────────────────────────────────────────────────
+
+adb_screenshot () {
+
+	adb_download
+
+	adb_set_environment
+
+	adb shell screencap -p /sdcard/"${screenshot}"
+
+	adb pull /sdcard/"${screenshot}" screenshot/"${screenshot}"
+
+	adb shell rm /sdcard/"${screenshot}"
+}

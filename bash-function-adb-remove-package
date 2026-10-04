@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-remove-package ───────────────────────────────────────────────────────────
+
+adb_remove_package () {
+
+	adb_download
+
+	adb_set_environment
+
+	package="${1}"
+
+	adb uninstall --user 0 "${package}"
+}

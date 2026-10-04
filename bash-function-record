@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# record ───────────────────────────────────────────────────────────────────────
+
+record () {
+
+	list=(
+		recordmydesktop
+		wmctrl
+	)
+
+	(frobulator.require ${list[@]})
+
+	list=()
+
+	if [ -f "${HOME}"/Videos ]
+	then
+		path="${HOME}"/Videos
+	else
+		path="${HOME}"
+	fi
+
+	stamp="$(date +"%m-%d-%Y-%H-%M-%S")"
+	window_id="$(xwininfo | grep "Window id" | cut -d ' ' -f 4)"
+
+	wmctrl		\
+		-i		\
+		-R		"${window_id}"
+
+	frobulator.wait 1
+
+	recordmydesktop								\
+		--no-cursor								\
+		--no-wm-check							\
+		--no-sound								\
+		--overwrite								\
+		--windowid "${window_id}"				\
+		--output="${path}"/clip-"${stamp}".ogv
+}

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# snippet ──────────────────────────────────────────────────────────────────────
+
+snippet () {
+
+	url="http://sprunge.us"
+
+	if (($#))
+	then
+		curl -F 'sprunge=<-' "${url}" < "${1}"
+	else
+		curl -F 'sprunge=<-' "${url}"
+	fi
+}

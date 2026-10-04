@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-record ───────────────────────────────────────────────────────────────────
+
+adb_record () {
+
+	adb_download
+
+	adb_set_environment
+
+	adb shell screenrecord /storage/emulated/0/Videos/"${recording}" &
+
+	adb_record_PID=$!
+
+	read -r -p 'Press enter to stop recording...'
+
+	kill ${adb_record_PID} > "${sink}" 2>&1
+
+	sleep 0.5
+
+	adb pull /sdcard/"${recording}" screenrecord/"${recording}"
+
+	adb shell rm /sdcard/"${recording}"
+}

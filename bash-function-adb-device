@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-device ───────────────────────────────────────────────────────────────────
+
+adb_device () {
+
+	adb_download
+
+	adb_set_environment
+
+	if [ $# -gt 1 ]
+	then
+		device="-s ${@:2}"
+
+		adb connect ${@:2}
+
+		sleep 2
+	fi
+}

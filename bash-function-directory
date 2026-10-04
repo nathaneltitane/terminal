@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# directory ────────────────────────────────────────────────────────────────────
+
+directory () {
+
+	frobulator.require mkdir
+
+	mkdir -p "${1}"
+
+	cd "${1}"
+}

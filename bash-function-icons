@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# icons ────────────────────────────────────────────────────────────────────────
+
+icons () {
+
+	frobulator.require gtk-update-icon-cache
+
+	icons_directory_list=(
+		"${HOME}"/.icons
+		"${PREFIX}"/share/icons
+		/usr/share/icons
+	)
+
+	for icons_directory in ${icons_directory_list[@]}
+	do
+		if [ -d "${icons_directory}" ]
+		then
+			cd "${icons_directory}"
+		fi
+
+		if [ -d "${icons_directory}" ]
+		then
+			find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
+			do
+				if [ -f "${theme}"/index.theme ]
+				then
+					theme_name="${theme##*/}"
+
+					gtk-update-icon-cache -f -q "${theme}"
+
+					frobulator.scs "Cache update success" "[ ${theme_name} ]"
+				else
+					frobulator.wrn "Skipping" "[ ${theme_name} ]"
+				fi
+			done
+		fi
+	done
+}
