@@ -12,15 +12,17 @@ music-mirror () {
 	# without options every folder is a dry run
 
 	local music_external="/media/${USER}/external/Music"
+
 	local music_phone
 	local music_utility
 	local music_candidate
 	local music_folder
 	local music_subfolder
-	local music_subfolders=()
 	local music_relative
-	local music_list=()
-	local music_options=("${@}")
+
+	local -a music_subfolders=()
+	local -a music_list=()
+	local -a music_options=("${@}")
 
 	# phone storage mounted by kde connect
 

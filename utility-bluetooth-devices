@@ -250,7 +250,8 @@ adapter_address () {
 
 	local adapter_line
 	local adapter_directory
-	local adapter_directories=()
+
+	local -a adapter_directories=()
 
 	adapter_line="$(bluetoothctl list 2> "${sink}" | grep -m 1 '^Controller')"
 
@@ -299,6 +300,7 @@ info_value () {
 
 	local info_file="${1}"
 	local info_key="${2}"
+
 	local info_line
 	local info_section
 
@@ -336,11 +338,15 @@ index_tabs () {
 devices_backup () {
 
 	local status=0
+	local index_label_width=0
+
 	local adapter
 	local device_directory
 	local device_address
 	local device_name
-	local index_label_width=0
+	local device_alias
+	local device_reported_name
+	local device_list_label
 	local device_index
 	local file_keys_archive
 
@@ -364,10 +370,16 @@ devices_backup () {
 
 		device_address="${device_directory##*/}"
 
-		device_name="$(info_value "${device_directory}/info" Alias)"
-		device_name="${device_name:-$(info_value "${device_directory}/info" Name)}"
+		# alias set on this computer, otherwise the name the device reports
 
-		device_labels+=("$(device_label "${device_name}")")
+		device_alias="$(info_value "${device_directory}/info" Alias)"
+		device_reported_name="$(info_value "${device_directory}/info" Name)"
+
+		device_name="${device_alias:-${device_reported_name}}"
+
+		device_list_label="$(device_label "${device_name}")"
+
+		device_labels+=("${device_list_label}")
 		device_addresses+=("${device_address}")
 		device_names+=("${device_name}")
 	done
@@ -438,6 +450,7 @@ audio_sink_name () {
 	# pulseaudio sink of a bluetooth device, whatever its profile
 
 	local audio_address="${1//:/_}"
+
 	local audio_sink_index
 	local audio_sink_name
 
@@ -459,8 +472,9 @@ audio_card_profile () {
 	# active profile of a bluetooth device's pulseaudio card
 
 	local audio_card="bluez_card.${1//:/_}"
-	local audio_line
 	local audio_in_card=false
+
+	local audio_line
 
 	while IFS= read -r audio_line
 	do
@@ -489,6 +503,8 @@ audio_backup () {
 	# profile, volume, mute and default output of each connected device, as plain text
 
 	local status=0
+	local audio_line_count=0
+
 	local audio_index
 	local audio_sink
 	local audio_profile
@@ -496,9 +512,24 @@ audio_backup () {
 	local audio_mute
 	local audio_default
 	local audio_default_sink
-	local audio_line_count=0
+	local audio_saved_line
+	local audio_saved_address
+
+	local -A audio_saved_lines=()
 
 	audio_default_sink="$(audio_user pactl get-default-sink 2> "${sink}")"
+
+	# previous settings, kept for devices that are not connected now
+
+	if [ -f "${file_audio_settings}" ]
+	then
+		while IFS= read -r audio_saved_line
+		do
+			IFS=$'\t' read -r _ audio_saved_address _ <<< "${audio_saved_line}"
+
+			audio_saved_lines["${audio_saved_address}"]="${audio_saved_line}"
+		done < "${file_audio_settings}"
+	fi
 
 	: > "${file_audio_settings}"
 
@@ -508,7 +539,18 @@ audio_backup () {
 
 		if [ -z "${audio_sink}" ]
 		then
-			frobulator.wrn "Audio settings skipped - not connected" "[ '${device_labels[${audio_index}]}'${marker_spc}${marker_hnt}${marker_spc}${device_addresses[${audio_index}]} ]"
+			audio_saved_line="${audio_saved_lines[${device_addresses[${audio_index}]}]}"
+
+			if [ -n "${audio_saved_line}" ]
+			then
+				echo "${audio_saved_line}" >> "${file_audio_settings}"
+
+				audio_line_count=$(( audio_line_count + 1 ))
+
+				frobulator.wrn "Audio settings kept - not connected" "[ '${device_labels[${audio_index}]}'${marker_spc}${marker_hnt}${marker_spc}${device_addresses[${audio_index}]} ]"
+			else
+				frobulator.wrn "Audio settings skipped - not connected" "[ '${device_labels[${audio_index}]}'${marker_spc}${marker_hnt}${marker_spc}${device_addresses[${audio_index}]} ]"
+			fi
 
 			continue
 		fi
@@ -550,11 +592,15 @@ audio_backup () {
 devices_restore () {
 
 	local status=0
+
 	local adapter
 	local adapter_archived
 	local device_directory
 	local device_address
 	local device_name
+	local device_alias
+	local device_reported_name
+	local device_list_label
 	local file_keys_archive
 
 	if [ ! -f "${file_bluetooth_keys}" ]
@@ -610,10 +656,16 @@ devices_restore () {
 
 			frobulator.track
 
-			device_name="$(info_value "${device_directory}/info" Alias)"
-			device_name="${device_name:-$(info_value "${device_directory}/info" Name)}"
+			# alias set on this computer, otherwise the name the device reports
 
-			frobulator.scs "Restore success - device" "[ '$(device_label "${device_name}")'${marker_spc}${marker_hnt}${marker_spc}${device_address} ]"
+			device_alias="$(info_value "${device_directory}/info" Alias)"
+			device_reported_name="$(info_value "${device_directory}/info" Name)"
+
+			device_name="${device_alias:-${device_reported_name}}"
+
+			device_list_label="$(device_label "${device_name}")"
+
+			frobulator.scs "Restore success - device" "[ '${device_list_label}'${marker_spc}${marker_hnt}${marker_spc}${device_address} ]"
 		done
 
 		# adapter settings (name, discoverable) only for the same adapter
@@ -640,6 +692,7 @@ audio_restore () {
 	# connect each device, then apply its saved profile, volume, mute and default output
 
 	local status=0
+
 	local audio_label
 	local audio_address
 	local audio_profile
@@ -649,6 +702,7 @@ audio_restore () {
 	local audio_sink
 	local audio_attempt
 	local audio_second
+	local audio_device_information
 
 	if [ ! -f "${file_audio_settings}" ]
 	then
@@ -663,7 +717,11 @@ audio_restore () {
 
 		for audio_attempt in {1..6}
 		do
-			if [[ "$(bluetoothctl info "${audio_address}" 2> "${sink}")" = *"Connected: yes"* ]]
+			# bluez device details, including its 'Connected: yes / no' line
+
+			audio_device_information="$(bluetoothctl info "${audio_address}" 2> "${sink}")"
+
+			if [[ "${audio_device_information}" = *"Connected: yes"* ]]
 			then
 				break
 			fi
@@ -748,7 +806,11 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -z "$(command -v bluetoothctl)" ]
+# bluez command line client, empty when not installed
+
+bluetooth_client="$(command -v bluetoothctl)"
+
+if [ -z "${bluetooth_client}" ]
 then
 	frobulator.err "BlueZ not installed" "[ bluetoothctl ]"
 

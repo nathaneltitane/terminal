@@ -329,7 +329,7 @@ apk_tool_update () {
 
 apk_tool_decode () {
 
-	local arguments=()
+	local -a arguments=()
 
 	if [ "${force}" = true ]
 	then

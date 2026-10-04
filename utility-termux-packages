@@ -303,6 +303,7 @@ release_fetch () {
 	local release_repository="${1}"
 	local release_selector="${2}"
 	local release_key="${release_repository}|${release_selector}"
+
 	local release_url
 
 	if [ -n "${release_cache[${release_key}]}" ]
@@ -333,6 +334,7 @@ package_update () {
 
 	local package="${1}"
 	local package_status=0
+
 	local source_entry
 	local source_package
 	local source_repository

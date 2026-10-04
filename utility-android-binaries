@@ -296,7 +296,11 @@ then
 
 	file_list="${directory}/.binary-android-list"
 
-	case "$(uname -m)"
+	# machine architecture reported by the kernel: x86_64, aarch64 ...
+
+	architecture_machine="$(uname -m)"
+
+	case "${architecture_machine}"
 	in
 		x86_64)
 			binary_architectures=("-static-x86_64.zip|")
@@ -307,7 +311,7 @@ then
 		;;
 
 		*)
-			frobulator.err "Unsupported architecture" "[ $(uname -m) ]"
+			frobulator.err "Unsupported architecture" "[ ${architecture_machine} ]"
 
 			exit 1
 		;;
@@ -353,6 +357,7 @@ list_original () {
 	# original binary name inside the release archive for a list file name
 
 	local list_file="${1%-arm64}"
+
 	local list_entry
 	local list_name
 	local list_path
@@ -394,13 +399,15 @@ list_save () {
 	# file, original binary name and release asset id, columns aligned on tab stops (tab width 4):
 	# each text column one tab wider than its longest entry
 
-	local list_file
-	local list_original_name
 	local list_file_width=0
 	local list_original_width=0
+
+	local list_file
+	local list_original_name
 	local list_file_column
 	local list_original_column
 	local list_original_position
+
 	local -A list_originals=()
 
 	for list_file in "${!binary_assets[@]}"
@@ -426,11 +433,11 @@ list_save () {
 		list_original_name="${list_originals[${list_file}]}"
 		list_original_position=$(( list_file_column + ${#list_original_name} ))
 
-		printf '%s%s%s%s%s\n'																					\
-			"${list_file}"																			\
+		printf '%s%s%s%s%s\n'																\
+			"${list_file}"																	\
 			"$(list_tabs "${#list_file}" "${list_file_column}")"							\
-			"${list_original_name}"																			\
-			"$(list_tabs "${list_original_position}" "${list_original_column}")"							\
+			"${list_original_name}"															\
+			"$(list_tabs "${list_original_position}" "${list_original_column}")"			\
 			"${binary_assets[${list_file}]}"
 	done | LC_ALL=C sort > "${file_list}"
 }
@@ -440,6 +447,7 @@ binaries_update () {
 	# for each architecture: download its release archive once, then replace each selected binary that changed
 
 	local status=0
+
 	local release_json
 	local release_tag
 	local architecture_entry
@@ -452,9 +460,10 @@ binaries_update () {
 	local binary_name
 	local binary_path
 	local binary_file
-	local binaries_pending=()
 	local file_archive
 	local directory_architecture
+
+	local -a binaries_pending=()
 
 	release_json="$(curl --silent --fail --location --connect-timeout 30 "${url_binaries_release}" 2> "${sink}")"
 
