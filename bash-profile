@@ -320,7 +320,7 @@ then
 
 	if [ -n "${process_proot}" ]
 	then
-		session_tilte="${distribution}"
+		session_title="${distribution}"
 	fi
 
 	session_title="${session_title^}"
