@@ -1,0 +1,434 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- ${BASH_SOURCE[0]})"
+
+if [[ "${frobulator_loaded}" != "true" ]]
+then
+	echo
+
+	ticker () {
+
+		for ticker in '>  ' '>> ' '>>>'
+		do
+			echo -n -e "\r[  ${ticker}  ] ${1^}..."
+
+			sleep 0.5
+		done
+
+		echo
+
+		echo
+
+	}
+
+	if [[ $(id -u -n) = "root" ]]
+	then
+		USER="${SUDO_USER:-root}"
+
+		if [ "${USER}" = "root" ]
+		then
+			HOME=/root
+		else
+			HOME="/home/${USER}"
+		fi
+	fi
+
+	ticker checking
+
+	package_managers_list=(
+		"apt-get --quiet --quiet update > /dev/null 2>&1; apt-get --quiet --quiet install --yes"
+		"dnf --quiet install --assumeyes"
+		"yum --quiet install --assumeyes"
+		"apk add --quiet"
+		"pacman --sync --refresh --noconfirm --noprogressbar"
+		"zypper --quiet --non-interactive install"
+	)
+
+	package="curl"
+
+	if [[ -z $(command -v "${package}") ]]
+	then
+		for package_manager in "${package_managers_list[@]}"
+		do
+			entry="${package_manager%% *}"
+
+			if [[ -n $(command -v "${entry}") ]]
+			then
+				eval "${package_manager} ${package} > /dev/null 2>&1"
+
+				break
+			fi
+		done
+
+		if [[ -z $(command -v "${package}") ]]
+		then
+			echo "[  !  ] Unable to install or binary not found ─────────────────────── [ '${package}' ]"
+			echo
+
+			exit 1
+		fi
+	fi
+
+	mkdir -p "${HOME}"/.local/bin
+
+	frobulator="${HOME}"/.local/bin/frobulator
+
+	version_online=$(curl -s -L get.frbltr.app | grep -m 1 '^update=' | cut -d '"' -f 2)
+
+	version_local=$(grep -m 1 '^update=' "${frobulator}" 2>/dev/null | cut -d '"' -f 2)
+
+	version_local="${version_local:-1970-01-01}"
+
+	if [ ! -f "${frobulator}" ] || [[ "${version_online}" > "${version_local}" ]]
+	then
+		curl -s -L get.frbltr.app > "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	ticker initializing
+
+	source "${frobulator}"
+
+	# script arguments for escalation
+
+	self_arguments=("${@}")
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-04"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+selection=()
+
+while (($#))
+do
+	case "${1}"
+	in
+		-a|--all)
+			selection+=(all)
+		;;
+
+		-b|--adb)
+			selection+=(adb)
+		;;
+
+		-e|--e2fsdroid)
+			selection+=(e2fsdroid)
+		;;
+
+		-s|--f2fs-sload)
+			selection+=(f2fs-sload)
+		;;
+
+		-f|--fastboot)
+			selection+=(fastboot)
+		;;
+
+		-m|--make-f2fs)
+			selection+=(make-f2fs)
+		;;
+
+		-z|--zipalign)
+			selection+=(zipalign)
+		;;
+
+		-d|--directory)
+			directory="${2}"
+
+			shift
+		;;
+
+		-o|--force)
+			force=true
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -a | -b -e -s -f -m -z [-d [Directory]] [-o] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-a, --all           Update [a]ll binaries - default without selection."
+			echo
+			echo -e "-b, --adb           Update the ad[b] binary."
+			echo
+			echo -e "-e, --e2fsdroid     Update the [e]2fsdroid binary."
+			echo
+			echo -e "-s, --f2fs-sload    Update the f2fs-[s]load binary."
+			echo
+			echo -e "-f, --fastboot      Update the [f]astboot binary."
+			echo
+			echo -e "-m, --make-f2fs     Update the [m]ake-f2fs binary."
+			echo
+			echo -e "-z, --zipalign      Update the [z]ipalign binary."
+			echo
+			echo -e "-d, --directory     Specify target [d]irectory."
+			echo
+			echo -e "                    [ script directory ] [ Default ]"
+			echo
+			echo -e "-o, --force         Allow f[o]rced update of unchanged binaries."
+			echo
+			echo -e "-h, --help          Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'     [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -a | -b -e -s -f -m -z [-d [Directory]] [-o] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+# static arm64 builds of the android sdk tools, for termux
+
+url_binaries_release="${marker_hts}api.github.com/repos/lzhiyong/android-sdk-tools/releases/latest"
+
+binaries_archive_suffix="-static-aarch64.zip"
+
+# binaries: name | path inside the release archive | file
+
+binary_sources=(
+	"adb|platform-tools/adb|binary-android-adb"
+	"e2fsdroid|platform-tools/e2fsdroid|binary-android-e2fsdroid"
+	"f2fs-sload|platform-tools/sload_f2fs|binary-android-f2fs-sload"
+	"fastboot|platform-tools/fastboot|binary-android-fastboot"
+	"make-f2fs|platform-tools/make_f2fs|binary-android-make-f2fs"
+	"zipalign|build-tools/zipalign|binary-android-zipalign"
+)
+
+declare -A binary_versions
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ "${#selection[@]}" -eq 0 ] || [[ " ${selection[*]} " = *" all "* ]]
+then
+	selection=(adb e2fsdroid f2fs-sload fastboot make-f2fs zipalign)
+fi
+
+if [[ "${directory}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+
+	exit 1
+fi
+
+# binaries are served from the repository holding this script
+
+if [ -z "${directory}" ]
+then
+	directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+fi
+
+directory="${directory%/}"
+
+# release asset id of each binary, to skip unchanged ones
+
+file_versions="${directory}/binary-android.versions"
+
+# functions ────────────────────────────────────────────────────────────────────
+
+versions_load () {
+
+	local versions_file_name
+	local versions_asset_id
+
+	if [ ! -f "${file_versions}" ]
+	then
+		return 0
+	fi
+
+	while read -r versions_file_name versions_asset_id
+	do
+		if [ -n "${versions_file_name}" ]
+		then
+			binary_versions["${versions_file_name}"]="${versions_asset_id}"
+		fi
+	done < "${file_versions}"
+}
+
+versions_save () {
+
+	local versions_file_name
+
+	for versions_file_name in "${!binary_versions[@]}"
+	do
+		echo "${versions_file_name} ${binary_versions[${versions_file_name}]}"
+	done | sort > "${file_versions}"
+}
+
+binaries_update () {
+
+	# download the release archive once, then replace each selected binary that changed
+
+	local status=0
+	local release_json
+	local release_tag
+	local asset_id
+	local asset_url
+	local binary_entry
+	local binary_name
+	local binary_path
+	local binary_file
+	local binaries_pending=()
+	local file_archive
+
+	release_json="$(curl --silent --fail --location --connect-timeout 30 "${url_binaries_release}" 2> "${sink}")"
+
+	release_tag="$(jq -r '.tag_name // empty' <<< "${release_json}" 2> "${sink}")"
+
+	read -r asset_id asset_url < <(
+		jq -r --arg suffix "${binaries_archive_suffix}" \
+			'[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"' \
+			<<< "${release_json}" 2> "${sink}"
+	)
+
+	if [ -z "${asset_url}" ]
+	then
+		frobulator.err "Release unavailable" "[ 'android-sdk-tools'${marker_spc}${marker_hnt}${marker_spc}000 ]"
+
+		return 1
+	fi
+
+	for binary_entry in "${binary_sources[@]}"
+	do
+		IFS='|' read -r binary_name binary_path binary_file <<< "${binary_entry}"
+
+		if [[ " ${selection[*]} " != *" ${binary_name} "* ]]
+		then
+			continue
+		fi
+
+		if [ "${force}" != true ] && [ -f "${directory}/${binary_file}" ] &&
+		   [ "${binary_versions[${binary_file}]}" = "${asset_id}" ]
+		then
+			frobulator.inf "Up to date - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+
+			continue
+		fi
+
+		binaries_pending+=("${binary_entry}")
+	done
+
+	if [ "${#binaries_pending[@]}" -eq 0 ]
+	then
+		return 0
+	fi
+
+	frobulator.temporary directory_binaries_temporary
+
+	frobulator.trap "${directory_binaries_temporary}"
+
+	file_archive="${directory_binaries_temporary}/android-sdk-tools.zip"
+
+	frobulator.download "${asset_url}" "${file_archive}"
+
+	frobulator.track || return 1
+
+	frobulator.extract "${file_archive}" "${directory_binaries_temporary}" > "${sink}"
+
+	frobulator.track || return 1
+
+	for binary_entry in "${binaries_pending[@]}"
+	do
+		IFS='|' read -r binary_name binary_path binary_file <<< "${binary_entry}"
+
+		if [ ! -f "${directory_binaries_temporary}/${binary_path}" ]
+		then
+			frobulator.err "Update failure - ${binary_name}" "[ '${binary_path}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+			status=1
+
+			continue
+		fi
+
+		cp -f "${directory_binaries_temporary}/${binary_path}" "${directory}/${binary_file}"
+
+		frobulator.track || continue
+
+		frobulator.permissions public execute "${directory}/${binary_file}" > "${sink}"
+
+		binary_versions["${binary_file}"]="${asset_id}"
+
+		frobulator.scs "Update success - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+	done
+
+	return "${status}"
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+	curl
+	jq
+	unzip
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+if [ ! -d "${directory}" ]
+then
+	frobulator.err "Directory not found" "[ ${directory} ]"
+
+	exit 1
+fi
+
+frobulator.inf "Target directory" "[ ${directory} ]"
+
+versions_load
+
+binaries_update
+
+frobulator.complete continue "Update failure - binaries"
+
+versions_save
+
+frobulator.ownership "${directory}" > "${sink}"
+
+frobulator.result "${script}"
