@@ -159,6 +159,8 @@ then
 	fi
 fi
 
+unset shell_posix
+
 # user  ────────────────────────────────────────────────────────────────────────
 
 if [ -n "${TERMUX_VERSION}" ]
@@ -326,6 +328,8 @@ else
 	fi
 fi
 
+unset command_tput
+
 # prompt ───────────────────────────────────────────────────────────────────────
 
 unset PS1
@@ -357,6 +361,8 @@ then
 else
 	PS1+="\[""${white}""\] >_ \$ \[""${reset}""\]"
 fi
+
+unset user_name
 
 unset prompt_color
 
@@ -447,6 +453,4 @@ then
 	fi
 fi
 
-# detection variables are not kept in the shell
-
-unset command_tput shell_posix user_name process_proot
+unset process_proot

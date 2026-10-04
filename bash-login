@@ -247,6 +247,4 @@ then
 	fi
 fi
 
-# detection variables are not kept in the shell
-
 unset command_pulseaudio dextop_environment process_proot dextop_update dextop_audio process_pulseaudio
