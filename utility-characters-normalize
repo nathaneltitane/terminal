@@ -437,7 +437,11 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [[ $(locale charmap 2> "${sink}") != "UTF-8" ]]
+# character encoding of the current locale, e.g. UTF-8
+
+locale_charmap="$(locale charmap 2> "${sink}")"
+
+if [ "${locale_charmap}" != "UTF-8" ]
 then
 	frobulator.err "UTF-8 locale unavailable"
 

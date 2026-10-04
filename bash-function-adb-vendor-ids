@@ -6,6 +6,8 @@
 
 adb_vendor_ids () {
 
+	local package_udev
+
 	adb_download
 
 	adb_set_environment
@@ -19,7 +21,11 @@ adb_vendor_ids () {
 
 	chmod -R 777 "${HOME}"/.android
 
-	if [[ $(dpkg -l udev) ]]
+	# package listing for udev, empty when it is not installed
+
+	package_udev="$(dpkg -l udev)"
+
+	if [ -n "${package_udev}" ]
 	then
 		while read -r vendor_id
 		do

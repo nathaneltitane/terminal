@@ -141,39 +141,55 @@ fi
 
 # directories ──────────────────────────────────────────────────────────────────
 
-if [[ $(command -v cd) ]]
+# path of 'cd', empty when not installed
+
+command_cd="$(command -v cd)"
+
+if [ -n "${command_cd}" ]
 then
 	alias '..'='cd ..'
 fi
 
-if [[ $(ls -d "${HOME}" 2> "${sink}") ]]
+# folders present on this system, empty when absent
+
+directory_home="$(ls -d "${HOME}" 2> "${sink}")"
+directory_media="$(ls -d /media 2> "${sink}")"
+directory_external="$(ls -d /media/[eE]xternal 2> "${sink}")"
+directory_internal="$(ls -d /media/[iI]nternal 2> "${sink}")"
+directory_files="$(ls -d /media/[fF]iles 2> "${sink}")"
+
+if [ -n "${directory_home}" ]
 then
 	alias 'hd'='cd "${HOME}"'
 fi
 
-if [[ $(ls -d /media 2> "${sink}") ]]
+if [ -n "${directory_media}" ]
 then
 	alias 'md'='cd /media'
 fi
 
-if [[ $(ls -d /media/[eE]xternal 2> "${sink}") ]]
+if [ -n "${directory_external}" ]
 then
 	alias 'ex'='cd /media/[eE]xternal'
 fi
 
-if [[ $(ls -d /media/[iI]nternal 2> "${sink}") ]]
+if [ -n "${directory_internal}" ]
 then
 	alias 'in'='cd /media/[iI]nternal'
 fi
 
-if [[ $(ls -d /media/[fF]iles 2> "${sink}") ]]
+if [ -n "${directory_files}" ]
 then
 	alias 'fl'='cd /media/[fF]iles'
 fi
 
 # git  ─────────────────────────────────────────────────────────────────────────
 
-if [[ $(command -v git) ]]
+# path of 'git', empty when not installed
+
+command_git="$(command -v git)"
+
+if [ -n "${command_git}" ]
 then
 	alias 'gc'="git clone --depth 1"
 	alias 'gi'='git init'
@@ -185,24 +201,38 @@ then
 	alias 'gn'='git ls-files | xargs cat | wc -l'
 fi
 
-if [[ $(ls -d "${HOME}"/[gG]it 2> "${sink}") ]]
+# git folders, the first one found is used - empty when absent
+
+directory_git_home="$(ls -d "${HOME}"/[gG]it 2> "${sink}")"
+directory_git_external="$(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> "${sink}")"
+directory_git_internal="$(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> "${sink}")"
+
+if [ -n "${directory_git_home}" ]
 then
 	alias 'gd'='cd "${HOME}"/[gG]it'
 
-elif [[ $(ls -d "${PREFIX}"/media/[eE]xternal/[gG]it 2> "${sink}") ]]
+elif [ -n "${directory_git_external}" ]
 then
 	alias 'gd'='cd "${PREFIX}"/media/[eE]xternal/[gG]it'
 
-elif [[ $(ls -d "${PREFIX}"/media/[iI]nternal/[gG]it 2> "${sink}") ]]
+elif [ -n "${directory_git_internal}" ]
 then
 	alias 'gd'='cd "${PREFIX}"/media/[iI]nternal/[gG]it'
 fi
 
 # packages ─────────────────────────────────────────────────────────────────────
 
-if [[ $(command -v apt-get) ]]
+# path of 'apt-get', empty when not installed
+
+command_apt_get="$(command -v apt-get)"
+
+if [ -n "${command_apt_get}" ]
 then
-	if [[ $(command -v sudo) ]]
+	# path of 'sudo', empty when not installed
+
+	command_sudo="$(command -v sudo)"
+
+	if [ -n "${command_sudo}" ]
 	then
 		apt_get_prefix="sudo "
 	else
@@ -225,9 +255,17 @@ then
 	alias 'upgrade'="${apt_get_prefix}apt-get dist-upgrade"
 fi
 
-if [[ $(command -v apt-cache) ]]
+# path of 'apt-cache', empty when not installed
+
+command_apt_cache="$(command -v apt-cache)"
+
+if [ -n "${command_apt_cache}" ]
 then
-	if [[ $(command -v sudo) ]]
+	# path of 'sudo', empty when not installed
+
+	command_sudo="$(command -v sudo)"
+
+	if [ -n "${command_sudo}" ]
 	then
 		apt_cache_prefix="sudo "
 	else
@@ -242,7 +280,12 @@ fi
 
 # system ───────────────────────────────────────────────────────────────────────
 
-if [[ $(command -v sudo) && $(command -v systemctl) ]]
+# paths of 'sudo' and 'systemctl', empty when not installed
+
+command_sudo="$(command -v sudo)"
+command_systemctl="$(command -v systemctl)"
+
+if [ -n "${command_sudo}" ] && [ -n "${command_systemctl}" ]
 then
 	alias 'start'='sudo systemctl start'
 	alias 'stop'='sudo systemctl stop'
@@ -253,19 +296,35 @@ fi
 
 # filters ──────────────────────────────────────────────────────────────────────
 
-if [[ $(command -v grep) ]]
+# path of 'grep', empty when not installed
+
+command_grep="$(command -v grep)"
+
+if [ -n "${command_grep}" ]
 then
-	if [[ $(command -v env) ]]
+	# path of 'env', empty when not installed
+
+	command_env="$(command -v env)"
+
+	if [ -n "${command_env}" ]
 	then
 		alias 'environment'='env | grep -i'
 	fi
 
-	if [[ $(command -v ls) ]]
+	# path of 'ls', empty when not installed
+
+	command_ls="$(command -v ls)"
+
+	if [ -n "${command_ls}" ]
 	then
 		alias 'files'='ls -a | grep -i'
 	fi
 
-	if [[ $(command -v ps) ]]
+	# path of 'ps', empty when not installed
+
+	command_ps="$(command -v ps)"
+
+	if [ -n "${command_ps}" ]
 	then
 		alias 'processes'='ps -a -u -x | grep -i'
 	fi
@@ -273,165 +332,296 @@ fi
 
 # session ──────────────────────────────────────────────────────────────────────
 
-if [[ $(command -v exit) ]]
+# path of 'exit', empty when not installed
+
+command_exit="$(command -v exit)"
+
+if [ -n "${command_exit}" ]
 then
 	alias 'exit'='exit > /dev/null 2>&1'
 fi
 
-if [[ $(command -v logout) ]]
+# path of 'logout', empty when not installed
+
+command_logout="$(command -v logout)"
+
+if [ -n "${command_logout}" ]
 then
 	alias 'logout'='logout > /dev/null 2>&1'
 fi
 
 # commands ─────────────────────────────────────────────────────────────────────
 
-if [[ $(command -v chgrp) ]]
+# path of 'chgrp', empty when not installed
+
+command_chgrp="$(command -v chgrp)"
+
+if [ -n "${command_chgrp}" ]
 then
 	alias 'group'='chgrp --preserve-root'
 fi
 
-if [[ $(command -v chmod) ]]
+# path of 'chmod', empty when not installed
+
+command_chmod="$(command -v chmod)"
+
+if [ -n "${command_chmod}" ]
 then
 	alias 'modify'='chmod --preserve-root'
 fi
 
-if [[ $(command -v chown) ]]
+# path of 'chown', empty when not installed
+
+command_chown="$(command -v chown)"
+
+if [ -n "${command_chown}" ]
 then
 	alias 'own'='chown --preserve-root'
 fi
 
-if [[ $(command -v command) ]]
+# path of 'command', empty when not installed
+
+command_command="$(command -v command)"
+
+if [ -n "${command_command}" ]
 then
 	alias 'which'='command -v'
 fi
 
-if [[ $(command -v curl) ]]
+# path of 'curl', empty when not installed
+
+command_curl="$(command -v curl)"
+
+if [ -n "${command_curl}" ]
 then
 	alias 'header'='curl -I'
 fi
 
-if [[ $(command -v df) ]]
+# path of 'df', empty when not installed
+
+command_df="$(command -v df)"
+
+if [ -n "${command_df}" ]
 then
 	alias 'space'='df -H'
 fi
 
-if [[ $(command -v du) ]]
+# path of 'du', empty when not installed
+
+command_du="$(command -v du)"
+
+if [ -n "${command_du}" ]
 then
 	alias 'size'='du -a -c -h'
 	alias 'usage'="du -a -d 1 -h -S --time 2> /dev/null | sed '/total/ [ Total ]/g"
 fi
 
-if [[ $(command -v htop) ]]
+# path of 'htop', empty when not installed
+
+command_htop="$(command -v htop)"
+
+if [ -n "${command_htop}" ]
 then
 	alias 'top'='htop'
 	alias 'process'='htop -s USER -t'
 fi
 
-if [[ $(command -v ls) ]]
+# path of 'ls', empty when not installed
+
+command_ls="$(command -v ls)"
+
+if [ -n "${command_ls}" ]
 then
 	alias last='echo ; ls -a -h -l -t | head -11 ; echo'
 	fi
 
-if [[ $(command -v mount) && $(command -v column) ]]
+# paths of 'mount' and 'column', empty when not installed
+
+command_mount="$(command -v mount)"
+command_column="$(command -v column)"
+
+if [ -n "${command_mount}" ] && [ -n "${command_column}" ]
 then
 	alias 'mounts'='mount | column -t'
 fi
 
-if [[ $(command -v nano) ]]
+# path of 'nano', empty when not installed
+
+command_nano="$(command -v nano)"
+
+if [ -n "${command_nano}" ]
 then
 	alias 'edit'='nano -c -g -i -l -m -q -D -F -J 80 -T 4'
 fi
 
-if [[ $(command -v ss) ]]
+# path of 'ss', empty when not installed
+
+command_ss="$(command -v ss)"
+
+if [ -n "${command_ss}" ]
 then
 	alias 'ports'='ss -t -u -l -a -n -p'
 fi
 
-if [[ $(command -v pgrep) ]]
+# path of 'pgrep', empty when not installed
+
+command_pgrep="$(command -v pgrep)"
+
+if [ -n "${command_pgrep}" ]
 then
 	alias 'pgrep'='pgrep -f'
 fi
 
-if [[ $(command -v pstree) ]]
+# path of 'pstree', empty when not installed
+
+command_pstree="$(command -v pstree)"
+
+if [ -n "${command_pstree}" ]
 then
 	alias 'ptree'='pstree -C age -p'
 fi
 
-if [[ $(command -v ping) ]]
+# path of 'ping', empty when not installed
+
+command_ping="$(command -v ping)"
+
+if [ -n "${command_ping}" ]
 then
 	alias 'sonar'='ping -c 5'
 fi
 
-if [[ $(command -v ps) ]]
+# path of 'ps', empty when not installed
+
+command_ps="$(command -v ps)"
+
+if [ -n "${command_ps}" ]
 then
 	alias 'what'='ps -e'
 	alias 'how'='ps -u'
 fi
 
-if [[ $(command -v rm) ]]
+# path of 'rm', empty when not installed
+
+command_rm="$(command -v rm)"
+
+if [ -n "${command_rm}" ]
 then
 	alias 'delete'='rm -r -f'
 fi
 
-if [[ $(command -v rsync) ]]
+# path of 'rsync', empty when not installed
+
+command_rsync="$(command -v rsync)"
+
+if [ -n "${command_rsync}" ]
 then
 	alias 'archive'='rsync -a -r -q --progress -h'
 fi
 
-if [[ $(command -v cp) ]]
+# path of 'cp', empty when not installed
+
+command_cp="$(command -v cp)"
+
+if [ -n "${command_cp}" ]
 then
 	alias 'copy'='cp -r -f'
 fi
 
-if [[ $(command -v shutdown) ]]
+# path of 'shutdown', empty when not installed
+
+command_shutdown="$(command -v shutdown)"
+
+if [ -n "${command_shutdown}" ]
 then
 	alias 'shutdown'='shutdown -h now'
 fi
 
-if [[ $(command -v sudo) && $(command -v tput) ]]
+# paths of 'sudo' and 'tput', empty when not installed
+
+command_sudo="$(command -v sudo)"
+command_tput="$(command -v tput)"
+
+if [ -n "${command_sudo}" ] && [ -n "${command_tput}" ]
 then
-	alias 'sudo'='sudo -p "[ $(tput setaf 3)${USER}$(tput sgr 0) ] >_ ? "'
+	# password prompt colors: user name in yellow, then back to normal
+
+	color_prompt_user="$(tput setaf 3)"
+	color_prompt_reset="$(tput sgr 0)"
+
+	alias 'sudo'="sudo -p \"[ ${color_prompt_user}${USER}${color_prompt_reset} ] >_ ? \""
 fi
 
-if [[ $(command -v wget) ]]
+# path of 'wget', empty when not installed
+
+command_wget="$(command -v wget)"
+
+if [ -n "${command_wget}" ]
 then
 	alias 'get'='wget -c'
 fi
 
-if [[ $(command -v tree) ]]
+# path of 'tree', empty when not installed
+
+command_tree="$(command -v tree)"
+
+if [ -n "${command_tree}" ]
 then
 	alias 'treed'='tree -a -d -p -L'
 	alias 'treef'='tree -a -p -L'
 fi
 
-if [[ $(command -v journalctl) ]]
+# path of 'journalctl', empty when not installed
+
+command_journalctl="$(command -v journalctl)"
+
+if [ -n "${command_journalctl}" ]
 then
 	alias 'logs'='journalctl -x -e'
 fi
 
-if [[ $(command -v ip) ]]
+# path of 'ip', empty when not installed
+
+command_ip="$(command -v ip)"
+
+if [ -n "${command_ip}" ]
 then
 	alias 'myip'='ip addr'
 fi
 
-if [[ $(command -v curl) ]]
+# path of 'curl', empty when not installed
+
+command_curl="$(command -v curl)"
+
+if [ -n "${command_curl}" ]
 then
 	alias 'publicip'='curl -s ifconfig.me'
 fi
 
-if [[ $(command -v free) ]]
+# path of 'free', empty when not installed
+
+command_free="$(command -v free)"
+
+if [ -n "${command_free}" ]
 then
 	alias 'memory'='free -h'
 fi
 
-if [[ $(command -v lsblk) ]]
+# path of 'lsblk', empty when not installed
+
+command_lsblk="$(command -v lsblk)"
+
+if [ -n "${command_lsblk}" ]
 then
 	alias 'disks'='lsblk -f'
 fi
 
 # ai ───────────────────────────────────────────────────────────────────────────
 
-if [ "$(command -v ollama)" ]
+# path of 'ollama', empty when not installed
+
+command_ollama="$(command -v ollama)"
+
+if [ -n "${command_ollama}" ]
 then
 	model_ollama=$(ollama list | tail -n 1 | cut -d ' ' -f 1)
 
@@ -445,7 +635,11 @@ fi
 
 if [ -n "${TERMUX_VERSION}" ]
 then
-	if [ "$(command -v dextop)" ]
+	# path of 'dextop', empty when not installed
+
+	command_dextop="$(command -v dextop)"
+
+	if [ -n "${command_dextop}" ]
 	then
 		alias 'daa'='bash dextop -u additions all'
 
@@ -464,7 +658,11 @@ then
 		alias 'dua'='bash dextop -u utility all'
 	fi
 
-	if [ "$(command -v am)" ]
+	# path of 'am', empty when not installed
+
+	command_am="$(command -v am)"
+
+	if [ -n "${command_am}" ]
 	then
 		alias {'dextop-mail','email','mail'}='am start --user 0 -a android.intent.action.VIEW -d mailto: > /dev/null 2>&1'
 
@@ -475,3 +673,8 @@ then
 		alias {'dextop-files','file'}='am start --user 0 -a android.intent.action.VIEW -d file: > /dev/null 2>&1'
 	fi
 fi
+
+# detection variables are not kept in the shell
+
+unset directory_home directory_media directory_external directory_internal directory_files directory_git_home directory_git_external directory_git_internal color_prompt_user color_prompt_reset
+unset command_am command_apt_cache command_apt_get command_cd command_chgrp command_chmod command_chown command_column command_command command_cp command_curl command_dextop command_df command_du command_env command_exit command_free command_git command_grep command_htop command_ip command_journalctl command_logout command_ls command_lsblk command_mount command_nano command_ollama command_pgrep command_ping command_ps command_pstree command_rm command_rsync command_shutdown command_ss command_sudo command_systemctl command_tput command_tree command_wget

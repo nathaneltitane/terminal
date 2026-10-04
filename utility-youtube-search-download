@@ -328,11 +328,8 @@ youtube_search () {
 youtube_download () {
 
 	local url="${1}"
-
 	local artist="${2}"
-
 	local title="${3}"
-
 	local filename="${4}"
 
 	audio_quality="0"

@@ -238,10 +238,17 @@ url_install () {
 	local label="${2}"
 	local command_name="${3}"
 	local url="${4}"
-	local ownership_paths=("${@:5}")
+
+	local command_path
 	local installer
 
-	if [[ -n $(command -v "${command_name}") ]]
+	local -a ownership_paths=("${@:5}")
+
+	# path of the command named in ${command_name}, empty when not installed
+
+	command_path="$(command -v "${command_name}")"
+
+	if [ -n "${command_path}" ]
 	then
 		frobulator.wrn "Already installed" "[ ${label} ]"
 
@@ -316,7 +323,11 @@ then
 	frobulator.wrn "GPU render device not found" "[ /dev/dri/renderD128 ]"
 fi
 
-if [[ -z $(command -v vulkaninfo) ]]
+# path of 'vulkaninfo', empty when not installed
+
+command_vulkaninfo="$(command -v vulkaninfo)"
+
+if [ -z "${command_vulkaninfo}" ]
 then
 	frobulator.wrn "Vulkan diagnostic utility not found" "[ vulkaninfo ]"
 else

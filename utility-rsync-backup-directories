@@ -301,10 +301,7 @@ synchronize () {
 		"${arguments_exclude_keep[@]}"		\
 									"${directory_source}/" "${directory_destination}/"
 
-	if [ "${?}" -ne 0 ]
-	then
-		frobulator.err "Mirror failed"
-	fi
+	frobulator.fail "Mirror failed"
 
 	echo
 	echo "Mirror end"

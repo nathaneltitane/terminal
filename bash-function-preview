@@ -6,12 +6,20 @@
 
 preview () {
 
+	local command_cat
+	local command_head
+
 	count="${1}"
 
 	file="${2}"
 
-	if [[ $(command -v cat) ]] &&
-	   [[ $(command -v head) ]]
+	# paths of 'cat' and 'head', empty when not installed
+
+	command_cat="$(command -v cat)"
+	command_head="$(command -v head)"
+
+	if [ -n "${command_cat}" ] &&
+	   [ -n "${command_head}" ]
 	then
 		frobulator.inf "Previewing file" "[ ${count} lines // ${file} ]"
 

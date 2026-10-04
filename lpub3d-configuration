@@ -178,7 +178,11 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [[ $(command -v lpub3d24) ]]
+# path of 'lpub3d24', empty when not installed
+
+command_lpub3d24="$(command -v lpub3d24)"
+
+if [ -n "${command_lpub3d24}" ]
 then
     frobulator.link /usr/bin /usr/bin lpub3d24 lpub3d
 fi

@@ -120,11 +120,15 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	# session
 
-	if [[ $(cat "${HOME}"/.dextop/dextop-environment) ]]
+	# desktop environment chosen at setup: console, i3 or xfce - empty when not set up
+
+	dextop_environment="$(cat "${HOME}"/.dextop/dextop-environment)"
+
+	if [ -n "${dextop_environment}" ]
 	then
 		# extract session interface information
 
-		session_interface=$(cat "${HOME}"/.dextop/dextop-environment)
+		session_interface="${dextop_environment}"
 
 		# format session interface information:
 		# capitalize
@@ -157,28 +161,36 @@ then
 
 	# update
 
-	if [[ $(pgrep -f proot) ]]
+	# proot container processes, empty outside a container
+
+	process_proot="$(pgrep -f proot)"
+
+	if [ -n "${process_proot}" ]
 	then
 		:
 	else
-		if [[ $(cat "${HOME}"/.dextop/dextop-update) = *update* ]]
+		# automatic update selection: 'update' followed by what to update - dextop, shell, utility, all
+
+		dextop_update="$(cat "${HOME}"/.dextop/dextop-update)"
+
+		if [[ "${dextop_update}" = *update* ]]
 		then
-			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *dextop* ]]
+			if [[ "${dextop_update}" = *dextop* ]]
 			then
 				dextop -u dextop
 			fi
 
-			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *shell* ]]
+			if [[ "${dextop_update}" = *shell* ]]
 			then
 				dextop -u shell
 			fi
 
-			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *utility* ]]
+			if [[ "${dextop_update}" = *utility* ]]
 			then
 				dextop -u utility all
 			fi
 
-			if [[ $(cat "${HOME}"/.dextop/dextop-update) = *all* ]]
+			if [[ "${dextop_update}" = *all* ]]
 			then
 				dextop -u all
 			fi
@@ -189,17 +201,29 @@ then
 
 	# audio
 
-	if [[ $(pgrep -f proot) ]]
+	if [ -n "${process_proot}" ]
 	then
 		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
 		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
 		echo 'autospawn = no'               >> /etc/pulse/client.conf
 	else
-		if [[ $(cat "${HOME}"/.dextop/dextop-audio) = "audio" ]]
+		# automatic audio selection: 'audio' when enabled
+
+		dextop_audio="$(cat "${HOME}"/.dextop/dextop-audio)"
+
+		if [ "${dextop_audio}" = "audio" ]
 		then
-			if [[ $(command -v pulseaudio) ]]
+			# path of 'pulseaudio', empty when not installed
+
+			command_pulseaudio="$(command -v pulseaudio)"
+
+			if [ -n "${command_pulseaudio}" ]
 			then
-				if [[ $(pgrep -f pulseaudio) ]]
+				# process ids of a running pulseaudio, empty when stopped
+
+				process_pulseaudio="$(pgrep -f pulseaudio)"
+
+				if [ -n "${process_pulseaudio}" ]
 				then
 					:
 				else
@@ -222,3 +246,7 @@ then
 		fi
 	fi
 fi
+
+# detection variables are not kept in the shell
+
+unset command_pulseaudio dextop_environment process_proot dextop_update dextop_audio process_pulseaudio

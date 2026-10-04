@@ -243,7 +243,16 @@ cat << 'MAIN' > /usr/bin/write-conky
 
 # write conky #
 
-[[ $(id -u -n) = "root" ]] && home=/home/"${SUDO_USER:-$USER}" || home=/home/"${USER}"
+# name of the user running the script
+
+user_name="$(id -u -n)"
+
+if [ "${user_name}" = "root" ]
+then
+	home=/home/"${SUDO_USER:-$USER}"
+else
+	home=/home/"${USER}"
+fi
 
 unavailable="[ × ]"
 

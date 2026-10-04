@@ -201,9 +201,13 @@ do
 
 	# cpu governor (${governors_list[governor]}) #
 
-	if [[ $(grep -c processor /proc/cpuinfo) ]]
+	# number of processor cores listed by the kernel
+
+	cpu_count="\$(grep -c processor /proc/cpuinfo)"
+
+	if [ -n "\${cpu_count}" ]
 	then
-		cpu="$(grep -c processor /proc/cpuinfo)"
+		cpu="\${cpu_count}"
 	fi
 
 	for (( count=0; count<cpu; count++ ))
@@ -213,7 +217,11 @@ do
 			-g ${governors_list[governor]}
 	done
 
-	if [[ $(command -v notify-send) ]]
+	# path of 'notify-send', empty when not installed
+
+	command_notify_send="\$(command -v notify-send)"
+
+	if [ -n "\${command_notify_send}" ]
 	then
 		notify-send						\
 			-i gnome-system-monitor		\
@@ -260,7 +268,11 @@ do
 		-g "${governor}"
 done
 
-if [[ $(command -v notify-send) ]]
+# path of 'notify-send', empty when not installed
+
+command_notify_send="$(command -v notify-send)"
+
+if [ -n "${command_notify_send}" ]
 then
 	notify-send						\
 		-i gnome-system-monitor		\
