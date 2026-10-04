@@ -64,7 +64,9 @@ note_open () {
         note="${note_selection}"
     fi
 
-    eval "$(${terminal} -T "Notes" -e "${editor} +$(wc -l ${note}) ${note}")"
+    note_lines="$(wc -l < "${note}")"
+
+    eval "$(${terminal} -T "Notes" -e "${editor} +${note_lines} ${note}")"
 }
 
 if [[ ! -z "${selection}" ]]

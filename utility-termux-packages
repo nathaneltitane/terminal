@@ -254,7 +254,9 @@ fi
 
 if [ -z "${directory}" ]
 then
-	directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+	file_script="$(readlink -f -- "${BASH_SOURCE[0]}")"
+
+	directory="$(dirname -- "${file_script}")"
 fi
 
 directory="${directory%/}"
