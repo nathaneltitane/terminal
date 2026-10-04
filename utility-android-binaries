@@ -145,10 +145,32 @@ do
 			selection+=(zipalign)
 		;;
 
-		-d|--directory)
-			directory="${2}"
+		-p|--aapt)
+			selection+=(aapt)
+		;;
 
-			shift
+		-t|--aapt2)
+			selection+=(aapt2)
+		;;
+
+		-i|--aidl)
+			selection+=(aidl)
+		;;
+
+		-x|--dexdump)
+			selection+=(dexdump)
+		;;
+
+		-l|--split-select)
+			selection+=(split-select)
+		;;
+
+		-r|--veridex)
+			selection+=(veridex)
+		;;
+
+		-d|--deploy)
+			deploy=true
 		;;
 
 		-o|--force)
@@ -157,31 +179,43 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -a | -b -e -s -f -m -z [-d [Directory]] [-o] | -h"
+			echo -e "Usage: ./${script} -a | -b -e -s -f -m -z -p -t -i -x -l -r [-d] [-o] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-a, --all           Update [a]ll binaries - default without selection."
+			echo -e "-a, --all             Update [a]ll binaries - default without selection."
 			echo
-			echo -e "-b, --adb           Update the ad[b] binary."
+			echo -e "-b, --adb             Update the ad[b] binary."
 			echo
-			echo -e "-e, --e2fsdroid     Update the [e]2fsdroid binary."
+			echo -e "-e, --e2fsdroid       Update the [e]2fsdroid binary."
 			echo
-			echo -e "-s, --f2fs-sload    Update the f2fs-[s]load binary."
+			echo -e "-s, --f2fs-sload      Update the f2fs-[s]load binary."
 			echo
-			echo -e "-f, --fastboot      Update the [f]astboot binary."
+			echo -e "-f, --fastboot        Update the [f]astboot binary."
 			echo
-			echo -e "-m, --make-f2fs     Update the [m]ake-f2fs binary."
+			echo -e "-m, --make-f2fs       Update the [m]ake-f2fs binary."
 			echo
-			echo -e "-z, --zipalign      Update the [z]ipalign binary."
+			echo -e "-z, --zipalign        Update the [z]ipalign binary."
 			echo
-			echo -e "-d, --directory     Specify target [d]irectory."
+			echo -e "-p, --aapt            Update the aa[p]t binary."
 			echo
-			echo -e "                    [ script directory ] [ Default ]"
+			echo -e "-t, --aapt2           Update the aap[t]2 binary."
 			echo
-			echo -e "-o, --force         Allow f[o]rced update of unchanged binaries."
+			echo -e "-i, --aidl            Update the a[i]dl binary."
 			echo
-			echo -e "-h, --help          Show [h]elp and usage information."
+			echo -e "-x, --dexdump         Update the de[x]dump binary."
+			echo
+			echo -e "-l, --split-select    Update the sp[l]it-select binary."
+			echo
+			echo -e "-r, --veridex         Update the ve[r]idex binary."
+			echo
+			echo -e "-d, --deploy          Run [d]eployment to \${HOME}/.local/bin - this architecture, no suffix."
+			echo
+			echo -e "                      [ repository - both architectures, -arm64 suffix ] [ Default ]"
+			echo
+			echo -e "-o, --force           Allow f[o]rced update of unchanged binaries."
+			echo
+			echo -e "-h, --help            Show [h]elp and usage information."
 			echo
 			echo -e "'${script}'     [ Version // ${version} ]"
 			echo
@@ -198,7 +232,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -a | -b -e -s -f -m -z [-d [Directory]] [-o] | -h"
+			echo -e "Usage: ./${script} -a | -b -e -s -f -m -z -p -t -i -x -l -r [-d] [-o] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -216,11 +250,17 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-# static arm64 builds of the android sdk tools, for termux
+# static builds of the android sdk tools, per architecture
 
 url_binaries_release="${marker_hts}api.github.com/repos/lzhiyong/android-sdk-tools/releases/latest"
 
-binaries_archive_suffix="-static-aarch64.zip"
+# architectures: release archive name ending | file name ending
+# x86_64 is the plain name, arm64 (termux) carries a suffix - as binary-leocad / binary-leocad-arm64
+
+binary_architectures=(
+	"-static-x86_64.zip|"
+	"-static-aarch64.zip|-arm64"
+)
 
 # binaries: name | path inside the release archive | file
 
@@ -231,75 +271,181 @@ binary_sources=(
 	"fastboot|platform-tools/fastboot|binary-android-fastboot"
 	"make-f2fs|platform-tools/make_f2fs|binary-android-make-f2fs"
 	"zipalign|build-tools/zipalign|binary-android-zipalign"
+	"aapt|build-tools/aapt|binary-android-aapt"
+	"aapt2|build-tools/aapt2|binary-android-aapt2"
+	"aidl|build-tools/aidl|binary-android-aidl"
+	"dexdump|build-tools/dexdump|binary-android-dexdump"
+	"split-select|build-tools/split-select|binary-android-split-select"
+	"veridex|others/veridex|binary-android-veridex"
 )
 
-declare -A binary_versions
+declare -A binary_assets
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ "${#selection[@]}" -eq 0 ] || [[ " ${selection[*]} " = *" all "* ]]
 then
-	selection=(adb e2fsdroid f2fs-sload fastboot make-f2fs zipalign)
+	selection=(adb e2fsdroid f2fs-sload fastboot make-f2fs zipalign aapt aapt2 aidl dexdump split-select veridex)
 fi
 
-if [[ "${directory}" = -* ]]
+if [ "${deploy}" = true ]
 then
-	frobulator.err "Missing argument for '--directory'."
+	# this computer only: its architecture, no suffix
 
-	exit 1
+	directory="${HOME}/.local/bin"
+
+	file_list="${directory}/.binary-android-list"
+
+	case "$(uname -m)"
+	in
+		x86_64)
+			binary_architectures=("-static-x86_64.zip|")
+		;;
+
+		aarch64|arm64)
+			binary_architectures=("-static-aarch64.zip|")
+		;;
+
+		*)
+			frobulator.err "Unsupported architecture" "[ $(uname -m) ]"
+
+			exit 1
+		;;
+	esac
+else
+	# repository: both architectures, served to dextop and termux
+
+	file_script="$(readlink -f -- "${BASH_SOURCE[0]}")"
+
+	directory="$(dirname -- "${file_script}")"
+
+	file_list="${directory}/binary-android-list"
 fi
 
-# binaries are served from the repository holding this script
-
-if [ -z "${directory}" ]
-then
-	directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
-fi
-
-directory="${directory%/}"
-
-# release asset id of each binary, to skip unchanged ones
-
-file_versions="${directory}/binary-android.versions"
+# release asset id of each binary is kept in the list file, to skip unchanged ones
 
 # functions ────────────────────────────────────────────────────────────────────
 
-versions_load () {
+list_load () {
 
-	local versions_file_name
-	local versions_asset_id
+	local list_file
+	local list_original_name
+	local list_asset_id
 
-	if [ ! -f "${file_versions}" ]
+	if [ ! -f "${file_list}" ]
 	then
 		return 0
 	fi
 
-	while read -r versions_file_name versions_asset_id
+	# file, original binary name, release asset id
+
+	while IFS=$'\t' read -r list_file list_original_name list_asset_id
 	do
-		if [ -n "${versions_file_name}" ]
+		if [ -n "${list_file}" ]
 		then
-			binary_versions["${versions_file_name}"]="${versions_asset_id}"
+			binary_assets["${list_file}"]="${list_asset_id}"
 		fi
-	done < "${file_versions}"
+	done < "${file_list}"
 }
 
-versions_save () {
+list_original () {
 
-	local versions_file_name
+	# original binary name inside the release archive for a list file name
 
-	for versions_file_name in "${!binary_versions[@]}"
+	local list_file="${1%-arm64}"
+	local list_entry
+	local list_name
+	local list_path
+	local list_source_file
+
+	for list_entry in "${binary_sources[@]}"
 	do
-		echo "${versions_file_name} ${binary_versions[${versions_file_name}]}"
-	done | sort > "${file_versions}"
+		IFS='|' read -r list_name list_path list_source_file <<< "${list_entry}"
+
+		if [ "${list_source_file}" = "${list_file}" ]
+		then
+			echo "${list_path##*/}"
+
+			return 0
+		fi
+	done
+
+	echo "-"
+}
+
+list_tabs () {
+
+	# tabs from a text length to a column, tab width 4
+
+	local list_length="${1}"
+	local list_column="${2}"
+	local list_count=$(( (list_column - list_length / 4 * 4) / 4 ))
+
+	while [ "${list_count}" -gt 0 ]
+	do
+		printf '\t'
+
+		list_count=$(( list_count - 1 ))
+	done
+}
+
+list_save () {
+
+	# file, original binary name and release asset id, columns aligned on tab stops (tab width 4):
+	# each text column one tab wider than its longest entry
+
+	local list_file
+	local list_original_name
+	local list_file_width=0
+	local list_original_width=0
+	local list_file_column
+	local list_original_column
+	local list_original_position
+	local -A list_originals=()
+
+	for list_file in "${!binary_assets[@]}"
+	do
+		list_originals["${list_file}"]="$(list_original "${list_file}")"
+
+		if [ "${#list_file}" -gt "${list_file_width}" ]
+		then
+			list_file_width="${#list_file}"
+		fi
+
+		if [ "${#list_originals[${list_file}]}" -gt "${list_original_width}" ]
+		then
+			list_original_width="${#list_originals[${list_file}]}"
+		fi
+	done
+
+	list_file_column=$(( (list_file_width / 4 + 2) * 4 ))
+	list_original_column=$(( list_file_column + (list_original_width / 4 + 2) * 4 ))
+
+	for list_file in "${!binary_assets[@]}"
+	do
+		list_original_name="${list_originals[${list_file}]}"
+		list_original_position=$(( list_file_column + ${#list_original_name} ))
+
+		printf '%s%s%s%s%s\n'																					\
+			"${list_file}"																			\
+			"$(list_tabs "${#list_file}" "${list_file_column}")"							\
+			"${list_original_name}"																			\
+			"$(list_tabs "${list_original_position}" "${list_original_column}")"							\
+			"${binary_assets[${list_file}]}"
+	done | LC_ALL=C sort > "${file_list}"
 }
 
 binaries_update () {
 
-	# download the release archive once, then replace each selected binary that changed
+	# for each architecture: download its release archive once, then replace each selected binary that changed
 
 	local status=0
 	local release_json
 	local release_tag
+	local architecture_entry
+	local architecture_archive
+	local architecture_suffix
+	local architecture_name
 	local asset_id
 	local asset_url
 	local binary_entry
@@ -308,85 +454,107 @@ binaries_update () {
 	local binary_file
 	local binaries_pending=()
 	local file_archive
+	local directory_architecture
 
 	release_json="$(curl --silent --fail --location --connect-timeout 30 "${url_binaries_release}" 2> "${sink}")"
 
 	release_tag="$(jq -r '.tag_name // empty' <<< "${release_json}" 2> "${sink}")"
 
-	read -r asset_id asset_url < <(
-		jq -r --arg suffix "${binaries_archive_suffix}" \
-			'[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"' \
-			<<< "${release_json}" 2> "${sink}"
-	)
-
-	if [ -z "${asset_url}" ]
-	then
-		frobulator.err "Release unavailable" "[ 'android-sdk-tools'${marker_spc}${marker_hnt}${marker_spc}000 ]"
-
-		return 1
-	fi
-
-	for binary_entry in "${binary_sources[@]}"
-	do
-		IFS='|' read -r binary_name binary_path binary_file <<< "${binary_entry}"
-
-		if [[ " ${selection[*]} " != *" ${binary_name} "* ]]
-		then
-			continue
-		fi
-
-		if [ "${force}" != true ] && [ -f "${directory}/${binary_file}" ] &&
-		   [ "${binary_versions[${binary_file}]}" = "${asset_id}" ]
-		then
-			frobulator.inf "Up to date - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
-
-			continue
-		fi
-
-		binaries_pending+=("${binary_entry}")
-	done
-
-	if [ "${#binaries_pending[@]}" -eq 0 ]
-	then
-		return 0
-	fi
-
 	frobulator.temporary directory_binaries_temporary
 
 	frobulator.trap "${directory_binaries_temporary}"
 
-	file_archive="${directory_binaries_temporary}/android-sdk-tools.zip"
-
-	frobulator.download "${asset_url}" "${file_archive}"
-
-	frobulator.track || return 1
-
-	frobulator.extract "${file_archive}" "${directory_binaries_temporary}" > "${sink}"
-
-	frobulator.track || return 1
-
-	for binary_entry in "${binaries_pending[@]}"
+	for architecture_entry in "${binary_architectures[@]}"
 	do
-		IFS='|' read -r binary_name binary_path binary_file <<< "${binary_entry}"
+		IFS='|' read -r architecture_archive architecture_suffix <<< "${architecture_entry}"
 
-		if [ ! -f "${directory_binaries_temporary}/${binary_path}" ]
+		architecture_name="${architecture_archive#-static-}"
+		architecture_name="${architecture_name%.zip}"
+
+		unset asset_id
+		unset asset_url
+
+		read -r asset_id asset_url < <(
+			jq -r --arg suffix "${architecture_archive}" \
+				'[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"' \
+				<<< "${release_json}" 2> "${sink}"
+		)
+
+		if [ -z "${asset_url}" ]
 		then
-			frobulator.err "Update failure - ${binary_name}" "[ '${binary_path}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+			frobulator.err "Release unavailable - ${architecture_name}" "[ 'android-sdk-tools'${marker_spc}${marker_hnt}${marker_spc}000 ]"
 
 			status=1
 
 			continue
 		fi
 
-		cp -f "${directory_binaries_temporary}/${binary_path}" "${directory}/${binary_file}"
+		binaries_pending=()
+
+		for binary_entry in "${binary_sources[@]}"
+		do
+			IFS='|' read -r binary_name binary_path binary_file <<< "${binary_entry}"
+
+			binary_file="${binary_file}${architecture_suffix}"
+
+			if [[ " ${selection[*]} " != *" ${binary_name} "* ]]
+			then
+				continue
+			fi
+
+			if [ "${force}" != true ] && [ -f "${directory}/${binary_file}" ] &&
+			   [ "${binary_assets[${binary_file}]}" = "${asset_id}" ]
+			then
+				frobulator.inf "Up to date - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+
+				continue
+			fi
+
+			binaries_pending+=("${binary_name}|${binary_path}|${binary_file}")
+		done
+
+		if [ "${#binaries_pending[@]}" -eq 0 ]
+		then
+			continue
+		fi
+
+		directory_architecture="${directory_binaries_temporary}/${architecture_name}"
+
+		mkdir -p "${directory_architecture}"
+
+		file_archive="${directory_architecture}/android-sdk-tools-${architecture_name}.zip"
+
+		frobulator.download "${asset_url}" "${file_archive}"
 
 		frobulator.track || continue
 
-		frobulator.permissions public execute "${directory}/${binary_file}" > "${sink}"
+		frobulator.extract "${file_archive}" "${directory_architecture}" > "${sink}"
 
-		binary_versions["${binary_file}"]="${asset_id}"
+		frobulator.track || continue
 
-		frobulator.scs "Update success - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+		for binary_entry in "${binaries_pending[@]}"
+		do
+			IFS='|' read -r binary_name binary_path binary_file <<< "${binary_entry}"
+
+			if [ ! -f "${directory_architecture}/${binary_path}" ]
+			then
+				frobulator.err "Update failure - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+
+				status=1
+
+				continue
+			fi
+
+			cp -f "${directory_architecture}/${binary_path}" "${directory}/${binary_file}"
+
+			frobulator.track || continue
+
+			frobulator.permissions public execute "${directory}/${binary_file}" > "${sink}"
+
+			binary_assets["${binary_file}"]="${asset_id}"
+
+			frobulator.scs "Update success - ${binary_name}" "[ '${binary_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+		done
 	done
 
 	return "${status}"
@@ -412,6 +580,11 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
+if [ "${deploy}" = true ] && [ ! -d "${directory}" ]
+then
+	frobulator.directory "${directory}" > "${sink}"
+fi
+
 if [ ! -d "${directory}" ]
 then
 	frobulator.err "Directory not found" "[ ${directory} ]"
@@ -421,13 +594,13 @@ fi
 
 frobulator.inf "Target directory" "[ ${directory} ]"
 
-versions_load
+list_load
 
 binaries_update
 
 frobulator.complete continue "Update failure - binaries"
 
-versions_save
+list_save
 
 frobulator.ownership "${directory}" > "${sink}"
 
