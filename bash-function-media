@@ -10,6 +10,7 @@ media () {
 	local source="${2}"
 	local path="${3}"
 	local directory_binary="${HOME}/.local/bin"
+
 	local archive
 	local file
 	local files
@@ -20,6 +21,7 @@ media () {
 	local duration_sleep
 	local format
 	local format_media
+
 	local -a options_type=()
 	local -a options_url=()
 	local -a options_site=()

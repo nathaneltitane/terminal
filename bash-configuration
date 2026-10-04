@@ -137,7 +137,13 @@ HISTFILESIZE=2000
 
 # completion ───────────────────────────────────────────────────────────────────
 
-if [ ! $(shopt -oq posix) ]
+# posix mode check: status 0 when bash runs in posix mode, where completion is not loaded
+
+shopt -oq posix
+
+shell_posix="${?}"
+
+if [ "${shell_posix}" -ne 0 ]
 then
 	if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
 	then
@@ -193,7 +199,11 @@ colors_selection=(
 	teal="30"
 )
 
-if [ -z "$(command -v tput)" ]
+# path of 'tput', empty when not installed
+
+command_tput="$(command -v tput)"
+
+if [ -z "${command_tput}" ]
 then
 	# handle color digit length for ansi fallback method
 
@@ -320,11 +330,16 @@ fi
 
 unset PS1
 
-if [[ $(id -u -n) = "root" ]]
+# name of the logged in user, and process ids of a running proot container - empty outside one
+
+user_name="$(id -u -n)"
+process_proot="$(pidof proot)"
+
+if [ "${user_name}" = "root" ]
 then
 	prompt_color="${red}"
 
-elif [[ $(pidof proot) ]]
+elif [ -n "${process_proot}" ]
 then
 	prompt_color="${magenta}"
 
@@ -336,7 +351,7 @@ PS1+="\[""${reset}""\][ "
 PS1+="\[""${prompt_color}""\]${USER}"
 PS1+="\[""${reset}""\] ]"
 
-if [[ $(id -u -n) = "root" ]]
+if [ "${user_name}" = "root" ]
 then
 	PS1+="\[""${white}""\] >_ # \[""${reset}""\]"
 else
@@ -420,10 +435,18 @@ fi
 
 # profile ──────────────────────────────────────────────────────────────────────
 
-if [[ $(pgrep -f proot) ]]
+# proot container processes matching by command line, empty outside a container
+
+process_proot="$(pgrep -f proot)"
+
+if [ -n "${process_proot}" ]
 then
 	if [ -f "${HOME}"/.bash_profile ]
 	then
 		. "${HOME}"/.bash_profile
 	fi
 fi
+
+# detection variables are not kept in the shell
+
+unset command_tput shell_posix user_name process_proot

@@ -250,7 +250,11 @@ fi
 
 # service activation
 
-if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+# status line when the service is running, empty otherwise
+
+service_running="$(systemctl status "${service}" | grep -e "active.*running")"
+
+if [ -n "${service_running}" ]
 then
 	frobulator.wrn "Service running" " [ ${service} ]"
 
@@ -284,11 +288,16 @@ service_actions_list=()
 
 # service process verification
 
-if [[ $(systemctl status "${service}" | grep -e "active.*running") ]]
+# status lines when the service is running, or when it is inactive - empty otherwise
+
+service_running="$(systemctl status "${service}" | grep -e "active.*running")"
+service_inactive="$(systemctl status "${service}" | grep -e "inactive.*")"
+
+if [ -n "${service_running}" ]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 
-elif [[ $(systemctl status "${service}" | grep -e "inactive.*") ]]
+elif [ -n "${service_inactive}" ]
 then
 	frobulator.err "Service activation failed" "[ ${service} ]"
 

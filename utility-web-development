@@ -235,17 +235,28 @@ do
 
 	frobulator.complete
 
-	if [[ $(a2ensite "${item}".conf | grep -e "enabled") ]]
+	# site activation report: 'enabled' on success, 'error' on failure
+
+	site_activation="$(a2ensite "${item}".conf)"
+
+	site_enabled="$(echo "${site_activation}" | grep -e "enabled")"
+	site_error="$(echo "${site_activation}" | grep -e "error")"
+
+	if [ -n "${site_enabled}" ]
 	then
 		frobulator.scs "Configuration validation success" "[ ${item} ]"
-	elif [[ $(a2ensite "${item}".conf | grep -e "error") ]]
+	elif [ -n "${site_error}" ]
 	then
 		frobulator.err "Configuration validation failed" "[ ${item} ]"
 
 		exit 1
 	fi
 
-	if [[ -z $(grep -F "${item}.local" /etc/hosts) ]]
+	# hosts file entry for the site, empty when missing
+
+	hosts_entry="$(grep -F "${item}.local" /etc/hosts)"
+
+	if [ -z "${hosts_entry}" ]
 	then
 		frobulator.write "append" "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
 

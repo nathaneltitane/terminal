@@ -201,7 +201,11 @@ apt-get --assume-yes purge modemmanager > "${sink}" 2>&1
 
 frobulator.complete
 
-if [[ $(command -v systemctl) ]]
+# path of 'systemctl', empty when not installed
+
+command_systemctl="$(command -v systemctl)"
+
+if [ -n "${command_systemctl}" ]
 then
 	frobulator.service stop "${service}"
 
@@ -296,7 +300,11 @@ frobulator.complete
 
 # verification
 
-if [[ $(command -v "${process}") ]]
+# path of the command named in ${process}, empty when not installed
+
+command_path="$(command -v "${process}")"
+
+if [ -n "${command_path}" ]
 then
 	frobulator.scs "Verification success" "[ ${process} ]"
 else

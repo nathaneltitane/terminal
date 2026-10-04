@@ -6,6 +6,8 @@
 
 locate () {
 
+	local command_find
+
 	type="${1}"
 
 	query="${2}"
@@ -24,7 +26,11 @@ locate () {
 		exit 1
 	fi
 
-	if [[ $(command -v find) ]]
+	# path of 'find', empty when not installed
+
+	command_find="$(command -v find)"
+
+	if [ -n "${command_find}" ]
 	then
 		find								\
 			"${PWD}"						\

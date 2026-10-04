@@ -6,11 +6,19 @@
 
 ssh () {
 
+	local color_prompt_destination
+	local color_prompt_reset
+
 	# destination is always the last argument
 
 	destination=${!#}
 
-	echo -n -e "[  $(tput setaf 3)${destination}$(tput sgr 0)  ] >_ ? "
+	# password prompt colors: destination in yellow, then back to normal
+
+	color_prompt_destination="$(tput setaf 3)"
+	color_prompt_reset="$(tput sgr 0)"
+
+	echo -n -e "[  ${color_prompt_destination}${destination}${color_prompt_reset}  ] >_ ? "
 
 	read -r -s password
 

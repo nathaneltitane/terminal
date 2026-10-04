@@ -122,18 +122,30 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	# automatic session stop
 
-	if [[ $(cat "${HOME}"/.dextop/dextop-logout) = "logout" ]]
+	# automatic session stop selection: 'logout' when enabled
+
+	dextop_logout="$(cat "${HOME}"/.dextop/dextop-logout)"
+
+	if [ "${dextop_logout}" = "logout" ]
 	then
 		# audio
 
-		if [[ $(pgrep -f pulseaudio) ]]
+		# process ids of a running pulseaudio, empty when stopped
+
+		process_pulseaudio="$(pgrep -f pulseaudio)"
+
+		if [ -n "${process_pulseaudio}" ]
 		then
 			pulseaudio --kill
 		fi
 
 		# display
 
-		if [[ $(pgrep -f com.termux.x11) ]]
+		# process ids of the running termux x11 display, empty when stopped
+
+		process_x11="$(pgrep -f com.termux.x11)"
+
+		if [ -n "${process_x11}" ]
 		then
 			container-session -x
 
@@ -143,3 +155,7 @@ then
 		fi
 	fi
 fi
+
+# detection variables are not kept in the shell
+
+unset dextop_logout process_pulseaudio process_x11

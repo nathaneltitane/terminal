@@ -611,7 +611,11 @@ then
 	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
 	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
 
-	if [[ $(id -u -n) = "root" ]]
+	# name of the user running the script
+
+	user_name="$(id -u -n)"
+
+	if [ "${user_name}" = "root" ]
 	then
 		for item in ${list[@]}
 		do

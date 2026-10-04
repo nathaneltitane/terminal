@@ -255,13 +255,15 @@ android_platform_tools_update () {
 
 android_device_wait () {
 
-	local state
 	local state_last="none"
-	local serial
-	local line
-	local -a devices_list
 	local seconds=0
 	local timeout=300
+
+	local state
+	local serial
+	local line
+
+	local -a devices_list
 
 	adb start-server > "${sink}" 2>&1
 
@@ -988,7 +990,11 @@ count_failed=0
 
 for application in "${packages_list[@]}"
 do
-	if [[ $(echo "${packages_installed}" | grep -F -x "package:${application}") ]]
+	# listing line of the package when it is on the device, empty otherwise
+
+	package_listed="$(echo "${packages_installed}" | grep -F -x "package:${application}")"
+
+	if [ -n "${package_listed}" ]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 

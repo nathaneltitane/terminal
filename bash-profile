@@ -230,11 +230,16 @@ reset="\001$(tput sgr 0)\002"
 
 unset PS1
 
-if [[ $(id -u -n) = "root" ]]
+# name of the logged in user, and process ids of a running proot container - empty outside one
+
+user_name="$(id -u -n)"
+process_proot="$(pidof proot)"
+
+if [ "${user_name}" = "root" ]
 then
 	prompt_color="${red}"
 
-elif [[ $(pidof proot) ]]
+elif [ -n "${process_proot}" ]
 then
 	prompt_color="${magenta}"
 else
@@ -245,7 +250,7 @@ PS1+="${reset}[ "
 PS1+="${prompt_color}${USER}"
 PS1+="${reset} ]"
 
-if [[ $(id -u -n) = "root" ]]
+if [ "${user_name}" = "root" ]
 then
 	PS1+="${white} >_ # ${reset}"
 else
@@ -268,14 +273,19 @@ then
 		DISPLAY=":0"
 	fi
 
-	if [[ $(pgrep -f "${TERMUX_X11_ACCELERATOR}") ]]
+	# process ids of the running graphics accelerator and termux x11 application, empty when stopped
+
+	process_accelerator="$(pgrep -f "${TERMUX_X11_ACCELERATOR}")"
+	process_x11_application="$(pgrep -f "${TERMUX_X11_APPLICATION}")"
+
+	if [ -n "${process_accelerator}" ]
 	then
 		:
 	else
 		"${TERMUX_X11_ACCELERATOR}" &
 	fi
 
-	if [[ $(pgrep -f "${TERMUX_X11_APPLICATION}") ]]
+	if [ -n "${process_x11_application}" ]
 	then
 		:
 	else
@@ -304,7 +314,11 @@ then
 
 	# load welcome message
 
-	if [[ $(pgrep -f proot) ]]
+	# proot container processes matching by command line, empty outside a container
+
+	process_proot="$(pgrep -f proot)"
+
+	if [ -n "${process_proot}" ]
 	then
 		session_tilte="${distribution}"
 	fi
@@ -334,13 +348,17 @@ then
 
 	# automatic session start
 
-	if [[ $(cat "${HOME}"/.dextop/dextop-login) = "login" ]]
+	# automatic session start selection: 'login' when enabled
+
+	dextop_login="$(cat "${HOME}"/.dextop/dextop-login)"
+
+	if [ "${dextop_login}" = "login" ]
 	then
 		frobulator.wrn "Automatic session start enabled"
 
 		session_level="termux"
 
-		if [[ $(pgrep -f proot) ]]
+		if [ -n "${process_proot}" ]
 		then
 			session_level="container"
 		fi
@@ -354,3 +372,7 @@ then
 		container-session -o
 	fi
 fi
+
+# detection variables are not kept in the shell
+
+unset user_name process_proot process_accelerator process_x11_application dextop_login

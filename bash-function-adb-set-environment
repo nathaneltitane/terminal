@@ -6,7 +6,13 @@
 
 adb_set_environment () {
 
-	if [[ $(command -v adb) ]]
+	local command_adb
+
+	# path of 'adb', empty when not installed
+
+	command_adb="$(command -v adb)"
+
+	if [ -n "${command_adb}" ]
 	then
 		export ANDROID_NO_USE_FWMARK=1
 

@@ -6,7 +6,13 @@
 
 play () {
 
-	if [ -z "$(command -v mpv)" ]
+	local command_mpv
+
+	# path of 'mpv', empty when not installed
+
+	command_mpv="$(command -v mpv)"
+
+	if [ -z "${command_mpv}" ]
 	then
 		frobulator.require mpv
 	fi

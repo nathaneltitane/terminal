@@ -509,8 +509,11 @@ fold_name () {
 mirror_plan () {
 
 	local predict="${1}"
+
+	local file_fold
 	local file
 	local size
+
 	local -A sizes_from
 	local -A sizes_to
 	local -A renamed_folds
@@ -568,7 +571,11 @@ mirror_plan () {
 
 		# stale spelling of a renamed file: gone once renamed
 
-		if [ "${predict}" = true ] && [ -n "${renamed_folds[$(fold_name "${file}")]+set}" ]
+		# case and accent insensitive form of the name, as stored for renamed files
+
+		file_fold="$(fold_name "${file}")"
+
+		if [ "${predict}" = true ] && [ -n "${renamed_folds[${file_fold}]+set}" ]
 		then
 			continue
 		fi
@@ -583,9 +590,10 @@ mirror_plan () {
 
 mirror_rename () {
 
+	local number=0
+
 	local file
 	local temporary
-	local number=0
 
 	while IFS= read -r file
 	do
@@ -684,7 +692,11 @@ then
 	count_copy=$(wc -l < "${list_copy}")
 	count_remove=$(wc -l < "${list_remove}")
 
-	if [ "$(( count_rename + count_copy + count_remove ))" -eq 0 ]
+	# all planned changes together
+
+	count_changes=$(( count_rename + count_copy + count_remove ))
+
+	if [ "${count_changes}" -eq 0 ]
 	then
 		frobulator.scs "Directories already mirrored."
 
@@ -767,9 +779,14 @@ then
 
 	find "${to}" -mindepth 1 -depth -type d -empty -delete
 
+	# files in each list: one per line
+
+	count_copy="$(wc -l < "${list_copy}")"
+	count_remove="$(wc -l < "${list_remove}")"
+
 	frobulator.inf "Files renamed" "[ ${count_rename} ]"
-	frobulator.inf "Files copied" "[ $(wc -l < "${list_copy}") ]"
-	frobulator.inf "Files removed" "[ $(wc -l < "${list_remove}") ]"
+	frobulator.inf "Files copied" "[ ${count_copy} ]"
+	frobulator.inf "Files removed" "[ ${count_remove} ]"
 
 	frobulator.scs "Done"
 

@@ -313,7 +313,11 @@ frobulator.inf "Resolved image" "[ ${url_install} ]"
 
 checksum_expected=$(curl -s -L "${url_install}.sha256" | cut -d ' ' -f 1)
 
-if [ ! -f "${image_archive}" ] || [ "$(sha256sum "${image_archive}" 2> "${sink}" | cut -d ' ' -f 1)" != "${checksum_expected}" ]
+# checksum of the image already downloaded, empty when there is none
+
+checksum_existing="$(sha256sum "${image_archive}" 2> "${sink}" | cut -d ' ' -f 1)"
+
+if [ ! -f "${image_archive}" ] || [ "${checksum_existing}" != "${checksum_expected}" ]
 then
 	curl -L -o "${image_archive}" "${url_install}" &
 
