@@ -990,7 +990,7 @@ count_failed=0
 
 for application in "${packages_list[@]}"
 do
-	# listing line of the package when it is on the device, empty otherwise
+	# package listing line if it is on the device - empty otherwise
 
 	package_listed="$(echo "${packages_installed}" | grep -F -x "package:${application}")"
 

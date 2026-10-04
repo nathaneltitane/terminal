@@ -265,7 +265,7 @@ reply=""
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
-# interactive: prompt for directories, dry run, then confirm
+# interactive: prompt for directories - dry run - then confirm
 
 if [ "${count_arguments}" -eq 0 ]
 then
@@ -504,7 +504,7 @@ fold_name () {
 	echo "${folded,,}"
 }
 
-# mirror: rename, copy and remove lists from both indexes
+# mirror: rename / copy / remove lists from both indexes
 
 mirror_plan () {
 
@@ -571,7 +571,7 @@ mirror_plan () {
 
 		# stale spelling of a renamed file: gone once renamed
 
-		# case and accent insensitive form of the name, as stored for renamed files
+		# case and accent insensitive name - as stored for renamed files
 
 		file_fold="$(fold_name "${file}")"
 

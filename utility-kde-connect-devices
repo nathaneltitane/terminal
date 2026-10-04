@@ -259,7 +259,7 @@ file_identity_key="${file_identity_key:-${file_identity_key_default}}"
 
 device_file_name () {
 
-	# device name as file name part: lowercase, spaces as '-', safe characters only
+	# device name as file name part: lowercase - spaces as '-' - safe characters only
 
 	local device_name="${1,,}"
 
@@ -302,7 +302,7 @@ devices_read () {
 
 		elif [[ "${device_line}" = certificate=* ]]
 		then
-			# stored on one line: quoted when padded, newlines escaped as '\n'
+			# stored on one line: quoted if padded - newlines escaped as '\n'
 
 			device_certificate="${device_line#certificate=}"
 			device_certificate="${device_certificate#\"}"
@@ -315,7 +315,7 @@ devices_read () {
 
 index_tabs () {
 
-	# tabs from a text position to a column, tab width 4
+	# tabs from a text position to a column - tab width 4
 
 	local index_position="${1}"
 	local index_column="${2}"
@@ -343,7 +343,7 @@ devices_backup () {
 	devices_read || return
 
 	# index columns aligned on tab stops (tab width 4):
-	# label column one tab wider than the longest label: label, id, type
+	# label column one tab wider than the longest label: label / id / type
 
 	index_label_width=0
 
@@ -382,7 +382,7 @@ devices_backup () {
 			continue
 		fi
 
-		# plugin settings: run commands, clipboard, enabled plugins
+		# plugin settings: run commands / clipboard / enabled plugins
 		# archive holds the device id directory itself
 
 		if [ -d "${directory_kde_connect}/${device_id}" ]
@@ -407,7 +407,7 @@ devices_backup () {
 
 identity_backup () {
 
-	# certificate and name into the directory, private key to its private file
+	# certificate and name into the directory - private key to its private file
 
 	frobulator.directory "$(dirname -- "${file_identity_key}")"
 
@@ -429,7 +429,7 @@ identity_backup () {
 
 service_stop () {
 
-	# process id of this user's kde connect service, empty when not running
+	# this user's kde connect service process id - empty if not running
 
 	local service_process
 
@@ -473,7 +473,7 @@ devices_restore () {
 		return 1
 	fi
 
-	# keep devices already paired on this computer, replace those being restored
+	# keep devices already paired on this computer - replace those being restored
 
 	if [ -f "${file_trusted_devices}" ]
 	then
@@ -671,7 +671,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-# kde connect command line client, empty when not installed
+# kde connect command line client - empty if not installed
 
 kde_connect_client="$(command -v kdeconnect-cli)"
 

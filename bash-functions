@@ -100,7 +100,7 @@ then
 
 			frobulator.permissions public execute "${directory_install}/${script}"
 
-			# one file per function, installed beside this one
+			# one file per function - installed beside this one
 
 			for bash_function in "${directory_script}"/bash-function-*
 			do

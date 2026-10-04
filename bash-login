@@ -120,7 +120,7 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	# session
 
-	# desktop environment chosen at setup: console, i3 or xfce - empty when not set up
+	# desktop environment chosen at setup: console / i3 / xfce - empty if not set up
 
 	dextop_environment="$(cat "${HOME}"/.dextop/dextop-environment)"
 
@@ -161,7 +161,7 @@ then
 
 	# update
 
-	# proot container processes, empty outside a container
+	# proot container processes - empty outside a container
 
 	process_proot="$(pgrep -f proot)"
 
@@ -169,7 +169,7 @@ then
 	then
 		:
 	else
-		# automatic update selection: 'update' followed by what to update - dextop, shell, utility, all
+		# automatic update selection: 'update' followed by dextop / shell / utility / all
 
 		dextop_update="$(cat "${HOME}"/.dextop/dextop-update)"
 
@@ -213,13 +213,13 @@ then
 
 		if [ "${dextop_audio}" = "audio" ]
 		then
-			# path of 'pulseaudio', empty when not installed
+			# 'pulseaudio' path - empty if not installed
 
 			command_pulseaudio="$(command -v pulseaudio)"
 
 			if [ -n "${command_pulseaudio}" ]
 			then
-				# process ids of a running pulseaudio, empty when stopped
+				# running pulseaudio process ids - empty if stopped
 
 				process_pulseaudio="$(pgrep -f pulseaudio)"
 

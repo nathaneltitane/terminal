@@ -8,7 +8,7 @@ adb_set_environment () {
 
 	local command_adb
 
-	# path of 'adb', empty when not installed
+	# 'adb' path - empty if not installed
 
 	command_adb="$(command -v adb)"
 

@@ -230,7 +230,7 @@ reset="\001$(tput sgr 0)\002"
 
 unset PS1
 
-# name of the logged in user, and process ids of a running proot container - empty outside one
+# logged in user name and running proot container process ids - empty outside one
 
 user_name="$(id -u -n)"
 process_proot="$(pidof proot)"
@@ -273,7 +273,7 @@ then
 		DISPLAY=":0"
 	fi
 
-	# process ids of the running graphics accelerator and termux x11 application, empty when stopped
+	# running graphics accelerator and termux x11 application process ids - empty if stopped
 
 	process_accelerator="$(pgrep -f "${TERMUX_X11_ACCELERATOR}")"
 	process_x11_application="$(pgrep -f "${TERMUX_X11_APPLICATION}")"
@@ -314,7 +314,7 @@ then
 
 	# load welcome message
 
-	# proot container processes matching by command line, empty outside a container
+	# proot container processes matching by command line - empty outside a container
 
 	process_proot="$(pgrep -f proot)"
 

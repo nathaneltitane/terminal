@@ -13,7 +13,7 @@ preview () {
 
 	file="${2}"
 
-	# paths of 'cat' and 'head', empty when not installed
+	# 'cat' and 'head' paths - empty if not installed
 
 	command_cat="$(command -v cat)"
 	command_head="$(command -v head)"

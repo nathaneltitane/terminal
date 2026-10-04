@@ -235,7 +235,7 @@ do
 
 	frobulator.complete
 
-	# site activation report: 'enabled' on success, 'error' on failure
+	# site activation report: 'enabled' on success - 'error' on failure
 
 	site_activation="$(a2ensite "${item}".conf)"
 
@@ -252,7 +252,7 @@ do
 		exit 1
 	fi
 
-	# hosts file entry for the site, empty when missing
+	# site hosts file entry - empty if missing
 
 	hosts_entry="$(grep -F "${item}.local" /etc/hosts)"
 

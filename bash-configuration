@@ -137,7 +137,7 @@ HISTFILESIZE=2000
 
 # completion ───────────────────────────────────────────────────────────────────
 
-# posix mode check: status 0 when bash runs in posix mode, where completion is not loaded
+# posix mode check: status 0 in posix mode - completion is not loaded there
 
 shopt -oq posix
 
@@ -199,7 +199,7 @@ colors_selection=(
 	teal="30"
 )
 
-# path of 'tput', empty when not installed
+# 'tput' path - empty if not installed
 
 command_tput="$(command -v tput)"
 
@@ -330,7 +330,7 @@ fi
 
 unset PS1
 
-# name of the logged in user, and process ids of a running proot container - empty outside one
+# logged in user name and running proot container process ids - empty outside one
 
 user_name="$(id -u -n)"
 process_proot="$(pidof proot)"
@@ -435,7 +435,7 @@ fi
 
 # profile ──────────────────────────────────────────────────────────────────────
 
-# proot container processes matching by command line, empty outside a container
+# proot container processes matching by command line - empty outside a container
 
 process_proot="$(pgrep -f proot)"
 

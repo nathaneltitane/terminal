@@ -589,7 +589,7 @@ then
 		bash-profile
 	)
 
-	# one file per function, loaded by bash-functions: names listed from the repository
+	# one file per function - loaded by bash-functions: names listed from the repository
 
 	list+=($(curl --silent --location --connect-timeout 30 "${marker_hts}api.github.com/repos/nathaneltitane/terminal/contents" | jq -r '.[].name | select(startswith("bash-function-"))'))
 
@@ -611,7 +611,7 @@ then
 	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
 	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
 
-	# name of the user running the script
+	# user running the script
 
 	user_name="$(id -u -n)"
 

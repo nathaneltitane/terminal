@@ -203,7 +203,7 @@ fi
 
 # claude code must not run while linking
 
-# process id of a running claude code, empty when it is not running
+# running claude code process id - empty if not running
 
 claude_process="$(pgrep -x claude)"
 

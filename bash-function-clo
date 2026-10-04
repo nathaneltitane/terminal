@@ -11,7 +11,7 @@ clo () {
 
 	command="claude"
 
-	# path of the command named in ${command}, empty when not installed
+	# ${command} command path - empty if not installed
 
 	command_path="$(command -v "${command}")"
 

@@ -250,12 +250,12 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-# static builds of the android sdk tools, per architecture
+# static android sdk tools builds - per architecture
 
 url_binaries_release="${marker_hts}api.github.com/repos/lzhiyong/android-sdk-tools/releases/latest"
 
 # architectures: release archive name ending | file name ending
-# x86_64 is the plain name, arm64 (termux) carries a suffix - as binary-leocad / binary-leocad-arm64
+# x86_64 is the plain name - arm64 (termux) carries a suffix - as binary-leocad / binary-leocad-arm64
 
 binary_architectures=(
 	"-static-x86_64.zip|"
@@ -290,13 +290,13 @@ fi
 
 if [ "${deploy}" = true ]
 then
-	# this computer only: its architecture, no suffix
+	# this computer only: its architecture - no suffix
 
 	directory="${HOME}/.local/bin"
 
 	file_list="${directory}/.binary-android-list"
 
-	# machine architecture reported by the kernel: x86_64, aarch64 ...
+	# machine architecture reported by the kernel: x86_64 / aarch64 ...
 
 	architecture_machine="$(uname -m)"
 
@@ -317,7 +317,7 @@ then
 		;;
 	esac
 else
-	# repository: both architectures, served to dextop and termux
+	# repository: both architectures - served to dextop and termux
 
 	file_script="$(readlink -f -- "${BASH_SOURCE[0]}")"
 
@@ -326,7 +326,7 @@ else
 	file_list="${directory}/binary-android-list"
 fi
 
-# release asset id of each binary is kept in the list file, to skip unchanged ones
+# release asset id of each binary is kept in the list file - unchanged ones are skipped
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -341,7 +341,7 @@ list_load () {
 		return 0
 	fi
 
-	# file, original binary name, release asset id
+	# file / original binary name / release asset id
 
 	while IFS=$'\t' read -r list_file list_original_name list_asset_id
 	do
@@ -380,7 +380,7 @@ list_original () {
 
 list_tabs () {
 
-	# tabs from a text length to a column, tab width 4
+	# tabs from a text length to a column - tab width 4
 
 	local list_length="${1}"
 	local list_column="${2}"
@@ -396,7 +396,7 @@ list_tabs () {
 
 list_save () {
 
-	# file, original binary name and release asset id, columns aligned on tab stops (tab width 4):
+	# file / original binary name / release asset id - columns aligned on tab stops (tab width 4):
 	# each text column one tab wider than its longest entry
 
 	local list_file_width=0
@@ -444,7 +444,7 @@ list_save () {
 
 binaries_update () {
 
-	# for each architecture: download its release archive once, then replace each selected binary that changed
+	# for each architecture: download its release archive once - then replace each selected binary that changed
 
 	local status=0
 

@@ -6,9 +6,9 @@
 
 music-mirror () {
 
-	# mirror external drive music to the phone, folder by folder, for the folders the phone keeps:
-	# a folder's subfolders on the phone are each mirrored, or the folder itself when it has none
-	# usage: music-mirror [utility-add-remove options: -e execute, -y skip confirmation]
+	# mirror external drive music to the phone - folder by folder - for the folders the phone keeps:
+	# a folder's subfolders on the phone are each mirrored - or the folder itself if it has none
+	# usage: music-mirror [utility-add-remove options: -e execute / -y skip confirmation]
 	# without options every folder is a dry run
 
 	local music_external="/media/${USER}/external/Music"

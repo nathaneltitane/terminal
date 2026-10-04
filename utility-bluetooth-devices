@@ -189,15 +189,15 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-# bluez device store: pairing keys, names, aliases, trust - root only
+# bluez device store: pairing keys / names / aliases / trust - root only
 
 directory_bluetooth="/var/lib/bluetooth"
 
-# audio settings per device as plain text, applied through pulseaudio on restore
+# audio settings per device as plain text - applied through pulseaudio on restore
 
 file_bluetooth_keys_default="/media/internal/.bluetooth-keys"
 
-# paired devices and list column, shared by the device and audio backups
+# paired devices and list column - shared by the device and audio backups
 
 device_labels=()
 device_addresses=()
@@ -246,7 +246,7 @@ file_bluetooth_keys="${file_bluetooth_keys:-${file_bluetooth_keys_default}}"
 
 adapter_address () {
 
-	# address of the default bluetooth adapter, or the only one already stored
+	# default bluetooth adapter address - or the only one already stored
 
 	local adapter_line
 	local adapter_directory
@@ -284,7 +284,7 @@ adapter_address () {
 
 device_label () {
 
-	# device name as label: lowercase, spaces as '-', safe characters only
+	# device name as label: lowercase - spaces as '-' - safe characters only
 
 	local device_name="${1,,}"
 
@@ -321,7 +321,7 @@ info_value () {
 
 index_tabs () {
 
-	# tabs from a text position to a column, tab width 4
+	# tabs from a text position to a column - tab width 4
 
 	local index_position="${1}"
 	local index_column="${2}"
@@ -359,7 +359,7 @@ devices_backup () {
 		return 1
 	fi
 
-	# device list: label, address, name
+	# device list: label / address / name
 
 	for device_directory in "${directory_bluetooth}/${adapter}"/??:??:??:??:??:??
 	do
@@ -370,7 +370,7 @@ devices_backup () {
 
 		device_address="${device_directory##*/}"
 
-		# alias set on this computer, otherwise the name the device reports
+		# alias set on this computer - otherwise the name the device reports
 
 		device_alias="$(info_value "${device_directory}/info" Alias)"
 		device_reported_name="$(info_value "${device_directory}/info" Name)"
@@ -438,7 +438,7 @@ devices_backup () {
 
 audio_user () {
 
-	# run a command as the desktop user, inside their session
+	# run a command as the desktop user - inside their session
 
 	local audio_user_name="${SUDO_USER:-${USER}}"
 
@@ -447,7 +447,7 @@ audio_user () {
 
 audio_sink_name () {
 
-	# pulseaudio sink of a bluetooth device, whatever its profile
+	# bluetooth device pulseaudio sink - whatever its profile
 
 	local audio_address="${1//:/_}"
 
@@ -500,7 +500,7 @@ audio_card_profile () {
 
 audio_backup () {
 
-	# profile, volume, mute and default output of each connected device, as plain text
+	# profile / volume / mute / default output of each connected device - as plain text
 
 	local status=0
 	local audio_line_count=0
@@ -519,7 +519,7 @@ audio_backup () {
 
 	audio_default_sink="$(audio_user pactl get-default-sink 2> "${sink}")"
 
-	# previous settings, kept for devices that are not connected now
+	# previous settings - kept for devices not connected now
 
 	if [ -f "${file_audio_settings}" ]
 	then
@@ -637,7 +637,7 @@ devices_restore () {
 
 	systemctl stop bluetooth
 
-	# devices go under the current adapter, even when it changed
+	# devices go under the current adapter - even if it changed
 
 	mkdir -p "${directory_bluetooth}/${adapter}"
 
@@ -656,7 +656,7 @@ devices_restore () {
 
 			frobulator.track
 
-			# alias set on this computer, otherwise the name the device reports
+			# alias set on this computer - otherwise the name the device reports
 
 			device_alias="$(info_value "${device_directory}/info" Alias)"
 			device_reported_name="$(info_value "${device_directory}/info" Name)"
@@ -668,7 +668,7 @@ devices_restore () {
 			frobulator.scs "Restore success - device" "[ '${device_list_label}'${marker_spc}${marker_hnt}${marker_spc}${device_address} ]"
 		done
 
-		# adapter settings (name, discoverable) only for the same adapter
+		# adapter settings (name / discoverable) only for the same adapter
 
 		if [ "${adapter_archived##*/}" = "${adapter}" ] && [ -f "${adapter_archived}/settings" ]
 		then
@@ -689,7 +689,7 @@ devices_restore () {
 
 audio_restore () {
 
-	# connect each device, then apply its saved profile, volume, mute and default output
+	# connect each device - then apply its saved profile / volume / mute / default output
 
 	local status=0
 
@@ -717,7 +717,7 @@ audio_restore () {
 
 		for audio_attempt in {1..6}
 		do
-			# bluez device details, including its 'Connected: yes / no' line
+			# bluez device details - including its 'Connected: yes / no' line
 
 			audio_device_information="$(bluetoothctl info "${audio_address}" 2> "${sink}")"
 
@@ -806,7 +806,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-# bluez command line client, empty when not installed
+# bluez command line client - empty if not installed
 
 bluetooth_client="$(command -v bluetoothctl)"
 
