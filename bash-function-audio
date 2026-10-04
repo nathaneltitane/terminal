@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# audio ────────────────────────────────────────────────────────────────────────
+
+audio () {
+
+	frobulator.require ffmpeg
+
+	directory="${PWD}"
+	extension="${1}"
+
+	found=0
+
+	# default conversion command
+
+	convert_command () {
+
+		ffmpeg					\
+			-y					\
+			-i "${file}"		\
+			-f mp3				\
+			-map_metadata 0		\
+			-id3v2_version 3	"${file%.*}.mp3"
+	}
+
+	if [ "${extension}" = "flac" ]
+	then
+		# override for flac files with bitrate
+
+		convert_command () {
+
+			ffmpeg					\
+				-y					\
+				-i "${file}"		\
+				-b:a 320k			\
+				-map_metadata 0		\
+				-id3v2_version 3	"${file%.*}.mp3"
+		}
+	fi
+
+	# loop over all files
+
+	for file in *
+	do
+		case "${file}" in
+			*."${extension}")
+
+				found=1
+
+				convert_command
+
+				rm					\
+					--recursive		\
+					--force			 "${file}"
+				;;
+		esac
+	done
+
+	# handle case where no matching files were found
+
+	if [ "${found}" -eq 0 ]
+	then
+		frobulator.err "No files to convert with specified extension" "[ '${extension}' ]"
+
+		return 1
+	fi
+}

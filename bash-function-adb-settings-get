@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-settings-get ─────────────────────────────────────────────────────────────
+
+adb_settings_get () {
+
+	adb_download
+
+	adb_set_environment
+
+	setting="${1}"
+
+	adb shell settings get "${setting}"
+}

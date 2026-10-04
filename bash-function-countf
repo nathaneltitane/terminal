@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# countf ───────────────────────────────────────────────────────────────────────
+
+countf () {
+
+	echo "$(find . -type f | wc -l) files under ${PWD}"
+
+}

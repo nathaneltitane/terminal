@@ -1,0 +1,188 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# media ────────────────────────────────────────────────────────────────────────
+
+media () {
+
+	local type="${1}"
+	local source="${2}"
+	local path="${3}"
+	local directory_binary="${HOME}/.local/bin"
+	local archive
+	local file
+	local files
+	local directory
+	local name_source
+	local name_target
+	local browser
+	local duration_sleep
+	local format
+	local format_media
+	local -a options_type=()
+	local -a options_url=()
+	local -a options_site=()
+
+	if [ -z "${type}" ]
+	then
+		frobulator.err "No type specified" "[ audio | video ]"
+
+		return 1
+	fi
+
+	if [ "${type}" != "audio" ] && [ "${type}" != "video" ]
+	then
+		frobulator.err "Invalid type" "[ ${type} ]"
+
+		return 1
+	fi
+
+	if [ -z "${source}" ]
+	then
+		frobulator.err "No source specified"
+
+		return 1
+	fi
+
+	if [ -z "${path}" ]
+	then
+		path="${PWD}"
+	fi
+
+	if [ ! -d "${path}" ]
+	then
+		path="${PWD}"
+	fi
+
+	if [ ! -f "${directory_binary}/yt-dlp" ]
+	then
+		frobulator.download "https://github.com/yt-dlp/yt-dlp/releases/latest/download" "${directory_binary}" "yt-dlp"
+	else
+		frobulator.silence "${directory_binary}/yt-dlp --update"
+	fi
+
+	if [ ! -x "${directory_binary}/yt-dlp" ]
+	then
+		frobulator.err "Downloader unavailable" "[ yt-dlp ]"
+
+		return 1
+	fi
+
+	if [ ! -f "${directory_binary}/deno" ]
+	then
+		archive="deno-x86_64-unknown-linux-gnu.zip"
+
+		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${directory_binary}" "${archive}"
+
+		unzip -o -q "${directory_binary}/${archive}" -d "${directory_binary}"
+
+		rm -f "${directory_binary}/${archive}"
+
+		chmod +x "${directory_binary}/deno"
+	else
+		frobulator.silence "${directory_binary}/deno upgrade"
+	fi
+
+	if [ ! -x "${directory_binary}/deno" ]
+	then
+		frobulator.err "Solver unavailable" "[ deno ]"
+
+		return 1
+	fi
+
+	if [ "${type}" = "audio" ]
+	then
+		format="bestaudio"
+		format_media="mp3"
+
+		options_type+=( --extract-audio )
+		options_type+=( --audio-format "${format_media}" )
+		options_type+=( --audio-quality best )
+		options_type+=( --output '%(uploader)s - %(title)s.%(ext)s' )
+
+	elif [ "${type}" = "video" ]
+	then
+		format="bestvideo+bestaudio"
+		format_media="mp4"
+
+		options_type+=( --merge-output-format "${format_media}" )
+		options_type+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
+	fi
+
+	if [ -f "${source}" ]
+	then
+		options_url+=( --batch-file )
+	fi
+
+	if [ "${source#*soundcloud.com}" = "${source}" ]
+	then
+		browser="$(xdg-settings get default-web-browser 2>"${sink}")"
+
+		browser="${browser%.desktop}"
+
+		if [[ "${browser}" = firefox* ]] ||
+		[[ "${browser}" = librewolf*  ]] ||
+		[[ "${browser}" = waterfox*   ]]
+		then
+			browser="firefox"
+
+		elif [[ "${browser}" = chrome*       ]] ||
+			[[ "${browser}" = google-chrome* ]] ||
+			[[ "${browser}" = chromium*      ]] ||
+			[[ "${browser}" = brave*         ]] ||
+			[[ "${browser}" = vivaldi*       ]] ||
+			[[ "${browser}" = opera*         ]]
+		then
+			browser="chrome"
+
+		else
+			frobulator.err "No compatible browser found on system"
+
+			return 1
+		fi
+
+		options_site+=( --cookies-from-browser "${browser}" )
+	fi
+
+	cd "${path}"
+
+	duration_sleep=$(( RANDOM % 5 + 1 ))
+
+	"${directory_binary}/yt-dlp"									\
+		--remote-components		"ejs:github"				\
+		--js-runtimes			"deno:${directory_binary}/deno"	\
+		--ffmpeg-location		"/usr/bin/ffmpeg"			\
+		--quiet												\
+		--no-update											\
+		--ignore-errors										\
+		--no-overwrites										\
+		--sleep-requests		"${duration_sleep}"			\
+		--yes-playlist										\
+		--format				"${format}"					\
+		"${options_site[@]}"								\
+		"${options_type[@]}"								\
+		"${options_url[@]}"									\
+		"${source}" &
+
+	frobulator.progress download
+
+	files="$(find "${PWD}" -type f -iname "*.${format_media}")"
+
+	IFS=$'\n'
+
+	for file in ${files}
+	do
+		directory="${file%/*}"
+		name_source="${file##*/}"
+
+		name_target="${name_source// - Topic/}"
+
+		if [ "${name_source}" != "${name_target}" ]
+		then
+			mv -- "${file}" "${directory}/${name_target}"
+		fi
+	done
+
+	unset IFS
+}

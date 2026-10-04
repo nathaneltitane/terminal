@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-vendor-ids ───────────────────────────────────────────────────────────────
+
+adb_vendor_ids () {
+
+	adb_download
+
+	adb_set_environment
+
+	mkdir -p "${HOME}"/.android
+
+	for id in {0..65535}
+	do
+		printf '0x%04x\n' "${id}"
+	done >> "{HOME}"/.android/adb_usb.ini
+
+	chmod -R 777 "${HOME}"/.android
+
+	if [[ $(dpkg -l udev) ]]
+	then
+		while read -r vendor_id
+		do
+			echo SUBSYSTEM==\"usb\", SYSFS{idVendor}==\""${vendor_id:2}"\", MODE=\"0666\" \;
+
+		done <<< $(cat "${HOME}"/.android/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
+	fi
+}

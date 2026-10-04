@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# clo ──────────────────────────────────────────────────────────────────────────
+
+clo () {
+
+	local command
+
+	command="claude"
+
+	if [[ -z $(command -v "${command}") ]]
+	then
+		frobulator.err "Command not found" "[ ${command} ]"
+
+		return 1
+	fi
+
+	directory_projects="${HOME}/.${command}/projects"
+
+	if [ ! -d "${directory_projects}" ]
+	then
+		frobulator.wrn "No session history found."
+
+		return 1
+	fi
+
+	file_search=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
+
+	file_session=$("${file_search[@]}" 2>"${sink}" | sort -r -n | head -n 1 | cut -d ' ' -f 2-)
+
+	if [ -z "${file_session}" ]
+	then
+		frobulator.wrn "No saved session(s) found."
+
+		return 1
+	fi
+
+	echo
+
+	id_session="$(basename "${file_session}" .jsonl)"
+
+	frobulator.scs "Session found."
+
+	frobulator.inf "Resuming session" "[ ${id_session} ]"
+
+	claude --resume "${id_session}"
+
+	unset command
+
+}

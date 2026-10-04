@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# adb-reset-apk ────────────────────────────────────────────────────────────────
+
+adb_reset_apk () {
+
+	adb_download
+
+	adb_set_environment
+
+	application="${1}"
+	activity="${2}"
+
+	adb "${device}" shell	\
+		pm clear "${application}"
+
+	adb "${device}" shell	\
+		am start			\
+			--user 0		\
+			-n "${application}"/"${application}"."${activity}"
+}

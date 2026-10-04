@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# when ─────────────────────────────────────────────────────────────────────────
+
+when () {
+
+	time=$(date '+%I:%M %p')
+	date=$(date '+%A, %B %d %Y')
+
+	echo
+
+	echo "It is ${time} on ${date}"
+
+	echo
+}

@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# extract ──────────────────────────────────────────────────────────────────────
+
+extract () {
+
+	list+=(
+		7zip
+		bunzip2
+		gunzip
+		tar
+		unrar
+		unzip
+	)
+
+	frobulator.require ${list[@]}
+
+	# unset array
+
+	list=()
+
+	file="${1}"
+	directory="${2}"
+	extension="${3}"
+
+	archive="${file##*/}"
+
+	if [ -z "${directory}" ]
+	then
+		directory="${PWD}"
+	fi
+
+	if [ -z "${extension}" ]
+	then
+		extension="${file##*.}"
+	fi
+
+	if [ ! -d "${directory}" ]
+	then
+		mkdir -p "${directory}"
+	fi
+
+	case "${extension}"
+	in
+		tar.bz2|tbz2)
+			tar								\
+				--extract					\
+				--bzip2						\
+				--file="${file}" 			\
+				--directory="${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+		;;
+
+		tar.gz|tgz)
+			tar								\
+				--extract					\
+				--gzip						\
+				--file="${file}" 			\
+				--directory="${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+		;;
+
+		tar)
+			tar								\
+				--extract					\
+				--file="${file}" 			\
+				--directory="${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+
+		;;
+
+		7z)
+			7z								\
+				x "${file}" 				\
+				-o							"${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+		;;
+
+		rar)
+			unrar e "${file}" "${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+		;;
+
+		zip)
+			unzip							\
+				-o							\
+				-qq "${file}"				\
+				-d							"${directory}"
+
+				frobulator.inf "Extracting" "[ ${archive} ]"
+		;;
+
+		*)
+			frobulator.err "Unsupported archive type" "[ '${archive}' ]"
+
+			exit 1
+		;;
+
+	esac
+}

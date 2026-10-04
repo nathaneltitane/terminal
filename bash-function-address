@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# address ──────────────────────────────────────────────────────────────────────
+
+address () {
+
+	frobulator.require curl
+
+	url="ipinfo.io/ip"
+
+	echo
+
+	curl			\
+		--silent	\
+		--location	"${url}"
+
+	echo
+
+	unset url
+}

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# ssh ──────────────────────────────────────────────────────────────────────────
+
+ssh () {
+
+	# destination is always the last argument
+
+	destination=${!#}
+
+	echo -n -e "[  $(tput setaf 3)${destination}$(tput sgr 0)  ] >_ ? "
+
+	read -r -s password
+
+	echo
+
+	sshpass					\
+		-p "${password}"	\
+							ssh -X "${@}"
+
+	unset destination
+
+	unset password
+
+}

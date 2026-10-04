@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# loaded by bash-functions from "${HOME}"/.local/bin - frobulator is already sourced there
+
+# dimensions ───────────────────────────────────────────────────────────────────
+
+dimensions () {
+
+	columns=$(tput cols)
+	lines=$(tput lines)
+
+	echo "Terminal size:"
+	echo "W: ${columns} x H: ${lines}"
+}
