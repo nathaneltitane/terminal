@@ -168,7 +168,7 @@ list=(
 
 frobulator.require ${list[@]}
 
-frobulator.complete
+frobulator.complete continue "Requirements failure" "[ ${application} ]"
 
 list=()
 
@@ -180,7 +180,7 @@ frobulator.complete halt "Temporary directory failure" "[ ${application} ]"
 
 frobulator.trap "${directory_build}"
 
-frobulator.complete
+frobulator.complete continue "Cleanup trap failure" "[ ${directory_build} ]"
 
 # get source code
 
@@ -216,7 +216,7 @@ frobulator.complete halt "Build failure" "[ ${application} ]"
 
 frobulator.copy "${directory_build}"/build/release "${directory_install}" "${application}"
 
-frobulator.complete
+frobulator.complete continue "Install failure" "[ ${directory_install}/${application} ]"
 
 # generate launcher
 
@@ -236,6 +236,6 @@ LAUNCHER
 
 frobulator.write "write" "${content_launcher}" /usr/share/applications leocad.desktop
 
-frobulator.complete
+frobulator.complete continue "Launcher failure" "[ /usr/share/applications/leocad.desktop ]"
 
 frobulator.result "${script}"
