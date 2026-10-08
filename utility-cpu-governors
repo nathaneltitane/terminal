@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -130,34 +130,34 @@ list=(
 	cpufreq-set
 )
 
-frobulator.require ${install_list[@]}
+frobulator.require ${list_install[@]}
 
 # configuration ────────────────────────────────────────────────────────────────
 
 # set governor aliases
 
-governors_list=(
+list_governors=(
 	$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors)
 )
 
-for governor in "${!governors_list[@]}"
+for governor in "${!list_governors[@]}"
 do
 	cat <<- FILE >> /etc/bash.bashrc
 
-	# governor - ${governors_list[governor]} #
+	# governor - ${list_governors[governor]} #
 
-	${governors_list[governor]}() {
+	${list_governors[governor]}() {
 		for (( n=0 ; n<$(grep -c processor /proc/cpuinfo) ; n++ ))
 	do
-			sudo cpufreq-set -c "\$n" -g ${governors_list[governor]}
+			sudo cpufreq-set -c "\$n" -g ${list_governors[governor]}
 		done
 	}
 	FILE
 
-	cat <<- FILE > /usr/bin/${governors_list[governor]}
+	cat <<- FILE > /usr/bin/${list_governors[governor]}
 	#!/bin/bash
 
-	# cpu governor (${governors_list[governor]}) #
+	# cpu governor (${list_governors[governor]}) #
 
 	# processor core count
 
@@ -172,7 +172,7 @@ do
 	do
 		sudo cpufreq-set	\
 			-c "\${count}"	\
-			-g ${governors_list[governor]}
+			-g ${list_governors[governor]}
 	done
 
 	# 'notify-send' path - empty if not installed
@@ -183,10 +183,10 @@ do
 	then
 		notify-send						\
 			-i gnome-system-monitor		\
-			"CPU governor set to ${governors_list[governor]}"
+			"CPU governor set to ${list_governors[governor]}"
 	FILE
 
-	sudo chmod +x /usr/bin/${governors_list[governor]}
+	sudo chmod +x /usr/bin/${list_governors[governor]}
 done
 
 # write switch

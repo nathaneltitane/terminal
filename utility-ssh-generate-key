@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -114,13 +114,13 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-key_type="ed25519"
+type_key="ed25519"
 
-key_directory="${HOME}"
+directory_key="${HOME}"
 
-key="${key_directory}"/"${device}"
+key="${directory_key}"/"${device}"
 
-key_public="${key}.pub"
+file_key_public="${key}.pub"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -145,7 +145,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-devices_list=(
+list_devices=(
 	desktop
 	notebook
 	pi
@@ -153,7 +153,7 @@ devices_list=(
 	phone
 )
 
-for device in ${devices_list[@]}
+for device in ${list_devices[@]}
 do
 
 	# remove existing key files if they exist
@@ -166,20 +166,20 @@ do
 							"${key}"
 	fi
 
-	if [ -f "${key_public}" ]
+	if [ -f "${file_key_public}" ]
 	then
 		rm					\
 			--recursive		\
 			--force			\
-							"${key_public}"
+							"${file_key_public}"
 	fi
 
 	# generate key(s):
 	# overwrite - no passphrase
 
 	yes | ssh-keygen						\
-		-t "${key_type}"					\
-		-f "${key_directory}"/"${device}"	\
+		-t "${type_key}"					\
+		-f "${directory_key}"/"${device}"	\
 		-N ''								\
 		-C "${USER}@${device}"
 
@@ -192,11 +192,11 @@ do
 								"${key}"
 	fi
 
-	if [ -f "${key_public}" ]
+	if [ -f "${file_key_public}" ]
 	then
 		chown					\
 			"${USER}:${USER}"	\
-								"${key_public}"
+								"${file_key_public}"
 	fi
 
 	# set permissions
@@ -208,11 +208,11 @@ do
 					"${key}"
 	fi
 
-	if [ -f "${key_public}" ]
+	if [ -f "${file_key_public}" ]
 	then
 		chmod		\
 			0644	\
-					"${key_public}"
+					"${file_key_public}"
 	fi
 
 done

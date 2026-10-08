@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -118,19 +118,19 @@ done
 
 if [ ! -d /media/internal/ ]
 then
-	configuration_directory="${HOME}"
+	directory_configuration="${HOME}"
 else
-	configuration_directory=/media/internal
+	directory_configuration=/media/internal
 fi
 
 configuration=.dns-dynamic
 
-use=$(cat "${configuration_directory}"/"${configuration}" | sed -n 1p)
-protocol=$(cat "${configuration_directory}"/"${configuration}" | sed -n 2p)
-server=$(cat "${configuration_directory}"/"${configuration}" | sed -n 3p)
+use=$(cat "${directory_configuration}"/"${configuration}" | sed -n 1p)
+protocol=$(cat "${directory_configuration}"/"${configuration}" | sed -n 2p)
+server=$(cat "${directory_configuration}"/"${configuration}" | sed -n 3p)
 
-login=$(cat "${configuration_directory}"/"${configuration}" | sed -n 4p)
-password=$(cat "${configuration_directory}"/"${configuration}" | sed -n 5p)
+login=$(cat "${directory_configuration}"/"${configuration}" | sed -n 4p)
+password=$(cat "${directory_configuration}"/"${configuration}" | sed -n 5p)
 
 process="ddclient"
 service="${process}.service"
@@ -161,7 +161,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ ! -e "${configuration_directory}"/"${configuration}" ]
+if [ ! -e "${directory_configuration}"/"${configuration}" ]
 then
 	frobulator.err "Configuration file not found" "[ ${configuration} ]"
 
@@ -210,28 +210,28 @@ fi
 
 # status line if the service is running - empty otherwise
 
-service_running="$(systemctl status "${service}" | grep -e "active.*running")"
+line_service_running="$(systemctl status "${service}" | grep -e "active.*running")"
 
-if [ -n "${service_running}" ]
+if [ -n "${line_service_running}" ]
 then
 	frobulator.wrn "Service running" " [ ${service} ]"
 
-	service_actions_list=(
+	list_actions_service=(
 		disable
 		stop
 	)
 fi
 
-service_actions_list+=(
+list_actions_service+=(
 	enable
 	start
 )
 
-for service_action in ${service_actions_list[@]}
+for action_service in ${list_actions_service[@]}
 do
-	systemctl "${service_action}" "${service}" > "${sink}" 2>&1 &
+	systemctl "${action_service}" "${service}" > "${sink}" 2>&1 &
 
-	frobulator.process "Service ${service_action}" "[ ${service} ]"
+	frobulator.process "Service ${action_service}" "[ ${service} ]"
 
 	sleep 1
 
@@ -242,20 +242,20 @@ do
 	sleep 1
 done
 
-service_actions_list=()
+list_actions_service=()
 
 # service process verification
 
 # status lines if the service is running or inactive - empty otherwise
 
-service_running="$(systemctl status "${service}" | grep -e "active.*running")"
-service_inactive="$(systemctl status "${service}" | grep -e "inactive.*")"
+line_service_running="$(systemctl status "${service}" | grep -e "active.*running")"
+line_service_inactive="$(systemctl status "${service}" | grep -e "inactive.*")"
 
-if [ -n "${service_running}" ]
+if [ -n "${line_service_running}" ]
 then
 	frobulator.scs "Service activation success" "[ ${service} ]"
 
-elif [ -n "${service_inactive}" ]
+elif [ -n "${line_service_inactive}" ]
 then
 	frobulator.err "Service activation failed" "[ ${service} ]"
 
