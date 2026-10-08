@@ -71,7 +71,7 @@ version="2026-10-04"
 
 selection=()
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -179,7 +179,7 @@ url_github_api="${marker_hts}api.github.com/repos/termux"
 # package sources:
 # package | repository | release (latest / newest / tag) | asset name ending | file
 
-package_sources=(
+list_sources_package=(
 	"termux|termux-app|latest|_arm64-v8a.apk|package-termux.apk"
 	"termux|termux-app|latest|_x86_64.apk|package-termux-x86-64.apk"
 	"api|termux-api|latest|.apk|package-termux-api.apk"
@@ -191,8 +191,8 @@ package_sources=(
 	"x11|termux-x11|nightly|-all.deb|package-termux-x11.deb"
 )
 
-declare -A release_cache
-declare -A package_versions
+declare -A list_cache_release
+declare -A list_versions_package
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -227,30 +227,30 @@ file_versions="${directory}/package-termux.versions"
 
 versions_load () {
 
-	local versions_file_name
-	local versions_asset_id
+	local name_file_versions
+	local id_asset_versions
 
 	if [ ! -f "${file_versions}" ]
 	then
 		return 0
 	fi
 
-	while read -r versions_file_name versions_asset_id
+	while read -r name_file_versions id_asset_versions
 	do
-		if [ -n "${versions_file_name}" ]
+		if [ -n "${name_file_versions}" ]
 		then
-			package_versions["${versions_file_name}"]="${versions_asset_id}"
+			list_versions_package["${name_file_versions}"]="${id_asset_versions}"
 		fi
 	done < "${file_versions}"
 }
 
 versions_save () {
 
-	local versions_file_name
+	local name_file_versions
 
-	for versions_file_name in "${!package_versions[@]}"
+	for name_file_versions in "${!list_versions_package[@]}"
 	do
-		echo "${versions_file_name} ${package_versions[${versions_file_name}]}"
+		echo "${name_file_versions} ${list_versions_package[${name_file_versions}]}"
 	done | sort > "${file_versions}"
 }
 
@@ -258,30 +258,30 @@ release_fetch () {
 
 	# repository release json - fetched once per run
 
-	local release_repository="${1}"
-	local release_selector="${2}"
-	local release_key="${release_repository}|${release_selector}"
+	local repository_release="${1}"
+	local selector_release="${2}"
+	local key_release="${repository_release}|${selector_release}"
 
-	local release_url
+	local url_release
 
-	if [ -n "${release_cache[${release_key}]}" ]
+	if [ -n "${list_cache_release[${key_release}]}" ]
 	then
 		return 0
 	fi
 
-	if [ "${release_selector}" = "latest" ]
+	if [ "${selector_release}" = "latest" ]
 	then
-		release_url="${url_github_api}/${release_repository}/releases/latest"
+		url_release="${url_github_api}/${repository_release}/releases/latest"
 
-	elif [ "${release_selector}" = "newest" ]
+	elif [ "${selector_release}" = "newest" ]
 	then
-		release_url="${url_github_api}/${release_repository}/releases?per_page=1"
+		url_release="${url_github_api}/${repository_release}/releases?per_page=1"
 	else
-		release_url="${url_github_api}/${release_repository}/releases/tags/${release_selector}"
+		url_release="${url_github_api}/${repository_release}/releases/tags/${selector_release}"
 	fi
 
-	release_cache["${release_key}"]="$(
-		curl --silent --fail --location --connect-timeout 30 "${release_url}" 2> "${sink}" |
+	list_cache_release["${key_release}"]="$(
+		curl --silent --fail --location --connect-timeout 30 "${url_release}" 2> "${sink}" |
 			jq -c 'if type == "array" then .[0] else . end' 2> "${sink}"
 	)"
 }
@@ -291,70 +291,70 @@ package_update () {
 	# download every file of one package that changed upstream
 
 	local package="${1}"
-	local package_status=0
+	local status_package=0
 
-	local source_entry
-	local source_package
-	local source_repository
-	local source_release
-	local source_suffix
-	local source_file
-	local release_json
-	local release_tag
-	local asset_id
-	local asset_url
+	local entry_source
+	local name_package_source
+	local repository_source
+	local release_source
+	local suffix_source
+	local file_source
+	local json_release
+	local tag_release
+	local id_asset
+	local url_asset
 
-	for source_entry in "${package_sources[@]}"
+	for entry_source in "${list_sources_package[@]}"
 	do
-		IFS='|' read -r source_package source_repository source_release source_suffix source_file <<< "${source_entry}"
+		IFS='|' read -r name_package_source repository_source release_source suffix_source file_source <<< "${entry_source}"
 
-		if [ "${source_package}" != "${package}" ]
+		if [ "${name_package_source}" != "${package}" ]
 		then
 			continue
 		fi
 
-		release_fetch "${source_repository}" "${source_release}"
+		release_fetch "${repository_source}" "${release_source}"
 
-		release_json="${release_cache[${source_repository}|${source_release}]}"
+		json_release="${list_cache_release[${repository_source}|${release_source}]}"
 
-		release_tag="$(jq -r '.tag_name // empty' <<< "${release_json}" 2> "${sink}")"
+		tag_release="$(jq -r '.tag_name // empty' <<< "${json_release}" 2> "${sink}")"
 
-		read -r asset_id asset_url < <(
-			jq -r --arg suffix "${source_suffix}" \
+		read -r id_asset url_asset < <(
+			jq -r --arg suffix "${suffix_source}" \
 				'[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"' \
-				<<< "${release_json}" 2> "${sink}"
+				<<< "${json_release}" 2> "${sink}"
 		)
 
-		if [ -z "${asset_url}" ]
+		if [ -z "${url_asset}" ]
 		then
-			frobulator.err "Release unavailable - ${package}" "[ '${source_file}'${marker_spc}${marker_hnt}${marker_spc}${source_repository} ]"
+			frobulator.err "Release unavailable - ${package}" "[ '${file_source}'${marker_spc}${marker_hnt}${marker_spc}${repository_source} ]"
 
-			package_status=1
+			status_package=1
 
 			continue
 		fi
 
-		if [ "${force}" != true ] && [ -f "${directory}/${source_file}" ] &&
-		   [ "${package_versions[${source_file}]}" = "${asset_id}" ]
+		if [ "${force}" != true ] && [ -f "${directory}/${file_source}" ] &&
+		   [ "${list_versions_package[${file_source}]}" = "${id_asset}" ]
 		then
-			frobulator.inf "Up to date - ${package}" "[ '${source_file}'${marker_spc}${marker_hnt}${marker_spc}${release_tag} ]"
+			frobulator.inf "Up to date - ${package}" "[ '${file_source}'${marker_spc}${marker_hnt}${marker_spc}${tag_release} ]"
 
 			continue
 		fi
 
-		frobulator.download "${asset_url}" "${directory}/${source_file}"
+		frobulator.download "${url_asset}" "${directory}/${file_source}"
 
 		if [ "${?}" -ne 0 ]
 		then
-			package_status=1
+			status_package=1
 
 			continue
 		fi
 
-		package_versions["${source_file}"]="${asset_id}"
+		list_versions_package["${file_source}"]="${id_asset}"
 	done
 
-	return "${package_status}"
+	return "${status_package}"
 }
 
 # update ───────────────────────────────────────────────────────────────────────

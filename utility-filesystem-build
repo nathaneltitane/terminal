@@ -69,17 +69,17 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-i|--image)
 			option="image"
-			distribution_name="${2}"
+			name_distribution="${2}"
 
 			shift
 
-			distribution_version="${2}"
+			version_distribution="${2}"
 
 			shift
 		;;
@@ -133,29 +133,29 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-distribution_architecture="arm64"
+architecture_distribution="arm64"
 
-distribution_name="debian"
+name_distribution="debian"
 
-distribution_version="12"
+version_distribution="12"
 
-distribution_codename="bookworm"
+codename_distribution="bookworm"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
-if [ -z "${distribution_name}" ]
+if [ -z "${name_distribution}" ]
 then
-	distribution_name="${distribution_name}"
+	name_distribution="${name_distribution}"
 fi
 
-if [ -z "${distribution_version}" ]
+if [ -z "${version_distribution}" ]
 then
-	distribution_version="${distribution_version}"
+	version_distribution="${version_distribution}"
 fi
 
-if [ -z "${distribution_codename}" ]
+if [ -z "${codename_distribution}" ]
 then
-	distribution_codename="${distribution_codename}"
+	codename_distribution="${codename_distribution}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -164,66 +164,66 @@ image_select () {
 
 	# list distributions
 
-	if [ -z "${distribution_name}"     ] ||
-	   [ -z "${distribution_version}"  ] ||
-	   [ -z "${distribution_codename}" ]
+	if [ -z "${name_distribution}"     ] ||
+	   [ -z "${version_distribution}"  ] ||
+	   [ -z "${codename_distribution}" ]
 	then
 		frobulator.msg "Select distribution version to generate."
 
 		# list supported distribution versions
 
-		debian_versions=(
+		list_versions_debian=(
 			debian	10	buster
 			debian	11	bullseye
 			debian	12	bookworm
 			debian	13	trixie
 		)
 
-		ubuntu_versions=(
+		list_versions_ubuntu=(
 			ubuntu	18.04	bionic
 			ubuntu	20.04	focal
 			ubuntu	22.04	jammy
 			ubuntu	24.04	noble
 		)
 
-		versions=(
-			${debian_versions[@]}
-			${ubuntu_versions[@]}
+		list_versions=(
+			${list_versions_debian[@]}
+			${list_versions_ubuntu[@]}
 		)
 
 		# set padding for uniform output
 
-		pad_length=10
+		length_pad=10
 
 		# continue list using array selection of suppported values
 
-		for (( i=0; i<${#versions[@]} ; i+=3 ))
+		for (( index_version = 0 ; index_version < ${#list_versions[@]} ; index_version += 3 ))
 		do
-			number=$(( ( ${i} / 3 ) + 1 ))
+			number_entry=$(( ( ${index_version} / 3 ) + 1 ))
 
-			name="${versions[${i}]}"
-			version="${versions[${i}+1]}"
-			codename="${versions[${i}+2]}"
+			name_entry="${list_versions[${index_version}]}"
+			version_entry="${list_versions[${index_version}+1]}"
+			codename_entry="${list_versions[${index_version}+2]}"
 
 			indent="${marker_tab}"
 
-			if [ ${#version} -le 2 ]
+			if [ ${#version_entry} -le 2 ]
 			then
 				indent+="${marker_tab}"
 			fi
 
-			if (( ${i}/3 >= 0 && ${i}/3 <= 9 ))
+			if (( ${index_version} / 3 >= 0 && ${index_version} / 3 <= 9 ))
 			then
 				# handle number spacing for entries 1-9
 
-				number=" ${number}"
+				number_entry=" ${number_entry}"
 			else
 				# handle number spacing for entries 10+
 
-				number="${number}"
+				number_entry="${number_entry}"
 			fi
 
-			echo "${marker_nul}" "[ ${number} ]" "${name}" "${version}" "${indent}" "[ ${codename} ]"
+			echo "${marker_nul}" "[ ${number_entry} ]" "${name_entry}" "${version_entry}" "${indent}" "[ ${codename_entry} ]"
 
 		done
 
@@ -231,11 +231,11 @@ image_select () {
 
 		# values #
 
-		values_list=(
+		list_values=(
 			selection
 		)
 
-		# handle user input for values_list
+		# handle user input for list_values
 
 		eval ${frobulator_return[@]}
 
@@ -243,7 +243,7 @@ image_select () {
 
 		frobulator.read selection
 
-		unset distribution_version
+		unset version_distribution
 
 		# integer check:
 		# handle numerical selection
@@ -253,43 +253,43 @@ image_select () {
 			echo
 			frobulator.err "Invalid selection:"
 
-			frobulator.wrn "Select image [ 1 - ${number} ]"
+			frobulator.wrn "Select image [ 1 - ${number_entry} ]"
 
 			frobulator.ipt "Selection:"
 
 			frobulator.read selection
 		done
 
-			i=$(( ${selection}))
-			i=$(( ( ${i} * 3  ) - 3 ))
+			index_version=$(( ${selection} ))
+			index_version=$(( ( ${index_version} * 3 ) - 3 ))
 
-			name="${versions[${i}]}"
-			version="${versions[${i}+1]}"
-			codename="${versions[${i}+2]}"
+			name_entry="${list_versions[${index_version}]}"
+			version_entry="${list_versions[${index_version}+1]}"
+			codename_entry="${list_versions[${index_version}+2]}"
 
-			number="${selection}"
+			number_entry="${selection}"
 
-			distribution_name="${name}"
-			distribution_version="${version}"
-			distribution_codename="${codename}"
+			name_distribution="${name_entry}"
+			version_distribution="${version_entry}"
+			codename_distribution="${codename_entry}"
 
 		# handle distribution code markup
 
-		if [ "${distribution_name}" = ubuntu ]
+		if [ "${name_distribution}" = ubuntu ]
 		then
-			distribution_url="http://ports.ubuntu.com/ubuntu-ports"
+			url_distribution="http://ports.ubuntu.com/ubuntu-ports"
 
 			# set IFS
 
 			IFS='.'
 
-			read code_year code_month code_revision <<< "${distribution_version}"
+			read year_release month_release revision_release <<< "${version_distribution}"
 
-			if [ -z "${code_revision}" ]
+			if [ -z "${revision_release}" ]
 			then
-				distribution_release="${distribution_version}"
+				release_distribution="${version_distribution}"
 			else
-				distribution_release="${distribution_version%.*}"
+				release_distribution="${version_distribution%.*}"
 			fi
 
 			# reset IFS
@@ -297,7 +297,7 @@ image_select () {
 			IFS=''
 		fi
 
-		frobulator.inf "User selection" "[ ${selection} // ${name} ${version} - '${codename}' ]"
+		frobulator.inf "User selection" "[ ${selection} // ${name_entry} ${version_entry} - '${codename_entry}' ]"
 
 	fi
 }
@@ -308,65 +308,65 @@ image_handle () {
 	# validate input selections
 	# set container image name and version
 
-	case "${distribution_name}"
+	case "${name_distribution}"
 	in
 		[dD][eE][bB][iI][aA][nN]| \
 		[fF][eE][dD][oO][rR][aA]| \
 		[uU][bB][uU][nN][tT][uU])
-			distribution_name="${distribution_name,,}"
+			name_distribution="${name_distribution,,}"
 
 			frobulator.scs "Supported distribution name."
 		;;
 
 		"")
-			distribution_name="debian"
+			name_distribution="debian"
 
 			frobulator.err "Empty distribution name."
 
-			frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+			frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 		;;
 
 		*)
-			distribution_name="debian"
+			name_distribution="debian"
 
 			frobulator.err "Unsupported distribution name."
 
-			frobulator.wrn "Defaulting" "[ ${distribution_name} ]"
+			frobulator.wrn "Defaulting" "[ ${name_distribution} ]"
 		;;
 
 	esac
 
-	case "${distribution_name}" in
+	case "${name_distribution}" in
 	debian)
 
-		case "${distribution_version}"
+		case "${version_distribution}"
 		in
 			10)
-				distribution_version=10
+				version_distribution=10
 			;;
 
 			11)
-				distribution_version=11
+				version_distribution=11
 			;;
 
 			12)
-				distribution_version=12
+				version_distribution=12
 			 ;;
 
 			 "")
-				distribution_version=12
+				version_distribution=12
 
 				frobulator.err "Distribution version not specified."
 
-				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 			;;
 
 			 *)
-				distribution_version=12
+				version_distribution=12
 
 				frobulator.err "Unsupported distribution version."
 
-				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 			;;
 
 		esac
@@ -374,34 +374,34 @@ image_handle () {
 
 	fedora)
 
-		case "${distribution_version}"
+		case "${version_distribution}"
 		in
 			33)
-				distribution_version=39
+				version_distribution=39
 			;;
 
 			34)
-				distribution_version=40
+				version_distribution=40
 			;;
 
 			35)
-				distribution_version=41
+				version_distribution=41
 			 ;;
 
 			 "")
-				distribution_version=41
+				version_distribution=41
 
 				frobulator.err "Distribution version not specified."
 
-				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 			;;
 
 			 *)
-				distribution_version=35
+				version_distribution=35
 
 				frobulator.err "Unsupported distribution version."
 
-				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 			;;
 
 		esac
@@ -409,46 +409,46 @@ image_handle () {
 
 	ubuntu)
 
-		case "${distribution_version}"
+		case "${version_distribution}"
 		in
 			18*04|18*04*)
-				distribution_version="18.04"
+				version_distribution="18.04"
 
-				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
 			;;
 
 			20*04|20*04*)
-				distribution_version="20.04"
+				version_distribution="20.04"
 
-				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
 			;;
 
 			22*04|22*04*)
-				distribution_version="22.04"
+				version_distribution="22.04"
 
-				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
 			;;
 
 			24*04|24*04*)
-				distribution_version="24.04"
+				version_distribution="24.04"
 
-				frobulator.scs "Supported distribution version" "[ ${distribution_version} ]"
+				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
 			;;
 
 			"")
-				distribution_version="${distribution_version}"
+				version_distribution="${version_distribution}"
 
 				frobulator.err "Distribution version not specified."
 
-				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 			;;
 
 			 *)
-				distribution_version="${distribution_version}"
+				version_distribution="${version_distribution}"
 
 				frobulator.err "Unsupported distribution version."
 
-				frobulator.wrn "Defaulting" "[ ${distribution_version} ]"
+				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
 			;;
 
 		esac
@@ -465,14 +465,14 @@ image_build () {
 
 	variant="minbase"
 
-	parameters="${distribution_codename} ${build_directory} ${distribution_url}"
+	parameters="${codename_distribution} ${directory_build} ${url_distribution}"
 
 	unset command_image_build
 
 	command_image_build="
 		debootstrap									\
 			--foreign								\
-			--arch="${distribution_architecture}"	\
+			--arch="${architecture_distribution}"	\
 			--variant="${variant}"					\
 													"${parameters}"
 	"
@@ -484,9 +484,9 @@ image_build () {
 image_archive () {
 
 	extension="tar.xz"
-	archive="${distribution_name}"-"${distribution_version}"."${extension}"
+	archive="${name_distribution}"-"${version_distribution}"."${extension}"
 
-	cd "${build_directory}"
+	cd "${directory_build}"
 
 	unset command_image_archive
 
@@ -500,7 +500,7 @@ image_archive () {
 
 	frobulator.log ${command_image_archive}
 
-	cp "${build_directory}"/"${archive}" "${HOME}"/"${archive}"
+	cp "${directory_build}"/"${archive}" "${HOME}"/"${archive}"
 
 }
 
@@ -526,21 +526,21 @@ list=()
 
 if [ "${option}" = "selection" ]
 then
-	unset distribution_name
-	unset distribution_version
-	unset distribution_codename
-	unset distribution_url
+	unset name_distribution
+	unset version_distribution
+	unset codename_distribution
+	unset url_distribution
 
 	# select image version
 
 	image_select
 fi
 
-frobulator.temporary build_directory
+frobulator.temporary directory_build
 
-build_directory=${frobulator_return[@]}
+directory_build=${frobulator_return[@]}
 
-frobulator.trap "${build_directory}"
+frobulator.trap "${directory_build}"
 
 image_build &
 

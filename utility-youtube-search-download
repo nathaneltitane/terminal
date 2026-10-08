@@ -73,11 +73,11 @@ duration_minimum=120
 
 duration_maximum=780
 
-search_count=1
+count_search=1
 
-sleep_minimum=1
+duration_sleep_minimum=1
 
-sleep_maximum=5
+duration_sleep_maximum=5
 
 solver="deno"
 
@@ -87,13 +87,13 @@ extension_track="mp3"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-d|--directory)
 			option="directory"
-			download_directory="${2}"
+			directory_download="${2}"
 
 			shift
 		;;
@@ -107,7 +107,7 @@ do
 
 		-f|--file)
 			option="file"
-			input_file="${2}"
+			file_input="${2}"
 
 			shift
 		;;
@@ -172,16 +172,16 @@ then
 	exit 1
 fi
 
-if [ -z "${download_directory}" ]
+if [ -z "${directory_download}" ]
 then
 	frobulator.wrn "No download directory specified"
 
 	frobulator.inf "Defaulting" "[ ${HOME}/tracks ]"
 
-	download_directory="${HOME}"/tracks
+	directory_download="${HOME}"/tracks
 
 else
-	download_directory="${download_directory}"
+	directory_download="${directory_download}"
 fi
 
 if [ "${option}" = "input" ] &&
@@ -195,7 +195,7 @@ then
 fi
 
 if [ "${option}" = "file" ] &&
-   [ -z "${input_file}"   ]
+   [ -z "${file_input}"   ]
 then
 	frobulator.err 'No input file specified'
 
@@ -203,9 +203,9 @@ then
 fi
 
 if [ "${option}" = 'file' ] &&
-   [ ! -f "${input_file}" ]
+   [ ! -f "${file_input}" ]
 then
-	frobulator.err "No input file found" "[ ${input_file} ]"
+	frobulator.err "No input file found" "[ ${file_input} ]"
 
 	exit 1
 fi
@@ -259,7 +259,7 @@ normalize () {
 
 sleep_randomize () {
 
-	duration_sleep=$(( RANDOM % ( sleep_maximum - sleep_minimum + 1 ) + sleep_minimum ))
+	duration_sleep=$(( RANDOM % ( duration_sleep_maximum - duration_sleep_minimum + 1 ) + duration_sleep_minimum ))
 
 	frobulator.inf "Seeping" "[ ${duration_sleep} second(s) ]"
 
@@ -280,7 +280,7 @@ youtube_search () {
 		--sleep-requests "${duration_sleep}"	\
 		--flat-playlist							\
 		--dump-json								\
-												"ytsearch${search_count}:${track}" 2>"${sink}"
+												"ytsearch${count_search}:${track}" 2>"${sink}"
 }
 
 youtube_download () {
@@ -290,9 +290,9 @@ youtube_download () {
 	local title="${3}"
 	local filename="${4}"
 
-	audio_quality="0"
+	quality_audio="0"
 
-	audio_format='bestaudio/best'
+	format_audio='bestaudio/best'
 
 	sleep_randomize
 
@@ -305,13 +305,13 @@ youtube_download () {
 		--sleep-requests "${duration_sleep}"					\
 		--extract-audio											\
 		--audio-format "${extension_track}"						\
-		--audio-quality "${audio_quality}"						\
-		--format "${audio_format}"								\
+		--audio-quality "${quality_audio}"						\
+		--format "${format_audio}"								\
 		--embed-metadata										\
 		--no-playlist											\
 		--replace-in-metadata title '^.*$' "${title}"			\
 		--replace-in-metadata artist '^.*$' "${artist}"			\
-		--output "${download_directory}/${filename}.%(ext)s"	\
+		--output "${directory_download}/${filename}.%(ext)s"	\
 																"${url}"
 }
 
@@ -360,33 +360,33 @@ frobulator.inf "Browser identification" "[ ${browser} ]"
 
 # download directory
 
-frobulator.directory "${download_directory}"
+frobulator.directory "${directory_download}"
 
 # tracks list
 
-tracks_input=()
+list_tracks_input=()
 
 if [ -n "${input_user}" ]
 then
-	tracks_input+=("${input_user}")
+	list_tracks_input+=("${input_user}")
 fi
 
-if [ -n "${input_file}" ]
+if [ -n "${file_input}" ]
 then
 	while IFS= read -r track
 	do
-		tracks_input+=("${track}")
+		list_tracks_input+=("${track}")
 
-	done < "${input_file}"
+	done < "${file_input}"
 
 	unset IFS
 fi
 
 # downloads - pending
 
-tracks_pending=()
+list_tracks_pending=()
 
-if [[ -d "${download_directory}" ]]
+if [[ -d "${directory_download}" ]]
 then
 
 	frobulator.inf "Download directory present"
@@ -397,14 +397,14 @@ then
 
 	# downloads - existing
 
-	tracks_existing_files=()
+	list_files_tracks_existing=()
 
-	while IFS= read -r track_existing_file
+	while IFS= read -r file_track_existing
 	do
-		tracks_existing_files+=( "${track_existing_file}" )
+		list_files_tracks_existing+=( "${file_track_existing}" )
 
 	done < <(
-		find "${download_directory}"		\
+		find "${directory_download}"		\
 			-type f							\
 			-iname "*.${extension_track}"	\
 			-printf '%f\n'
@@ -412,19 +412,19 @@ then
 
 	unset IFS
 
-	tracks_existing=()
+	list_tracks_existing=()
 
-	for track_existing in "${tracks_existing_files[@]}"
+	for track_existing in "${list_files_tracks_existing[@]}"
 	do
 		track_existing=${track_existing%."${extension_track}"}
 
 		track_existing=$(normalize "${track_existing}")
 
-		tracks_existing+=("${track_existing}")
+		list_tracks_existing+=("${track_existing}")
 
 	done
 
-	for track in "${tracks_input[@]}"
+	for track in "${list_tracks_input[@]}"
 	do
 		# skip empty lines
 
@@ -442,7 +442,7 @@ then
 
 		# normalize filename for comparisons
 
-		filename_normalized=$(normalize "${track}")
+		name_file_normalized=$(normalize "${track}")
 
 		# preserve original filename for output
 
@@ -452,9 +452,9 @@ then
 
 		# compare against existing downloads
 
-		for track_existing in "${tracks_existing[@]}"
+		for track_existing in "${list_tracks_existing[@]}"
 		do
-			if [ "${track_existing}" = "${filename_normalized}" ]
+			if [ "${track_existing}" = "${name_file_normalized}" ]
 			then
 				found='true'
 
@@ -468,7 +468,7 @@ then
 		then
 			frobulator.ret "Adding ${track}"
 
-			tracks_pending+=("${track}")
+			list_tracks_pending+=("${track}")
 		else
 			frobulator.rel "Skipping ${track}"
 		fi
@@ -478,17 +478,17 @@ fi
 
 # summary ──────────────────────────────────────────────────────────────────────
 
-frobulator.inf "Tracks pending" "[ ${#tracks_pending[@]} ]"
+frobulator.inf "Tracks pending" "[ ${#list_tracks_pending[@]} ]"
 
 # download
 
-if [ "${#tracks_pending[@]}" -gt 0 ]
+if [ "${#list_tracks_pending[@]}" -gt 0 ]
 then
 	count=0
 
-	search_file=$(mktemp)
+	file_search=$(mktemp)
 
-	for track in "${tracks_pending[@]}"
+	for track in "${list_tracks_pending[@]}"
 	do
 		frobulator.fwd "Searching${marker_elp}" "[ ${track} ]"
 
@@ -502,7 +502,7 @@ then
 
 		# normalize filename for comparisons
 
-		filename_normalized=$(normalize "${track}")
+		name_file_normalized=$(normalize "${track}")
 
 		# preserve original filename for output
 
@@ -512,9 +512,9 @@ then
 
 		# retrieve candidates
 
-		youtube_search "${track}" > "${search_file}"
+		youtube_search "${track}" > "${file_search}"
 
-		results=$(cat "${search_file}")
+		results=$(cat "${file_search}")
 
 		# select first reasonable duration
 
@@ -568,17 +568,17 @@ then
 
 		echo
 
-		frobulator.scs "${download_directory}/${filename}.${extension_track}"
+		frobulator.scs "${directory_download}/${filename}.${extension_track}"
 
 		# increment file count
 
-		count=$((count + 1))
+		count=$(( count + 1 ))
 
 	done
 
 	unset IFS
 
-	frobulator.delete "${search_file}"
+	frobulator.delete "${file_search}"
 
-	frobulator.scs "${count} downloads saved" "[ ${download_directory} ]"
+	frobulator.scs "${count} downloads saved" "[ ${directory_download} ]"
 fi

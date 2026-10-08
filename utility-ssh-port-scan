@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -158,48 +158,48 @@ ssh_scan () {
 	do
 		# ip used for networking
 
-		ip_network="${octet_01}.${octet_02}.${octet_03}.${octet_host}"
+		address_host="${octet_01}.${octet_02}.${octet_03}.${octet_host}"
 
 		# ip used for informational display
 
-		ip_display=$(printf "%03d.%03d.%03d.%03d" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
+		address_display=$(printf "%03d.%03d.%03d.%03d" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
 
-		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${ip_network}/22" 2> "${sink}"
+		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${address_host}/22" 2> "${sink}"
 
 		if [ $? -eq 0 ]
 		then
-			echo "port:${ip_display}" >> "${results_file}"
+			echo "port:${address_display}" >> "${file_results}"
 
 			# secure shell
 
-			ssh_output=$(
+			output_ssh=$(
 				ssh								\
 					-oBatchMode=yes				\
 					-oStrictHostKeyChecking=no	\
 					-oConnectTimeout="${seconds}"\
 					-oUserKnownHostsFile="${sink}"\
-													"${ip_network}" exit 2>&1
+													"${address_host}" exit 2>&1
 			)
 
-			if echo "${ssh_output}" | grep -q -i -e "permission denied" -e "welcome" -e "last login"
+			if echo "${output_ssh}" | grep -q -i -e "permission denied" -e "welcome" -e "last login"
 			then
-				echo "ssh:${ip_display}" >> "${results_file}"
+				echo "ssh:${address_display}" >> "${file_results}"
 			fi
 
 			# secure file transfer
 
-			sftp_output=$(
+			output_sftp=$(
 				sftp								\
 					-oBatchMode=yes					\
 					-oStrictHostKeyChecking=no		\
 					-oConnectTimeout="${seconds}"	\
 					-oUserKnownHostsFile="${sink}"	\
-													"${ip_network}" 2>&1
+													"${address_host}" 2>&1
 			)
 
-			if echo "${sftp_output}" | grep -q -i -e "sftp>" -e "permission denied"
+			if echo "${output_sftp}" | grep -q -i -e "sftp>" -e "permission denied"
 			then
-				echo "sftp:${ip_display}" >> "${results_file}"
+				echo "sftp:${address_display}" >> "${file_results}"
 			fi
 
 		fi
@@ -346,7 +346,7 @@ then
 	exit 1
 fi
 
-results_file="$(mktemp)"
+file_results="$(mktemp)"
 
 ssh_scan "${lan}" &
 
@@ -369,8 +369,8 @@ do
 		list_sftp_open+=("${address}")
 	fi
 
-done < "${results_file}"
+done < "${file_results}"
 
-rm -f "${results_file}"
+rm -f "${file_results}"
 
 ssh_results
