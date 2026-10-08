@@ -203,31 +203,31 @@ cat << 'MAIN' > /usr/bin/write-conky
 
 # user running the script
 
-user_name="$(id -u -n)"
+name_user="$(id -u -n)"
 
-if [ "${user_name}" = "root" ]
+if [ "${name_user}" = "root" ]
 then
-	home=/home/"${SUDO_USER:-$USER}"
+	directory_home=/home/"${SUDO_USER:-$USER}"
 else
-	home=/home/"${USER}"
+	directory_home=/home/"${USER}"
 fi
 
-unavailable="[ × ]"
+text_unavailable="[ × ]"
 
 sed -i -e '/^TEXT$/q' "${HOME}"/.config/conky/conkyrc
 sed -i -e '$G' "${HOME}"/.config/conky/conkyrc
 
-kernel=$(uname -s)
-machine=$(uname -m)
-node=$(uname -n)
-processor=$(uname -p)
+name_kernel=$(uname -s)
+name_machine=$(uname -m)
+name_host=$(uname -n)
+name_processor=$(uname -p)
 
-os_name=$(cat /etc/os-release | awk -F '=' '{if (NR==1) print $2}')
-os_number=$(cat /etc/os-release | awk -F '=' '{if (NR==4) print $2}')
+name_os=$(cat /etc/os-release | awk -F '=' '{if (NR==1) print $2}')
+version_os=$(cat /etc/os-release | awk -F '=' '{if (NR==4) print $2}')
 
 cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-SYSTEM\${alignr}[ $kernel ][ $node ]
-OS\${alignr}[ $os_name $os_number ][ $machine ]
+SYSTEM\${alignr}[ $name_kernel ][ $name_host ]
+OS\${alignr}[ $name_os $version_os ][ $name_machine ]
 \${voffset -2}\${hr 1}
 UPTIME\${alignr}[ D ][ H ][ M ][ S ]
 \${voffset -2}\${hr 1}
@@ -235,13 +235,13 @@ TIME\${alignr}\${uptime}
 \${voffset -2}\${hr 1}
 FILE
 
-for supply in /sys/class/power_supply/BAT[0-9]*
+for path_supply in /sys/class/power_supply/BAT[0-9]*
 do
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-	\${if_existing $supply/present 1}\\
+	\${if_existing $path_supply/present 1}\\
 	BATTERY\${alignr}[ TECH ][ STATUS ][ % ]
 	\${voffset -2}\${hr 1}
-	[ \${exec cat $supply/technology} ][ \${exec cat $supply/status} ]\${alignr}\${battery_percent}
+	[ \${exec cat $path_supply/technology} ][ \${exec cat $path_supply/status} ]\${alignr}\${battery_percent}
 	\${battery_bar 2}\\
 	\${else}\\
 	\${voffset -2}\${hr 1}\${endif}
@@ -253,32 +253,32 @@ CPU\${alignr}[ CORE ][ FREQ ][ MODE ][ % ]
 \${voffset -2}\${hr 1}
 FILE
 
-cpu_count=$(grep -c processor /proc/cpuinfo)
+count_cpu=$(grep -c processor /proc/cpuinfo)
 
-for ((n=0; n<$cpu_count; n++))
+for (( index_core = 0 ; index_core < count_cpu ; index_core ++ ))
 do
-	let "z = $n +1"
+	number_core=$(( index_core + 1 ))
 
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-	CORE $n \${freq_g $z} \\
-	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor powersave}◼◼◻◻◻◻◻◻◻◻\${endif}\\
-	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor conservative}◼◼◼◼◻◻◻◻◻◻\${endif}\\
-	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor ondemand}◼◼◼◼◼◼◻◻◻◻\${endif}\\
-	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor performance}◼◼◼◼◼◼◼◼◻◻\${endif}\\
-	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor userspace}◻◻◻◻◻◻◻◻◼◼\${endif}\\
-	\${if_existing /sys/devices/system/cpu/cpu$n/cpufreq/scaling_governor ""}$unavailable\${endif}\\
-	\${alignr} \${cpu cpu$z}
-	\${cpubar cpu$z 2}
-	\${cpugraph cpu$z 10}
+	CORE $index_core \${freq_g $number_core} \\
+	\${if_existing /sys/devices/system/cpu/cpu$index_core/cpufreq/scaling_governor powersave}◼◼◻◻◻◻◻◻◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$index_core/cpufreq/scaling_governor conservative}◼◼◼◼◻◻◻◻◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$index_core/cpufreq/scaling_governor ondemand}◼◼◼◼◼◼◻◻◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$index_core/cpufreq/scaling_governor performance}◼◼◼◼◼◼◼◼◻◻\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$index_core/cpufreq/scaling_governor userspace}◻◻◻◻◻◻◻◻◼◼\${endif}\\
+	\${if_existing /sys/devices/system/cpu/cpu$index_core/cpufreq/scaling_governor ""}$text_unavailable\${endif}\\
+	\${alignr} \${cpu cpu$number_core}
+	\${cpubar cpu$number_core 2}
+	\${cpugraph cpu$number_core 10}
 	FILE
 done
 
-memory_available="free -h | awk 'NR==2{print \$7}'"
-memory_cache="free -h | awk 'NR==2{print \$6}'"
-memory_shared="free -h | awk 'NR==2{print \$5}'"
-memory_free="free -h | awk 'NR==2{print \$4}'"
-memory_used="free -h | awk 'NR==2{print \$3}'"
-memory_total="free -h | awk 'NR==2{print \$2}'"
+command_memory_available="free -h | awk 'NR==2{print \$7}'"
+command_memory_cache="free -h | awk 'NR==2{print \$6}'"
+command_memory_shared="free -h | awk 'NR==2{print \$5}'"
+command_memory_free="free -h | awk 'NR==2{print \$4}'"
+command_memory_used="free -h | awk 'NR==2{print \$3}'"
+command_memory_total="free -h | awk 'NR==2{print \$2}'"
 
 cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 MEMORY\${alignr}[ % ]
@@ -287,22 +287,22 @@ CAPACITY\${alignr}\${memperc}
 \${membar 2}
 USAGE\${alignr}[ M ][ G ]
 \${voffset -2}\${hr 1}
-[ Used ][ Free ]\${goto 125}\${exec $memory_used}\${alignr}\${exec $memory_free}
-[ Shared ][ Cache ]\${goto 125}\${exec $memory_shared}\${alignr}\${exec $memory_cache}
-[ Available ][ Total ]\${goto 125}\${exec $memory_available}\${alignr}\${exec $memory_total}
+[ Used ][ Free ]\${goto 125}\${exec $command_memory_used}\${alignr}\${exec $command_memory_free}
+[ Shared ][ Cache ]\${goto 125}\${exec $command_memory_shared}\${alignr}\${exec $command_memory_cache}
+[ Available ][ Total ]\${goto 125}\${exec $command_memory_available}\${alignr}\${exec $command_memory_total}
 \${voffset -2}\${hr 1}
 PROCESS\${alignr}[ CPU ][RAM ][ % ]
 \${voffset -2}\${hr 1}
 FILE
 
-for ((n=1;n<=4;n++))
+for (( index_process = 1 ; index_process <= 4 ; index_process ++ ))
 do
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-	\${top name $n}\${goto 120}\${top cpu $n}\${alignr}\${top mem $n}
+	\${top name $index_process}\${goto 120}\${top cpu $index_process}\${alignr}\${top mem $index_process}
 	FILE
 done
 
-if file=(/sys/class/hwmon/hwmon[0-9]*/temp*) && [[ -e "$file" ]]
+if list_files_sensor=(/sys/class/hwmon/hwmon[0-9]*/temp*) && [[ -e "$list_files_sensor" ]]
 then
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${voffset -2}\${hr 1}
@@ -310,50 +310,50 @@ then
 	\${voffset -2}\${hr 1}
 	FILE
 
-	for path in /sys/class/hwmon/hwmon[0-9]*/*_input
+	for path_input in /sys/class/hwmon/hwmon[0-9]*/*_input
 	do
-		IFS='/' read -r _ _ _ _ node probe <<< "$path"
+		IFS='/' read -r _ _ _ _ name_hwmon name_probe <<< "$path_input"
 
-		if [[ "$path" = *fan* ]]
+		if [[ "$path_input" = *fan* ]]
 		then
 			continue
 		fi
 
-		node_path="${path%/*}"
-		probe_path="$path"
-		probe="${path##*/}"
+		path_hwmon="${path_input%/*}"
+		path_probe="$path_input"
+		name_probe="${path_input##*/}"
 
-		if [[ -e ${path%_input}_label ]]
+		if [[ -e ${path_input%_input}_label ]]
 		then
-			label_path="${path%_input}_label"
+			path_label="${path_input%_input}_label"
 		else
-			label_path="$node_path"/name
+			path_label="$path_hwmon"/name
 		fi
 
-		if [[ -e ${path%_input}_max ]]
+		if [[ -e ${path_input%_input}_max ]]
 		then
-			max_path="${path%_input}_max"
-		elif [[ -e ${path%_input}_crit ]]
+			path_max="${path_input%_input}_max"
+		elif [[ -e ${path_input%_input}_crit ]]
 		then
-			max_path="${path%_input}_crit"
+			path_max="${path_input%_input}_crit"
 		else
-			max_path="$unavailable"
+			path_max="$text_unavailable"
 		fi
 
-		label="${label_path##*/}"
-		max="${max_path##*/}"
+		name_label="${path_label##*/}"
+		name_max="${path_max##*/}"
 
-		node_name=$(echo "$node" | sed 's/.$/ &/')
-		probe_name=$(echo "$probe" | sed 's/_.*//' | sed 's/.$/ &/')
+		name_hwmon_display=$(echo "$name_hwmon" | sed 's/.$/ &/')
+		name_probe_display=$(echo "$name_probe" | sed 's/_.*//' | sed 's/.$/ &/')
 
 		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-		\${if_existing ${node_path}}\\
-		\${if_existing $probe_path}\${exec cat $label_path | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${goto 140}\${$node_name $probe_name}\${alignr}\${if_existing $max_path}\${exec cat $max_path | sed 's/...$//'}\${else}$unavailable\${endif}\${endif}
+		\${if_existing ${path_hwmon}}\\
+		\${if_existing $path_probe}\${exec cat $path_label | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${goto 140}\${$name_hwmon_display $name_probe_display}\${alignr}\${if_existing $path_max}\${exec cat $path_max | sed 's/...$//'}\${else}$text_unavailable\${endif}\${endif}
 		FILE
 	done
 fi
 
-if file=(/sys/class/hwmon/hwmon[0-9]*/fan*) && [[ -e "$file" ]]
+if list_files_sensor=(/sys/class/hwmon/hwmon[0-9]*/fan*) && [[ -e "$list_files_sensor" ]]
 then
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${voffset -2}\${hr 1}
@@ -361,34 +361,34 @@ then
 	\${voffset -2}\${hr 1}
 	FILE
 
-	for path in /sys/class/hwmon/hwmon[0-9]*/*_input
+	for path_input in /sys/class/hwmon/hwmon[0-9]*/*_input
 	do
-		IFS='/' read -r _ _ _ _ node probe <<< "$path"
+		IFS='/' read -r _ _ _ _ name_hwmon name_probe <<< "$path_input"
 
-		if [[ "$path" = *temp* ]]
+		if [[ "$path_input" = *temp* ]]
 		then
 			continue
 		fi
 
-		node_path="${path%/*}"
-		probe_path="$path"
-		probe="${path##*/}"
+		path_hwmon="${path_input%/*}"
+		path_probe="$path_input"
+		name_probe="${path_input##*/}"
 
-		if [[ -e ${path%_input}_label ]]
+		if [[ -e ${path_input%_input}_label ]]
 		then
-			label_path="${path%_input}_label"
+			path_label="${path_input%_input}_label"
 		else
-			label_path="$node_path"/name
+			path_label="$path_hwmon"/name
 		fi
 
-		label="${label_path##*/}"
+		name_label="${path_label##*/}"
 
-		node_name=$(echo "$node" | sed 's/.$/ &/')
-		probe_name=$(echo "$probe" | sed 's/_.*//' | sed 's/.$/ &/')
+		name_hwmon_display=$(echo "$name_hwmon" | sed 's/.$/ &/')
+		name_probe_display=$(echo "$name_probe" | sed 's/_.*//' | sed 's/.$/ &/')
 
 		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-		\${if_existing ${node_path}}\\
-		\${if_existing $probe_path}\${exec cat $label_path | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${alignr}\${$node_name $probe_name}\${alignr}\${else}$unavailable\${endif}
+		\${if_existing ${path_hwmon}}\\
+		\${if_existing $path_probe}\${exec cat $path_label | sed 's/[^_-]*/\U&/g;s/_/ /g'}\${else}\${endif}\${alignr}\${$name_hwmon_display $name_probe_display}\${alignr}\${else}$text_unavailable\${endif}
 		FILE
 	done
 fi
@@ -399,94 +399,94 @@ DRIVES\${alignr}[ USED ][ TOTAL ][ G ]
 \${voffset -2}\${hr 1}
 FILE
 
-for device in /dev/sd[a-z][1-9]*
+for path_device in /dev/sd[a-z][1-9]*
 do
-	block=$(df -H "$device" | awk 'END{print $1}')
-	free="df -H "$device" | awk 'END{print \$4}'"
-	label=$(blkid -s LABEL -o value "$device")
-	mount=$(df -H "$device" | awk 'END{print $6}')
-	percent="df -H "$device" | awk 'END{print \$5}'"
-	size="df -H "$device" | awk 'END{print \$2}'"
-	type=$(blkid -s TYPE -o value "$device")
-	used="df -H "$device" | awk 'END{print \$3}'"
+	name_block=$(df -H "$path_device" | awk 'END{print $1}')
+	command_free="df -H "$path_device" | awk 'END{print \$4}'"
+	label_device=$(blkid -s LABEL -o value "$path_device")
+	path_mount=$(df -H "$path_device" | awk 'END{print $6}')
+	command_percent="df -H "$path_device" | awk 'END{print \$5}'"
+	command_size="df -H "$path_device" | awk 'END{print \$2}'"
+	type_filesystem=$(blkid -s TYPE -o value "$path_device")
+	command_used="df -H "$path_device" | awk 'END{print \$3}'"
 
-	if [[ "$block" = "devtmpfs" ]] || [[ "$block" = "udev" ]] || [[ "$type" = "vfat" ]]
+	if [[ "$name_block" = "devtmpfs" ]] || [[ "$name_block" = "udev" ]] || [[ "$type_filesystem" = "vfat" ]]
 	then
 		: # pass
 	else
 		cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
-		\${if_mounted $mount}\\
-		[ $block ] $label\${goto 135}\${exec $used}\${alignr}\${exec $size}
-		\${fs_bar 2 $mount}\${endif}
+		\${if_mounted $path_mount}\\
+		[ $name_block ] $label_device\${goto 135}\${exec $command_used}\${alignr}\${exec $command_size}
+		\${fs_bar 2 $path_mount}\${endif}
 		FILE
 	fi
 done
 
-wlan=$(netstat -in | awk '/^w[l][ap][0-9]/{print $1}') # Main
-elan=$(netstat -in | awk '/^e/{print $1}') # Secondary
-vlan=$(netstat -in | awk '/^v[i][r][b][r][0-9]/{print $1}') # Fallback
-loop=$(netstat -in | awk '/^lo/{print $1}') # Local
+interface_wireless=$(netstat -in | awk '/^w[l][ap][0-9]/{print $1}') # Main
+interface_ethernet=$(netstat -in | awk '/^e/{print $1}') # Secondary
+interface_virtual=$(netstat -in | awk '/^v[i][r][b][r][0-9]/{print $1}') # Fallback
+interface_loopback=$(netstat -in | awk '/^lo/{print $1}') # Local
 
-url="https://api.ipify.org"
+url_address_external="https://api.ipify.org"
 
-if [[ ! -z "$vlan" ]]
+if [[ ! -z "$interface_virtual" ]]
 then
-	vlan="$vlan"
+	interface_virtual="$interface_virtual"
 else
-	vlan="$loop"
+	interface_virtual="$interface_loopback"
 fi
 
-if [[ ! -z "$wlan" ]]
+if [[ ! -z "$interface_wireless" ]]
 then
-	wlan="$wlan"
+	interface_wireless="$interface_wireless"
 else
-	wlan="$vlan"
+	interface_wireless="$interface_virtual"
 fi
 
-if [[ ! -z "$elan" ]]
+if [[ ! -z "$interface_ethernet" ]]
 then
-	elan="$elan"
+	interface_ethernet="$interface_ethernet"
 else
-	elan="$vlan"
+	interface_ethernet="$interface_virtual"
 fi
 
 cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 NETWORK\${alignr}[ IP ][ IFACE ]\\
-\${if_up $wlan}\\
-\${alignr}[ $wlan ]\${endif}\\
-\${if_up $elan}\\
-\${alignr}[ $elan ]\${endif}
+\${if_up $interface_wireless}\\
+\${alignr}[ $interface_wireless ]\${endif}\\
+\${if_up $interface_ethernet}\\
+\${alignr}[ $interface_ethernet ]\${endif}
 \${voffset -2}\${hr 1}
-\${if_up $wlan}\\
-Gateway    \${alignr}\${gw_ip} [ $wlan ]\${endif}\\
-\${if_up $elan}\\
-Gateway    \${alignr}\${gw_ip} [ $elan ]\${endif}
-\${if_up $wlan}\\
-External    \${alignr}\${exec curl $url} [ $wlan ]\${endif}\${if_up $elan}
-External    \${alignr}\${exec curl $url} [ $elan ]\${endif}
-\${if_up $wlan}\\
-Local    \${alignr}\${addr $wlan} [ $wlan ]\${endif}\${if_up $elan}
-Local    \${alignr}\${addr $elan} [ $elan ]\${endif}
-\${if_up $wlan}\\
+\${if_up $interface_wireless}\\
+Gateway    \${alignr}\${gw_ip} [ $interface_wireless ]\${endif}\\
+\${if_up $interface_ethernet}\\
+Gateway    \${alignr}\${gw_ip} [ $interface_ethernet ]\${endif}
+\${if_up $interface_wireless}\\
+External    \${alignr}\${exec curl $url_address_external} [ $interface_wireless ]\${endif}\${if_up $interface_ethernet}
+External    \${alignr}\${exec curl $url_address_external} [ $interface_ethernet ]\${endif}
+\${if_up $interface_wireless}\\
+Local    \${alignr}\${addr $interface_wireless} [ $interface_wireless ]\${endif}\${if_up $interface_ethernet}
+Local    \${alignr}\${addr $interface_ethernet} [ $interface_ethernet ]\${endif}
+\${if_up $interface_wireless}\\
 \${voffset -2}\${hr 1}
 LINK\${alignr}[ % ]
 \${voffset -2}\${hr 1}
-Signal\${alignr}\${wireless_link_qual_perc $wlan}
-\${wireless_link_bar 2 $wlan}\\
+Signal\${alignr}\${wireless_link_qual_perc $interface_wireless}
+\${wireless_link_bar 2 $interface_wireless}\\
 \${else}\\
 \${voffset -2}\${hr 1}\${endif}
 THROUGHPUT\${alignr}[ M ][ G ][ kbps ]
 \${voffset -2}\${hr 1}
-\${if_up $wlan}\\
-[ ▼ ] \${totaldown $wlan}\${alignr}\${downspeedf $wlan}
-\${voffset 4}\${downspeedgraph $wlan 10}
-[ ▲ ] \${totalup $wlan}\${alignr}\${upspeedf $wlan}
-\${voffset 4}\${upspeedgraph $wlan 10}\${endif}
-\${if_up $elan}\\
-[ ▼ ] \${totaldown $elan}\${alignr}\${downspeedf $elan}
-\${voffset 4}\${downspeedgraph $elan 10}
-[ ▲ ] \${totalup $elan}\${alignr}\${upspeedf $elan}
-\${voffset 4}\${upspeedgraph $elan 10}\${endif}
+\${if_up $interface_wireless}\\
+[ ▼ ] \${totaldown $interface_wireless}\${alignr}\${downspeedf $interface_wireless}
+\${voffset 4}\${downspeedgraph $interface_wireless 10}
+[ ▲ ] \${totalup $interface_wireless}\${alignr}\${upspeedf $interface_wireless}
+\${voffset 4}\${upspeedgraph $interface_wireless 10}\${endif}
+\${if_up $interface_ethernet}\\
+[ ▼ ] \${totaldown $interface_ethernet}\${alignr}\${downspeedf $interface_ethernet}
+\${voffset 4}\${downspeedgraph $interface_ethernet 10}
+[ ▲ ] \${totalup $interface_ethernet}\${alignr}\${upspeedf $interface_ethernet}
+\${voffset 4}\${upspeedgraph $interface_ethernet 10}\${endif}
 FILE
 MAIN
 
