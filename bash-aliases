@@ -28,7 +28,7 @@ then
 
 	directory_install="${HOME}"/.local/bin
 
-	while (($#))
+	while (( $# ))
 	do
 		case "${1}"
 		in
@@ -250,25 +250,25 @@ then
 
 	if [ -n "${command_sudo}" ]
 	then
-		apt_get_prefix="sudo "
+		prefix_apt_get="sudo "
 	else
-		apt_get_prefix=""
+		prefix_apt_get=""
 	fi
 
-	alias 'autoclean'="${apt_get_prefix}apt-get autoclean"
-	alias 'autoremove'="${apt_get_prefix}apt-get autoremove"
-	alias 'check'="${apt_get_prefix}apt-get check"
-	alias 'clean'="${apt_get_prefix}apt-get clean"
-	alias 'distribution-upgrade'="${apt_get_prefix}apt-get dist-upgrade"
-	alias 'download'="${apt_get_prefix}apt-get download"
-	alias 'install'="${apt_get_prefix}apt-get install --no-install-recommends --no-upgrade"
-	alias 'purge'="${apt_get_prefix}apt-get purge"
-	alias 'reinstall'="${apt_get_prefix}apt-get reinstall"
-	alias 'repair'="${apt_get_prefix}apt-get -f install"
-	alias 'remove'="${apt_get_prefix}apt-get remove"
+	alias 'autoclean'="${prefix_apt_get}apt-get autoclean"
+	alias 'autoremove'="${prefix_apt_get}apt-get autoremove"
+	alias 'check'="${prefix_apt_get}apt-get check"
+	alias 'clean'="${prefix_apt_get}apt-get clean"
+	alias 'distribution-upgrade'="${prefix_apt_get}apt-get dist-upgrade"
+	alias 'download'="${prefix_apt_get}apt-get download"
+	alias 'install'="${prefix_apt_get}apt-get install --no-install-recommends --no-upgrade"
+	alias 'purge'="${prefix_apt_get}apt-get purge"
+	alias 'reinstall'="${prefix_apt_get}apt-get reinstall"
+	alias 'repair'="${prefix_apt_get}apt-get -f install"
+	alias 'remove'="${prefix_apt_get}apt-get remove"
 	alias 'retrieve'="apt-get source"
-	alias 'update'="${apt_get_prefix}apt-get update"
-	alias 'upgrade'="${apt_get_prefix}apt-get dist-upgrade"
+	alias 'update'="${prefix_apt_get}apt-get update"
+	alias 'upgrade'="${prefix_apt_get}apt-get dist-upgrade"
 fi
 
 unset command_apt_get
@@ -285,15 +285,15 @@ then
 
 	if [ -n "${command_sudo}" ]
 	then
-		apt_cache_prefix="sudo "
+		prefix_apt_cache="sudo "
 	else
-		apt_cache_prefix=""
+		prefix_apt_cache=""
 	fi
 
-	alias 'depend'="${apt_cache_prefix}apt-cache depends"
-	alias 'reverse'="${apt_cache_prefix}apt-cache rdepends"
-	alias 'search'="${apt_cache_prefix}apt-cache search"
-	alias 'status'="${apt_cache_prefix}apt-cache stats"
+	alias 'depend'="${prefix_apt_cache}apt-cache depends"
+	alias 'reverse'="${prefix_apt_cache}apt-cache rdepends"
+	alias 'search'="${prefix_apt_cache}apt-cache search"
+	alias 'status'="${prefix_apt_cache}apt-cache stats"
 fi
 
 unset command_apt_cache
@@ -609,13 +609,13 @@ if [ -n "${command_sudo}" ] && [ -n "${command_tput}" ]
 then
 	# password prompt colors: user name in yellow - then back to normal
 
-	color_prompt_user="$(tput setaf 3)"
-	color_prompt_reset="$(tput sgr 0)"
+	color_user="$(tput setaf 3)"
+	color_reset="$(tput sgr 0)"
 
-	alias 'sudo'="sudo -p \"[ ${color_prompt_user}${USER}${color_prompt_reset} ] >_ ? \""
+	alias 'sudo'="sudo -p \"[ ${color_user}${USER}${color_reset} ] >_ ? \""
 fi
 
-unset color_prompt_user color_prompt_reset command_sudo command_tput
+unset color_user color_reset command_sudo command_tput
 
 # 'wget' path - empty if not installed
 
@@ -703,11 +703,11 @@ command_ollama="$(command -v ollama)"
 
 if [ -n "${command_ollama}" ]
 then
-	model_ollama=$(ollama list | tail -n 1 | cut -d ' ' -f 1)
+	name_model_ollama=$(ollama list | tail -n 1 | cut -d ' ' -f 1)
 
-	if [ -n "${model_ollama}" ]
+	if [ -n "${name_model_ollama}" ]
 	then
-		alias 'ada'="ollama run ${model_ollama}"
+		alias 'ada'="ollama run ${name_model_ollama}"
 	fi
 fi
 

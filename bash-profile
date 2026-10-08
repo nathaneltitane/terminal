@@ -28,7 +28,7 @@ then
 
 	directory_install="${HOME}"/.local/bin
 
-	while (($#))
+	while (( $# ))
 	do
 		case "${1}"
 		in
@@ -232,34 +232,34 @@ unset PS1
 
 # logged in user name and running proot container process ids - empty outside one
 
-user_name="$(id -u -n)"
-process_proot="$(pidof proot)"
+name_user="$(id -u -n)"
+id_process_proot="$(pidof proot)"
 
-if [ "${user_name}" = "root" ]
+if [ "${name_user}" = "root" ]
 then
-	prompt_color="${red}"
+	color_prompt="${red}"
 
-elif [ -n "${process_proot}" ]
+elif [ -n "${id_process_proot}" ]
 then
-	prompt_color="${magenta}"
+	color_prompt="${magenta}"
 else
-	prompt_color="${green}"
+	color_prompt="${green}"
 fi
 
 PS1+="${reset}[ "
-PS1+="${prompt_color}${USER}"
+PS1+="${color_prompt}${USER}"
 PS1+="${reset} ]"
 
-if [ "${user_name}" = "root" ]
+if [ "${name_user}" = "root" ]
 then
 	PS1+="${white} >_ # ${reset}"
 else
 	PS1+="${white} >_ $ ${reset}"
 fi
 
-unset user_name
+unset name_user
 
-unset prompt_color
+unset color_prompt
 
 # display ──────────────────────────────────────────────────────────────────────
 
@@ -277,17 +277,17 @@ then
 
 	# running graphics accelerator and termux x11 application process ids - empty if stopped
 
-	process_accelerator="$(pgrep -f "${TERMUX_X11_ACCELERATOR}")"
-	process_x11_application="$(pgrep -f "${TERMUX_X11_APPLICATION}")"
+	id_process_accelerator="$(pgrep -f "${TERMUX_X11_ACCELERATOR}")"
+	id_process_x11_application="$(pgrep -f "${TERMUX_X11_APPLICATION}")"
 
-	if [ -n "${process_accelerator}" ]
+	if [ -n "${id_process_accelerator}" ]
 	then
 		:
 	else
 		"${TERMUX_X11_ACCELERATOR}" &
 	fi
 
-	if [ -n "${process_x11_application}" ]
+	if [ -n "${id_process_x11_application}" ]
 	then
 		:
 	else
@@ -304,7 +304,7 @@ then
 	export TERMUX_X11_ACCELERATOR="${TERMUX_X11_ACCELERATOR}"
 fi
 
-unset process_accelerator process_x11_application
+unset id_process_accelerator id_process_x11_application
 
 # dextop ───────────────────────────────────────────────────────────────────────
 
@@ -314,24 +314,24 @@ then
 
 	ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
 
-	session_title="termux"
+	title_session="termux"
 
 	# load welcome message
 
 	# proot container processes matching by command line - empty outside a container
 
-	process_proot="$(pgrep -f proot)"
+	id_process_proot="$(pgrep -f proot)"
 
-	if [ -n "${process_proot}" ]
+	if [ -n "${id_process_proot}" ]
 	then
-		session_title="${distribution}"
+		title_session="${distribution}"
 	fi
 
-	session_title="${session_title^}"
+	title_session="${title_session^}"
 
 	frobulator.fwd "Login count" "[ ${ticker} ]" ">"
 
-	frobulator.fwd "Welcome to Dextop" "[ ${session_title} ]"
+	frobulator.fwd "Welcome to Dextop" "[ ${title_session} ]"
 
 	frobulator.inf "Graphical session:"
 
@@ -354,27 +354,27 @@ then
 
 	# automatic session start selection: 'login' when enabled
 
-	dextop_login="$(cat "${HOME}"/.dextop/dextop-login)"
+	content_login_dextop="$(cat "${HOME}"/.dextop/dextop-login)"
 
-	if [ "${dextop_login}" = "login" ]
+	if [ "${content_login_dextop}" = "login" ]
 	then
 		frobulator.wrn "Automatic session start enabled"
 
-		session_level="termux"
+		level_session="termux"
 
-		if [ -n "${process_proot}" ]
+		if [ -n "${id_process_proot}" ]
 		then
-			session_level="container"
+			level_session="container"
 		fi
 
 		# load session interface
 
-		session_level="${session_level^}"
+		level_session="${level_session^}"
 
-		frobulator.cpt "Loading ${session_level} level session" "[ ${session_interface} ]"
+		frobulator.cpt "Loading ${level_session} level session" "[ ${interface_session} ]"
 
 		container-session -o
 	fi
 fi
 
-unset process_proot dextop_login
+unset id_process_proot content_login_dextop

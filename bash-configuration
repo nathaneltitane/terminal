@@ -28,7 +28,7 @@ then
 
 	directory_install="${HOME}"/.local/bin
 
-	while (($#))
+	while (( $# ))
 	do
 		case "${1}"
 		in
@@ -141,9 +141,9 @@ HISTFILESIZE=2000
 
 shopt -oq posix
 
-shell_posix="${?}"
+status_shell_posix="${?}"
 
-if [ "${shell_posix}" -ne 0 ]
+if [ "${status_shell_posix}" -ne 0 ]
 then
 	if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
 	then
@@ -159,7 +159,7 @@ then
 	fi
 fi
 
-unset shell_posix
+unset status_shell_posix
 
 # user  ────────────────────────────────────────────────────────────────────────
 
@@ -213,26 +213,26 @@ then
 	do
 		IFS='='
 
-		read color_name color_value <<< "${color}"
+		read name_color value_color <<< "${color}"
 
-		if [ ${#color_value} = 3 ]
+		if [ ${#value_color} = 3 ]
 		then
-			color_value="${color_value}"
+			value_color="${value_color}"
 		fi
 
-		if [ ${#color_value} = 2 ]
+		if [ ${#value_color} = 2 ]
 		then
-			color_value="0${color_value}"
+			value_color="0${value_color}"
 		fi
 
-		if [ ${#color_value} = 1 ]
+		if [ ${#value_color} = 1 ]
 		then
-			color_value="00${color_value}"
+			value_color="00${value_color}"
 		fi
 
 		IFS=''
 
-		eval "${color_name}=${color_value}"
+		eval "${name_color}=${value_color}"
 
 		unset color
 	done
@@ -279,11 +279,11 @@ else
 	do
 		IFS='='
 
-		read color_name color_value <<< "${color}"
+		read name_color value_color <<< "${color}"
 
 		IFS=''
 
-		eval "${color_name}=${color_value}"
+		eval "${name_color}=${value_color}"
 
 		unset color
 	done
@@ -336,35 +336,35 @@ unset PS1
 
 # logged in user name and running proot container process ids - empty outside one
 
-user_name="$(id -u -n)"
-process_proot="$(pidof proot)"
+name_user="$(id -u -n)"
+id_process_proot="$(pidof proot)"
 
-if [ "${user_name}" = "root" ]
+if [ "${name_user}" = "root" ]
 then
-	prompt_color="${red}"
+	color_prompt="${red}"
 
-elif [ -n "${process_proot}" ]
+elif [ -n "${id_process_proot}" ]
 then
-	prompt_color="${magenta}"
+	color_prompt="${magenta}"
 
 else
-	prompt_color="${green}"
+	color_prompt="${green}"
 fi
 
 PS1+="\[""${reset}""\][ "
-PS1+="\[""${prompt_color}""\]${USER}"
+PS1+="\[""${color_prompt}""\]${USER}"
 PS1+="\[""${reset}""\] ]"
 
-if [ "${user_name}" = "root" ]
+if [ "${name_user}" = "root" ]
 then
 	PS1+="\[""${white}""\] >_ # \[""${reset}""\]"
 else
 	PS1+="\[""${white}""\] >_ \$ \[""${reset}""\]"
 fi
 
-unset user_name
+unset name_user
 
-unset prompt_color
+unset color_prompt
 
 # path ─────────────────────────────────────────────────────────────────────────
 
@@ -443,9 +443,9 @@ fi
 
 # proot container processes matching by command line - empty outside a container
 
-process_proot="$(pgrep -f proot)"
+id_process_proot="$(pgrep -f proot)"
 
-if [ -n "${process_proot}" ]
+if [ -n "${id_process_proot}" ]
 then
 	if [ -f "${HOME}"/.bash_profile ]
 	then
@@ -453,4 +453,4 @@ then
 	fi
 fi
 
-unset process_proot
+unset id_process_proot

@@ -28,7 +28,7 @@ then
 
 	directory_install="${HOME}"/.local/bin
 
-	while (($#))
+	while (( $# ))
 	do
 		case "${1}"
 		in
@@ -122,18 +122,18 @@ then
 
 	# desktop environment chosen at setup: console / i3 / xfce - empty if not set up
 
-	dextop_environment="$(cat "${HOME}"/.dextop/dextop-environment)"
+	name_environment="$(cat "${HOME}"/.dextop/dextop-environment)"
 
-	if [ -n "${dextop_environment}" ]
+	if [ -n "${name_environment}" ]
 	then
 		# extract session interface information
 
-		session_interface="${dextop_environment}"
+		interface_session="${name_environment}"
 
 		# format session interface information:
 		# capitalize
 
-		session_interface=${session_interface^^}
+		interface_session=${interface_session^^}
 	fi
 
 	if [ -f /etc/os-release ]
@@ -163,34 +163,34 @@ then
 
 	# proot container processes - empty outside a container
 
-	process_proot="$(pgrep -f proot)"
+	id_process_proot="$(pgrep -f proot)"
 
-	if [ -n "${process_proot}" ]
+	if [ -n "${id_process_proot}" ]
 	then
 		:
 	else
 		# automatic update selection: 'update' followed by dextop / shell / utility / all
 
-		dextop_update="$(cat "${HOME}"/.dextop/dextop-update)"
+		content_update_dextop="$(cat "${HOME}"/.dextop/dextop-update)"
 
-		if [[ "${dextop_update}" = *update* ]]
+		if [[ "${content_update_dextop}" = *update* ]]
 		then
-			if [[ "${dextop_update}" = *dextop* ]]
+			if [[ "${content_update_dextop}" = *dextop* ]]
 			then
 				dextop -u dextop
 			fi
 
-			if [[ "${dextop_update}" = *shell* ]]
+			if [[ "${content_update_dextop}" = *shell* ]]
 			then
 				dextop -u shell
 			fi
 
-			if [[ "${dextop_update}" = *utility* ]]
+			if [[ "${content_update_dextop}" = *utility* ]]
 			then
 				dextop -u utility all
 			fi
 
-			if [[ "${dextop_update}" = *all* ]]
+			if [[ "${content_update_dextop}" = *all* ]]
 			then
 				dextop -u all
 			fi
@@ -201,7 +201,7 @@ then
 
 	# audio
 
-	if [ -n "${process_proot}" ]
+	if [ -n "${id_process_proot}" ]
 	then
 		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
 		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
@@ -209,9 +209,9 @@ then
 	else
 		# automatic audio selection: 'audio' when enabled
 
-		dextop_audio="$(cat "${HOME}"/.dextop/dextop-audio)"
+		content_audio_dextop="$(cat "${HOME}"/.dextop/dextop-audio)"
 
-		if [ "${dextop_audio}" = "audio" ]
+		if [ "${content_audio_dextop}" = "audio" ]
 		then
 			# 'pulseaudio' path - empty if not installed
 
@@ -221,9 +221,9 @@ then
 			then
 				# running pulseaudio process ids - empty if stopped
 
-				process_pulseaudio="$(pgrep -f pulseaudio)"
+				id_process_pulseaudio="$(pgrep -f pulseaudio)"
 
-				if [ -n "${process_pulseaudio}" ]
+				if [ -n "${id_process_pulseaudio}" ]
 				then
 					:
 				else
@@ -247,4 +247,4 @@ then
 	fi
 fi
 
-unset command_pulseaudio dextop_environment process_proot dextop_update dextop_audio process_pulseaudio
+unset command_pulseaudio name_environment id_process_proot content_update_dextop content_audio_dextop id_process_pulseaudio
