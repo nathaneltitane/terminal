@@ -69,30 +69,30 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-m|--model)
-			model_name="${2}"
+			name_model="${2}"
 
 			shift
 		;;
 
 		-e|--model-version)
-			model_version="${2}"
+			version_model="${2}"
 
 			shift
 		;;
 
 		-s|--size)
-			model_size="${2}"
+			size_model="${2}"
 
 			shift
 		;;
 
 		-v|--vulkan-device)
-			vulkan_device="${2}"
+			index_device_vulkan="${2}"
 
 			shift
 		;;
@@ -169,16 +169,16 @@ label="LLM"
 process="ollama"
 service="${process}.service"
 
-model_name="${model_name:-qwen}"
-model_version="${model_version:-3.5}"
-model_size="${model_size:-2b}"
-model="${model_name}${model_version}:${model_size}"
-model_url="https://ollama.com/install.sh"
+name_model="${name_model:-qwen}"
+version_model="${version_model:-3.5}"
+size_model="${size_model:-2b}"
+model="${name_model}${version_model}:${size_model}"
+url_model="https://ollama.com/install.sh"
 
 # path to a separate mount so models survive a system reinstall/format
 
 directory="${directory:-/media/internal}"
-models_directory="${directory}/${label}/${process}"
+directory_models="${directory}/${label}/${process}"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -186,13 +186,13 @@ models_directory="${directory}/${label}/${process}"
 # current ollama builds support vulkan directly, so no rocm gfx spoof is needed.
 # vulkan0 corresponds to the discrete radeon rx vega m gh on this system.
 
-vulkan_device="${vulkan_device:-0}"
+index_device_vulkan="${index_device_vulkan:-0}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
 url_install () {
 
-	local run_as="${1}"
+	local mode_run="${1}"
 	local label="${2}"
 	local command_name="${3}"
 	local url="${4}"
@@ -200,7 +200,7 @@ url_install () {
 	local command_path
 	local installer
 
-	local -a ownership_paths=("${@:5}")
+	local -a list_paths_ownership=("${@:5}")
 
 	# ${command_name} command path - empty if not installed
 
@@ -236,7 +236,7 @@ url_install () {
 
 	chmod +r "${installer}"
 
-	if [ "${run_as}" = "user" ] && [ -n "${SUDO_USER}" ]
+	if [ "${mode_run}" = "user" ] && [ -n "${SUDO_USER}" ]
 	then
 		sudo -u "${SUDO_USER}" bash "${installer}"
 	else
@@ -254,9 +254,9 @@ url_install () {
 
 	rm -f "${installer}"
 
-	if [ "${USER}" != "root" ] && [ "${#ownership_paths[@]}" -gt 0 ]
+	if [ "${USER}" != "root" ] && [ "${#list_paths_ownership[@]}" -gt 0 ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${ownership_paths[@]}" > "${sink}" 2>&1
+		chown -R "${USER}:$(id -g "${USER}")" "${list_paths_ownership[@]}" > "${sink}" 2>&1
 	fi
 
 	frobulator.scs "Installed" "[ ${label} ]"
@@ -297,17 +297,17 @@ fi
 
 # process install
 
-url_install root "${label}" "${process}" "${model_url}"
+url_install root "${label}" "${process}" "${url_model}"
 
 frobulator.complete halt
 
 # models directory
 
-frobulator.inf "Configuring models directory" "[ ${models_directory} ]"
+frobulator.inf "Configuring models directory" "[ ${directory_models} ]"
 
-frobulator.directory "$(dirname "${models_directory}")" "$(basename "${models_directory}")"
+frobulator.directory "$(dirname "${directory_models}")" "$(basename "${directory_models}")"
 
-chown -R "${process}:${process}" "${models_directory}"
+chown -R "${process}:${process}" "${directory_models}"
 
 # gpu permissions
 
@@ -326,15 +326,15 @@ fi
 
 # local vulkan configuration
 
-frobulator.inf "Configuring Vulkan GPU" "[ Vulkan${vulkan_device} ]"
+frobulator.inf "Configuring Vulkan GPU" "[ Vulkan${index_device_vulkan} ]"
 
 frobulator.directory /etc/systemd/system "${service}".d
 
 cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"-override.conf
 [Service]
 Environment="OLLAMA_VULKAN=1"
-Environment="GGML_VK_VISIBLE_DEVICES=${vulkan_device}"
-Environment="OLLAMA_MODELS=${models_directory}"
+Environment="GGML_VK_VISIBLE_DEVICES=${index_device_vulkan}"
+Environment="OLLAMA_MODELS=${directory_models}"
 Environment="OLLAMA_HOST=127.0.0.1:11434"
 Environment="OLLAMA_NO_CLOUD=true"
 FILE
@@ -361,10 +361,10 @@ ollama show "${model}" > "${sink}" 2>&1
 
 frobulator.complete halt "Local model verification failed" "[ ${model} ]"
 
-frobulator.ntf inf "Offline local ${label} [ '${model}' ]" inf "Model name:            ${model_name}
-Model version:         ${model_version}
-Model size:            ${model_size}
-Model directory:       ${models_directory}
+frobulator.ntf inf "Offline local ${label} [ '${model}' ]" inf "Model name:            ${name_model}
+Model version:         ${version_model}
+Model size:            ${size_model}
+Model directory:       ${directory_models}
 
 API:                   http://127.0.0.1:11434
 

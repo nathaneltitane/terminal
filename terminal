@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -225,7 +225,7 @@ then
 	fi
 fi
 
-desktop_environment="${XDG_CURRENT_DESKTOP}"
+name_environment="${XDG_CURRENT_DESKTOP}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -250,7 +250,7 @@ list=(
 	tree
 )
 
-display_list=(
+list_display=(
 	cura
 	mesa-utils
 	puddletag
@@ -258,7 +258,7 @@ display_list=(
 	wayland-utils
 )
 
-kde_list=(
+list_kde=(
 	ark
 	breeze
 	breeze-cursor-theme
@@ -294,17 +294,17 @@ kde_list=(
 	sweeper
 )
 
-if [ "${desktop_environment}" = [kK][dD][eE] ]
+if [ "${name_environment}" = [kK][dD][eE] ]
 then
 	list+=(
-		${kde_list[@]}
+		${list_kde[@]}
 	)
 fi
 
 if [ ! -z "${DISPLAY}" ]
 then
 	list+=(
-		${display_list[@]}
+		${list_display[@]}
 	)
 fi
 
@@ -332,12 +332,12 @@ then
 	then
 		frobulator.inf "Setting up" "[ python ]"
 
-		python_directory="/usr/lib/python3.11"
+		directory_python="/usr/lib/python3.11"
 
 		rm					\
 			--recursive		\
 			--force			\
-							"${python_directory}"/EXTERNALLY-MANAGED
+							"${directory_python}"/EXTERNALLY-MANAGED
 	fi
 fi
 
@@ -345,19 +345,19 @@ fi
 
 if [ "${option}" = "pipx" ] || [ "${option}" = "all" ]
 then
-	pip_install_list=(
+	list_install_pip=(
 		deno
 		trimesh
 		yt-dlp
 		yt-dlp-ejs
 	)
 
-	for item in "${pip_install_list[@]}"
+	for item in "${list_install_pip[@]}"
 	do
 		pipx install --global "${item}"
 	done
 
-	pip_install_list=()
+	list_install_pip=()
 fi
 
 # storage - windows subsystem for linux
@@ -453,11 +453,11 @@ then
 		.wifi
 	)
 
-	storage_list=(
+	list_storage=(
 		/media/[iI]nternal
 	)
 
-	for storage in ${storage_list[@]}
+	for storage in ${list_storage[@]}
 	do
 		if [ -d "${storage}" ]
 		then
@@ -471,7 +471,7 @@ then
 		fi
 	done
 
-	storage_list=()
+	list_storage=()
 
 	list=()
 fi
@@ -486,7 +486,7 @@ then
 	then
 		# generate home directory structure
 
-		directories_list+=(
+		list_directories+=(
 			Desktop
 			Documents
 			Downloads
@@ -497,9 +497,9 @@ then
 			Videos
 		)
 
-		frobulator.directory "${HOME}" ${directories_list[@]}
+		frobulator.directory "${HOME}" ${list_directories[@]}
 
-		directories_list=()
+		list_directories=()
 
 	fi
 fi
@@ -510,12 +510,12 @@ if [ "${option}" = "git" ] || [ "${option}" = "all" ]
 then
 	frobulator.inf "Setting up" "[ git ]"
 
-	storage_list=(
+	list_storage=(
 		/media/[aA]ndroid
 		/media/[iI]nternal
 	)
 
-	for storage in ${storage_list[@]}
+	for storage in ${list_storage[@]}
 	do
 		if [ -d "${storage}" ]
 		then
@@ -571,9 +571,9 @@ then
 
 	# user running the script
 
-	user_name="$(id -u -n)"
+	name_user="$(id -u -n)"
 
-	if [ "${user_name}" = "root" ]
+	if [ "${name_user}" = "root" ]
 	then
 		for item in ${list[@]}
 		do
@@ -601,16 +601,16 @@ then
 	then
 		frobulator.inf "Setting up" "[ themes ]"
 
-		gtkrc_content=$(cat <<- 'FILE'
+		content_gtkrc=$(cat <<- 'FILE'
 		gtk-icon-theme-name = "Breeze"
 		gtk-theme-name = "Breeze"
 		gtk-font-name = "Noto Mono 10"
 		FILE
 		)
 
-		frobulator.write "write" "${gtkrc_content}" /etc/gtk-2.0 gtkrc
+		frobulator.write "write" "${content_gtkrc}" /etc/gtk-2.0 gtkrc
 
-		settings_content=$(cat <<- 'FILE'
+		content_settings=$(cat <<- 'FILE'
 		[Settings]
 		gtk-cursor-theme-name = Breeze
 		gtk-icon-theme-name = Breeze
@@ -619,15 +619,15 @@ then
 		FILE
 		)
 
-		frobulator.write "write" "${settings_content}" /etc/gtk-3.0 settings.ini
+		frobulator.write "write" "${content_settings}" /etc/gtk-3.0 settings.ini
 
-		trolltech_content=$(cat <<- 'FILE'
+		content_trolltech=$(cat <<- 'FILE'
 		[Qt]
 		style=Breeze
 		FILE
 		)
 
-		frobulator.write "write" "${trolltech_content}" /etc/xdg Trolltech.conf
+		frobulator.write "write" "${content_trolltech}" /etc/xdg Trolltech.conf
 
 		frobulator.scs 'Done'
 	fi
@@ -644,7 +644,7 @@ then
 		# install
 
 		list+=(
-			${kde_list[@]}
+			${list_kde[@]}
 		)
 
 		frobulator.assess ${list[@]}

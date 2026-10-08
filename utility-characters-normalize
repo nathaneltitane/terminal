@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -127,9 +127,9 @@ done
 
 directory="${directory:-${PWD}}"
 
-source_name=""
+name_source=""
 
-target_name=""
+name_target=""
 
 character=""
 
@@ -153,14 +153,14 @@ export LC_ALL=C.UTF-8
 
 name_normalize () {
 
-	local source_name="${1}"
-	local target_name=""
+	local name_source="${1}"
+	local name_target=""
 	local character=""
 	local index=0
 
-	for (( index = 0; index < ${#source_name}; index++ ))
+	for (( index = 0 ; index < ${#name_source} ; index ++ ))
 	do
-		character="${source_name:index:1}"
+		character="${name_source:index:1}"
 
 		if [ "${character}" = "【" ] ||
 		   [ "${character}" = "『" ] ||
@@ -314,65 +314,65 @@ name_normalize () {
 			character=" "
 		fi
 
-		target_name+="${character}"
+		name_target+="${character}"
 	done
 
-	while [[ "${target_name}" = *"  "* ]]
+	while [[ "${name_target}" = *"  "* ]]
 	do
-		target_name="${target_name//  / }"
+		name_target="${name_target//  / }"
 	done
 
-	while [[ "${target_name}" = " "* ]]
+	while [[ "${name_target}" = " "* ]]
 	do
-		target_name="${target_name# }"
+		name_target="${name_target# }"
 	done
 
-	while [[ "${target_name}" = *" " ]]
+	while [[ "${name_target}" = *" " ]]
 	do
-		target_name="${target_name% }"
+		name_target="${name_target% }"
 	done
 
-	if [ -z "${target_name}" ]
+	if [ -z "${name_target}" ]
 	then
-		target_name="unnamed"
+		name_target="unnamed"
 	fi
 
-	echo "${target_name}"
+	echo "${name_target}"
 }
 
 path_unique () {
 
-	local source_path="${1}"
-	local target_path="${2}"
-	local target_name="${target_path##*/}"
-	local target_directory="${target_path%/*}"
+	local path_source="${1}"
+	local path_target="${2}"
+	local name_target="${path_target##*/}"
+	local directory_target="${path_target%/*}"
 	local name=""
 	local extension=""
 	local number=1
 
-	if [ ! -e "${target_path}" ] ||
-	   [ "${source_path}" = "${target_path}" ]
+	if [ ! -e "${path_target}" ] ||
+	   [ "${path_source}" = "${path_target}" ]
 	then
-		echo "${target_path}"
+		echo "${path_target}"
 
 		return 0
 	fi
 
-	if [ -f "${source_path}" ] && [[ "${target_name}" = *.* ]]
+	if [ -f "${path_source}" ] && [[ "${name_target}" = *.* ]]
 	then
-		name="${target_name%.*}"
-		extension=".${target_name##*.}"
+		name="${name_target%.*}"
+		extension=".${name_target##*.}"
 	else
-		name="${target_name}"
+		name="${name_target}"
 		extension=""
 	fi
 
-	while [ -e "${target_directory}/${name}-${number}${extension}" ]
+	while [ -e "${directory_target}/${name}-${number}${extension}" ]
 	do
-		(( number++ ))
+		(( number ++ ))
 	done
 
-	echo "${target_directory}/${name}-${number}${extension}"
+	echo "${directory_target}/${name}-${number}${extension}"
 }
 
 # update ───────────────────────────────────────────────────────────────────────
@@ -397,9 +397,9 @@ list=()
 
 # current locale character encoding - e.g. UTF-8
 
-locale_charmap="$(locale charmap 2> "${sink}")"
+name_charmap_locale="$(locale charmap 2> "${sink}")"
 
-if [ "${locale_charmap}" != "UTF-8" ]
+if [ "${name_charmap_locale}" != "UTF-8" ]
 then
 	frobulator.err "UTF-8 locale unavailable"
 
@@ -410,34 +410,34 @@ frobulator.complete
 
 # process ──────────────────────────────────────────────────────────────────────
 
-while IFS= read -r -d '' source_path
+while IFS= read -r -d '' path_source
 do
-	source_name="${source_path##*/}"
+	name_source="${path_source##*/}"
 
-	target_name=$(name_normalize "${source_name}")
+	name_target=$(name_normalize "${name_source}")
 
-	target_path="${directory}/${target_name}"
+	path_target="${directory}/${name_target}"
 
-	if [ "${source_path}" = "${target_path}" ]
+	if [ "${path_source}" = "${path_target}" ]
 	then
-		(( count_unchanged++ ))
+		(( count_unchanged ++ ))
 
 		continue
 	fi
 
-	target_path=$(path_unique "${source_path}" "${target_path}")
+	path_target=$(path_unique "${path_source}" "${path_target}")
 
-	frobulator.inf "Renaming" "[ ${source_name} ]"
-	frobulator.inf "To" "[ ${target_path##*/} ]"
+	frobulator.inf "Renaming" "[ ${name_source} ]"
+	frobulator.inf "To" "[ ${path_target##*/} ]"
 
-	if ! mv -- "${source_path}" "${target_path}"
+	if ! mv -- "${path_source}" "${path_target}"
 	then
-		frobulator.err "Unable to rename" "[ ${source_name} ]"
+		frobulator.err "Unable to rename" "[ ${name_source} ]"
 
 		continue
 	fi
 
-	(( count_renamed++ ))
+	(( count_renamed ++ ))
 
 done < <(find "${directory}" -mindepth 1 -maxdepth 1 -print0)
 

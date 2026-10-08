@@ -69,14 +69,14 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-sites_list=()
+list_sites=()
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-s|--site)
-			sites_list+=("${2}")
+			list_sites+=("${2}")
 
 			shift
 		;;
@@ -126,7 +126,7 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-web_development_directory=/var/www
+directory_web_development=/var/www
 
 process="apache2"
 service="${process}.service"
@@ -137,7 +137,7 @@ hostname="${HOSTNAME}"
 ip=$(hostname -I)
 ip="${ip%% *}"
 
-sites_list=("${sites_list[@]:-mechablocks}")
+list_sites=("${list_sites[@]:-mechablocks}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -165,13 +165,13 @@ list=()
 
 # sites
 
-for item in "${sites_list[@]}"
+for item in "${list_sites[@]}"
 do
-	frobulator.directory "${web_development_directory}" "${item}"
+	frobulator.directory "${directory_web_development}" "${item}"
 
 	frobulator.complete
 
-	vhost_content=$(cat <<- FILE
+	content_vhost=$(cat <<- FILE
 	<VirtualHost *:80>
 		ServerName ${item}.local
 		DocumentRoot /var/www/${item}/
@@ -189,21 +189,21 @@ do
 	FILE
 	)
 
-	frobulator.write "write" "${vhost_content}" /etc/apache2/sites-available "${item}.conf"
+	frobulator.write "write" "${content_vhost}" /etc/apache2/sites-available "${item}.conf"
 
 	frobulator.complete
 
 	# site activation report: 'enabled' on success - 'error' on failure
 
-	site_activation="$(a2ensite "${item}".conf)"
+	output_site_activation="$(a2ensite "${item}".conf)"
 
-	site_enabled="$(echo "${site_activation}" | grep -e "enabled")"
-	site_error="$(echo "${site_activation}" | grep -e "error")"
+	line_site_enabled="$(echo "${output_site_activation}" | grep -e "enabled")"
+	line_site_error="$(echo "${output_site_activation}" | grep -e "error")"
 
-	if [ -n "${site_enabled}" ]
+	if [ -n "${line_site_enabled}" ]
 	then
 		frobulator.scs "Configuration validation success" "[ ${item} ]"
-	elif [ -n "${site_error}" ]
+	elif [ -n "${line_site_error}" ]
 	then
 		frobulator.err "Configuration validation failed" "[ ${item} ]"
 
@@ -212,9 +212,9 @@ do
 
 	# site hosts file entry - empty if missing
 
-	hosts_entry="$(grep -F "${item}.local" /etc/hosts)"
+	line_hosts_entry="$(grep -F "${item}.local" /etc/hosts)"
 
-	if [ -z "${hosts_entry}" ]
+	if [ -z "${line_hosts_entry}" ]
 	then
 		frobulator.write "append" "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
 
@@ -223,11 +223,11 @@ do
 
 	frobulator.inf "Setting ownership"
 
-	chmod -R 755 "${web_development_directory}"/"${item}"
+	chmod -R 755 "${directory_web_development}"/"${item}"
 
 	frobulator.complete
 
-	chown -R "${USER}":"${USER}" "${web_development_directory}"/"${item}"
+	chown -R "${USER}":"${USER}" "${directory_web_development}"/"${item}"
 
 	frobulator.complete
 
