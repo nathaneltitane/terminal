@@ -23,7 +23,7 @@ locate () {
 		echo "unsupported type"
 		echo
 
-		exit 1
+		return 1
 	fi
 
 	# 'find' path - empty if not installed

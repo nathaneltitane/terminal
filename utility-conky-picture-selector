@@ -141,7 +141,11 @@ list=()
 cat << "FILE" > /usr/bin/conky-picture-selector
 #!/bin/bash
 
-file_config_frame="${directory}"/conky-picture-frame/conky-picture-framerc
+# conky configuration directory
+
+directory_config="${HOME}"/.config
+
+file_config_frame="${directory_config}"/conky-picture-frame/conky-picture-framerc
 
 # specify source image
 
@@ -152,7 +156,7 @@ name_size_frame="full"
 # large:  75%
 # full:   100%
 
-file_picture_source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
+file_picture_source="$(zenity --file-selection --title="Select a picture" 2> /dev/null)"
 
 # set dimension flags
 
@@ -203,13 +207,10 @@ read width_picture height_picture <<< "$geometry_picture"
 
 # send result to conky
 
-sed -i -e "s/^minimum_size\ .*/minimum_size ${width_picture} ${height_picture}/g" "${directory}"/conky-picture-frame/conky-picture-framerc
+sed -i -e "s/^minimum_size\ .*/minimum_size ${width_picture} ${height_picture}/g" "${directory_config}"/conky-picture-frame/conky-picture-framerc
 
 wait
 
-echo "${image .picture.png}"
-
-wait
 
 sudo kill -SIGTERM $(pgrep -f "${file_config_frame}")
 

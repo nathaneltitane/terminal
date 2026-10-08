@@ -180,73 +180,65 @@ fi
 
 # desktop #
 
-gsettings set org.gnome.desktop.background primary-color "{$color}"
-gsettings set org.gnome.desktop.background secondary-color "{$color}"
+gsettings set org.gnome.desktop.background primary-color "${color}"
+gsettings set org.gnome.desktop.background secondary-color "${color}"
 gsettings set org.gnome.desktop.background picture-uri "''"
 
 # lockscreen #
 
-gsettings set org.gnome.desktop.screensaver primary-color "{$color}"
-gsettings set org.gnome.desktop.screensaver secondary-color "{$color}"
+gsettings set org.gnome.desktop.screensaver primary-color "${color}"
+gsettings set org.gnome.desktop.screensaver secondary-color "${color}"
 gsettings set org.gnome.desktop.screensaver picture-uri "''"
 
 # login screen #
 
-gsettings set org.gnome.desktop.background primary-color "{$color}"
-gsettings set org.gnome.desktop.background secondary-color "{$color}"
+gsettings set org.gnome.desktop.background primary-color "${color}"
+gsettings set org.gnome.desktop.background secondary-color "${color}"
 gsettings set org.gnome.desktop.background picture-uri "''"
 
-	unset command_picture_option
+# picture layout option - one row per layout - wallpaper preselected
 
-	command_picture_option+="zenity"
-	command_picture_option+=" --title='Select a picture option'"
-	command_picture_option+=" --width=300"
-	command_picture_option+=" --height=250"
-	command_picture_option+=" --text='Specify an image layout option'"
-	command_picture_option+=" --list"
-	command_picture_option+=" --radiolist"
-	command_picture_option+=" --column=Selection"
-	command_picture_option+=" TRUE"
-	command_picture_option+=" FALSE"
-	command_picture_option+=" FALSE"
-	command_picture_option+=" FALSE"
-	command_picture_option+=" FALSE"
-	command_picture_option+=" FALSE"
-	command_picture_option+=" --column=Option"
-	command_picture_option+=" wallpaper"
-	command_picture_option+=" center"
-	command_picture_option+=" scaled"
-	command_picture_option+=" stretched"
-	command_picture_option+=" zoom"
-	command_picture_option+=" spanned"
+list_options_layout=(
+	zenity
+	--title="Select a picture option"
+	--width=300
+	--height=250
+	--text="Specify an image layout option"
+	--list
+	--radiolist
+	--column=Selection
+	--column=Option
+	TRUE wallpaper
+	FALSE center
+	FALSE scaled
+	FALSE stretched
+	FALSE zoom
+	FALSE spanned
+)
 
-	${command_picture_option} 2> "${sink}"
+option_picture="$("${list_options_layout[@]}" 2> /dev/null)"
 
-command_picture_uri+="zenity"
-command_picture_uri+=" --file-selection"
-command_picture_uri+=" --separator=$'\n'"
-command_picture_uri+=" --title='Select a Directory'"
+file_picture="$(zenity --file-selection --title="Select a picture" 2> /dev/null)"
 
-${command_picture_uri} 2> "${sink}"
+# layout and picture both selected - else keep the solid color
 
-# desktop #
+if [ -n "${option_picture}" ] && [ -n "${file_picture}" ]
+then
+	# desktop #
 
-gsettings set org.gnome.desktop.background picture-options "$command_picture_option"
-gsettings set org.gnome.desktop.background picture-uri "file:///$command_picture_uri"
+	gsettings set org.gnome.desktop.background picture-options "${option_picture}"
+	gsettings set org.gnome.desktop.background picture-uri "file://${file_picture}"
 
+	# lockscreen #
 
-# lockscreen #
+	gsettings set org.gnome.desktop.screensaver picture-options "${option_picture}"
+	gsettings set org.gnome.desktop.screensaver picture-uri "file://${file_picture}"
 
-gsettings set org.gnome.desktop.screensaver picture-options "$command_picture_option"
-gsettings set org.gnome.desktop.screensaver picture-uri "file:///$command_picture_uri"
+	# login screen #
 
-
-# login screen #
-
-sudo su gdm -s /bin/bash << FILE
-gsettings set org.gnome.desktop.background picture-options "$command_picture_option"
-gsettings set org.gnome.desktop.background picture-uri "file:///$command_picture_uri"
-
+	sudo su gdm -s /bin/bash -c "gsettings set org.gnome.desktop.background picture-options '${option_picture}'"
+	sudo su gdm -s /bin/bash -c "gsettings set org.gnome.desktop.background picture-uri 'file://${file_picture}'"
+fi
 FILE
 
 sudo chmod +x /usr/bin/wallpaper-selector

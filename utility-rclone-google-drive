@@ -313,27 +313,6 @@ list_directories_server=()
 
 synchronize
 
-# inotify watch limit
-
-# raises the per-user watch limit so recursive monitoring of large trees
-# does not silently fail past the default (typically far too low)
-
-count_watches_required="524288"
-
-count_watches_current=\$(cat /proc/sys/fs/inotify/max_user_watches)
-
-if [ "\${count_watches_current}" -lt "\${count_watches_required}" ]
-then
-${TAB}frobulator.inf "Raising inotify watch limit" "[ \${count_watches_required} ]"
-${TAB}echo
-
-${TAB}sysctl -w fs.inotify.max_user_watches="\${count_watches_required}" > /dev/null
-
-${TAB}frobulator.write "write" "fs.inotify.max_user_watches=\${count_watches_required}" /etc/sysctl.d 99-inotify.conf
-
-${TAB}frobulator.complete
-fi
-
 interval_periodic="180"
 
 (
@@ -357,7 +336,7 @@ ${TAB}state_debounce_pending=true
 
 ${TAB}while \${state_debounce_pending}
 ${TAB}do
-${TAB}${TAB}read -t 2 -r directory_event name_event file_event 2> "\${sink}"
+${TAB}${TAB}read -t 2 -r directory_event name_event file_event 2> /dev/null
 ${TAB}${TAB}status_read="\${?}"
 
 ${TAB}${TAB}if [ "\${status_read}" -ge 128 ] || [ "\${status_read}" -eq 1 ]
@@ -377,6 +356,23 @@ frobulator.complete
 chmod +x "${HOME}"/.local/bin/"${process}"
 
 frobulator.complete
+
+# inotify watch limit - raised for recursive monitoring of large trees - the default is far too low
+
+count_watches_required="524288"
+
+count_watches_current="$(cat /proc/sys/fs/inotify/max_user_watches)"
+
+if [ "${count_watches_current}" -lt "${count_watches_required}" ]
+then
+	frobulator.inf "Raising inotify watch limit" "[ ${count_watches_required} ]"
+
+	sysctl -w fs.inotify.max_user_watches="${count_watches_required}" > "${sink}"
+
+	frobulator.write "write" "fs.inotify.max_user_watches=${count_watches_required}" /etc/sysctl.d 99-inotify.conf
+
+	frobulator.complete
+fi
 
 # service
 

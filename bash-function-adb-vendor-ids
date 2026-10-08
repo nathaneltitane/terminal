@@ -17,7 +17,7 @@ adb_vendor_ids () {
 	for number_id in {0..65535}
 	do
 		printf '0x%04x\n' "${number_id}"
-	done >> "{HOME}"/.android/adb_usb.ini
+	done >> "${HOME}"/.android/adb_usb.ini
 
 	chmod -R 777 "${HOME}"/.android
 

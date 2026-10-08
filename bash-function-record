@@ -15,7 +15,7 @@ record () {
 
 	list=()
 
-	if [ -f "${HOME}"/Videos ]
+	if [ -d "${HOME}"/Videos ]
 	then
 		directory_output="${HOME}"/Videos
 	else
@@ -29,7 +29,7 @@ record () {
 		-i		\
 		-R		"${id_window}"
 
-	frobulator.wait 1
+	frobulator.timeout 1
 
 	recordmydesktop								\
 		--no-cursor								\
