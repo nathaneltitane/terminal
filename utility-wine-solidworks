@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -89,7 +89,7 @@ do
 		;;
 
 		-p|--prefix)
-			wine_prefix="${2}"
+			prefix_wine="${2}"
 
 			shift
 		;;
@@ -170,7 +170,7 @@ url_vba="${marker_hts}codeberg.org/cryinkfly/SolidWorks-on-Linux/raw/branch/main
 
 # components from the cryinkfly SOLIDWORKS for Linux recipe - win10 set last
 
-winetricks_verbs=(
+list_verbs_winetricks=(
 	atmlib
 	gdiplus
 	corefonts
@@ -184,8 +184,8 @@ winetricks_verbs=(
 
 # installed application inside the prefix
 
-solidworks_executable="drive_c/Program Files/SOLIDWORKS Corp/SOLIDWORKS/SLDWORKS.exe"
-solidworks_executable_windows='C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe'
+file_executable_solidworks="drive_c/Program Files/SOLIDWORKS Corp/SOLIDWORKS/SLDWORKS.exe"
+path_executable_solidworks_windows='C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe'
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -202,15 +202,15 @@ then
 
 	exit 1
 
-elif [[ "${wine_prefix}" = -* ]]
+elif [[ "${prefix_wine}" = -* ]]
 then
 	frobulator.err "Missing argument for '--prefix'."
 
 	exit 1
 fi
 
-wine_prefix="${wine_prefix:-${directory_solidworks}/prefix}"
-wine_prefix="${wine_prefix%/}"
+prefix_wine="${prefix_wine:-${directory_solidworks}/prefix}"
+prefix_wine="${prefix_wine%/}"
 
 if [ "${option}" = "install" ] && [ ! -f "${installer}" ]
 then
@@ -233,20 +233,20 @@ wine_user () {
 	# run a command as the desktop user - inside their session and the solidworks prefix
 
 	local status=0
-	local wine_user_name="${SUDO_USER:-${USER}}"
+	local name_user_wine="${SUDO_USER:-${USER}}"
 
-	local wine_user_id
+	local id_user_wine
 
-	wine_user_id="$(id -u "${wine_user_name}")"
+	id_user_wine="$(id -u "${name_user_wine}")"
 
-	sudo -u "${wine_user_name}"										\
+	sudo -u "${name_user_wine}"										\
 		env															\
 			HOME="${HOME}"											\
 			DISPLAY="${DISPLAY}"									\
 			XAUTHORITY="${XAUTHORITY}"								\
 			WAYLAND_DISPLAY="${WAYLAND_DISPLAY}"					\
-			XDG_RUNTIME_DIR="/run/user/${wine_user_id}"				\
-			WINEPREFIX="${wine_prefix}"								\
+			XDG_RUNTIME_DIR="/run/user/${id_user_wine}"				\
+			WINEPREFIX="${prefix_wine}"								\
 			WINEARCH="win64"										\
 			"${@}"
 
@@ -270,34 +270,34 @@ system_detect () {
 
 	. /etc/os-release
 
-	system_codename="${UBUNTU_CODENAME:-${VERSION_CODENAME}}"
+	codename_system="${UBUNTU_CODENAME:-${VERSION_CODENAME}}"
 
 	if [ "${ID}" = "ubuntu" ] || [[ " ${ID_LIKE} " = *" ubuntu "* ]]
 	then
-		system_family="ubuntu"
+		family_system="ubuntu"
 
 	elif [ "${ID}" = "debian" ] || [[ " ${ID_LIKE} " = *" debian "* ]]
 	then
-		system_family="debian"
+		family_system="debian"
 
 	elif [ "${ID}" = "fedora" ] || [[ " ${ID_LIKE} " = *" fedora "* ]]
 	then
-		system_family="fedora"
+		family_system="fedora"
 
 	elif [ "${ID}" = "arch" ] || [[ " ${ID_LIKE} " = *" arch "* ]]
 	then
-		system_family="arch"
+		family_system="arch"
 
 	elif [[ "${ID}" = opensuse* ]] || [[ " ${ID_LIKE} " = *" suse "* ]]
 	then
-		system_family="opensuse"
+		family_system="opensuse"
 	else
 		frobulator.err "Unsupported system" "[ ${PRETTY_NAME} ]"
 
 		return 1
 	fi
 
-	frobulator.inf "System" "[ ${PRETTY_NAME}${marker_spc}${marker_hnt}${marker_spc}${system_family} ]"
+	frobulator.inf "System" "[ ${PRETTY_NAME}${marker_spc}${marker_hnt}${marker_spc}${family_system} ]"
 
 	return "${status}"
 }
@@ -308,21 +308,21 @@ system_wine_install () {
 
 	local status=0
 
-	local wine_sources_url
-	local wine_sources_status
+	local url_sources_wine
+	local status_sources_wine
 
-	frobulator.fwd "Installing" "[ wine${marker_spc}${marker_hnt}${marker_spc}${system_family} ]"
+	frobulator.fwd "Installing" "[ wine${marker_spc}${marker_hnt}${marker_spc}${family_system} ]"
 
-	if [ "${system_family}" = "debian" ] || [ "${system_family}" = "ubuntu" ]
+	if [ "${family_system}" = "debian" ] || [ "${family_system}" = "ubuntu" ]
 	then
 		# winehq repository for this release - 200 if published
 
-		wine_sources_url="${marker_hts}dl.winehq.org/wine-builds/${system_family}/dists/${system_codename}/winehq-${system_codename}.sources"
-		wine_sources_status="$(curl --silent --location --output "${sink}" --write-out '%{http_code}' "${wine_sources_url}")"
+		url_sources_wine="${marker_hts}dl.winehq.org/wine-builds/${family_system}/dists/${codename_system}/winehq-${codename_system}.sources"
+		status_sources_wine="$(curl --silent --location --output "${sink}" --write-out '%{http_code}' "${url_sources_wine}")"
 
-		if [ "${wine_sources_status}" != "200" ]
+		if [ "${status_sources_wine}" != "200" ]
 		then
-			frobulator.err "WineHQ has no packages for this release" "[ ${system_codename}${marker_spc}${marker_hnt}${marker_spc}${wine_sources_status} ]"
+			frobulator.err "WineHQ has no packages for this release" "[ ${codename_system}${marker_spc}${marker_hnt}${marker_spc}${status_sources_wine} ]"
 
 			return 1
 		fi
@@ -337,9 +337,9 @@ system_wine_install () {
 
 		frobulator.fail "Unable to fetch the WineHQ key" "[ winehq.key ]" || return
 
-		curl --silent --fail --location --output "/etc/apt/sources.list.d/winehq-${system_codename}.sources" "${wine_sources_url}"
+		curl --silent --fail --location --output "/etc/apt/sources.list.d/winehq-${codename_system}.sources" "${url_sources_wine}"
 
-		frobulator.fail "Unable to fetch the WineHQ sources" "[ ${system_codename} ]" || return
+		frobulator.fail "Unable to fetch the WineHQ sources" "[ ${codename_system} ]" || return
 
 		apt-get update
 
@@ -351,13 +351,13 @@ system_wine_install () {
 
 		frobulator.fail "Unable to install WineHQ staging" "[ winehq-staging ]" || return
 
-	elif [ "${system_family}" = "fedora" ]
+	elif [ "${family_system}" = "fedora" ]
 	then
 		dnf install --assumeyes wine cabextract p7zip p7zip-plugins samba-winbind-clients unzip curl
 
 		frobulator.fail "Unable to install wine" "[ dnf ]" || return
 
-	elif [ "${system_family}" = "arch" ]
+	elif [ "${family_system}" = "arch" ]
 	then
 		# needs the multilib repository enabled in /etc/pacman.conf
 
@@ -365,7 +365,7 @@ system_wine_install () {
 
 		frobulator.fail "Unable to install wine - is multilib enabled?" "[ pacman ]" || return
 
-	elif [ "${system_family}" = "opensuse" ]
+	elif [ "${family_system}" = "opensuse" ]
 	then
 		zypper --non-interactive install wine cabextract p7zip samba-winbind unzip curl
 
@@ -396,13 +396,13 @@ prefix_create () {
 
 	local status=0
 
-	frobulator.directory "${wine_prefix}" > "${sink}"
+	frobulator.directory "${prefix_wine}" > "${sink}"
 
-	frobulator.fwd "Creating wine prefix" "[ ${wine_prefix} ]"
+	frobulator.fwd "Creating wine prefix" "[ ${prefix_wine} ]"
 
 	wine_user wineboot --init
 
-	frobulator.fail "Unable to create the wine prefix" "[ ${wine_prefix} ]" || return
+	frobulator.fail "Unable to create the wine prefix" "[ ${prefix_wine} ]" || return
 
 	wine_user wineserver --wait
 
@@ -415,15 +415,15 @@ prefix_components () {
 
 	local status=0
 
-	local winetricks_verb
+	local verb_winetricks
 
-	for winetricks_verb in "${winetricks_verbs[@]}"
+	for verb_winetricks in "${list_verbs_winetricks[@]}"
 	do
-		frobulator.fwd "Installing component" "[ ${winetricks_verb} ]"
+		frobulator.fwd "Installing component" "[ ${verb_winetricks} ]"
 
-		wine_user bash "${file_winetricks}" --unattended "${winetricks_verb}"
+		wine_user bash "${file_winetricks}" --unattended "${verb_winetricks}"
 
-		frobulator.fail "Component failure" "[ ${winetricks_verb} ]" || return
+		frobulator.fail "Component failure" "[ ${verb_winetricks} ]" || return
 	done
 
 	wine_user wineserver --wait
@@ -454,7 +454,7 @@ vba_install () {
 
 	# program files / program files (x86) / windows folders go to drive c
 
-	wine_user cp -r "${directory_vba}"/Program*s "${directory_vba}"/Program*x86* "${directory_vba}"/windows "${wine_prefix}/drive_c/"
+	wine_user cp -r "${directory_vba}"/Program*s "${directory_vba}"/Program*x86* "${directory_vba}"/windows "${prefix_wine}/drive_c/"
 
 	frobulator.fail "Unable to copy VBA into the prefix" "[ drive_c ]" || return
 
@@ -509,7 +509,7 @@ launcher_create () {
 
 	local status=0
 
-	if [ ! -f "${wine_prefix}/${solidworks_executable}" ]
+	if [ ! -f "${prefix_wine}/${file_executable_solidworks}" ]
 	then
 		frobulator.wrn "Launcher not created - SOLIDWORKS not installed" "[ SLDWORKS.exe ]"
 
@@ -523,7 +523,7 @@ launcher_create () {
 	Type=Application
 	Name=SOLIDWORKS
 	Comment=SOLIDWORKS through wine
-	Exec=env WINEPREFIX="${wine_prefix}" wine "${solidworks_executable_windows}"
+	Exec=env WINEPREFIX="${prefix_wine}" wine "${path_executable_solidworks_windows}"
 	Icon=wine
 	Categories=Graphics;Engineering;
 	DESKTOP
@@ -541,16 +541,16 @@ solidworks_launch () {
 
 	local status=0
 
-	if [ ! -f "${wine_prefix}/${solidworks_executable}" ]
+	if [ ! -f "${prefix_wine}/${file_executable_solidworks}" ]
 	then
-		frobulator.err "SOLIDWORKS not installed" "[ ${wine_prefix} ]"
+		frobulator.err "SOLIDWORKS not installed" "[ ${prefix_wine} ]"
 
 		return 1
 	fi
 
 	frobulator.fwd "Launching" "[ SOLIDWORKS ]"
 
-	wine_user wine "${solidworks_executable_windows}" > "${sink}" 2>&1 &
+	wine_user wine "${path_executable_solidworks_windows}" > "${sink}" 2>&1 &
 
 	return "${status}"
 }
@@ -561,7 +561,7 @@ prefix_reset () {
 
 	local status=0
 
-	frobulator.wrn "Reset moves the wine prefix and its checkpoints to the trash" "[ ${wine_prefix} ]"
+	frobulator.wrn "Reset moves the wine prefix and its checkpoints to the trash" "[ ${prefix_wine} ]"
 
 	frobulator.qst "Reset the SOLIDWORKS prefix?"
 
@@ -577,11 +577,11 @@ prefix_reset () {
 
 	wine_user wineserver --kill > "${sink}" 2>&1
 
-	wine_user gio trash "${wine_prefix}" "${directory_checkpoints}"
+	wine_user gio trash "${prefix_wine}" "${directory_checkpoints}"
 
-	frobulator.fail "Unable to move the prefix to the trash" "[ ${wine_prefix} ]" || return
+	frobulator.fail "Unable to move the prefix to the trash" "[ ${prefix_wine} ]" || return
 
-	frobulator.scs "Prefix moved to the trash" "[ ${wine_prefix} ]"
+	frobulator.scs "Prefix moved to the trash" "[ ${prefix_wine} ]"
 
 	return "${status}"
 }

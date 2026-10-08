@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -147,20 +147,20 @@ fi
 
 # variables ────────────────────────────────────────────────────────────────────
 
-image_url_latest="https://downloads.raspberrypi.com/raspios_lite_arm64_latest"
+url_image_latest="https://downloads.raspberrypi.com/raspios_lite_arm64_latest"
 
-download_directory="${HOME}/.cache/raspberry-pi"
+directory_download="${HOME}/.cache/raspberry-pi"
 
-image_archive="${download_directory}/raspios_lite_arm64.img.xz"
+file_archive_image="${directory_download}/raspios_lite_arm64.img.xz"
 
-mount_boot="/mnt/raspberry-pi-boot"
-mount_root="/mnt/raspberry-pi-root"
+directory_mount_boot="/mnt/raspberry-pi-boot"
+directory_mount_root="/mnt/raspberry-pi-root"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
-hostname_default="pi"
-username_default="${USER}"
-wifi_country_default="US"
+name_host_default="pi"
+name_user_default="${USER}"
+country_wifi_default="US"
 
 address_localhost="127.0.1.1"
 
@@ -187,7 +187,7 @@ list=()
 
 frobulator.inf "Headless configuration"
 
-credentials_list=(
+list_credentials=(
 	"hostname"
 	"username"
 	"user_password"
@@ -195,77 +195,77 @@ credentials_list=(
 	"wifi_password"
 )
 
-frobulator.input "${credentials_list[@]}"
+frobulator.input "${list_credentials[@]}"
 
 for entry in "${frobulator_return[@]}"
 do
-	IFS='=' read -r entry_key entry_value <<< "${entry}"
+	IFS='=' read -r key_entry value_entry <<< "${entry}"
 
-	if [ "${entry_key}" = "hostname" ]
+	if [ "${key_entry}" = "hostname" ]
 	then
-		hostname="${entry_value:-${hostname_default}}"
+		name_host="${value_entry:-${name_host_default}}"
 	fi
 
-	if [ "${entry_key}" = "username" ]
+	if [ "${key_entry}" = "username" ]
 	then
-		username="${entry_value:-${username_default}}"
+		name_user="${value_entry:-${name_user_default}}"
 	fi
 
-	if [ "${entry_key}" = "user_password" ]
+	if [ "${key_entry}" = "user_password" ]
 	then
-		user_password="${entry_value}"
+		password_user="${value_entry}"
 	fi
 
-	if [ "${entry_key}" = "wifi_ssid" ]
+	if [ "${key_entry}" = "wifi_ssid" ]
 	then
-		wifi_ssid="${entry_value}"
+		ssid_wifi="${value_entry}"
 	fi
 
-	if [ "${entry_key}" = "wifi_password" ]
+	if [ "${key_entry}" = "wifi_password" ]
 	then
-		wifi_password="${entry_value}"
+		password_wifi="${value_entry}"
 	fi
 
 done
 
-credentials_missing_list=()
+list_credentials_missing=()
 
-if [ -z "${username}" ]
+if [ -z "${name_user}" ]
 then
-	credentials_missing_list+=("username")
+	list_credentials_missing+=("username")
 fi
 
-if [ -z "${user_password}" ]
+if [ -z "${password_user}" ]
 then
-	credentials_missing_list+=("user_password")
+	list_credentials_missing+=("user_password")
 fi
 
-if [ -z "${wifi_ssid}" ]
+if [ -z "${ssid_wifi}" ]
 then
-	credentials_missing_list+=("wifi_ssid")
+	list_credentials_missing+=("wifi_ssid")
 fi
 
-if [ -z "${wifi_password}" ]
+if [ -z "${password_wifi}" ]
 then
-	credentials_missing_list+=("wifi_password")
+	list_credentials_missing+=("wifi_password")
 fi
 
-if [ "${#credentials_missing_list[@]}" -gt 0 ]
+if [ "${#list_credentials_missing[@]}" -gt 0 ]
 then
-	frobulator.err "Missing required credential(s)" "[ ${credentials_missing_list[*]} ]"
+	frobulator.err "Missing required credential(s)" "[ ${list_credentials_missing[*]} ]"
 
 	exit 1
 fi
 
-hostname="${hostname:-${hostname_default}}"
+name_host="${name_host:-${name_host_default}}"
 
 # download
 
 # resolve and fetch latest image, verified against its published checksum
 
-frobulator.directory "${download_directory}"
+frobulator.directory "${directory_download}"
 
-url_install=$(curl -s -I -L -o "${sink}" -w '%{url_effective}' "${image_url_latest}")
+url_install=$(curl -s -I -L -o "${sink}" -w '%{url_effective}' "${url_image_latest}")
 
 frobulator.inf "Resolved image" "[ ${url_install} ]"
 
@@ -273,21 +273,21 @@ checksum_expected=$(curl -s -L "${url_install}.sha256" | cut -d ' ' -f 1)
 
 # checksum of the image already downloaded - empty if there is none
 
-checksum_existing="$(sha256sum "${image_archive}" 2> "${sink}" | cut -d ' ' -f 1)"
+checksum_existing="$(sha256sum "${file_archive_image}" 2> "${sink}" | cut -d ' ' -f 1)"
 
-if [ ! -f "${image_archive}" ] || [ "${checksum_existing}" != "${checksum_expected}" ]
+if [ ! -f "${file_archive_image}" ] || [ "${checksum_existing}" != "${checksum_expected}" ]
 then
-	curl -L -o "${image_archive}" "${url_install}" &
+	curl -L -o "${file_archive_image}" "${url_install}" &
 
 	frobulator.progress download "[ ${url_install} ]"
 
-	checksum_actual=$(sha256sum "${image_archive}" | cut -d ' ' -f 1)
+	checksum_actual=$(sha256sum "${file_archive_image}" | cut -d ' ' -f 1)
 
 	if [ -n "${checksum_expected}" ] && [ "${checksum_actual}" != "${checksum_expected}" ]
 	then
 		frobulator.err "Checksum verification failed"
 
-		rm -f "${image_archive}"
+		rm -f "${file_archive_image}"
 
 		exit 1
 	fi
@@ -301,15 +301,15 @@ fi
 
 # require device path to be retyped before any destructive action
 
-device_details="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
+details_device="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
 
-frobulator.ntf err "Destructive operation" err "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${device_details}"
+frobulator.ntf err "Destructive operation" err "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${details_device}"
 
 frobulator.qst "Type the device path exactly to confirm" "[ ${device} ]"
 
-read -r device_confirm
+read -r reply_device_confirm
 
-if [ "${device_confirm}" != "${device}" ]
+if [ "${reply_device_confirm}" != "${device}" ]
 then
 	frobulator.err "Confirmation did not match - aborting"
 
@@ -334,7 +334,7 @@ done
 
 frobulator.inf "Writing image" "[ ${device} ]"
 
-xz -dc "${image_archive}" | dd of="${device}" bs=4M conv=fsync status=progress oflag=direct
+xz -dc "${file_archive_image}" | dd of="${device}" bs=4M conv=fsync status=progress oflag=direct
 
 sync
 
@@ -350,16 +350,16 @@ sleep 2
 
 if [[ "${device}" =~ (mmcblk|nvme) ]]
 then
-	partition_boot="${device}p1"
-	partition_root="${device}p2"
+	path_partition_boot="${device}p1"
+	path_partition_root="${device}p2"
 else
-	partition_boot="${device}1"
-	partition_root="${device}2"
+	path_partition_boot="${device}1"
+	path_partition_root="${device}2"
 fi
 
-if [ ! -b "${partition_boot}" ] || [ ! -b "${partition_root}" ]
+if [ ! -b "${path_partition_boot}" ] || [ ! -b "${path_partition_root}" ]
 then
-	frobulator.err "Expected partitions not found" "[ '${partition_boot}' '${partition_root}' ]"
+	frobulator.err "Expected partitions not found" "[ '${path_partition_boot}' '${path_partition_root}' ]"
 
 	exit 1
 fi
@@ -368,11 +368,11 @@ fi
 
 # mount newly written boot and root partitions
 
-frobulator.directory "${mount_boot}"
-frobulator.directory "${mount_root}"
+frobulator.directory "${directory_mount_boot}"
+frobulator.directory "${directory_mount_root}"
 
-mount "${partition_boot}" "${mount_boot}"
-mount "${partition_root}" "${mount_root}"
+mount "${path_partition_boot}" "${directory_mount_boot}"
+mount "${path_partition_root}" "${directory_mount_root}"
 
 frobulator.complete
 
@@ -380,7 +380,7 @@ frobulator.complete
 
 # enable sshd on first boot
 
-touch "${mount_boot}"/ssh
+touch "${directory_mount_boot}"/ssh
 
 frobulator.complete
 
@@ -388,9 +388,9 @@ frobulator.complete
 
 # create default user account with a hashed password
 
-user_password_hash=$(echo "${user_password}" | openssl passwd -6 -stdin)
+hash_password_user=$(echo "${password_user}" | openssl passwd -6 -stdin)
 
-echo "${username}:${user_password_hash}" > "${mount_boot}"/userconf.txt
+echo "${name_user}:${hash_password_user}" > "${directory_mount_boot}"/userconf.txt
 
 frobulator.complete
 
@@ -398,23 +398,23 @@ frobulator.complete
 
 # write a network connection profile directly into rootfs partition
 
-frobulator.directory "${mount_root}"/etc/NetworkManager/system-connections
+frobulator.directory "${directory_mount_root}"/etc/NetworkManager/system-connections
 
-connection_uuid="$(uuidgen)"
+uuid_connection="$(uuidgen)"
 
-cat <<- FILE > "${mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
+cat <<- FILE > "${directory_mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
 [connection]
 id=preconfigured
-uuid=${connection_uuid}
+uuid=${uuid_connection}
 type=wifi
 
 [wifi]
 mode=infrastructure
-ssid=${wifi_ssid}
+ssid=${ssid_wifi}
 
 [wifi-security]
 key-mgmt=wpa-psk
-psk=${wifi_password}
+psk=${password_wifi}
 
 [ipv4]
 method=auto
@@ -426,7 +426,7 @@ addr-gen-mode=default
 [proxy]
 FILE
 
-chmod 600 "${mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
+chmod 600 "${directory_mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
 
 frobulator.complete
 
@@ -434,9 +434,9 @@ frobulator.complete
 
 # set system hostname and its matching /etc/hosts entry
 
-echo "${hostname}" > "${mount_root}"/etc/hostname
+echo "${name_host}" > "${directory_mount_root}"/etc/hostname
 
-sed -i "s/${address_localhost}.*/${address_localhost}\t${hostname}/" "${mount_root}"/etc/hosts
+sed -i "s/${address_localhost}.*/${address_localhost}\t${name_host}/" "${directory_mount_root}"/etc/hosts
 
 frobulator.complete
 
@@ -446,8 +446,8 @@ frobulator.complete
 
 sync
 
-umount "${mount_boot}"
-umount "${mount_root}"
+umount "${directory_mount_boot}"
+umount "${directory_mount_root}"
 
 frobulator.complete
 
