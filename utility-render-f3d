@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -80,9 +80,9 @@ do
 		;;
 
 		-a|--all)
-			extension_option="all"
+			option_extension="all"
 
-			extensions_list=(
+			list_extensions=(
 				stl
 			)
 		;;
@@ -92,17 +92,17 @@ do
 		;;
 
 			all)
-				extension_option="all"
+				option_extension="all"
 
-				extensions_list=(
+				list_extensions=(
 					stl
 				)
 				;;
 
 			stl)
-				extension_option="stl"
+				option_extension="stl"
 
-				extensions_list=(
+				list_extensions=(
 					stl
 				)
 			;;
@@ -112,53 +112,53 @@ do
 		;;
 
 			full)
-				render_option="full"
-				render_preset="full"
+				option_render="full"
+				preset_render="full"
 			;;
 
 			render)
-				render_option="render"
-				render_preset="render"
+				option_render="render"
+				preset_render="render"
 			;;
 
 			thumbnail)
-				render_option="thumbnail"
-				render_preset="thumbnail"
+				option_render="thumbnail"
+				preset_render="thumbnail"
 			;;
 
 			1)
-				render_option="1"
-				render_preset="1"
+				option_render="1"
+				preset_render="1"
 			;;
 
 			2)
-				render_option="2"
-				render_preset="2"
+				option_render="2"
+				preset_render="2"
 			;;
 
 			3)
-				render_option="3"
-				render_preset="3"
+				option_render="3"
+				preset_render="3"
 			;;
 
 			4)
-				render_option="4"
-				render_preset="4"
+				option_render="4"
+				preset_render="4"
 			;;
 
 			5)
-				render_option="5"
-				render_preset="5"
+				option_render="5"
+				preset_render="5"
 			;;
 
 			6)
-				render_option="6"
-				render_preset="6"
+				option_render="6"
+				preset_render="6"
 			;;
 
 			7)
-				render_option="7"
-				render_preset="7"
+				option_render="7"
+				preset_render="7"
 			;;
 
 		-h|--help)
@@ -262,21 +262,21 @@ then
 
 		while true
 		do
-			frobulator.read extension_option
+			frobulator.read option_extension
 
-			if [ -z "${extension_option}" ] || [[ ! "${extension_option}" =~ [all|stl] ]]
+			if [ -z "${option_extension}" ] || [[ ! "${option_extension}" =~ [all|stl] ]]
 			then
 				frobulator.wrn "Unrecognized model file extension."
 				frobulator.wrn "Try again."
 			else
-				if [[ "${extension_option}" = "all" ]]
+				if [[ "${option_extension}" = "all" ]]
 				then
-					extensions_list=(
+					list_extensions=(
 						stl
 					)
 				else
-					extensions_list=(
-						${extension_option}
+					list_extensions=(
+						${option_extension}
 					)
 				fi
 
@@ -291,18 +291,18 @@ then
 
 		frobulator.fwd "Assuming defaults..."
 
-		extension_option="mpd"
+		option_extension="mpd"
 
-		extensions_list=(
+		list_extensions=(
 			stl
 		)
 	fi
 fi
 
 
-if [ -z "${render_option}" ]
+if [ -z "${option_render}" ]
 then
-	render_option="full"
+	option_render="full"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -311,11 +311,11 @@ f3d_render () {
 
 	# render model
 
-	frobulator.inf "Rendering" "[ ${view[coordinates]} // ${model_name} ]"
+	frobulator.inf "Rendering" "[ ${view[coordinates]} // ${name_model} ]"
 
-	frobulator.fwd "Output" "[ ${render_file} ]"
+	frobulator.fwd "Output" "[ ${file_render} ]"
 
-	model_path="${1}"
+	path_model="${1}"
 	coordinates="${2}"
 
 	up="+Z"
@@ -341,8 +341,8 @@ f3d_render () {
 		--camera-azimuth-angle=${latitude[$coordinates]}				\
 		--camera-elevation-angle=${longitude[$coordinates]}				\
 		--no-background													\
-		--output="${model_name}-${view[$coordinates]}.${extension}"		\
-																		"${model_path}" > "${sink}" 2>&1
+		--output="${name_model}-${view[$coordinates]}.${extension}"		\
+																		"${path_model}" > "${sink}" 2>&1
 
 		wait
 }
@@ -367,36 +367,36 @@ list=()
 
 if [ "${option}" = "render" ]
 then
-	for extension in ${extensions_list[@]}
+	for extension in ${list_extensions[@]}
 	do
-		models_list=( $(find ${directory} -type f -iname "*.${extension}" ! -iname "*instructions*") )
+		list_models=( $(find ${directory} -type f -iname "*.${extension}" ! -iname "*instructions*") )
 
 		# set IFS
 
 		IFS=$'\n'
 
-		for model_path in ${models_list[@]}
+		for path_model in ${list_models[@]}
 		do
 
 			# get model file name from path
 
-			model_file="${model_path##*/}"
+			file_model="${path_model##*/}"
 
 			# strip extension from model file name
 
-			model_name="${model_file%.*}"
+			name_model="${file_model%.*}"
 
 			# define render output directory
 
 			# use model directory as root
 
-			render_directory="${model_path%/*}"/renders
+			directory_render="${path_model%/*}"/renders
 
 			# use render directory as root
 
-			full_directory="${model_path%/*}"/renders/full
+			directory_full="${path_model%/*}"/renders/full
 
-			thumbnail_directory="${model_path%/*}"/renders/thumbnail
+			directory_thumbnail="${path_model%/*}"/renders/thumbnail
 
 			# define coordinate values and labels
 
@@ -441,52 +441,52 @@ then
 
 			# define camera position presets
 
-			if [[ "${render_preset}" = "0" ]]
+			if [[ "${preset_render}" = "0" ]]
 			then
 				position=(0)
 			fi
 
-			if [[ "${render_preset}" = "1" ]]
+			if [[ "${preset_render}" = "1" ]]
 			then
 				position=(1)
 			fi
 
-			if [[ "${render_preset}" = "2" ]]
+			if [[ "${preset_render}" = "2" ]]
 			then
 				position=(2)
 			fi
 
-			if [[ "${render_preset}" = "3" ]]
+			if [[ "${preset_render}" = "3" ]]
 			then
 				position=(3)
 			fi
 
-			if [[ "${render_preset}" = "4" ]]
+			if [[ "${preset_render}" = "4" ]]
 			then
 				position=(4)
 			fi
 
-			if [[ "${render_preset}" = "5" ]]
+			if [[ "${preset_render}" = "5" ]]
 			then
 				position=(5)
 			fi
 
-			if [[ "${render_preset}" = "6" ]]
+			if [[ "${preset_render}" = "6" ]]
 			then
 				position=(6)
 			fi
 
-			if [[ "${render_preset}" = "7" ]]
+			if [[ "${preset_render}" = "7" ]]
 			then
 				position=(7)
 			fi
 
-			if [[ "${render_preset}" = "render" ]]
+			if [[ "${preset_render}" = "render" ]]
 			then
 				position=(1)
 			fi
 
-			if [[ "${render_preset}" = "thumbnail" ]]
+			if [[ "${preset_render}" = "thumbnail" ]]
 			then
 				height=1024
 				width=1024
@@ -499,52 +499,52 @@ then
 			# prepare base render directory:
 			# generate if does not exist
 
-			if [[ ! -d "${render_directory}" ]]
+			if [[ ! -d "${directory_render}" ]]
 			then
-				mkdir -p "${render_directory}"
+				mkdir -p "${directory_render}"
 			fi
 
-			cd "${render_directory}"
+			cd "${directory_render}"
 
-			if [[ "${render_preset}" = "thumbnail" ]]
+			if [[ "${preset_render}" = "thumbnail" ]]
 			then
-				if [[ -d "${thumbnail_directory}" ]]
+				if [[ -d "${directory_thumbnail}" ]]
 				then
 					rm					\
 						--recursive		\
-						--force			 "${thumbnail_directory}"
+						--force			 "${directory_thumbnail}"
 				fi
 
-				mkdir -p "${thumbnail_directory}"
+				mkdir -p "${directory_thumbnail}"
 
-				cd "${thumbnail_directory}"
+				cd "${directory_thumbnail}"
 			fi
 
 			for coordinates in ${position[@]}
 			do
-				render_file="${model_name}-${view[$coordinates]}.${extension}"
+				file_render="${name_model}-${view[$coordinates]}.${extension}"
 
-				f3d_render "${model_path}" "${coordinates}"
+				f3d_render "${path_model}" "${coordinates}"
 			done
 
 			# post rendering
 
-			if [[ "${render_option}" = "render" ]]
+			if [[ "${option_render}" = "render" ]]
 			then
 				# rename renders to designated splash images
 
 				mv												\
-					"${model_name}-${view[1]}.${extension}"		\
-					"${render_directory}"/render."${extension}"
+					"${name_model}-${view[1]}.${extension}"		\
+					"${directory_render}"/render."${extension}"
 			fi
 
-			if [[ "${render_option}" = "thumbnail" ]]
+			if [[ "${option_render}" = "thumbnail" ]]
 			then
 				# rename renders to designated splash images
 
 				mv												\
-					"${model_name}-${view[1]}.${extension}"		\
-					"${thumbnail_directory}"/thumbnail."${extension}"
+					"${name_model}-${view[1]}.${extension}"		\
+					"${directory_thumbnail}"/thumbnail."${extension}"
 			fi
 
 		done

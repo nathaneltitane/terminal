@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -130,7 +130,7 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-items_list=(
+list_items=(
 	.claude
 	.claude.json
 )
@@ -163,9 +163,9 @@ fi
 
 # running claude code process id - empty if not running
 
-claude_process="$(pgrep -x claude)"
+ids_process_claude="$(pgrep -x claude)"
 
-if [ -n "${claude_process}" ]
+if [ -n "${ids_process_claude}" ]
 then
 	frobulator.wrn "Claude code is running"
 
@@ -187,9 +187,9 @@ then
 
 	for second in {1..5}
 	do
-		claude_process="$(pgrep -x claude)"
+		ids_process_claude="$(pgrep -x claude)"
 
-		if [ -z "${claude_process}" ]
+		if [ -z "${ids_process_claude}" ]
 		then
 			break
 		fi
@@ -197,18 +197,18 @@ then
 		sleep 1
 	done
 
-	claude_process="$(pgrep -x claude)"
+	ids_process_claude="$(pgrep -x claude)"
 
-	if [ -n "${claude_process}" ]
+	if [ -n "${ids_process_claude}" ]
 	then
 		pkill -9 -x claude
 
 		sleep 1
 	fi
 
-	claude_process="$(pgrep -x claude)"
+	ids_process_claude="$(pgrep -x claude)"
 
-	if [ -n "${claude_process}" ]
+	if [ -n "${ids_process_claude}" ]
 	then
 		frobulator.err "Unable to close claude code."
 
@@ -222,7 +222,7 @@ fi
 
 claude_install () {
 
-	local status_list
+	local list_status
 
 	frobulator.inf "Installing" "[ claude code ]"
 
@@ -230,9 +230,9 @@ claude_install () {
 
 	curl -fsSL "${url_install}" | bash
 
-	status_list=("${PIPESTATUS[@]}")
+	list_status=("${PIPESTATUS[@]}")
 
-	if [ "${status_list[0]}" -ne 0 ] || [ "${status_list[1]}" -ne 0 ]
+	if [ "${list_status[0]}" -ne 0 ] || [ "${list_status[1]}" -ne 0 ]
 	then
 		frobulator.err "Unable to install claude code" "[ ${url_install} ]"
 
@@ -245,32 +245,32 @@ claude_install () {
 claude_link () {
 
 	local item="${1}"
-	local item_home="${HOME}/${item}"
-	local item_storage="${directory_storage}/${item}"
+	local path_item_home="${HOME}/${item}"
+	local path_item_storage="${directory_storage}/${item}"
 
 	# already linked
 
-	if [ -L "${item_home}" ] && [ "${item_home}" -ef "${item_storage}" ]
+	if [ -L "${path_item_home}" ] && [ "${path_item_home}" -ef "${path_item_storage}" ]
 	then
 		frobulator.inf "Already linked" "[ ${item} ]"
 
 		return 0
 	fi
 
-	if [ -e "${item_home}" ] || [ -L "${item_home}" ]
+	if [ -e "${path_item_home}" ] || [ -L "${path_item_home}" ]
 	then
 		# add missing files to storage: stored files win
 
-		if [ -d "${item_home}" ] && [ ! -L "${item_home}" ]
+		if [ -d "${path_item_home}" ] && [ ! -L "${path_item_home}" ]
 		then
-			cp -a -n "${item_home}/." "${item_storage}/" 2> "${sink}"
+			cp -a -n "${path_item_home}/." "${path_item_storage}/" 2> "${sink}"
 
-		elif [ -f "${item_home}" ] && [ ! -L "${item_home}" ] && [ ! -e "${item_storage}" ]
+		elif [ -f "${path_item_home}" ] && [ ! -L "${path_item_home}" ] && [ ! -e "${path_item_storage}" ]
 		then
-			cp -p "${item_home}" "${item_storage}"
+			cp -p "${path_item_home}" "${path_item_storage}"
 		fi
 
-		if [ ! -e "${item_storage}" ]
+		if [ ! -e "${path_item_storage}" ]
 		then
 			frobulator.err "Unable to merge into storage" "[ ${item} ]"
 
@@ -279,11 +279,11 @@ claude_link () {
 
 		# move replaced item to trash
 
-		gio trash "${item_home}"
+		gio trash "${path_item_home}"
 
-		frobulator.fail "Unable to move to trash" "[ ${item_home} ]" || return
+		frobulator.fail "Unable to move to trash" "[ ${path_item_home} ]" || return
 
-		frobulator.inf "Moved to trash" "[ ${item_home} ]"
+		frobulator.inf "Moved to trash" "[ ${path_item_home} ]"
 	fi
 
 	frobulator.link "${directory_storage}" "${HOME}" "${item}"
@@ -314,7 +314,7 @@ then
 	frobulator.complete halt
 fi
 
-for item in "${items_list[@]}"
+for item in "${list_items[@]}"
 do
 	claude_link "${item}"
 done

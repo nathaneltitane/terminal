@@ -69,18 +69,18 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-n|--name)
-			docker_image_name="${2}"
+			name_image_docker="${2}"
 
 			shift
 		;;
 
 		-a|--address)
-			docker_image_address="${2}"
+			address_docker="${2}"
 
 			shift
 		;;
@@ -134,12 +134,12 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-docker_image_name="${docker_image_name:-pihole}"
-docker_image_address="${docker_image_address:-192.168.86.13}"
-docker_image_base="/var"
-docker_image_container="docker"
-docker_image_directory="${docker_image_base}"/"${docker_image_container}"/"${docker_image_name}"
-docker_image_source="${docker_image_name}"/"${docker_image_name}:latest"
+name_image_docker="${name_image_docker:-pihole}"
+address_docker="${address_docker:-192.168.86.13}"
+directory_base_docker="/var"
+name_directory_docker="docker"
+directory_image_docker="${directory_base_docker}"/"${name_directory_docker}"/"${name_image_docker}"
+source_image_docker="${name_image_docker}"/"${name_image_docker}:latest"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -169,65 +169,65 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [[ ! -d "${docker_image_directory}" ]]
+if [[ ! -d "${directory_image_docker}" ]]
 then
-	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+	frobulator.directory "${directory_base_docker}/${name_directory_docker}" "${name_image_docker}"
 
 	frobulator.complete
 else
-	frobulator.log "docker stop ${docker_image_name}"
+	frobulator.log "docker stop ${name_image_docker}"
 
 	frobulator.complete
 
-	frobulator.log "docker rm -f ${docker_image_name}"
+	frobulator.log "docker rm -f ${name_image_docker}"
 
 	frobulator.complete
 
-	frobulator.delete "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+	frobulator.delete "${directory_base_docker}/${name_directory_docker}" "${name_image_docker}"
 
 	frobulator.complete
 
-	frobulator.directory "${docker_image_base}/${docker_image_container}" "${docker_image_name}"
+	frobulator.directory "${directory_base_docker}/${name_directory_docker}" "${name_image_docker}"
 
 	frobulator.complete
 fi
 
-frobulator.inf "Deploying" "[ ${docker_image_name} ]"
+frobulator.inf "Deploying" "[ ${name_image_docker} ]"
 
 frobulator.fwd "Deploying..."
 
 docker run																					\
 	--detach																				\
-	--name "${docker_image_name}"															\
+	--name "${name_image_docker}"															\
 	--dns=127.0.0.1																			\
 	--dns=1.1.1.1																			\
 	--restart=unless-stopped																\
-	--hostname "${docker_image_name}"														\
+	--hostname "${name_image_docker}"														\
 	-p 53:53/tcp																			\
 	-p 53:53/udp																			\
 	-p 80:80																				\
-	-v "${docker_image_directory}/etc-${docker_image_name}:/etc/${docker_image_name}"		\
-	-v "${docker_image_directory}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
+	-v "${directory_image_docker}/etc-${name_image_docker}:/etc/${name_image_docker}"		\
+	-v "${directory_image_docker}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
 	-e tz="america/toronto"																	\
-	-e virtual_host="${docker_image_name}"													\
-	-e proxy_location="${docker_image_name}"												\
-	-e ftlconf_local_ipv4="${docker_image_address}"											\
-																							"${docker_image_source}" > "${sink}" 2>&1
+	-e virtual_host="${name_image_docker}"													\
+	-e proxy_location="${name_image_docker}"												\
+	-e ftlconf_local_ipv4="${address_docker}"											\
+																							"${source_image_docker}" > "${sink}" 2>&1
 
 frobulator.complete
 
-docker_image_id=$(docker container ls --all --quiet --filter "name=${docker_image_name}")
+id_image_docker=$(docker container ls --all --quiet --filter "name=${name_image_docker}")
 
 frobulator.complete
 
 seconds="0"
 timeout="30"
 
-while [ -z "${docker_image_password}" ] && [ "${seconds}" -lt "${timeout}" ]
+while [ -z "${password_docker}" ] && [ "${seconds}" -lt "${timeout}" ]
 do
-	docker_image_password=$(docker logs "${docker_image_name}" 2> "${sink}" | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
+	password_docker=$(docker logs "${name_image_docker}" 2> "${sink}" | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
 
-	if [ -z "${docker_image_password}" ]
+	if [ -z "${password_docker}" ]
 	then
 		sleep 1
 
@@ -237,13 +237,13 @@ done
 
 frobulator.complete
 
-frobulator.write "append" "${docker_image_password}" "${docker_image_directory}" password
+frobulator.write "append" "${password_docker}" "${directory_image_docker}" password
 
 frobulator.complete
 
-frobulator.inf "Image ID" "[ ${docker_image_id} ]"
+frobulator.inf "Image ID" "[ ${id_image_docker} ]"
 
-frobulator.inf "Password" "[ ${docker_image_password} ]"
+frobulator.inf "Password" "[ ${password_docker} ]"
 
 frobulator.result "${script}"
 

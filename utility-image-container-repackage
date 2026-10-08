@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -182,27 +182,27 @@ else
 	exit 1
 fi
 
-declare -A distributions_list=(
+declare -A list_distributions=(
 	[ubuntu]="18.04 20.04 22.04 24.04"
 	[debian]="10 11 12 13"
 	[fedora]="38 39 40 41"
 )
 
-for distribution in "${!distributions_list[@]}"
+for distribution in "${!list_distributions[@]}"
 do
-	for distribution_version in ${distributions_list[${distribution}]}
+	for version_distribution in ${list_distributions[${distribution}]}
 	do
-		docker pull --quiet --platform="${platform}" "${distribution}:${distribution_version}"
+		docker pull --quiet --platform="${platform}" "${distribution}:${version_distribution}"
 
 		frobulator.complete
 
-		docker image save "${distribution}:${distribution_version}" | xz > "${distribution}-${distribution_version}-container.tar.xz"
+		docker image save "${distribution}:${version_distribution}" | xz > "${distribution}-${version_distribution}-container.tar.xz"
 
 		frobulator.complete
 
-		for archive_input in *container.tar.xz
+		for file_archive_input in *container.tar.xz
 		do
-			archive_output="${archive_input/-container.tar.xz/.tar.xz}"
+			file_archive_output="${file_archive_input/-container.tar.xz/.tar.xz}"
 
 			frobulator.temporary directory_extraction
 
@@ -212,28 +212,28 @@ do
 
 			tar										\
 				--extract							\
-					--file="${archive_input}"   	\
+					--file="${file_archive_input}"   	\
 					--xz                        	\
 					--directory="${directory_extraction}"
 
 			frobulator.complete
 
-			archive_layer=$(find "${directory_extraction}" -name "layer.tar")
+			file_archive_layer=$(find "${directory_extraction}" -name "layer.tar")
 
-			if [ -f "${archive_layer}" ]
+			if [ -f "${file_archive_layer}" ]
 			then
-				xz -c "${archive_layer}" > "${archive_output}"
+				xz -c "${file_archive_layer}" > "${file_archive_output}"
 
-				mv "${archive_output}" "${directory_origin}"/"${archive_output}"
+				mv "${file_archive_output}" "${directory_origin}"/"${file_archive_output}"
 
-				frobulator.scs "Repackaged" "[ ${archive_output} ]"
+				frobulator.scs "Repackaged" "[ ${file_archive_output} ]"
 			else
-				frobulator.err "'layer.tar' not found in extracted content" "[ ${archive_input} ]"
+				frobulator.err "'layer.tar' not found in extracted content" "[ ${file_archive_input} ]"
 			fi
 
 			rm -r -f "${directory_extraction}"
 
-			rm -r -f "${archive_input}"
+			rm -r -f "${file_archive_input}"
 		done
 	done
 done
