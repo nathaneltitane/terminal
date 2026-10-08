@@ -6,55 +6,55 @@
 
 media () {
 
-	local type="${1}"
-	local source="${2}"
-	local path="${3}"
+	local type_media="${1}"
+	local source_media="${2}"
+	local directory_output="${3}"
 	local directory_binary="${HOME}/.local/bin"
 
-	local archive
-	local file
-	local files
-	local directory
+	local file_archive_deno
+	local path_file_media
+	local list_files_media
+	local directory_file
 	local name_source
 	local name_target
-	local browser
+	local name_browser
 	local duration_sleep
-	local format
-	local format_media
+	local format_download
+	local extension_media
 
-	local -a options_type=()
-	local -a options_url=()
-	local -a options_site=()
+	local -a list_options_type=()
+	local -a list_options_url=()
+	local -a list_options_site=()
 
-	if [ -z "${type}" ]
+	if [ -z "${type_media}" ]
 	then
 		frobulator.err "No type specified" "[ audio | video ]"
 
 		return 1
 	fi
 
-	if [ "${type}" != "audio" ] && [ "${type}" != "video" ]
+	if [ "${type_media}" != "audio" ] && [ "${type_media}" != "video" ]
 	then
-		frobulator.err "Invalid type" "[ ${type} ]"
+		frobulator.err "Invalid type" "[ ${type_media} ]"
 
 		return 1
 	fi
 
-	if [ -z "${source}" ]
+	if [ -z "${source_media}" ]
 	then
 		frobulator.err "No source specified"
 
 		return 1
 	fi
 
-	if [ -z "${path}" ]
+	if [ -z "${directory_output}" ]
 	then
-		path="${PWD}"
+		directory_output="${PWD}"
 	fi
 
-	if [ ! -d "${path}" ]
+	if [ ! -d "${directory_output}" ]
 	then
-		path="${PWD}"
+		directory_output="${PWD}"
 	fi
 
 	if [ ! -f "${directory_binary}/yt-dlp" ]
@@ -73,13 +73,13 @@ media () {
 
 	if [ ! -f "${directory_binary}/deno" ]
 	then
-		archive="deno-x86_64-unknown-linux-gnu.zip"
+		file_archive_deno="deno-x86_64-unknown-linux-gnu.zip"
 
-		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${directory_binary}" "${archive}"
+		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${directory_binary}" "${file_archive_deno}"
 
-		unzip -o -q "${directory_binary}/${archive}" -d "${directory_binary}"
+		unzip -o -q "${directory_binary}/${file_archive_deno}" -d "${directory_binary}"
 
-		rm -f "${directory_binary}/${archive}"
+		rm -f "${directory_binary}/${file_archive_deno}"
 
 		chmod +x "${directory_binary}/deno"
 	else
@@ -93,50 +93,50 @@ media () {
 		return 1
 	fi
 
-	if [ "${type}" = "audio" ]
+	if [ "${type_media}" = "audio" ]
 	then
-		format="bestaudio"
-		format_media="mp3"
+		format_download="bestaudio"
+		extension_media="mp3"
 
-		options_type+=( --extract-audio )
-		options_type+=( --audio-format "${format_media}" )
-		options_type+=( --audio-quality best )
-		options_type+=( --output '%(uploader)s - %(title)s.%(ext)s' )
+		list_options_type+=( --extract-audio )
+		list_options_type+=( --audio-format "${extension_media}" )
+		list_options_type+=( --audio-quality best )
+		list_options_type+=( --output '%(uploader)s - %(title)s.%(ext)s' )
 
-	elif [ "${type}" = "video" ]
+	elif [ "${type_media}" = "video" ]
 	then
-		format="bestvideo+bestaudio"
-		format_media="mp4"
+		format_download="bestvideo+bestaudio"
+		extension_media="mp4"
 
-		options_type+=( --merge-output-format "${format_media}" )
-		options_type+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
+		list_options_type+=( --merge-output-format "${extension_media}" )
+		list_options_type+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
 	fi
 
-	if [ -f "${source}" ]
+	if [ -f "${source_media}" ]
 	then
-		options_url+=( --batch-file )
+		list_options_url+=( --batch-file )
 	fi
 
-	if [ "${source#*soundcloud.com}" = "${source}" ]
+	if [ "${source_media#*soundcloud.com}" = "${source_media}" ]
 	then
-		browser="$(xdg-settings get default-web-browser 2>"${sink}")"
+		name_browser="$(xdg-settings get default-web-browser 2>"${sink}")"
 
-		browser="${browser%.desktop}"
+		name_browser="${name_browser%.desktop}"
 
-		if [[ "${browser}" = firefox* ]] ||
-		[[ "${browser}" = librewolf*  ]] ||
-		[[ "${browser}" = waterfox*   ]]
+		if [[ "${name_browser}" = firefox* ]] ||
+		[[ "${name_browser}" = librewolf*  ]] ||
+		[[ "${name_browser}" = waterfox*   ]]
 		then
-			browser="firefox"
+			name_browser="firefox"
 
-		elif [[ "${browser}" = chrome*       ]] ||
-			[[ "${browser}" = google-chrome* ]] ||
-			[[ "${browser}" = chromium*      ]] ||
-			[[ "${browser}" = brave*         ]] ||
-			[[ "${browser}" = vivaldi*       ]] ||
-			[[ "${browser}" = opera*         ]]
+		elif [[ "${name_browser}" = chrome*       ]] ||
+			[[ "${name_browser}" = google-chrome* ]] ||
+			[[ "${name_browser}" = chromium*      ]] ||
+			[[ "${name_browser}" = brave*         ]] ||
+			[[ "${name_browser}" = vivaldi*       ]] ||
+			[[ "${name_browser}" = opera*         ]]
 		then
-			browser="chrome"
+			name_browser="chrome"
 
 		else
 			frobulator.err "No compatible browser found on system"
@@ -144,10 +144,10 @@ media () {
 			return 1
 		fi
 
-		options_site+=( --cookies-from-browser "${browser}" )
+		list_options_site+=( --cookies-from-browser "${name_browser}" )
 	fi
 
-	cd "${path}"
+	cd "${directory_output}"
 
 	duration_sleep=$(( RANDOM % 5 + 1 ))
 
@@ -161,28 +161,28 @@ media () {
 		--no-overwrites										\
 		--sleep-requests		"${duration_sleep}"			\
 		--yes-playlist										\
-		--format				"${format}"					\
-		"${options_site[@]}"								\
-		"${options_type[@]}"								\
-		"${options_url[@]}"									\
-		"${source}" &
+		--format				"${format_download}"					\
+		"${list_options_site[@]}"								\
+		"${list_options_type[@]}"								\
+		"${list_options_url[@]}"									\
+		"${source_media}" &
 
 	frobulator.progress download
 
-	files="$(find "${PWD}" -type f -iname "*.${format_media}")"
+	list_files_media="$(find "${PWD}" -type f -iname "*.${extension_media}")"
 
 	IFS=$'\n'
 
-	for file in ${files}
+	for path_file_media in ${list_files_media}
 	do
-		directory="${file%/*}"
-		name_source="${file##*/}"
+		directory_file="${path_file_media%/*}"
+		name_source="${path_file_media##*/}"
 
 		name_target="${name_source// - Topic/}"
 
 		if [ "${name_source}" != "${name_target}" ]
 		then
-			mv -- "${file}" "${directory}/${name_target}"
+			mv -- "${path_file_media}" "${directory_file}/${name_target}"
 		fi
 	done
 

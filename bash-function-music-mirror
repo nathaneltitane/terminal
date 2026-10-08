@@ -11,32 +11,32 @@ music-mirror () {
 	# usage: music-mirror [utility-add-remove options: -e execute / -y skip confirmation]
 	# without options every folder is a dry run
 
-	local music_external="/media/${USER}/external/Music"
+	local directory_music_external="/media/${USER}/external/Music"
 
-	local music_phone
-	local music_utility
-	local music_candidate
-	local music_folder
-	local music_subfolder
-	local music_relative
+	local directory_music_phone
+	local path_utility
+	local directory_candidate
+	local directory_folder_phone
+	local directory_subfolder_phone
+	local path_relative
 
-	local -a music_subfolders=()
-	local -a music_list=()
-	local -a music_options=("${@}")
+	local -a list_subfolders_phone=()
+	local -a list_paths_relative=()
+	local -a list_options=("${@}")
 
 	# phone storage mounted by kde connect
 
-	for music_candidate in /run/user/"$(id -u)"/*/storage/emulated/0/Music
+	for directory_candidate in /run/user/"$(id -u)"/*/storage/emulated/0/Music
 	do
-		if [ -d "${music_candidate}" ]
+		if [ -d "${directory_candidate}" ]
 		then
-			music_phone="${music_candidate}"
+			directory_music_phone="${directory_candidate}"
 
 			break
 		fi
 	done
 
-	if [ -z "${music_phone}" ]
+	if [ -z "${directory_music_phone}" ]
 	then
 		frobulator.err "Phone music folder not mounted" "[ kde connect ]"
 		frobulator.nul "Open the phone in dolphin or browse it through kde connect first."
@@ -44,52 +44,52 @@ music-mirror () {
 		return 1
 	fi
 
-	if [ ! -d "${music_external}" ]
+	if [ ! -d "${directory_music_external}" ]
 	then
-		frobulator.err "External music folder not found" "[ ${music_external} ]"
+		frobulator.err "External music folder not found" "[ ${directory_music_external} ]"
 
 		return 1
 	fi
 
-	music_utility="$(command -v utility-add-remove)"
+	path_utility="$(command -v utility-add-remove)"
 
-	if [ -z "${music_utility}" ]
+	if [ -z "${path_utility}" ]
 	then
 		frobulator.download get.trmnl.me "${HOME}/.local/bin" utility-add-remove || return
 
-		music_utility="${HOME}/.local/bin/utility-add-remove"
+		path_utility="${HOME}/.local/bin/utility-add-remove"
 	fi
 
 	# folder list: subfolders kept on the phone or the folder itself when it has none
 
-	for music_folder in "${music_phone}"/*/
+	for directory_folder_phone in "${directory_music_phone}"/*/
 	do
-		music_subfolders=("${music_folder}"*/)
+		list_subfolders_phone=("${directory_folder_phone}"*/)
 
-		if [ -d "${music_subfolders[0]}" ]
+		if [ -d "${list_subfolders_phone[0]}" ]
 		then
-			for music_subfolder in "${music_subfolders[@]}"
+			for directory_subfolder_phone in "${list_subfolders_phone[@]}"
 			do
-				music_list+=("$(basename -- "${music_folder}")/$(basename -- "${music_subfolder}")")
+				list_paths_relative+=("$(basename -- "${directory_folder_phone}")/$(basename -- "${directory_subfolder_phone}")")
 			done
 		else
-			music_list+=("$(basename -- "${music_folder}")")
+			list_paths_relative+=("$(basename -- "${directory_folder_phone}")")
 		fi
 	done
 
 	# each folder mirrored on its own from the external drive
 
-	for music_relative in "${music_list[@]}"
+	for path_relative in "${list_paths_relative[@]}"
 	do
-		if [ ! -d "${music_external}/${music_relative}" ]
+		if [ ! -d "${directory_music_external}/${path_relative}" ]
 		then
-			frobulator.wrn "Skipped - not on external drive" "[ '${music_relative}' ]"
+			frobulator.wrn "Skipped - not on external drive" "[ '${path_relative}' ]"
 
 			continue
 		fi
 
-		frobulator.fwd "Mirroring" "[ '${music_relative}' ]"
+		frobulator.fwd "Mirroring" "[ '${path_relative}' ]"
 
-		bash "${music_utility}" -f "${music_external}/${music_relative}" -t "${music_phone}/${music_relative}" -m "${music_options[@]}"
+		bash "${path_utility}" -f "${directory_music_external}/${path_relative}" -t "${directory_music_phone}/${path_relative}" -m "${list_options[@]}"
 	done
 }

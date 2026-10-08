@@ -17,33 +17,33 @@ play () {
 		frobulator.require mpv
 	fi
 
-	before="[${marker_spc}"
-	after="${marker_spc}]"
+	bracket_open="[${marker_spc}"
+	bracket_close="${marker_spc}]"
 
 	action="Playing"
 
-	file="${1}"
+	file_audio="${1}"
 
 	if [ $# -eq 2 ]
 	then
 		action="${1}"
 
-		file="${2}"
+		file_audio="${2}"
 	fi
 
-	title="${file##*/}"
+	title_audio="${file_audio##*/}"
 
 
 	# frobulator.pmt "${@}"
 
 	# substitute standard input for function specific criteria:
-	# [ ... ] action ───────────────────────────────────────────...─── [ title ]
+	# [ ... ] action ───────────────────────────────────────────...─── [ title_audio ]
 
-	frobulator.pmt "${action}" "${title}"
+	frobulator.pmt "${action}" "${title_audio}"
 
 	prompt="${prompt_string[@]}"
 
-	ticker=(
+	list_frames_ticker=(
 		".  "
 		".. "
 		"..."
@@ -52,20 +52,20 @@ play () {
 		"   "
 	)
 
-	instance=0
+	index_frame=0
 
 	mpv					\
 		--no-video		\
 		--really-quiet	\
-						"${file}" < "${sink}" > "${sink}" 2>&1 &
+						"${file_audio}" < "${sink}" > "${sink}" 2>&1 &
 
-	PID=$!
+	id_process_player=$!
 
-	while [ -d /proc/"${PID}" ]
+	while [ -d /proc/"${id_process_player}" ]
 	do
-		ticker_frame="${ticker[instance++%${#ticker[@]}]}"
+		frame_ticker="${list_frames_ticker[index_frame++%${#list_frames_ticker[@]}]}"
 
-		echo -n -e "\r${before}${ticker_frame}${after}${reset}${marker_spc}${prompt}\c"
+		echo -n -e "\r${bracket_open}${frame_ticker}${bracket_close}${reset}${marker_spc}${prompt}\c"
 
 		sleep 0.25
 	done

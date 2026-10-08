@@ -8,21 +8,21 @@ temperature () {
 
 	if [[ -d /sys/class/thermal ]]
 	then
-		acpitz_count=0
-		cpu_label=""
-		cpu_degrees=""
-		lines=()
-		max_length=0
+		count_acpitz=0
+		label_cpu=""
+		degrees_cpu=""
+		list_lines=()
+		length_label_longest=0
 
-		for zone in /sys/class/thermal/thermal_zone*
+		for directory_zone in /sys/class/thermal/thermal_zone*
 		do
-			label=$(cat "${zone}"/type)
+			label=$(cat "${directory_zone}"/type)
 
 			if [ "${label}" = "acpitz" ]
 			then
-				acpitz_count=$(( acpitz_count + 1 ))
+				count_acpitz=$(( count_acpitz + 1 ))
 
-				label="System ${acpitz_count}"
+				label="System ${count_acpitz}"
 
 			elif [[ "${label}" = pch_* ]]
 			then
@@ -40,37 +40,37 @@ temperature () {
 				label="${label//_/ }"
 			fi
 
-			degrees=$(cat "${zone}"/temp)
+			degrees=$(cat "${directory_zone}"/temp)
 			degrees=$(( degrees / 1000 ))
 
-			if [ "${#label}" -gt "${max_length}" ]
+			if [ "${#label}" -gt "${length_label_longest}" ]
 			then
-				max_length="${#label}"
+				length_label_longest="${#label}"
 			fi
 
 			if [ "${label}" = "CPU" ]
 			then
-				cpu_label="${label}"
-				cpu_degrees="${degrees}"
+				label_cpu="${label}"
+				degrees_cpu="${degrees}"
 			else
-				lines+=("${label}|${degrees}")
+				list_lines+=("${label}|${degrees}")
 			fi
 		done
 
-		pad=$(( max_length + 4 ))
+		width_label=$(( length_label_longest + 4 ))
 
-		if [ -n "${cpu_label}" ]
+		if [ -n "${label_cpu}" ]
 		then
-			printf "%-${pad}s%s°C\n" "${cpu_label}:" "${cpu_degrees}"
+			printf "%-${width_label}s%s°C\n" "${label_cpu}:" "${degrees_cpu}"
 		fi
 
-		printf '%s\n' "${lines[@]}" | sort |
+		printf '%s\n' "${list_lines[@]}" | sort |
 		while IFS='|' read -r label degrees
 		do
-			printf "%-${pad}s%s°C\n" "${label}:" "${degrees}"
+			printf "%-${width_label}s%s°C\n" "${label}:" "${degrees}"
 		done
 
-		unset acpitz_count cpu_label cpu_degrees lines max_length pad
+		unset count_acpitz label_cpu degrees_cpu list_lines length_label_longest width_label
 	fi
 
 }

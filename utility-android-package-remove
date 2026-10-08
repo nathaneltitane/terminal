@@ -71,7 +71,7 @@ version="2026-10-04"
 
 dry_run=false
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -124,8 +124,8 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-path_android="${HOME}/.local/lib/android"
-path_android_platform_tools="${path_android}/platform-tools"
+directory_android="${HOME}/.local/lib/android"
+directory_platform_tools="${directory_android}/platform-tools"
 url_android_platform_tools="https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
 
 # defaults ─────────────────────────────────────────────────────────────────────
@@ -176,13 +176,13 @@ android_platform_tools_update () {
 
 	frobulator.terminate "adb"
 
-	frobulator.directory "${path_android}"
+	frobulator.directory "${directory_android}"
 
 	frobulator.directory "${HOME}/.local/bin"
 
-	frobulator.delete "${path_android_platform_tools}"
+	frobulator.delete "${directory_platform_tools}"
 
-	mv "${path_extracted}" "${path_android_platform_tools}"
+	mv "${path_extracted}" "${directory_platform_tools}"
 
 	list=(
 		adb
@@ -191,17 +191,17 @@ android_platform_tools_update () {
 
 	for item in "${list[@]}"
 	do
-		frobulator.link "${path_android_platform_tools}" "${HOME}/.local/bin" "${item}"
+		frobulator.link "${directory_platform_tools}" "${HOME}/.local/bin" "${item}"
 	done
 
 	list=()
 
 	if [ "${USER}" != "root" ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${path_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
+		chown -R "${USER}:$(id -g "${USER}")" "${directory_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
 	fi
 
-	export PATH="${HOME}/.local/bin:${path_android_platform_tools}:${PATH}"
+	export PATH="${HOME}/.local/bin:${directory_platform_tools}:${PATH}"
 
 	hash -r
 

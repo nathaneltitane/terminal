@@ -8,7 +8,7 @@ snippet () {
 
 	url="http://sprunge.us"
 
-	if (($#))
+	if (( $# ))
 	then
 		curl -F 'sprunge=<-' "${url}" < "${1}"
 	else

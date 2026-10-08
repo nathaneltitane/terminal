@@ -10,11 +10,11 @@ adb_write () {
 
 	adb_set_environment
 
-	hostname=$(adb ${device} shell getprop net.hostname)
+	name_host=$(adb ${device} shell getprop net.name_host)
 
-	write_command"${@}"
+	text_write"${@}"
 
-	echo ${write_command@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
+	echo ${text_write@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
 
 	# enter
 

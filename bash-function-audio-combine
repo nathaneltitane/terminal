@@ -9,30 +9,30 @@ audio_combine_connect () {
 	# connect a bluetooth device unless already connected - wait for each attempt:
 	# speakers often answer only after a few page timeouts
 
-	local bluetooth_address="${1}"
+	local address_bluetooth="${1}"
 
-	local connect_attempt
-	local connect_second
-	local bluetooth_information
+	local index_attempt
+	local index_second_connect
+	local information_bluetooth
 
-	for connect_attempt in {1..6}
+	for index_attempt in {1..6}
 	do
 		# bluez device details - including its 'Connected: yes / no' line
 
-		bluetooth_information="$(bluetoothctl info "${bluetooth_address}" 2> "${sink}")"
+		information_bluetooth="$(bluetoothctl info "${address_bluetooth}" 2> "${sink}")"
 
-		if [[ "${bluetooth_information}" = *"Connected: yes"* ]]
+		if [[ "${information_bluetooth}" = *"Connected: yes"* ]]
 		then
 			return 0
 		fi
 
-		bluetoothctl connect "${bluetooth_address}" > "${sink}" 2>&1
+		bluetoothctl connect "${address_bluetooth}" > "${sink}" 2>&1
 
-		for connect_second in {1..10}
+		for index_second_connect in {1..10}
 		do
-			bluetooth_information="$(bluetoothctl info "${bluetooth_address}" 2> "${sink}")"
+			information_bluetooth="$(bluetoothctl info "${address_bluetooth}" 2> "${sink}")"
 
-			if [[ "${bluetooth_information}" = *"Connected: yes"* ]]
+			if [[ "${information_bluetooth}" = *"Connected: yes"* ]]
 			then
 				return 0
 			fi
@@ -48,19 +48,19 @@ audio_combine_sink_wait () {
 
 	# wait for a sink to appear
 
-	local sink_name="${1}"
-	local sink_timeout="${2:-15}"
+	local name_sink="${1}"
+	local timeout_sink="${2:-15}"
 
-	local sink_second
-	local sink_list
+	local index_second_wait
+	local list_sinks
 
-	for (( sink_second=0 ; sink_second<sink_timeout ; sink_second++ ))
+	for (( index_second_wait = 0 ; index_second_wait < timeout_sink ; index_second_wait ++ ))
 	do
 		# one line per sink: index / name / driver / format / state - tab separated
 
-		sink_list="$(pactl list short sinks)"
+		list_sinks="$(pactl list short sinks)"
 
-		if [[ "${sink_list}" = *"	${sink_name}	"* ]]
+		if [[ "${list_sinks}" = *"	${name_sink}	"* ]]
 		then
 			return 0
 		fi
@@ -75,96 +75,96 @@ audio_combine_outputs () {
 
 	# number of outputs the combined sink currently plays to
 
-	local sink_input_count=0
+	local count_inputs_combined=0
 
-	local sink_input_line
+	local line_input_sink
 
-	while IFS= read -r sink_input_line
+	while IFS= read -r line_input_sink
 	do
-		if [[ "${sink_input_line}" = *module-combine-sink* ]]
+		if [[ "${line_input_sink}" = *module-combine-sink* ]]
 		then
-			sink_input_count=$(( sink_input_count + 1 ))
+			count_inputs_combined=$(( count_inputs_combined + 1 ))
 		fi
 	done < <(pactl list short sink-inputs)
 
-	echo "${sink_input_count}"
+	echo "${count_inputs_combined}"
 }
 
 audio_combine_load () {
 
 	# (re)create the combined sink - make it default - move playing streams to it
 
-	local sink_combined="${1}"
+	local name_sink_combined="${1}"
 
-	local sink_slave
-	local sink_input_index
-	local sink_input_sink
-	local sink_input_client
-	local sink_input_driver
-	local slaves_joined
+	local name_sink_slave
+	local index_input
+	local name_sink_input
+	local client_input
+	local driver_input
+	local text_slaves_joined
 
-	local -a sink_slaves=("${@:2}")
+	local -a list_sinks_slave=("${@:2}")
 
-	audio_combine_unload "${sink_combined}"
+	audio_combine_unload "${name_sink_combined}"
 
-	slaves_joined="${sink_slaves[*]}"
+	text_slaves_joined="${list_sinks_slave[*]}"
 
 	# adjust_time=0: no rate adjustment timer - pulseaudio 16.1 aborts in its callback
 	# ('u->time_event == e' in module-combine-sink time_callback) - dropping both speakers
 
-	pactl load-module module-combine-sink sink_name="${sink_combined}" slaves="${slaves_joined// /,}" adjust_time=0 > "${sink}" || return
+	pactl load-module module-combine-sink sink_name="${name_sink_combined}" slaves="${text_slaves_joined// /,}" adjust_time=0 > "${sink}" || return
 
-	pactl set-default-sink "${sink_combined}"
+	pactl set-default-sink "${name_sink_combined}"
 
-	while IFS=$'\t' read -r sink_input_index sink_input_sink sink_input_client sink_input_driver
+	while IFS=$'\t' read -r index_input name_sink_input client_input driver_input
 	do
-		if [[ "${sink_input_driver}" != module-combine-sink* ]]
+		if [[ "${driver_input}" != module-combine-sink* ]]
 		then
-			pactl move-sink-input "${sink_input_index}" "${sink_combined}" 2> "${sink}"
+			pactl move-sink-input "${index_input}" "${name_sink_combined}" 2> "${sink}"
 		fi
 	done < <(pactl list short sink-inputs)
 
-	for sink_slave in "${sink_slaves[@]}"
+	for name_sink_slave in "${list_sinks_slave[@]}"
 	do
-		pactl set-sink-volume "${sink_slave}" 100%
+		pactl set-sink-volume "${name_sink_slave}" 100%
 	done
 
-	pactl set-sink-volume "${sink_combined}" 75%
+	pactl set-sink-volume "${name_sink_combined}" 75%
 }
 
 audio_combine_watch () {
 
 	# background watcher: reconnect dropped speakers - rebuild the combined sink once they return
 
-	local file_watch_pid="${1}"
-	local sink_combined="${2}"
+	local file_pid_watch="${1}"
+	local name_sink_combined="${2}"
 
-	local -a bluetooth_addresses=(${3})
-	local -a sink_slaves=("${@:4}")
+	local -a list_addresses_bluetooth=(${3})
+	local -a list_sinks_slave=("${@:4}")
 
 	(
-		pactl subscribe | while IFS= read -r audio_event
+		pactl subscribe | while IFS= read -r line_event_audio
 		do
-			if [[ "${audio_event}" = *"'remove' on sink"* ]]
+			if [[ "${line_event_audio}" = *"'remove' on sink"* ]]
 			then
 				# bluetooth still reports the device connected while it drops
 
 				sleep 5
 
-				for bluetooth_address in "${bluetooth_addresses[@]}"
+				for address_bluetooth in "${list_addresses_bluetooth[@]}"
 				do
-					audio_combine_connect "${bluetooth_address}" &
+					audio_combine_connect "${address_bluetooth}" &
 				done
 
-			elif [[ "${audio_event}" = *"'new' on sink"* ]]
+			elif [[ "${line_event_audio}" = *"'new' on sink"* ]]
 			then
 				sleep 2
 
-				sink_list="$(pactl list short sinks)"
+				list_sinks="$(pactl list short sinks)"
 
-				for sink_slave in "${sink_slaves[@]}"
+				for name_sink_slave in "${list_sinks_slave[@]}"
 				do
-					if [[ "${sink_list}" != *"	${sink_slave}	"* ]]
+					if [[ "${list_sinks}" != *"	${name_sink_slave}	"* ]]
 					then
 						continue 2
 					fi
@@ -172,17 +172,17 @@ audio_combine_watch () {
 
 				# speakers the combined sink plays to
 
-				sink_outputs="$(audio_combine_outputs)"
+				count_outputs_combined="$(audio_combine_outputs)"
 
-				if [ "${sink_outputs}" -lt "${#sink_slaves[@]}" ]
+				if [ "${count_outputs_combined}" -lt "${#list_sinks_slave[@]}" ]
 				then
-					audio_combine_load "${sink_combined}" "${sink_slaves[@]}"
+					audio_combine_load "${name_sink_combined}" "${list_sinks_slave[@]}"
 				fi
 			fi
 		done
 	) > "${sink}" 2>&1 &
 
-	echo "${!}" > "${file_watch_pid}"
+	echo "${!}" > "${file_pid_watch}"
 
 	disown
 }
@@ -191,14 +191,14 @@ audio_combine_watch_stop () {
 
 	# stop the background watcher
 
-	local file_watch_pid="${1}"
+	local file_pid_watch="${1}"
 
-	if [ -f "${file_watch_pid}" ]
+	if [ -f "${file_pid_watch}" ]
 	then
-		pkill -P "$(< "${file_watch_pid}")" 2> "${sink}"
-		kill "$(< "${file_watch_pid}")" 2> "${sink}"
+		pkill -P "$(< "${file_pid_watch}")" 2> "${sink}"
+		kill "$(< "${file_pid_watch}")" 2> "${sink}"
 
-		rm -f "${file_watch_pid}"
+		rm -f "${file_pid_watch}"
 	fi
 }
 
@@ -206,16 +206,16 @@ audio_combine_unload () {
 
 	# remove the combined sink
 
-	local sink_combined="${1}"
+	local name_sink_combined="${1}"
 
-	local module_index
-	local module_line
+	local index_module
+	local line_module
 
-	while IFS=$'\t' read -r module_index module_line
+	while IFS=$'\t' read -r index_module line_module
 	do
-		if [[ "${module_line}" = module-combine-sink*"sink_name=${sink_combined}"* ]]
+		if [[ "${line_module}" = module-combine-sink*"sink_name=${name_sink_combined}"* ]]
 		then
-			pactl unload-module "${module_index}"
+			pactl unload-module "${index_module}"
 		fi
 	done < <(pactl list short modules)
 }
@@ -225,64 +225,64 @@ audio-combine () {
 	# combine two bluetooth speakers into one output - kept alive across dropouts
 	# usage: audio-combine [stop]
 
-	local sink_combined="bluez_sink_combined"
+	local name_sink_combined="bluez_sink_combined"
 
-	local -a bluetooth_addresses=(
+	local -a list_addresses_bluetooth=(
 
 		"FC:E8:06:19:8E:9C"
 		"FC:E8:06:19:77:00"
 	)
-	local bluetooth_address
-	local -a sink_slaves=()
-	local sink_slave
-	local file_watch_pid="${XDG_RUNTIME_DIR:-/tmp}/audio-combine.pid"
+	local address_bluetooth
+	local -a list_sinks_slave=()
+	local name_sink_slave
+	local file_pid_watch="${XDG_RUNTIME_DIR:-/tmp}/audio-combine.pid"
 
-	for bluetooth_address in "${bluetooth_addresses[@]}"
+	for address_bluetooth in "${list_addresses_bluetooth[@]}"
 	do
-		sink_slaves+=("bluez_sink.${bluetooth_address//:/_}.a2dp_sink")
+		list_sinks_slave+=("bluez_sink.${address_bluetooth//:/_}.a2dp_sink")
 	done
 
 	if [ "${1}" = "stop" ]
 	then
-		audio_combine_watch_stop "${file_watch_pid}"
-		audio_combine_unload "${sink_combined}"
+		audio_combine_watch_stop "${file_pid_watch}"
+		audio_combine_unload "${name_sink_combined}"
 
-		frobulator.inf "Combined audio stopped" "[ ${sink_combined} ]"
+		frobulator.inf "Combined audio stopped" "[ ${name_sink_combined} ]"
 
 		return 0
 	fi
 
 	# connect bluetooth devices
 
-	for bluetooth_address in "${bluetooth_addresses[@]}"
+	for address_bluetooth in "${list_addresses_bluetooth[@]}"
 	do
-		if ! audio_combine_connect "${bluetooth_address}"
+		if ! audio_combine_connect "${address_bluetooth}"
 		then
-			frobulator.err "Unable to connect" "[ ${bluetooth_address} ]"
+			frobulator.err "Unable to connect" "[ ${address_bluetooth} ]"
 			frobulator.nul "Make sure the device is powered on, paired and trusted."
 
 			return 1
 		fi
 	done
 
-	for sink_slave in "${sink_slaves[@]}"
+	for name_sink_slave in "${list_sinks_slave[@]}"
 	do
-		if ! audio_combine_sink_wait "${sink_slave}" 15
+		if ! audio_combine_sink_wait "${name_sink_slave}" 15
 		then
-			frobulator.err "Sink not found after connecting" "[ ${sink_slave} ]"
+			frobulator.err "Sink not found after connecting" "[ ${name_sink_slave} ]"
 			frobulator.nul "Run 'pactl list short sinks' for details."
 
 			return 1
 		fi
 	done
 
-	audio_combine_load "${sink_combined}" "${sink_slaves[@]}" || return
+	audio_combine_load "${name_sink_combined}" "${list_sinks_slave[@]}" || return
 
 	# one watcher at a time
 
-	audio_combine_watch_stop "${file_watch_pid}"
+	audio_combine_watch_stop "${file_pid_watch}"
 
-	audio_combine_watch "${file_watch_pid}" "${sink_combined}" "${bluetooth_addresses[*]}" "${sink_slaves[@]}"
+	audio_combine_watch "${file_pid_watch}" "${name_sink_combined}" "${list_addresses_bluetooth[*]}" "${list_sinks_slave[@]}"
 
-	frobulator.scs "Combined audio active" "[ ${sink_combined} ]"
+	frobulator.scs "Combined audio active" "[ ${name_sink_combined} ]"
 }
