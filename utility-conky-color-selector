@@ -149,33 +149,33 @@ rgb_to_hex () {
 
 	IFS='(,)'
 
-	read _ r g b <<< "${1}"
+	read _ value_red value_green value_blue <<< "${1}"
 
-	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+	printf '%02x%02x%02x\n' ${value_red} ${value_green} ${value_blue}
 }
 
 hex_to_rgb () {
 
-	read hex <<< "${1}"
+	read code_hex <<< "${1}"
 
-	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
+	[[ ${code_hex:0:1} = "#" ]] && code_hex=${code_hex:1:6}
 
-	r=$((16#${hex:0:2}))
-	g=$((16#${hex:2:2}))
-	b=$((16#${hex:4:2}))
+	value_red=$(( 16#${code_hex:0:2} ))
+	value_green=$(( 16#${code_hex:2:2} ))
+	value_blue=$(( 16#${code_hex:4:2} ))
 
-	printf '%03d %03d %03d\n' ${r} ${g} ${b}
+	printf '%03d %03d %03d\n' ${value_red} ${value_green} ${value_blue}
 }
 
-default_color="cccccc"
-color_input="$(zenity --color-selection --color="#cccccc" --show-palette)"
-color_selection=$(rgb_to_hex "${color_input}")
+color_default="cccccc"
+input_color="$(zenity --color-selection --color="#cccccc" --show-palette)"
+code_hex_selection=$(rgb_to_hex "${input_color}")
 
-if [[ "$color_input" != "" ]]
+if [[ "${input_color}" != "" ]]
 then
-	color="$color_selection"
+	color="${code_hex_selection}"
 else
-	color="$default_color"
+	color="${color_default}"
 fi
 
 find "${HOME}" -type f -name *conkyrc -exec \

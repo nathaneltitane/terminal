@@ -148,34 +148,34 @@ rgb_to_hex () {
 
 	IFS='(,)'
 
-	read _ r g b <<< "${1}"
+	read _ value_red value_green value_blue <<< "${1}"
 
-	printf '%02x%02x%02x\n' ${r} ${g} ${b}
+	printf '%02x%02x%02x\n' ${value_red} ${value_green} ${value_blue}
 }
 
 hex_to_rgb () {
 
-	read hex <<< "${1}"
+	read code_hex <<< "${1}"
 
-	[[ ${hex:0:1} = "#" ]] && hex=${hex:1:6}
+	[[ ${code_hex:0:1} = "#" ]] && code_hex=${code_hex:1:6}
 
-	r=$((16#${hex:0:2}))
-	g=$((16#${hex:2:2}))
-	b=$((16#${hex:4:2}))
+	value_red=$(( 16#${code_hex:0:2} ))
+	value_green=$(( 16#${code_hex:2:2} ))
+	value_blue=$(( 16#${code_hex:4:2} ))
 
-	printf '%03d %03d %03d\n' ${r} ${g} ${b}
+	printf '%03d %03d %03d\n' ${value_red} ${value_green} ${value_blue}
 }
 
-default_color="333333"
+color_default="333333"
 
-color_input="$(zenity --color-selection --color="${default_color}" --show-palette)"
-color_selection=$(rgb_to_hex "${color_input}")
+input_color="$(zenity --color-selection --color="${color_default}" --show-palette)"
+code_hex_selection=$(rgb_to_hex "${input_color}")
 
-if [ ! -z "${color_input}" ]
+if [ ! -z "${input_color}" ]
 then
-	color="#${color_selection}"
+	color="#${code_hex_selection}"
 else
-	color="#${default_color}"
+	color="#${color_default}"
 fi
 
 # desktop #
@@ -196,56 +196,56 @@ gsettings set org.gnome.desktop.background primary-color "{$color}"
 gsettings set org.gnome.desktop.background secondary-color "{$color}"
 gsettings set org.gnome.desktop.background picture-uri "''"
 
-	unset picture_option
+	unset command_picture_option
 
-	picture_option+="zenity"
-	picture_option+=" --title='Select a picture option'"
-	picture_option+=" --width=300"
-	picture_option+=" --height=250"
-	picture_option+=" --text='Specify an image layout option'"
-	picture_option+=" --list"
-	picture_option+=" --radiolist"
-	picture_option+=" --column=Selection"
-	picture_option+=" TRUE"
-	picture_option+=" FALSE"
-	picture_option+=" FALSE"
-	picture_option+=" FALSE"
-	picture_option+=" FALSE"
-	picture_option+=" FALSE"
-	picture_option+=" --column=Option"
-	picture_option+=" wallpaper"
-	picture_option+=" center"
-	picture_option+=" scaled"
-	picture_option+=" stretched"
-	picture_option+=" zoom"
-	picture_option+=" spanned"
+	command_picture_option+="zenity"
+	command_picture_option+=" --title='Select a picture option'"
+	command_picture_option+=" --width=300"
+	command_picture_option+=" --height=250"
+	command_picture_option+=" --text='Specify an image layout option'"
+	command_picture_option+=" --list"
+	command_picture_option+=" --radiolist"
+	command_picture_option+=" --column=Selection"
+	command_picture_option+=" TRUE"
+	command_picture_option+=" FALSE"
+	command_picture_option+=" FALSE"
+	command_picture_option+=" FALSE"
+	command_picture_option+=" FALSE"
+	command_picture_option+=" FALSE"
+	command_picture_option+=" --column=Option"
+	command_picture_option+=" wallpaper"
+	command_picture_option+=" center"
+	command_picture_option+=" scaled"
+	command_picture_option+=" stretched"
+	command_picture_option+=" zoom"
+	command_picture_option+=" spanned"
 
-	${picture_option} 2> "${sink}"
+	${command_picture_option} 2> "${sink}"
 
-picture_uri+="zenity"
-picture_uri+=" --file-selection"
-picture_uri+=" --separator=$'\n'"
-picture_uri+=" --title='Select a Directory'"
+command_picture_uri+="zenity"
+command_picture_uri+=" --file-selection"
+command_picture_uri+=" --separator=$'\n'"
+command_picture_uri+=" --title='Select a Directory'"
 
-${picture_uri} 2> "${sink}"
+${command_picture_uri} 2> "${sink}"
 
 # desktop #
 
-gsettings set org.gnome.desktop.background picture-options "$picture_option"
-gsettings set org.gnome.desktop.background picture-uri "file:///$picture_uri"
+gsettings set org.gnome.desktop.background picture-options "$command_picture_option"
+gsettings set org.gnome.desktop.background picture-uri "file:///$command_picture_uri"
 
 
 # lockscreen #
 
-gsettings set org.gnome.desktop.screensaver picture-options "$picture_option"
-gsettings set org.gnome.desktop.screensaver picture-uri "file:///$picture_uri"
+gsettings set org.gnome.desktop.screensaver picture-options "$command_picture_option"
+gsettings set org.gnome.desktop.screensaver picture-uri "file:///$command_picture_uri"
 
 
 # login screen #
 
 sudo su gdm -s /bin/bash << FILE
-gsettings set org.gnome.desktop.background picture-options "$picture_option"
-gsettings set org.gnome.desktop.background picture-uri "file:///$picture_uri"
+gsettings set org.gnome.desktop.background picture-options "$command_picture_option"
+gsettings set org.gnome.desktop.background picture-uri "file:///$command_picture_uri"
 
 FILE
 
