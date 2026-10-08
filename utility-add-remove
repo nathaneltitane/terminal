@@ -368,15 +368,23 @@ index () {
 
 display () {
 
+	# numbered list - optional palette color matching its header
+
 	source="${1}"
+	color_display="${2}"
 
 	number=0
 
 	while IFS= read -r file
 	do
-		(( number++ ))
+		(( number ++ ))
 
-		frobulator.num "${number}" "${file}"
+		if [ -n "${color_display}" ]
+		then
+			frobulator.num "${color_display}" "${number}" "${file}"
+		else
+			frobulator.num "${number}" "${file}"
+		fi
 
 	done < "${source}"
 
@@ -674,7 +682,7 @@ then
 	then
 		frobulator.add "Files to be copied" "[ ${count_copy} ]"
 
-		display "${list_copy}"
+		display "${list_copy}" lime
 
 		echo
 	fi
@@ -683,7 +691,7 @@ then
 	then
 		frobulator.rem "Files to be removed" "[ ${count_remove} ]"
 
-		display "${list_remove}"
+		display "${list_remove}" crimson
 
 		echo
 	fi
@@ -782,12 +790,16 @@ then
 	then
 		frobulator.add "Files to be added" "[ ${count_differential} ]"
 
+		display "${list_changes}" lime
+
 	elif [ "${operation}" = "remove" ]
 	then
 		frobulator.rem "Files to be removed" "[ ${count_differential} ]"
-	fi
 
-	display "${list_changes}"
+		display "${list_changes}" crimson
+	else
+		display "${list_changes}"
+	fi
 
 	echo
 else
