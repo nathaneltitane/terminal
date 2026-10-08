@@ -9,7 +9,7 @@ preview () {
 	local command_cat
 	local command_head
 
-	count="${1}"
+	count_lines="${1}"
 
 	file="${2}"
 
@@ -21,11 +21,11 @@ preview () {
 	if [ -n "${command_cat}" ] &&
 	   [ -n "${command_head}" ]
 	then
-		frobulator.inf "Previewing file" "[ ${count} lines // ${file} ]"
+		frobulator.inf "Previewing file" "[ ${count_lines} lines // ${file} ]"
 
 		frobulator.separate
 
-		cat "${file}" | head -n "${count}"
+		cat "${file}" | head -n "${count_lines}"
 
 		echo
 

@@ -8,9 +8,9 @@ terminate () {
 
 	local command_pgrep
 	local command_pkill
-	local process_found
+	local ids_process
 
-	process_name="${1}"
+	name_process="${1}"
 
 	# 'pgrep' and 'pkill' paths - empty if not installed
 
@@ -22,13 +22,13 @@ terminate () {
 	then
 		# process ids still matching the name - empty once all are gone
 
-		process_found="$(pgrep -f "${process_name}")"
+		ids_process="$(pgrep -f "${name_process}")"
 
-		while [ -n "${process_found}" ]
+		while [ -n "${ids_process}" ]
 		do
-			pkill -f "${process_name}"
+			pkill -f "${name_process}"
 
-			process_found="$(pgrep -f "${process_name}")"
+			ids_process="$(pgrep -f "${name_process}")"
 		done
 	fi
 }

@@ -7,8 +7,8 @@
 adb_download () {
 
 	local directory_temporary
-	local archive
-	local path_extracted
+	local file_archive
+	local directory_extracted
 
 	frobulator.temporary directory_temporary
 
@@ -19,8 +19,8 @@ adb_download () {
 		exit 1
 	fi
 
-	archive="${directory_temporary}/platform-tools.zip"
-	path_extracted="${directory_temporary}/platform-tools"
+	file_archive="${directory_temporary}/platform-tools.zip"
+	directory_extracted="${directory_temporary}/platform-tools"
 
 	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
 
@@ -28,7 +28,7 @@ adb_download () {
 		--silent				\
 		--fail					\
 		--location				\
-		--output "${archive}"	\
+		--output "${file_archive}"	\
 								"${url_android_platform_tools}"
 
 	if [ "${?}" -ne 0 ]
@@ -40,7 +40,7 @@ adb_download () {
 		exit 1
 	fi
 
-	unzip -q "${archive}" -d "${directory_temporary}"
+	unzip -q "${file_archive}" -d "${directory_temporary}"
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -51,7 +51,7 @@ adb_download () {
 		exit 1
 	fi
 
-	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
+	if [ ! -x "${directory_extracted}/adb" ] || [ ! -x "${directory_extracted}/fastboot" ]
 	then
 		frobulator.delete "${directory_temporary}"
 
@@ -62,13 +62,13 @@ adb_download () {
 
 	frobulator.terminate "adb"
 
-	frobulator.directory "${path_android}"
+	frobulator.directory "${directory_android}"
 
 	frobulator.directory "${HOME}/.local/bin"
 
-	frobulator.delete "${path_android_platform_tools}"
+	frobulator.delete "${directory_platform_tools}"
 
-	mv "${path_extracted}" "${path_android_platform_tools}"
+	mv "${directory_extracted}" "${directory_platform_tools}"
 
 	list=(
 		adb
@@ -77,19 +77,19 @@ adb_download () {
 
 	for item in "${list[@]}"
 	do
-		frobulator.link "${path_android_platform_tools}" "${HOME}/.local/bin" "${item}"
+		frobulator.link "${directory_platform_tools}" "${HOME}/.local/bin" "${item}"
 	done
 
 	list=()
 
 	if [ "${USER}" != "root" ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${path_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
+		chown -R "${USER}:$(id -g "${USER}")" "${directory_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
 	fi
 
 	frobulator.delete "${directory_temporary}"
 
-	export PATH="${HOME}/.local/bin:${path_android_platform_tools}:${PATH}"
+	export PATH="${HOME}/.local/bin:${directory_platform_tools}:${PATH}"
 
 	hash -r
 

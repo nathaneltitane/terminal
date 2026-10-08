@@ -17,17 +17,17 @@ record () {
 
 	if [ -f "${HOME}"/Videos ]
 	then
-		path="${HOME}"/Videos
+		directory_output="${HOME}"/Videos
 	else
-		path="${HOME}"
+		directory_output="${HOME}"
 	fi
 
-	stamp="$(date +"%m-%d-%Y-%H-%M-%S")"
-	window_id="$(xwininfo | grep "Window id" | cut -d ' ' -f 4)"
+	date_recording="$(date +"%m-%d-%Y-%H-%M-%S")"
+	id_window="$(xwininfo | grep "Window id" | cut -d ' ' -f 4)"
 
 	wmctrl		\
 		-i		\
-		-R		"${window_id}"
+		-R		"${id_window}"
 
 	frobulator.wait 1
 
@@ -36,6 +36,6 @@ record () {
 		--no-wm-check							\
 		--no-sound								\
 		--overwrite								\
-		--windowid "${window_id}"				\
-		--output="${path}"/clip-"${stamp}".ogv
+		--windowid "${id_window}"				\
+		--output="${directory_output}"/clip-"${date_recording}".ogv
 }

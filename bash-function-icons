@@ -8,32 +8,32 @@ icons () {
 
 	frobulator.require gtk-update-icon-cache
 
-	icons_directory_list=(
+	list_directories_icons=(
 		"${HOME}"/.icons
 		"${PREFIX}"/share/icons
 		/usr/share/icons
 	)
 
-	for icons_directory in ${icons_directory_list[@]}
+	for directory_icons in ${list_directories_icons[@]}
 	do
-		if [ -d "${icons_directory}" ]
+		if [ -d "${directory_icons}" ]
 		then
-			cd "${icons_directory}"
+			cd "${directory_icons}"
 		fi
 
-		if [ -d "${icons_directory}" ]
+		if [ -d "${directory_icons}" ]
 		then
-			find "${icons_directory}" -mindepth 1 -maxdepth 1 -type d | while read -r theme
+			find "${directory_icons}" -mindepth 1 -maxdepth 1 -type d | while read -r directory_theme
 			do
-				if [ -f "${theme}"/index.theme ]
+				if [ -f "${directory_theme}"/index.theme ]
 				then
-					theme_name="${theme##*/}"
+					name_theme="${directory_theme##*/}"
 
-					gtk-update-icon-cache -f -q "${theme}"
+					gtk-update-icon-cache -f -q "${directory_theme}"
 
-					frobulator.scs "Cache update success" "[ ${theme_name} ]"
+					frobulator.scs "Cache update success" "[ ${name_theme} ]"
 				else
-					frobulator.wrn "Skipping" "[ ${theme_name} ]"
+					frobulator.wrn "Skipping" "[ ${name_theme} ]"
 				fi
 			done
 		fi

@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -149,10 +149,10 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-path_android="${HOME}/.local/lib/android"
+directory_android="${HOME}/.local/lib/android"
 
-file_apk_tool="${path_android}/apk-tool.jar"
-file_apk_tool_version="${path_android}/apk-tool.version"
+file_apk_tool="${directory_android}/apk-tool.jar"
+file_apk_tool_version="${directory_android}/apk-tool.version"
 
 file_keystore="${HOME}/.android/debug.keystore"
 
@@ -258,7 +258,7 @@ apk_tool_update () {
 		return 0
 	fi
 
-	frobulator.directory "${path_android}"
+	frobulator.directory "${directory_android}"
 
 	frobulator.dwl "Fetching" "[ apk-tool ${tag} ]"
 
@@ -280,7 +280,7 @@ apk_tool_update () {
 
 	echo "${tag}" > "${file_apk_tool_version}"
 
-	frobulator.ownership "${path_android}"
+	frobulator.ownership "${directory_android}"
 
 	frobulator.scs "Installed" "[ apk-tool ${tag} ]"
 }

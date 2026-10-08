@@ -12,11 +12,11 @@ adb_record () {
 
 	adb shell screenrecord /storage/emulated/0/Videos/"${recording}" &
 
-	adb_record_PID=$!
+	id_process_record=$!
 
 	read -r -p 'Press enter to stop recording...'
 
-	kill ${adb_record_PID} > "${sink}" 2>&1
+	kill ${id_process_record} > "${sink}" 2>&1
 
 	sleep 0.5
 

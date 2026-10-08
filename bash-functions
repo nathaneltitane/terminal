@@ -28,7 +28,7 @@ then
 
 	directory_install="${HOME}"/.local/bin
 
-	while (($#))
+	while (( $# ))
 	do
 		case "${1}"
 		in
@@ -102,11 +102,11 @@ then
 
 			# one file per function - installed beside this one
 
-			for bash_function in "${directory_script}"/bash-function-*
+			for file_function in "${directory_script}"/bash-function-*
 			do
-				if [ -f "${bash_function}" ]
+				if [ -f "${file_function}" ]
 				then
-					frobulator.copy "${directory_script}" "${directory_install}" "$(basename -- "${bash_function}")"
+					frobulator.copy "${directory_script}" "${directory_install}" "$(basename -- "${file_function}")"
 				fi
 			done
 
@@ -121,12 +121,12 @@ fi
 
 # each function file next to this one holds one function and its helpers
 
-for bash_function in "${HOME}"/.local/bin/bash-function-*
+for file_function in "${HOME}"/.local/bin/bash-function-*
 do
-	if [ -f "${bash_function}" ]
+	if [ -f "${file_function}" ]
 	then
-		source "${bash_function}"
+		source "${file_function}"
 	fi
 done
 
-unset bash_function
+unset file_function

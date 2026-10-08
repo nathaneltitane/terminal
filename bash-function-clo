@@ -7,22 +7,22 @@
 clo () {
 
 	local command_path
-	local command
+	local name_command
 
-	command="claude"
+	name_command="claude"
 
-	# ${command} command path - empty if not installed
+	# ${name_command} command path - empty if not installed
 
-	command_path="$(command -v "${command}")"
+	command_path="$(command -v "${name_command}")"
 
 	if [ -z "${command_path}" ]
 	then
-		frobulator.err "Command not found" "[ ${command} ]"
+		frobulator.err "Command not found" "[ ${name_command} ]"
 
 		return 1
 	fi
 
-	directory_projects="${HOME}/.${command}/projects"
+	directory_projects="${HOME}/.${name_command}/projects"
 
 	if [ ! -d "${directory_projects}" ]
 	then
@@ -31,9 +31,9 @@ clo () {
 		return 1
 	fi
 
-	file_search=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
+	command_search=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
 
-	file_session=$("${file_search[@]}" 2>"${sink}" | sort -r -n | head -n 1 | cut -d ' ' -f 2-)
+	file_session=$("${command_search[@]}" 2>"${sink}" | sort -r -n | head -n 1 | cut -d ' ' -f 2-)
 
 	if [ -z "${file_session}" ]
 	then
@@ -52,6 +52,6 @@ clo () {
 
 	claude --dangerously-skip-permissions --resume "${id_session}"
 
-	unset command
+	unset name_command
 
 }

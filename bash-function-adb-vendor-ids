@@ -6,7 +6,7 @@
 
 adb_vendor_ids () {
 
-	local package_udev
+	local status_package_udev
 
 	adb_download
 
@@ -14,22 +14,22 @@ adb_vendor_ids () {
 
 	mkdir -p "${HOME}"/.android
 
-	for id in {0..65535}
+	for number_id in {0..65535}
 	do
-		printf '0x%04x\n' "${id}"
+		printf '0x%04x\n' "${number_id}"
 	done >> "{HOME}"/.android/adb_usb.ini
 
 	chmod -R 777 "${HOME}"/.android
 
 	# udev package listing - empty if not installed
 
-	package_udev="$(dpkg -l udev)"
+	status_package_udev="$(dpkg -l udev)"
 
-	if [ -n "${package_udev}" ]
+	if [ -n "${status_package_udev}" ]
 	then
-		while read -r vendor_id
+		while read -r id_vendor
 		do
-			echo SUBSYSTEM==\"usb\", SYSFS{idVendor}==\""${vendor_id:2}"\", MODE=\"0666\" \;
+			echo SUBSYSTEM==\"usb\", SYSFS{idVendor}==\""${id_vendor:2}"\", MODE=\"0666\" \;
 
 		done <<< $(cat "${HOME}"/.android/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
 	fi

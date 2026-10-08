@@ -17,17 +17,17 @@ colors () {
 
 	# print palette
 
-	for foreground_color in {0..7}
+	for number_color_foreground in {0..7}
 	do
-		set_foreground=$(tput setaf "${foreground_color}")
+		code_color_foreground=$(tput setaf "${number_color_foreground}")
 
-		for background_color in {0..7}
+		for number_color_background in {0..7}
 		do
-			set_background=$(tput setab "${background_color}")
+			code_color_background=$(tput setab "${number_color_background}")
 
-			echo -n "${set_background} ${set_foreground}"
+			echo -n "${code_color_background} ${code_color_foreground}"
 
-			printf 'F:%s B:%s ' "${foreground_color}" "${background_color}"
+			printf 'F:%s B:%s ' "${number_color_foreground}" "${number_color_background}"
 		done
 
 		# reset

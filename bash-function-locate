@@ -8,17 +8,17 @@ locate () {
 
 	local command_find
 
-	type="${1}"
+	type_find="${1}"
 
 	query="${2}"
 
-	if [[ "${type}" =~ ^(d|dir|directory)$ ]]
+	if [[ "${type_find}" =~ ^(d|dir|directory)$ ]]
 	then
-		type='d'
+		type_find='d'
 
-	elif [[ "${type}" =~ ^(f|file)$ ]]
+	elif [[ "${type_find}" =~ ^(f|file)$ ]]
 	then
-		type='f'
+		type_find='f'
 	else
 		echo "unsupported type"
 		echo
@@ -34,7 +34,7 @@ locate () {
 	then
 		find								\
 			"${PWD}"						\
-				-type			"${type}"	\
+				-type			"${type_find}"	\
 				-iname 			"*${query}*"
 	fi
 
