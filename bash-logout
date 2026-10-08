@@ -28,7 +28,7 @@ then
 
 	directory_install="${HOME}"/.local/bin
 
-	while (($#))
+	while (( $# ))
 	do
 		case "${1}"
 		in
@@ -124,17 +124,17 @@ then
 
 	# automatic session stop selection: 'logout' when enabled
 
-	dextop_logout="$(cat "${HOME}"/.dextop/dextop-logout)"
+	content_logout_dextop="$(cat "${HOME}"/.dextop/dextop-logout)"
 
-	if [ "${dextop_logout}" = "logout" ]
+	if [ "${content_logout_dextop}" = "logout" ]
 	then
 		# audio
 
 		# running pulseaudio process ids - empty if stopped
 
-		process_pulseaudio="$(pgrep -f pulseaudio)"
+		id_process_pulseaudio="$(pgrep -f pulseaudio)"
 
-		if [ -n "${process_pulseaudio}" ]
+		if [ -n "${id_process_pulseaudio}" ]
 		then
 			pulseaudio --kill
 		fi
@@ -143,9 +143,9 @@ then
 
 		# running termux x11 display process ids - empty if stopped
 
-		process_x11="$(pgrep -f com.termux.x11)"
+		id_process_x11="$(pgrep -f com.termux.x11)"
 
-		if [ -n "${process_x11}" ]
+		if [ -n "${id_process_x11}" ]
 		then
 			container-session -x
 
@@ -156,4 +156,4 @@ then
 	fi
 fi
 
-unset dextop_logout process_pulseaudio process_x11
+unset content_logout_dextop id_process_pulseaudio id_process_x11
