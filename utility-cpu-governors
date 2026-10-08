@@ -130,7 +130,7 @@ list=(
 	cpufreq-set
 )
 
-frobulator.require ${list_install[@]}
+frobulator.require ${list[@]}
 
 # configuration ────────────────────────────────────────────────────────────────
 
@@ -140,39 +140,34 @@ list_governors=(
 	$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors)
 )
 
-for governor in "${!list_governors[@]}"
+for index_governor in "${!list_governors[@]}"
 do
 	cat <<- FILE >> /etc/bash.bashrc
 
-	# governor - ${list_governors[governor]} #
+	# governor - ${list_governors[index_governor]} #
 
-	${list_governors[governor]}() {
-		for (( n=0 ; n<$(grep -c processor /proc/cpuinfo) ; n++ ))
-	do
-			sudo cpufreq-set -c "\$n" -g ${list_governors[governor]}
+	${list_governors[index_governor]}() {
+		for (( index_core = 0 ; index_core < $(grep -c processor /proc/cpuinfo) ; index_core ++ ))
+		do
+			sudo cpufreq-set -c "\${index_core}" -g ${list_governors[index_governor]}
 		done
 	}
 	FILE
 
-	cat <<- FILE > /usr/bin/${list_governors[governor]}
+	cat <<- FILE > /usr/bin/${list_governors[index_governor]}
 	#!/bin/bash
 
-	# cpu governor (${list_governors[governor]}) #
+	# cpu governor (${list_governors[index_governor]}) #
 
 	# processor core count
 
-	cpu_count="\$(grep -c processor /proc/cpuinfo)"
+	count_cpu="\$(grep -c processor /proc/cpuinfo)"
 
-	if [ -n "\${cpu_count}" ]
-	then
-		cpu="\${cpu_count}"
-	fi
-
-	for (( count=0; count<cpu; count++ ))
+	for (( index_core = 0 ; index_core < count_cpu ; index_core ++ ))
 	do
-		sudo cpufreq-set	\
-			-c "\${count}"	\
-			-g ${list_governors[governor]}
+		sudo cpufreq-set		\
+			-c "\${index_core}"	\
+			-g ${list_governors[index_governor]}
 	done
 
 	# 'notify-send' path - empty if not installed
@@ -183,10 +178,11 @@ do
 	then
 		notify-send						\
 			-i gnome-system-monitor		\
-			"CPU governor set to ${list_governors[governor]}"
+			"CPU governor set to ${list_governors[index_governor]}"
+	fi
 	FILE
 
-	sudo chmod +x /usr/bin/${list_governors[governor]}
+	sudo chmod +x /usr/bin/${list_governors[index_governor]}
 done
 
 # write switch
@@ -196,34 +192,38 @@ cat <<- 'FILE' > /usr/bin/cpu-switch
 
 # cpu-switch #
 
-cpu_count="$(grep -c processor /proc/cpuinfo)"
+# processor core count
 
-cpu_status="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
+count_cpu="$(grep -c processor /proc/cpuinfo)"
 
-case "${governor}"
+# governor of the first core - next governor in the cycle
+
+name_governor_current="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
+
+case "${name_governor_current}"
 in
 	powersave)
-		governor="conservative"
+		name_governor="conservative"
 	;;
 
 	conservative)
-		governor="ondemand"
+		name_governor="ondemand"
 	;;
 
 	ondemand)
-		governor="performance"
+		name_governor="performance"
 	;;
 
 	performance)
-		governor="powersave"
+		name_governor="powersave"
 	;;
 esac
 
-for (( count=0 ; count<cpu_count ; count++ ))
+for (( index_core = 0 ; index_core < count_cpu ; index_core ++ ))
 do
-	sudo cpufreq-set	\
-		-c "${count}"	\
-		-g "${governor}"
+	sudo cpufreq-set		\
+		-c "${index_core}"	\
+		-g "${name_governor}"
 done
 
 # 'notify-send' path - empty if not installed
@@ -234,7 +234,8 @@ if [ -n "${command_notify_send}" ]
 then
 	notify-send						\
 		-i gnome-system-monitor		\
-		"CPU governor set to ${governors_list[governor]}"
+		"CPU governor set to ${name_governor}"
+fi
 FILE
 
 # set permissions
