@@ -78,7 +78,7 @@ confirm=true
 
 count_arguments="${#}"
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -482,7 +482,7 @@ mirror_plan () {
 
 	local -A sizes_from
 	local -A sizes_to
-	local -A renamed_folds
+	local -A list_folds_renamed
 
 	while IFS=$'\t' read -r file size
 	do
@@ -515,7 +515,7 @@ mirror_plan () {
 
 			echo "${file}" >> "${list_rename}"
 
-			renamed_folds["$(fold_name "${file}")"]=1
+			list_folds_renamed["$(fold_name "${file}")"]=1
 
 			size="$(stat -c '%s' "${to}/${file}")"
 
@@ -541,7 +541,7 @@ mirror_plan () {
 
 		file_fold="$(fold_name "${file}")"
 
-		if [ "${predict}" = true ] && [ -n "${renamed_folds[${file_fold}]+set}" ]
+		if [ "${predict}" = true ] && [ -n "${list_folds_renamed[${file_fold}]+set}" ]
 		then
 			continue
 		fi
@@ -563,7 +563,7 @@ mirror_rename () {
 
 	while IFS= read -r file
 	do
-		(( number++ ))
+		(( number ++ ))
 
 		temporary="$(dirname -- "${to}/${file}")/.mirror-rename-${number}"
 
