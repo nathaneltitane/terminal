@@ -141,44 +141,44 @@ list=()
 cat << "FILE" > /usr/bin/conky-picture-selector
 #!/bin/bash
 
-process="${directory}"/conky-picture-frame/conky-picture-framerc
+file_config_frame="${directory}"/conky-picture-frame/conky-picture-framerc
 
 # specify source image
 
-dimension="full"
+name_size_frame="full"
 
 # small:  25%
 # medium: 50%
 # large:  75%
 # full:   100%
 
-source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
+file_picture_source=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
 
 # set dimension flags
 
-if [ "${dimension}" == "small" ]
+if [ "${name_size_frame}" == "small" ]
 then
 	# canvas at 25%
 
-	ratio="128x"
+	geometry_resize="128x"
 
-elif [ "${dimension}" == "medium" ]
+elif [ "${name_size_frame}" == "medium" ]
 then
 	# canvas at 50%
 
-	ratio="256x"
+	geometry_resize="256x"
 
-elif [ "${dimension}" == "large" ]
+elif [ "${name_size_frame}" == "large" ]
 then
 	# canvas at 75%
 
-	ratio="384x"
+	geometry_resize="384x"
 
-elif [ "${dimension}" == "full" ]
+elif [ "${name_size_frame}" == "full" ]
 then
 	# canvas at 100%
 
-	ratio="512x"
+	geometry_resize="512x"
 fi
 
 # cleanup files
@@ -192,18 +192,18 @@ fi
 
 # picture frame compositor
 
-convert "${source}" -resize "${ratio}" .picture.png
+convert "${file_picture_source}" -resize "${geometry_resize}" .picture.png
 
 # get dimensions
 
-dimensions=$(identify .picture.png | awk '{print $3}')
+geometry_picture=$(identify .picture.png | awk '{print $3}')
 
 IFS='x'
-read width height <<< "$dimensions"
+read width_picture height_picture <<< "$geometry_picture"
 
 # send result to conky
 
-sed -i -e "s/^minimum_size\ .*/minimum_size ${width} ${height}/g" "${directory}"/conky-picture-frame/conky-picture-framerc
+sed -i -e "s/^minimum_size\ .*/minimum_size ${width_picture} ${height_picture}/g" "${directory}"/conky-picture-frame/conky-picture-framerc
 
 wait
 
@@ -211,11 +211,11 @@ echo "${image .picture.png}"
 
 wait
 
-sudo kill -SIGTERM $(pgrep -f "${process}")
+sudo kill -SIGTERM $(pgrep -f "${file_config_frame}")
 
 wait
 
-conky -c "${process}" &
+conky -c "${file_config_frame}" &
 FILE
 
 chmod +x /usr/bin/conky-picture-selector
