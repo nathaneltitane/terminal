@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -167,17 +167,17 @@ file_identity_key_default="/media/internal/.kde-connect-key"
 
 # plugin configuration for devices restored without one
 
-device_default_config=(
+list_config_default=(
 	"[Plugins]"
 	"kdeconnect_notificationsEnabled=false"
 	"kdeconnect_telephonyEnabled=false"
 )
 
-declare -A device_names
-declare -A device_types
-declare -A device_certificates
+declare -A list_names_device
+declare -A list_types_device
+declare -A list_certificates_device
 
-device_order=()
+list_order_device=()
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -229,21 +229,21 @@ device_file_name () {
 
 	# device name as file name part: lowercase - spaces as '-' - safe characters only
 
-	local device_name="${1,,}"
+	local name_device="${1,,}"
 
-	device_name="${device_name// /-}"
-	device_name="${device_name//[^a-z0-9_-]/}"
+	name_device="${name_device// /-}"
+	name_device="${name_device//[^a-z0-9_-]/}"
 
-	echo "${device_name:-device}"
+	echo "${name_device:-device}"
 }
 
 devices_read () {
 
 	# trusted devices from kde connect configuration
 
-	local device_line
-	local device_id
-	local device_certificate
+	local line_device
+	local id_device
+	local certificate_device
 
 	if [ ! -f "${file_trusted_devices}" ]
 	then
@@ -252,31 +252,31 @@ devices_read () {
 		return 1
 	fi
 
-	while IFS= read -r device_line
+	while IFS= read -r line_device
 	do
-		if [[ "${device_line}" =~ ^\[(.+)\]$ ]]
+		if [[ "${line_device}" =~ ^\[(.+)\]$ ]]
 		then
-			device_id="${BASH_REMATCH[1]}"
+			id_device="${BASH_REMATCH[1]}"
 
-			device_order+=("${device_id}")
+			list_order_device+=("${id_device}")
 
-		elif [[ "${device_line}" = name=* ]]
+		elif [[ "${line_device}" = name=* ]]
 		then
-			device_names["${device_id}"]="${device_line#name=}"
+			list_names_device["${id_device}"]="${line_device#name=}"
 
-		elif [[ "${device_line}" = type=* ]]
+		elif [[ "${line_device}" = type=* ]]
 		then
-			device_types["${device_id}"]="${device_line#type=}"
+			list_types_device["${id_device}"]="${line_device#type=}"
 
-		elif [[ "${device_line}" = certificate=* ]]
+		elif [[ "${line_device}" = certificate=* ]]
 		then
 			# stored on one line: quoted if padded - newlines escaped as '\n'
 
-			device_certificate="${device_line#certificate=}"
-			device_certificate="${device_certificate#\"}"
-			device_certificate="${device_certificate%\"}"
+			certificate_device="${line_device#certificate=}"
+			certificate_device="${certificate_device#\"}"
+			certificate_device="${certificate_device%\"}"
 
-			device_certificates["${device_id}"]="${device_certificate//\\n/${NLN}}"
+			list_certificates_device["${id_device}"]="${certificate_device//\\n/${NLN}}"
 		fi
 	done < "${file_trusted_devices}"
 }
@@ -285,67 +285,67 @@ index_tabs () {
 
 	# tabs from a text position to a column - tab width 4
 
-	local index_position="${1}"
-	local index_column="${2}"
-	local index_tab_count=$(( (index_column - index_position / 4 * 4) / 4 ))
+	local position_index="${1}"
+	local column_index="${2}"
+	local count_tabs_index=$(( ( column_index - position_index / 4 * 4 ) / 4 ))
 
-	while [ "${index_tab_count}" -gt 0 ]
+	while [ "${count_tabs_index}" -gt 0 ]
 	do
 		printf '\t'
 
-		index_tab_count=$(( index_tab_count - 1 ))
+		count_tabs_index=$(( count_tabs_index - 1 ))
 	done
 }
 
 devices_backup () {
 
-	local backup_status=0
+	local status_backup=0
 
-	local index_label_width
-	local index_label_column
-	local device_id
-	local device_name
-	local device_file
-	local device_certificate_name
+	local width_label_index
+	local column_label_index
+	local id_device
+	local name_device
+	local file_device
+	local name_certificate_device
 
 	devices_read || return
 
 	# index columns aligned on tab stops (tab width 4):
 	# label column one tab wider than the longest label: label / id / type
 
-	index_label_width=0
+	width_label_index=0
 
-	for device_id in "${device_order[@]}"
+	for id_device in "${list_order_device[@]}"
 	do
-		device_name="$(device_file_name "${device_names[${device_id}]}")"
+		name_device="$(device_file_name "${list_names_device[${id_device}]}")"
 
-		if [ "${#device_name}" -gt "${index_label_width}" ]
+		if [ "${#name_device}" -gt "${width_label_index}" ]
 		then
-			index_label_width="${#device_name}"
+			width_label_index="${#name_device}"
 		fi
 	done
 
-	index_label_column=$(( (index_label_width / 4 + 2) * 4 ))
+	column_label_index=$(( ( width_label_index / 4 + 2 ) * 4 ))
 
 	: > "${file_device_index}"
 
-	for device_id in "${device_order[@]}"
+	for id_device in "${list_order_device[@]}"
 	do
-		device_name="$(device_file_name "${device_names[${device_id}]}")"
+		name_device="$(device_file_name "${list_names_device[${id_device}]}")"
 
-		device_certificate_name="kde-connect-device-${device_name}.pem"
+		name_certificate_device="kde-connect-device-${name_device}.pem"
 
 		# certificate: public key the device paired with
 
-		device_file="${directory}/${device_certificate_name}"
+		file_device="${directory}/${name_certificate_device}"
 
-		printf '%s\n' "${device_certificates[${device_id}]%${NLN}}" > "${device_file}"
+		printf '%s\n' "${list_certificates_device[${id_device}]%${NLN}}" > "${file_device}"
 
 		if [ "${?}" -ne 0 ]
 		then
-			frobulator.err "Backup failure - certificate" "[ '${device_certificate_name}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+			frobulator.err "Backup failure - certificate" "[ '${name_certificate_device}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 
-			backup_status=1
+			status_backup=1
 
 			continue
 		fi
@@ -353,24 +353,24 @@ devices_backup () {
 		# plugin settings: run commands / clipboard / enabled plugins
 		# archive holds the device id directory itself
 
-		if [ -d "${directory_kde_connect}/${device_id}" ]
+		if [ -d "${directory_kde_connect}/${id_device}" ]
 		then
-			frobulator.archive "${directory}/kde-connect-settings-${device_name}" "tar.gz" "${directory_kde_connect}/${device_id}"
+			frobulator.archive "${directory}/kde-connect-settings-${name_device}" "tar.gz" "${directory_kde_connect}/${id_device}"
 
 			if [ "${?}" -ne 0 ]
 			then
-				frobulator.err "Backup failure - settings" "[ '${device_name}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+				frobulator.err "Backup failure - settings" "[ '${name_device}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 
-				backup_status=1
+				status_backup=1
 			fi
 		fi
 
-		printf '%s%s%s\t%s\n' "${device_name}" "$(index_tabs "${#device_name}" "${index_label_column}")" "${device_id}" "${device_types[${device_id}]}" >> "${file_device_index}"
+		printf '%s%s%s\t%s\n' "${name_device}" "$(index_tabs "${#name_device}" "${column_label_index}")" "${id_device}" "${list_types_device[${id_device}]}" >> "${file_device_index}"
 
-		frobulator.scs "Backup success - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+		frobulator.scs "Backup success - device" "[ '${list_names_device[${id_device}]}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 	done
 
-	return "${backup_status}"
+	return "${status_backup}"
 }
 
 identity_backup () {
@@ -399,11 +399,11 @@ service_stop () {
 
 	# this user's kde connect service process id - empty if not running
 
-	local service_process
+	local id_process_service
 
-	service_process="$(pgrep -x -u "${USER}" kdeconnectd)"
+	id_process_service="$(pgrep -x -u "${USER}" kdeconnectd)"
 
-	if [ -n "${service_process}" ]
+	if [ -n "${id_process_service}" ]
 	then
 		frobulator.stp "Stopping" "[ kdeconnectd ]"
 
@@ -426,13 +426,13 @@ service_start () {
 
 devices_restore () {
 
-	local restore_status=0
+	local status_restore=0
 
-	local device_name
-	local device_id
-	local device_type
-	local device_file
-	local device_certificate
+	local name_device
+	local id_device
+	local type_device
+	local file_device
+	local certificate_device
 
 	if [ ! -f "${file_device_index}" ]
 	then
@@ -448,70 +448,70 @@ devices_restore () {
 		devices_read
 	fi
 
-	while IFS=$'\t' read -r device_name device_id device_type
+	while IFS=$'\t' read -r name_device id_device type_device
 	do
-		device_file="${directory}/kde-connect-device-${device_name}.pem"
+		file_device="${directory}/kde-connect-device-${name_device}.pem"
 
-		if [ ! -f "${device_file}" ]
+		if [ ! -f "${file_device}" ]
 		then
-			frobulator.err "Restore failure - certificate" "[ 'kde-connect-device-${device_name}.pem'${marker_spc}${marker_hnt}${marker_spc}missing ]"
+			frobulator.err "Restore failure - certificate" "[ 'kde-connect-device-${name_device}.pem'${marker_spc}${marker_hnt}${marker_spc}missing ]"
 
-			restore_status=1
+			status_restore=1
 
 			continue
 		fi
 
-		device_certificate="$(< "${device_file}")"
+		certificate_device="$(< "${file_device}")"
 
-		if [ -z "${device_certificates[${device_id}]+set}" ]
+		if [ -z "${list_certificates_device[${id_device}]+set}" ]
 		then
-			device_order+=("${device_id}")
+			list_order_device+=("${id_device}")
 		fi
 
-		device_names["${device_id}"]="${device_name}"
-		device_types["${device_id}"]="${device_type}"
-		device_certificates["${device_id}"]="${device_certificate}${NLN}"
+		list_names_device["${id_device}"]="${name_device}"
+		list_types_device["${id_device}"]="${type_device}"
+		list_certificates_device["${id_device}"]="${certificate_device}${NLN}"
 
 		# plugin settings
 
-		if [ -f "${directory}/kde-connect-settings-${device_name}.tar.gz" ]
+		if [ -f "${directory}/kde-connect-settings-${name_device}.tar.gz" ]
 		then
-			frobulator.extract "${directory}/kde-connect-settings-${device_name}.tar.gz" "${directory_kde_connect}"
+			frobulator.extract "${directory}/kde-connect-settings-${name_device}.tar.gz" "${directory_kde_connect}"
 
 			if [ "${?}" -ne 0 ]
 			then
-				frobulator.err "Restore failure - settings" "[ '${device_name}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+				frobulator.err "Restore failure - settings" "[ '${name_device}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 
-				restore_status=1
+				status_restore=1
 			fi
 		fi
 
 		# default plugin configuration when the device has none
 
-		if [ ! -f "${directory_kde_connect}/${device_id}/config" ]
+		if [ ! -f "${directory_kde_connect}/${id_device}/config" ]
 		then
-			mkdir -p "${directory_kde_connect}/${device_id}"
+			mkdir -p "${directory_kde_connect}/${id_device}"
 
-			printf '%s\n' "${device_default_config[@]}" > "${directory_kde_connect}/${device_id}/config"
+			printf '%s\n' "${list_config_default[@]}" > "${directory_kde_connect}/${id_device}/config"
 		fi
 
-		frobulator.scs "Restore success - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+		frobulator.scs "Restore success - device" "[ '${list_names_device[${id_device}]}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 	done < "${file_device_index}"
 
 	# trusted devices written back in kde connect format
 
-	for device_id in "${device_order[@]}"
+	for id_device in "${list_order_device[@]}"
 	do
-		device_certificate="${device_certificates[${device_id}]}"
+		certificate_device="${list_certificates_device[${id_device}]}"
 
-		echo "[${device_id}]"
-		echo "certificate=${device_certificate//${NLN}/\\n}"
-		echo "name=${device_names[${device_id}]}"
-		echo "type=${device_types[${device_id}]}"
+		echo "[${id_device}]"
+		echo "certificate=${certificate_device//${NLN}/\\n}"
+		echo "name=${list_names_device[${id_device}]}"
+		echo "type=${list_types_device[${id_device}]}"
 		echo
 	done > "${file_trusted_devices}"
 
-	return "${restore_status}"
+	return "${status_restore}"
 }
 
 identity_restore () {
@@ -549,13 +549,13 @@ places_update () {
 	# add a dolphin place for every paired device that has none
 
 	local status=0
-	local places_index=0
+	local index_places=0
 
-	local places_content
-	local places_entries
-	local places_stamp
-	local device_id
-	local device_title
+	local content_places
+	local list_entries_places
+	local stamp_places
+	local id_device
+	local title_device
 
 	if [ ! -f "${file_places}" ]
 	then
@@ -565,56 +565,56 @@ places_update () {
 		return 0
 	fi
 
-	places_content="$(< "${file_places}")"
-	places_stamp="$(date +%s)"
+	content_places="$(< "${file_places}")"
+	stamp_places="$(date +%s)"
 
-	for device_id in "${device_order[@]}"
+	for id_device in "${list_order_device[@]}"
 	do
-		if [[ "${places_content}" = *"href=\"kdeconnect://${device_id}/\""* ]]
+		if [[ "${content_places}" = *"href=\"kdeconnect://${id_device}/\""* ]]
 		then
-			frobulator.inf "Place present - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+			frobulator.inf "Place present - device" "[ '${list_names_device[${id_device}]}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 
 			continue
 		fi
 
 		# title escaped for xml
 
-		device_title="${device_names[${device_id}]//&/&amp;}"
-		device_title="${device_title//</&lt;}"
-		device_title="${device_title//>/&gt;}"
+		title_device="${list_names_device[${id_device}]//&/&amp;}"
+		title_device="${title_device//</&lt;}"
+		title_device="${title_device//>/&gt;}"
 
-		places_entries+=" <bookmark href=\"kdeconnect://${device_id}/\">${NLN}"
-		places_entries+="  <title>${device_title}</title>${NLN}"
-		places_entries+="  <info>${NLN}"
-		places_entries+="   <metadata owner=\"http://freedesktop.org\">${NLN}"
-		places_entries+="    <bookmark:icon name=\"kdeconnect\"/>${NLN}"
-		places_entries+="   </metadata>${NLN}"
-		places_entries+="   <metadata owner=\"http://www.kde.org\">${NLN}"
-		places_entries+="    <ID>${places_stamp}/${places_index}</ID>${NLN}"
-		places_entries+="   </metadata>${NLN}"
-		places_entries+="  </info>${NLN}"
-		places_entries+=" </bookmark>${NLN}"
+		list_entries_places+=" <bookmark href=\"kdeconnect://${id_device}/\">${NLN}"
+		list_entries_places+="  <title>${title_device}</title>${NLN}"
+		list_entries_places+="  <info>${NLN}"
+		list_entries_places+="   <metadata owner=\"http://freedesktop.org\">${NLN}"
+		list_entries_places+="    <bookmark:icon name=\"kdeconnect\"/>${NLN}"
+		list_entries_places+="   </metadata>${NLN}"
+		list_entries_places+="   <metadata owner=\"http://www.kde.org\">${NLN}"
+		list_entries_places+="    <ID>${stamp_places}/${index_places}</ID>${NLN}"
+		list_entries_places+="   </metadata>${NLN}"
+		list_entries_places+="  </info>${NLN}"
+		list_entries_places+=" </bookmark>${NLN}"
 
-		places_index=$(( places_index + 1 ))
+		index_places=$(( index_places + 1 ))
 
-		frobulator.add "Place added - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+		frobulator.add "Place added - device" "[ '${list_names_device[${id_device}]}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 	done
 
-	if [ -z "${places_entries}" ]
+	if [ -z "${list_entries_places}" ]
 	then
 		return 0
 	fi
 
 	# new entries go right before the closing tag
 
-	if [[ "${places_content}" != *"</xbel>"* ]]
+	if [[ "${content_places}" != *"</xbel>"* ]]
 	then
 		frobulator.err "Places failure - unexpected file format" "[ '${file_places##*/}'${marker_spc}${marker_hnt}${marker_spc}xbel ]"
 
 		return 1
 	fi
 
-	printf '%s%s</xbel>\n' "${places_content%</xbel>*}" "${places_entries}" > "${file_places}"
+	printf '%s%s</xbel>\n' "${content_places%</xbel>*}" "${list_entries_places}" > "${file_places}"
 
 	frobulator.track
 
@@ -628,13 +628,13 @@ commands_apply () {
 
 	local status=0
 
-	local command_name
-	local command_line
-	local command_hash
-	local command_key
-	local commands_json
-	local commands_value
-	local device_id
+	local name_command
+	local line_command
+	local hash_command
+	local key_command
+	local json_commands
+	local value_commands
+	local id_device
 	local directory_run_command
 
 	if [ ! -f "${file_commands_list}" ]
@@ -644,53 +644,53 @@ commands_apply () {
 		return 0
 	fi
 
-	commands_json="{"
+	json_commands="{"
 
-	while IFS=$'\t' read -r command_name command_line
+	while IFS=$'\t' read -r name_command line_command
 	do
-		if [ -z "${command_name}" ] || [[ "${command_name}" = \#* ]]
+		if [ -z "${name_command}" ] || [[ "${name_command}" = \#* ]]
 		then
 			continue
 		fi
 
 		# stable key from the name - unchanged commands keep their key
 
-		command_hash="$(printf '%s' "${command_name}" | md5sum)"
-		command_key="_${command_hash:0:8}_${command_hash:8:4}_${command_hash:12:4}_${command_hash:16:4}_${command_hash:20:12}_"
+		hash_command="$(printf '%s' "${name_command}" | md5sum)"
+		key_command="_${hash_command:0:8}_${hash_command:8:4}_${hash_command:12:4}_${hash_command:16:4}_${hash_command:20:12}_"
 
 		# json string escaping: backslash then quote
 
-		command_name="${command_name//\\/\\\\}"
-		command_name="${command_name//\"/\\\"}"
-		command_line="${command_line//\\/\\\\}"
-		command_line="${command_line//\"/\\\"}"
+		name_command="${name_command//\\/\\\\}"
+		name_command="${name_command//\"/\\\"}"
+		line_command="${line_command//\\/\\\\}"
+		line_command="${line_command//\"/\\\"}"
 
-		if [ "${commands_json}" != "{" ]
+		if [ "${json_commands}" != "{" ]
 		then
-			commands_json+=","
+			json_commands+=","
 		fi
 
-		commands_json+="\"${command_key}\":{\"command\":\"${command_line}\",\"name\":\"${command_name}\"}"
+		json_commands+="\"${key_command}\":{\"command\":\"${line_command}\",\"name\":\"${name_command}\"}"
 	done < "${file_commands_list}"
 
-	commands_json+="}"
+	json_commands+="}"
 
 	# kde config value: quoted - backslashes and quotes escaped again
 
-	commands_value="${commands_json//\\/\\\\}"
-	commands_value="${commands_value//\"/\\\"}"
+	value_commands="${json_commands//\\/\\\\}"
+	value_commands="${value_commands//\"/\\\"}"
 
-	for device_id in "${device_order[@]}"
+	for id_device in "${list_order_device[@]}"
 	do
-		directory_run_command="${directory_kde_connect}/${device_id}/kdeconnect_runcommand"
+		directory_run_command="${directory_kde_connect}/${id_device}/kdeconnect_runcommand"
 
 		mkdir -p "${directory_run_command}"
 
-		printf '[General]\ncommands="@ByteArray(%s)"\n' "${commands_value}" > "${directory_run_command}/config"
+		printf '[General]\ncommands="@ByteArray(%s)"\n' "${value_commands}" > "${directory_run_command}/config"
 
 		frobulator.track || continue
 
-		frobulator.scs "Run commands applied - device" "[ '${device_names[${device_id}]}'${marker_spc}${marker_hnt}${marker_spc}${device_id:0:8} ]"
+		frobulator.scs "Run commands applied - device" "[ '${list_names_device[${id_device}]}'${marker_spc}${marker_hnt}${marker_spc}${id_device:0:8} ]"
 	done
 
 	return "${status}"
@@ -716,9 +716,9 @@ list=()
 
 # kde connect command line client - empty if not installed
 
-kde_connect_client="$(command -v kdeconnect-cli)"
+command_kde_connect="$(command -v kdeconnect-cli)"
 
-if [ -z "${kde_connect_client}" ]
+if [ -z "${command_kde_connect}" ]
 then
 	frobulator.err "KDE Connect not installed" "[ kdeconnect-cli ]"
 
