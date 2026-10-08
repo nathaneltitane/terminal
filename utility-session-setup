@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -136,14 +136,14 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-install_list+=(
+list_install+=(
 	apache2
 	cura
 	ffmpeg
 	samba
 )
 
-purge_list+=(
+list_purge+=(
 	apport*
 	firefox
 	info
@@ -154,22 +154,22 @@ purge_list+=(
 	xterm
 )
 
-kde_list+=(
+list_kde+=(
 	kaffeine
 	kfind
 	krename
 	ktorrent
 )
 
-pip_list=(
+list_pip=(
 	trimesh
 	puddletag
 	scdl
 )
 
-frobulator.purge ${purge_list[@]}
+frobulator.purge ${list_purge[@]}
 
-frobulator.install ${install_list[@]}
+frobulator.install ${list_install[@]}
 
 if [ -d /media/internal/Linux/applications ]
 then
@@ -181,12 +181,12 @@ then
 	done
 fi
 
-for package in ${pip_list[@]}
+for package in ${list_pip[@]}
 do
 	pip install "${package}"
 done
 
 if [[ "${DESKTOP_SESSION}" = "plasma" ]]
 then
-	frobulator.install ${kde_list[@]}
+	frobulator.install ${list_kde[@]}
 fi

@@ -69,12 +69,12 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-f|--file)
-			input_file="${2}"
+			file_input="${2}"
 
 			shift
 		;;
@@ -130,21 +130,21 @@ done
 
 # validate arguments
 
-if [ -z "${input_file}" ]
+if [ -z "${file_input}" ]
 then
 	frobulator.err "Missing svg file."
 
 	exit 1
 
-elif [[ "${input_file}" = -* ]]
+elif [[ "${file_input}" = -* ]]
 then
 	frobulator.err "Missing argument for '--file'."
 
 	exit 1
 
-elif [ ! -f "${input_file}" ]
+elif [ ! -f "${file_input}" ]
 then
-	frobulator.err "File not found" "[ ${input_file} ]"
+	frobulator.err "File not found" "[ ${file_input} ]"
 
 	exit 1
 fi
@@ -374,26 +374,26 @@ process_color () {
 
 	extension="svg"
 
-	color_name="${1}"
+	name_color="${1}"
 
-	color_name=${color_name,,}
+	name_color=${name_color,,}
 
-	color_name=${color_name// /_}
+	name_color=${name_color// /_}
 
-	if [[ -z "${colors[${color_name}]}" ]]
+	if [[ -z "${colors[${name_color}]}" ]]
 	then
-		frobulator.err "Specified color not found" "[ ${color_name} ]"
+		frobulator.err "Specified color not found" "[ ${name_color} ]"
 
 		exit 1
 	fi
 
-	color_value="${colors[${color_name}]}"
+	value_color="${colors[${name_color}]}"
 
-	output_file="${input_file%.${extension}}-${color_name//_/-}.${extension}"
+	file_output="${file_input%.${extension}}-${name_color//_/-}.${extension}"
 
-    sed "s/#000000/${color_value}/g" "${input_file}" > "${output_file}"
+    sed "s/#000000/${value_color}/g" "${file_input}" > "${file_output}"
 
-    echo "New SVG file created: ${output_file}"
+    echo "New SVG file created: ${file_output}"
 }
 
 # update ───────────────────────────────────────────────────────────────────────
@@ -416,9 +416,9 @@ list=()
 
 if [ "${option}" = "all" ]
 then
-    for color_name in "${!colors[@]}"
+    for name_color in "${!colors[@]}"
     do
-        process_color "${color_name}"
+        process_color "${name_color}"
     done
 
 else
@@ -427,20 +427,20 @@ else
 
 	# list colors sorted
 
-	while IFS= read -r color_name
+	while IFS= read -r name_color
 	do
-		formatted_color_name=$(echo "${color_name}" | sed 's/_/ /g' | sed 's/\b\(.\)/\u\1/g')
+		name_color_formatted=$(echo "${name_color}" | sed 's/_/ /g' | sed 's/\b\(.\)/\u\1/g')
 
-		echo "    ${formatted_color_name}"
+		echo "    ${name_color_formatted}"
 	done < <(printf '%s\n' "${!colors[@]}" | sort)
 
 	echo
 	echo "Please enter the name of the color you want to use:"
 	echo
 
-	read color_name
+	read name_color
 	echo
 
-	process_color "${color_name}"
+	process_color "${name_color}"
 fi
 

@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -122,7 +122,7 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-blacklist_directory="/etc/modprobe.d"
+directory_blacklist="/etc/modprobe.d"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -180,40 +180,40 @@ then
 	exit 1
 fi
 
-module_label="${module,,}"
+label_module="${module,,}"
 
-module_label="${module_label//_/-}"
+label_module="${label_module//_/-}"
 
-blacklist_file="${module_label}-blacklist.conf"
+name_file_blacklist="${label_module}-blacklist.conf"
 
-blacklist_entry="${blacklist_directory}/${blacklist_file}"
+path_blacklist="${directory_blacklist}/${name_file_blacklist}"
 
 # display the detected module
 
-frobulator.inf "Watchdog module" "[ ${module_label} ]"
+frobulator.inf "Watchdog module" "[ ${label_module} ]"
 
 # avoid duplicate blacklist entries
 
 # existing module blacklist line - empty if not blacklisted yet
 
-blacklist_line="$(grep -F -x "blacklist ${module}" "${blacklist_entry}" 2> "${sink}")"
+line_blacklist="$(grep -F -x "blacklist ${module}" "${path_blacklist}" 2> "${sink}")"
 
-if [ -n "${blacklist_line}" ]
+if [ -n "${line_blacklist}" ]
 then
-	frobulator.fwd "Module already blacklisted" "[ ${module_label} ]"
+	frobulator.fwd "Module already blacklisted" "[ ${label_module} ]"
 
 	exit 0
 fi
 
 # blacklist module
 
-frobulator.write "append" "blacklist ${module}" "${blacklist_directory}" "${blacklist_file}"
+frobulator.write "append" "blacklist ${module}" "${directory_blacklist}" "${name_file_blacklist}"
 
-frobulator.complete halt "Failed to write blacklist entry" "[ ${blacklist_entry} ]"
+frobulator.complete halt "Failed to write blacklist entry" "[ ${path_blacklist} ]"
 
 frobulator.complete
 
-frobulator.inf "Module blacklisted" "[ ${module_label} ]"
+frobulator.inf "Module blacklisted" "[ ${label_module} ]"
 
 # rebuild the initramfs
 
