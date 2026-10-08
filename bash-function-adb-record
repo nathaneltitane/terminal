@@ -6,21 +6,33 @@
 
 adb_record () {
 
+	local date_recording
+	local file_recording
+	local id_process_record
+
 	adb_download
 
 	adb_set_environment
 
-	adb shell screenrecord /storage/emulated/0/Videos/"${recording}" &
+	# recording file - timestamped - recorded on the device then pulled here
+
+	date_recording="$(date +"%m-%d-%Y-%H-%M-%S")"
+
+	file_recording="recording-${date_recording}.mp4"
+
+	adb shell screenrecord /sdcard/"${file_recording}" &
 
 	id_process_record=$!
 
 	read -r -p 'Press enter to stop recording...'
 
-	kill ${id_process_record} > "${sink}" 2>&1
+	kill "${id_process_record}" > "${sink}" 2>&1
 
 	sleep 0.5
 
-	adb pull /sdcard/"${recording}" screenrecord/"${recording}"
+	mkdir -p screenrecord
 
-	adb shell rm /sdcard/"${recording}"
+	adb pull /sdcard/"${file_recording}" screenrecord/"${file_recording}"
+
+	adb shell rm /sdcard/"${file_recording}"
 }

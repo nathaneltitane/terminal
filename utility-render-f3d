@@ -167,30 +167,33 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-directory    Specify [d]irectory to load models from."
+			echo -e "-d, --directory    Specify [d]irectory to load models from."
 			echo
-			echo -e "-all          Select [a]ll supported file formats as target."
+			echo -e "-a, --all          Select [a]ll supported file formats as target."
 			echo
-			echo -e "-stl          Select [s]tl file format as target."
+			echo -e "-f, --file         Specify model [f]ile extension to work on."
 			echo
-			echo -e "-render       Run model file [r]endering using the following parameters:"
+			echo -e "                   all    Select all supported file formats as target."
+			echo -e "                   stl    Select stl file format as target. [ Default ]"
 			echo
-			echo -e "              0            Render image using a quarter-back view preset. [ 0 ] [ Lat.:30, Lon.: 0 ]"
-			echo -e "              1            Render image using a quarter-back view preset. [ 1 ] [ Lat.:30, Lon.: 45 ]"
-			echo -e "              2            Render image using a quarter-back view preset. [ 2 ] [ Lat.:30, Lon.: 90 ]"
-			echo -e "              3            Render image using a quarter-back view preset. [ 3 ] [ Lat.:30, Lon.: 135 ]"
-			echo -e "              4            Render image using a quarter-back view preset. [ 4 ] [ Lat.:30, Lon.: 180 ]"
-			echo -e "              5            Render image using a quarter-back view preset. [ 5 ] [ Lat.:30, Lon.: 225 ]"
-			echo -e "              6            Render image using a quarter-back view preset. [ 6 ] [ Lat.:30, Lon.: 270 ]"
-			echo -e "              7            Render image using a quarter-back view preset. [ 7 ] [ Lat.:30, Lon.: 315 ]"
+			echo -e "-r, --render       Run model file [r]endering using the following parameters:"
 			echo
-			echo -e "              full         Render series of images using options 0 to 7."
-			echo -e "              render       Render series of images using option 1."
-			echo -e "              thumbnail    Render image using option 0 without edges or shading at 25% of the original size."
+			echo -e "                   0            Render image using view preset 0. [ latitude // 30 ] [ longitude // 0 ]"
+			echo -e "                   1            Render image using view preset 1. [ latitude // 30 ] [ longitude // 45 ]"
+			echo -e "                   2            Render image using view preset 2. [ latitude // 30 ] [ longitude // 90 ]"
+			echo -e "                   3            Render image using view preset 3. [ latitude // 30 ] [ longitude // 135 ]"
+			echo -e "                   4            Render image using view preset 4. [ latitude // 30 ] [ longitude // 180 ]"
+			echo -e "                   5            Render image using view preset 5. [ latitude // 30 ] [ longitude // 225 ]"
+			echo -e "                   6            Render image using view preset 6. [ latitude // 30 ] [ longitude // 270 ]"
+			echo -e "                   7            Render image using view preset 7. [ latitude // 30 ] [ longitude // 315 ]"
 			echo
-			echo -e "-h, --help    Show [h]elp and usage information."
+			echo -e "                   full         Render series of images using view presets 0 to 7."
+			echo -e "                   render       Render image using view preset 1."
+			echo -e "                   thumbnail    Render image using view preset 1 at 25% of the original size."
 			echo
-			echo -e "'${script}'   [ Version // ${version} ]"
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'        [ Version // ${version} ]"
 			echo
 
 			exit
@@ -222,6 +225,10 @@ do
 done
 
 # variables ────────────────────────────────────────────────────────────────────
+
+# rendered image file extension
+
+extension_render="png"
 
 stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
@@ -264,7 +271,7 @@ then
 		do
 			frobulator.read option_extension
 
-			if [ -z "${option_extension}" ] || [[ ! "${option_extension}" =~ [all|stl] ]]
+			if [ -z "${option_extension}" ] || [[ ! "${option_extension}" =~ ^(all|stl)$ ]]
 			then
 				frobulator.wrn "Unrecognized model file extension."
 				frobulator.wrn "Try again."
@@ -291,7 +298,7 @@ then
 
 		frobulator.fwd "Assuming defaults..."
 
-		option_extension="mpd"
+		option_extension="stl"
 
 		list_extensions=(
 			stl
@@ -330,18 +337,25 @@ f3d_render () {
 		width="4096"
 	fi
 
-	extension="png"
+	# camera direction - from the preset latitude and longitude - longitude 0 faces the model front
+
+	direction_camera="$(awk -v latitude="${latitude[$coordinates]}" -v longitude="${longitude[$coordinates]}" 'BEGIN {
+		radian = atan2(0, -1) / 180
+		printf "%.4f,%.4f,%.4f", -sin(longitude * radian) * cos(latitude * radian), cos(longitude * radian) * cos(latitude * radian), -sin(latitude * radian)
+	}')"
+
+	# system configuration skipped [ --dry-run ] - no grid, axis or file name overlay
 
 	f3d																	\
-		--up "${up}"													\
-		--ssao															\
-		--fxaa															\
+		--dry-run														\
+		--up="${up}"													\
+		--ambient-occlusion												\
+		--anti-aliasing													\
 		--tone-mapping													\
 		--resolution "${width}","${height}"								\
-		--camera-azimuth-angle=${latitude[$coordinates]}				\
-		--camera-elevation-angle=${longitude[$coordinates]}				\
+		--camera-direction="${direction_camera}"						\
 		--no-background													\
-		--output="${name_model}-${view[$coordinates]}.${extension}"		\
+		--output="${name_model}-${view[$coordinates]}.${extension_render}"		\
 																		"${path_model}" > "${sink}" 2>&1
 
 		wait
@@ -481,6 +495,11 @@ then
 				position=(7)
 			fi
 
+			if [[ "${preset_render}" = "full" ]]
+			then
+				position=(0 1 2 3 4 5 6 7)
+			fi
+
 			if [[ "${preset_render}" = "render" ]]
 			then
 				position=(1)
@@ -520,9 +539,16 @@ then
 				cd "${directory_thumbnail}"
 			fi
 
+			if [[ "${preset_render}" = "full" ]]
+			then
+				mkdir -p "${directory_full}"
+
+				cd "${directory_full}"
+			fi
+
 			for coordinates in ${position[@]}
 			do
-				file_render="${name_model}-${view[$coordinates]}.${extension}"
+				file_render="${name_model}-${view[$coordinates]}.${extension_render}"
 
 				f3d_render "${path_model}" "${coordinates}"
 			done
@@ -534,8 +560,8 @@ then
 				# rename renders to designated splash images
 
 				mv												\
-					"${name_model}-${view[1]}.${extension}"		\
-					"${directory_render}"/render."${extension}"
+					"${name_model}-${view[1]}.${extension_render}"		\
+					"${directory_render}"/render."${extension_render}"
 			fi
 
 			if [[ "${option_render}" = "thumbnail" ]]
@@ -543,8 +569,8 @@ then
 				# rename renders to designated splash images
 
 				mv												\
-					"${name_model}-${view[1]}.${extension}"		\
-					"${directory_thumbnail}"/thumbnail."${extension}"
+					"${name_model}-${view[1]}.${extension_render}"		\
+					"${directory_thumbnail}"/thumbnail."${extension_render}"
 			fi
 
 		done
