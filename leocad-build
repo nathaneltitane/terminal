@@ -234,7 +234,7 @@ Keywords=CAD;LEGO;LDraw;
 LAUNCHER
 )
 
-frobulator.write "write" "${content_launcher}" /usr/share/applications leocad.desktop
+frobulator.write "write" "${content_launcher}" /usr/share/applications "${application}".desktop
 
 frobulator.complete continue "Launcher failure" "[ /usr/share/applications/leocad.desktop ]"
 
