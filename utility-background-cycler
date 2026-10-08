@@ -143,15 +143,15 @@ cat <<- 'FILE' > /usr/bin/background-cycler
 
 # background cycler #
 
-directory=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
+directory_pictures=$(zenity --file-selection --separator=$'\n' --title="Select a Directory") 2> "${sink}"
 
 gsettings set org.gnome.desktop.background picture-options "zoom"
 
 while true
 do
-	picture="$(ls $directory | sort -R | head -n 1)"
+	file_picture="$(ls $directory_pictures | sort -R | head -n 1)"
 
-	gsettings set org.gnome.desktop.background picture-uri "file://${picture}"
+	gsettings set org.gnome.desktop.background picture-uri "file://${file_picture}"
 
 	sleep 60
 done
