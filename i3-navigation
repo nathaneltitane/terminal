@@ -1,19 +1,19 @@
 #!/bin/bash
 
-navigation_selection="${HOME}"
+selection_navigation="${HOME}"
 
 separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
+name_font="Monospace"
+size_font=10
+font="${name_font}:size=${size_font}"
 
 lines=60
 prompt="NAVIGATION${separator}"
 
-history_entry_count=3
-history_file="${HOME}"/.local/bin/.i3-navigation-history
+count_entries_history=3
+file_history="${HOME}"/.local/bin/.i3-navigation-history
 
-file_manager="ranger"
+command_file_manager="ranger"
 terminal="i3-sensible-terminal"
 
 list="ls -a"
@@ -31,29 +31,29 @@ terminal_open () {
 
 terminal_open_visual () {
 
-	"${terminal}" -e "${file_manager} ${@}"
+	"${terminal}" -e "${command_file_manager} ${@}"
 }
 
 history_write () {
 
-	history_entry="${1}"
+	entry_history="${1}"
 
-	sed -i "\:${history_entry}:d" "${history_file}"
+	sed -i "\:${entry_history}:d" "${file_history}"
 
-	printf '%s\n' "${history_entry}" >> "${history_file}"
+	printf '%s\n' "${entry_history}" >> "${file_history}"
 
-	printf '%s\n' "$(tail -n "${history_entry_count}" "${history_file}")" > "${history_file}"
+	printf '%s\n' "$(tail -n "${count_entries_history}" "${file_history}")" > "${file_history}"
 }
 
 
 selections_parse () {
 
-	working_directory="${navigation_selection}"
+	directory_working="${selection_navigation}"
 
 	label_selections_empty=''
 	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
 
-	label_selections_working_directory="DIRECTORY${separator}${working_directory}"
+	label_selections_working_directory="DIRECTORY${separator}${directory_working}"
 	label_selections_history='[ History ]  ↴'
 	label_selections_terminal='[ Open Terminal Here ]'
 	label_selections_terminal_visual='[ Open Visual Terminal Here ]'
@@ -64,11 +64,11 @@ selections_parse () {
 		"${label_selections_terminal}"
 		"${label_selections_terminal_visual}"
 		"${label_selections_empty}"
-		"$(${list} "${navigation_selection}")"
+		"$(${list} "${selection_navigation}")"
 		"${label_selections_empty}"
 		"${label_selections_history}"
 		"${label_selections_empty}"
-		"$(${read} "${history_file}")"
+		"$(${read} "${file_history}")"
 	)
 
 	IFS=$"\n"
@@ -89,19 +89,19 @@ do
 
 	if [ "${selection}" == '[ Open Terminal Here ]' ]
 	then
-		terminal_open "${navigation_selection}"
+		terminal_open "${selection_navigation}"
 
-		history_write "${navigation_selection}"
+		history_write "${selection_navigation}"
 
 	elif [ "${selection}" == '[ Open Visual Terminal Here ]' ]
 	then
-		terminal_open_visual "${navigation_selection}"
+		terminal_open_visual "${selection_navigation}"
 
-		history_write "${navigation_selection}"
+		history_write "${selection_navigation}"
 
 	elif [[ "${selection}" == '/'* ]]
 	then
-		navigation_selection="${selection}"
+		selection_navigation="${selection}"
 
 	elif [[ "${selection}" =~ ^(https?|ftps): ]]
 	then
@@ -110,16 +110,16 @@ do
 		history_write "${selection}"
 
 	else
-		navigation_selection="$(realpath "${navigation_selection}/${selection}")"
+		selection_navigation="$(realpath "${selection_navigation}/${selection}")"
 	fi
 
-	if [ -f "${navigation_selection}" ] || [ "${selection}" = '.' ]
+	if [ -f "${selection_navigation}" ] || [ "${selection}" = '.' ]
 	then
-		handler_open "${navigation_selection}"
+		handler_open "${selection_navigation}"
 
-		history_write "${navigation_selection}"
+		history_write "${selection_navigation}"
 
-	elif [ -d "${navigation_selection}" ]
+	elif [ -d "${selection_navigation}" ]
 	then
 		selections=(
 			"${label_selections_working_directory}"
@@ -127,9 +127,9 @@ do
 			"${label_selections_terminal}"
 			"${label_selections_terminal_visual}"
 			"${label_selections_empty}"
-			"$(${list} "${navigation_selection}")"
+			"$(${list} "${selection_navigation}")"
 		)
 	else
-		navigation_selection="$(dirname "${navigation_selection}")"
+		selection_navigation="$(dirname "${selection_navigation}")"
 	fi
 done

@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -163,14 +163,14 @@ settings_intent () {
 
 	# reload termux settings
 
-	settings_command=()
+	command_settings=()
 
-	settings_command+=(am broadcast)
-	settings_command+=(--user 0)
-	settings_command+=(-a com.termux.app.reload_style)
-	settings_command+=(com.termux)
+	command_settings+=(am broadcast)
+	command_settings+=(--user 0)
+	command_settings+=(-a com.termux.app.reload_style)
+	command_settings+=(com.termux)
 
-	frobulator.silence "${settings_command[@]}"
+	frobulator.silence "${command_settings[@]}"
 }
 
 # update ───────────────────────────────────────────────────────────────────────

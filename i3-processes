@@ -1,9 +1,9 @@
 #!/usr/bin/bash
 
 separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
+name_font="Monospace"
+size_font=10
+font="${name_font}:size=${size_font}"
 
 lines=30
 prompt="TYPE TO SEARCH - SELECT TO TERMINATE${separator}"
@@ -18,8 +18,8 @@ then
 
     if [[ "${answer}" == "YES" ]]
     then
-        process_selection="$(awk '{print $1}' <<< "${selection}")"
+        id_process_selection="$(awk '{print $1}' <<< "${selection}")"
 
-        kill -9 "${process_selection}"
+        kill -9 "${id_process_selection}"
     fi
 fi

@@ -2,10 +2,10 @@
 
 separator=" // "
 
-battery_capacity=$(cat /sys/class/power_supply/battery/uevent    | grep -i 'capacity=' | cut -d '=' -f 2)
-battery_health=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'health='   | cut -d '=' -f 2)
-battery_status=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'status='   | cut -d '=' -f 2)
-battery_temperature=$(cat /sys/class/power_supply/battery/uevent | grep -i 'temp='     | cut -d '=' -f 2)
+capacity_battery=$(cat /sys/class/power_supply/battery/uevent    | grep -i 'capacity=' | cut -d '=' -f 2)
+health_battery=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'health='   | cut -d '=' -f 2)
+status_battery=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'status='   | cut -d '=' -f 2)
+temperature_battery=$(cat /sys/class/power_supply/battery/uevent | grep -i 'temp='     | cut -d '=' -f 2)
 
 date=$(date +"%F")
 time=$(date +"%r")
@@ -28,7 +28,7 @@ PS1+=" USER: ${USER}"
 PS1+="${separator}"
 PS1+=" DATE: ${date}"
 PS1+="${separator}"
-PS1+=" BATT. % ${battery_capacity} [ ${battery_status} ]"
+PS1+=" BATT. % ${capacity_battery} [ ${status_battery} ]"
 PS1+="${separator}"
 PS1+=" NET: $(getprop wifi.interface)"
 PS1+="${separator}"

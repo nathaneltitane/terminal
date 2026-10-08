@@ -69,12 +69,12 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
 		-f|--file)
-			settings_file="${2}"
+			file_settings="${2}"
 
 			shift
 		;;
@@ -128,13 +128,13 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 
 # validate arguments
 
-if [ -z "${settings_file}" ]
+if [ -z "${file_settings}" ]
 then
 	frobulator.err "Missing settings file."
 
 	exit 1
 
-elif [[ "${settings_file}" = -* ]]
+elif [[ "${file_settings}" = -* ]]
 then
 	frobulator.err "Missing argument for '--file'."
 
@@ -163,7 +163,7 @@ list=()
 
 # read settings
 
-frobulator.inf "Generating" "[ ${settings_file} ]"
+frobulator.inf "Generating" "[ ${file_settings} ]"
 
 xfconf-query -l | sed '/Channel.*/d' | while read channel
 do
@@ -208,20 +208,20 @@ do
 		fi
 	done
 
-done > "${settings_file}"
+done > "${file_settings}"
 
 # fix 'UNSUPPORTED' values:
 # write essential values back into settings file
 
 # add 'xfce4-appfinder' actions string
 
-echo "xfconf-query --create -c 'xfce4-appfinder' -p '/actions' -t string -s ''" >> "${settings_file}"
+echo "xfconf-query --create -c 'xfce4-appfinder' -p '/actions' -t string -s ''" >> "${file_settings}"
 
 # add workspace background settings
 
-for rgba_number in {1..2}
+for number_rgba in {1..2}
 do
-	for workspace_number in {0..8}
+	for number_workspace in {0..8}
 	do
 		value="1.0"
 
@@ -234,13 +234,13 @@ do
 
 		command+="xfconf-query --create"
 		command+=" -c 'xfce4-desktop'"
-		command+=" -p '/backdrop/screen0/monitorVNC-0/workspace${workspace_number}/rgba${rgba_number}'"
+		command+=" -p '/backdrop/screen0/monitorVNC-0/workspace${number_workspace}/rgba${number_rgba}'"
 		command+=" -t double -s '${r}'"
 		command+=" -t double -s '${g}'"
 		command+=" -t double -s '${b}'"
 		command+=" -t double -s '${a}'"
 
-		echo ${command} >> "${settings_file}"
+		echo ${command} >> "${file_settings}"
 	done
 done
 
@@ -252,12 +252,12 @@ command+="xfconf-query --create"
 command+=" -c 'xfwm4'"
 command+=" -p '/general/workspace_names'"
 
-for workspace_number in {1..9}
+for number_workspace in {1..9}
 do
-	command+=" -t string -s 'Workspace 0${workspace_number}'"
+	command+=" -t string -s 'Workspace 0${number_workspace}'"
 done
 
-echo ${command} >> "${settings_file}"
+echo ${command} >> "${file_settings}"
 
 # add keyboard-shortcut providers
 
@@ -269,9 +269,9 @@ command+=" -p '/providers'"
 command+=" -t string -s 'xfwm4'"
 command+=" -t string -s 'commands'"
 
-echo ${command} >> "${settings_file}"
+echo ${command} >> "${file_settings}"
 
-echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${settings_file}"
+echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${file_settings}"
 
 frobulator.scs "Done."
 

@@ -96,9 +96,9 @@ shortcuts='
 '
 
 separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
+name_font="Monospace"
+size_font=10
+font="${name_font}:size=${size_font}"
 
 lines=$(echo "${shortcuts}" | wc -l)
 prompt="SHORTCUTS${separator}"

@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -114,7 +114,7 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-library_directory=$(pip show py-slvs | grep Location | cut -d ' ' -f 2)
+directory_library=$(pip show py-slvs | grep Location | cut -d ' ' -f 2)
 
 # defaults ─────────────────────────────────────────────────────────────────────
 

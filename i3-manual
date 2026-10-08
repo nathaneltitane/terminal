@@ -5,9 +5,9 @@ script=$(basename -- "${BASH_SOURCE[0]}")
 terminal="i3-sensible-terminal"
 
 separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
+name_font="Monospace"
+size_font=10
+font="${name_font}:size=${size_font}"
 
 lines=30
 prompt="MANUALS${separator}"
