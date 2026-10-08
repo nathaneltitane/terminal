@@ -69,14 +69,14 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-dry_run=false
+state_dry_run=false
 
 while (( $# ))
 do
 	case "${1}"
 	in
 		-d|--dry-run)
-			dry_run=true
+			state_dry_run=true
 		;;
 
 		-h|--help)
@@ -136,7 +136,7 @@ android_platform_tools_update () {
 
 	local directory_temporary
 	local archive
-	local path_extracted
+	local directory_extracted
 
 	frobulator.temporary directory_temporary
 
@@ -150,7 +150,7 @@ android_platform_tools_update () {
 	frobulator.trap "${directory_temporary}"
 
 	archive="${directory_temporary}/platform-tools.zip"
-	path_extracted="${directory_temporary}/platform-tools"
+	directory_extracted="${directory_temporary}/platform-tools"
 
 	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
 
@@ -167,7 +167,7 @@ android_platform_tools_update () {
 
 	frobulator.complete halt "Unable to extract" "[ Android Platform Tools ]"
 
-	if [ ! -x "${path_extracted}/adb" ] || [ ! -x "${path_extracted}/fastboot" ]
+	if [ ! -x "${directory_extracted}/adb" ] || [ ! -x "${directory_extracted}/fastboot" ]
 	then
 		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
 
@@ -182,7 +182,7 @@ android_platform_tools_update () {
 
 	frobulator.delete "${directory_platform_tools}"
 
-	mv "${path_extracted}" "${directory_platform_tools}"
+	mv "${directory_extracted}" "${directory_platform_tools}"
 
 	list=(
 		adb
@@ -221,7 +221,7 @@ android_device_wait () {
 	local serial
 	local line
 
-	local -a devices_list
+	local -a list_devices
 
 	adb start-server > "${sink}" 2>&1
 
@@ -231,9 +231,9 @@ android_device_wait () {
 
 		unset state
 
-		mapfile -t devices_list < <(adb devices)
+		mapfile -t list_devices < <(adb devices)
 
-		for line in "${devices_list[@]:1}"
+		for line in "${list_devices[@]:1}"
 		do
 			if [ -n "${line}" ]
 			then
@@ -311,7 +311,7 @@ frobulator.complete
 
 # configuration ────────────────────────────────────────────────────────────────
 
-packages_list_malware=(
+list_packages_malware=(
 	ai.tanka.app.team
 	aiphotogenerator.aivideogenerator.artgenerator.texttoimage
 	all.documentreader.filereader.office.viewer
@@ -837,31 +837,31 @@ packages_list_malware=(
 	words.puzzle.wordgame.free.connect
 )
 
-packages_list_amazon=(
+list_packages_amazon=(
 	com.amazon.mShop.android.shopping
 	com.amazon.appmanager
 )
 
-packages_list_android=(
+list_packages_android=(
 
 )
 
-packages_list_carrier=(
+list_packages_carrier=(
 	com.telus.myaccount
 	com.telus.checkup
 )
 
-packages_list_facebook=(
+list_packages_facebook=(
 	com.facebook.appmanager
 	com.facebook.services
 	com.facebook.system
 )
 
-packages_list_google=(
+list_packages_google=(
 
 )
 
-packages_list_microsoft=(
+list_packages_microsoft=(
 	com.microsoft.appmanager
 	com.microsoft.office.outlook
 	com.microsoft.rdc.androidx
@@ -870,11 +870,11 @@ packages_list_microsoft=(
 	com.microsoft.android.mdx
 )
 
-packages_list_netflix=(
+list_packages_netflix=(
 	com.netflix.mediaclient
 )
 
-packages_list_onyx=(
+list_packages_onyx=(
 	# com.onyx
 	# com.onyx.android.ksync
 	# com.onyx.android.note
@@ -912,29 +912,29 @@ packages_list_onyx=(
 	com.onyx.kime
 )
 
-packages_list_samsung=(
+list_packages_samsung=(
 	com.samsung.android.mdx
 	com.samsung.android.messaging
 	com.samsung.android.kidsinstaller
 )
 
-packages_list=(
-	${packages_list_amazon[@]}
-	${packages_list_carrier[@]}
-	${packages_list_microsoft[@]}
-	${packages_list_netflix[@]}
-	${packages_list_onyx[@]}
-	${packages_list_samsung[@]}
-	${packages_list_malware[@]}
+list_packages=(
+	${list_packages_amazon[@]}
+	${list_packages_carrier[@]}
+	${list_packages_microsoft[@]}
+	${list_packages_netflix[@]}
+	${list_packages_onyx[@]}
+	${list_packages_samsung[@]}
+	${list_packages_malware[@]}
 )
 
 android_device_wait
 
 frobulator.inf "Querying installed packages"
 
-packages_installed=$(android_debug_bridge list packages --user 0)
+list_packages_installed=$(android_debug_bridge list packages --user 0)
 
-if [ -z "${packages_installed}" ]
+if [ -z "${list_packages_installed}" ]
 then
 	frobulator.err "Unable to query installed packages"
 
@@ -946,17 +946,17 @@ frobulator.complete
 count_removed=0
 count_failed=0
 
-for application in "${packages_list[@]}"
+for application in "${list_packages[@]}"
 do
 	# package listing line if it is on the device - empty otherwise
 
-	package_listed="$(echo "${packages_installed}" | grep -F -x "package:${application}")"
+	line_package_listed="$(echo "${list_packages_installed}" | grep -F -x "package:${application}")"
 
-	if [ -n "${package_listed}" ]
+	if [ -n "${line_package_listed}" ]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 
-		if [ "${dry_run}" = true ]
+		if [ "${state_dry_run}" = true ]
 		then
 			frobulator.wrn "Would be removed" "[ ${application} ]"
 
@@ -980,7 +980,7 @@ do
 	fi
 done
 
-if [ "${dry_run}" = true ]
+if [ "${state_dry_run}" = true ]
 then
 	frobulator.scs "Dry run complete"
 else
