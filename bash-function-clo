@@ -50,7 +50,7 @@ clo () {
 
 	frobulator.inf "Resuming session" "[ ${id_session} ]"
 
-	claude --resume "${id_session}"
+	claude --dangerously-skip-permissions --resume "${id_session}"
 
 	unset command
 
