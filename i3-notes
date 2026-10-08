@@ -3,22 +3,22 @@
 terminal="i3-sensible-terminal"
 editor="i3-sensible-editor"
 
-notes_directory="${HOME}"/.notes
+directory_notes="${HOME}"/.notes
 
-if [[ ! -d "${notes_directory}" ]]
+if [[ ! -d "${directory_notes}" ]]
 then
-    mkdir -p "${notes_directory}"
+    mkdir -p "${directory_notes}"
 fi
 
 separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
+name_font="Monospace"
+size_font=10
+font="${name_font}:size=${size_font}"
 
 lines=15
 prompt="NOTES${separator}"
 
-list="$(find -L ${notes_directory} -maxdepth 1 -type f | sed 's|^"${notes_directory}/""||' | sort)"
+list="$(find -L ${directory_notes} -maxdepth 1 -type f | sed 's|^"${directory_notes}/""||' | sort)"
 
 selection="$(echo -e "${list}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
@@ -38,11 +38,11 @@ note_create () {
 
     extension="md"
 
-    file_name="$(note_slugger "${1,,}")"
+    name_file_note="$(note_slugger "${1,,}")"
 
-    file_name="${file_name}.${extension}"
+    name_file_note="${name_file_note}.${extension}"
 
-    note="${notes_directory}/${file_name}"
+    note="${directory_notes}/${name_file_note}"
 
     title="${1,,}"
 
@@ -50,23 +50,23 @@ note_create () {
 
     echo -e "# ${title}\n\n" > "${note}"
 
-    notify-send -i "Notes" "New note" "Note <b>$file_name.md</b> was created under '${notes_directory}'"
+    notify-send -i "Notes" "New note" "Note <b>$name_file_note.md</b> was created under '${directory_notes}'"
 }
 
 note_open () {
 
-    note_selection="${notes_directory}/${selection}"
+    file_note_selection="${directory_notes}/${selection}"
 
-    if [[ ! -f "${note_selection}" ]]
+    if [[ ! -f "${file_note_selection}" ]]
     then
         note_create "${selection}"
     else
-        note="${note_selection}"
+        note="${file_note_selection}"
     fi
 
-    note_lines="$(wc -l < "${note}")"
+    count_lines_note="$(wc -l < "${note}")"
 
-    eval "$(${terminal} -T "Notes" -e "${editor} +${note_lines} ${note}")"
+    eval "$(${terminal} -T "Notes" -e "${editor} +${count_lines_note} ${note}")"
 }
 
 if [[ ! -z "${selection}" ]]

@@ -69,7 +69,7 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -126,12 +126,12 @@ done
 
 # requirements ─────────────────────────────────────────────────────────────────
 
-i3_list+=(
+list_i3+=(
 	i3
 	i3status
 )
 
-i3_addons_list+=(
+list_addons_i3+=(
 	dmenu
 	dunst
 	feh
@@ -142,20 +142,20 @@ i3_addons_list+=(
 	qiv
 )
 
-install_list+=(
-	${i3_list[@]}
-	${i3_addons_list[@]}
+list_install+=(
+	${list_i3[@]}
+	${list_addons_i3[@]}
 )
 
-frobulator.install ${install_list[@]}
+frobulator.install ${list_install[@]}
 
-install_list=()
+list_install=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
 # load interface files
 
-interface_list+=(
+list_interface+=(
 	i3-configuration
  	i3status-configuration
 	i3-backgrounds
@@ -175,9 +175,9 @@ interface_list+=(
 	i3-template
 )
 
-frobulator.download get.trmnl.me "${HOME}"/.local/bin ${interface_list[@]}
+frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list_interface[@]}
 
-interface_list=()
+list_interface=()
 
 # link configuration files
 

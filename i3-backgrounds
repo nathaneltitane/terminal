@@ -3,9 +3,9 @@
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 separator=" // "
-font_name="Monospace"
-font_size=10
-font="${font_name}:size=${font_size}"
+name_font="Monospace"
+size_font=10
+font="${name_font}:size=${size_font}"
 
 lines=60
 prompt="CHANGE BACKGROUND IMAGE${separator}"
@@ -21,7 +21,7 @@ images="$(find "${HOME}"						\
 				-not -path "*thumbnails*" | sort
 		)"
 
-display_options_list=(
+list_options_display=(
 	center
 	fill
 	scale
@@ -31,9 +31,9 @@ display_options_list=(
 
 selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
-lines=${#display_options_list[@]}
+lines=${#list_options_display[@]}
 prompt="SELECT DISPLAY METHOD${separator}"
 
-display="$(printf '%s\n' "${display_options_list[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+display="$(printf '%s\n' "${list_options_display[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
 
 feh --no-fehbg --bg-"${display}" "${selection}"

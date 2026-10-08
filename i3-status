@@ -7,9 +7,9 @@ joiner=" > "
 decimal_calculate () {
 
 	value="${1}"
-	decimal_factor="${2}"
+	factor_decimal="${2}"
 
-	scale=$(bc <<< "scale=2; ${value} / ${decimal_factor}")
+	scale=$(bc <<< "scale=2; ${value} / ${factor_decimal}")
 
 	echo "${scale}"
 
@@ -23,7 +23,7 @@ memory_convert () {
 	unit_from="${2}"
 	unit_to="${3}"
 
-	memory_unit="${unit_to}"
+	unit_memory="${unit_to}"
 
 	case "${unit_from}"
 	in
@@ -157,35 +157,35 @@ memory_convert () {
 
 uevent_parse () {
 
-	uevent_name="${1}"
-	uevent_directory="${2}"
+	name_uevent="${1}"
+	directory_uevent="${2}"
 
-	cat "${uevent_directory}" | grep -i "${uevent_name}=" | cut -d '=' -f 2
+	cat "${directory_uevent}" | grep -i "${name_uevent}=" | cut -d '=' -f 2
 
 }
 
 system_event_parse () {
 
-	system_event_name="${1}"
-	system_event_directory="${2}"
+	name_system_event="${1}"
+	directory_system_event="${2}"
 
-	cat "${system_event_directory}/${system_event_name}"
+	cat "${directory_system_event}/${name_system_event}"
 
 }
 
 status_date () {
 
-	#current_date=$(date +"%F")
-	current_date=$(date +"%m-%d-%Y")
+	#date_current=$(date +"%F")
+	date_current=$(date +"%m-%d-%Y")
 
-	status+="${current_date}${separator}"
+	status+="${date_current}${separator}"
 }
 
 status_time () {
 
-	current_time=$(date +"%r")
+	time_current=$(date +"%r")
 
-	status+="${current_time}${separator}"
+	status+="${time_current}${separator}"
 }
 
 status_host () {
@@ -212,7 +212,7 @@ status_battery () {
 
 	# battery - system
 
-	# battery_capacity=$(system_event_parse capacity /sys/class/power_supply/battery)
+	# capacity_battery=$(system_event_parse capacity /sys/class/power_supply/battery)
 	# battery_charge_counter=$(system_event_parse charge_counter /sys/class/power_supply/battery)
 	# battery_charge_counter_shadow=$(system_event_parse charge_counter_shadow /sys/class/power_supply/battery)
 	# battery_charge_full=$(system_event_parse charge_full /sys/class/power_supply/battery)
@@ -223,14 +223,14 @@ status_battery () {
 	# battery_charge_utg_control=$(system_event_parse charge_utg_control /sys/class/power_supply/battery)
 	# battery_current_average=$(system_event_parse current_avg /sys/class/power_supply/battery)
 	# battery_current_now=$(system_event_parse current_now /sys/class/power_supply/battery)
-	# battery_health=$(system_event_parse health /sys/class/power_supply/battery)
+	# health_battery=$(system_event_parse health /sys/class/power_supply/battery)
 	# battery_power_average=$(system_event_parse power_avg /sys/class/power_supply/battery)
 	# battery_power_now=$(system_event_parse power_now /sys/class/power_supply/battery)
 	# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
 	# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
 	# battery_status=$(system_event_parse status /sys/class/power_supply/battery)
 	# battery_technology=$(system_event_parse technology /sys/class/power_supply/battery)
-	# battery_temperature=$(system_event_parse temp /sys/class/power_supply/battery)
+	# temperature_battery=$(system_event_parse temp /sys/class/power_supply/battery)
 	# battery_time_online=$(system_event_parse online /sys/class/power_supply/battery)
 	# battery_time_to_full=$(system_event_parse time_to_full_now /sys/class/power_supply/battery)
 	# battery_voltage=$(system_event_parse voltage /sys/class/power_supply/battery)
@@ -266,37 +266,37 @@ status_battery () {
 
 	if [[ -f /sys/class/power_supply/battery ]]
 	then
-		battery_capacity=$(system_event_parse capacity /sys/class/power_supply/battery)
+		capacity_battery=$(system_event_parse capacity /sys/class/power_supply/battery)
 
-		battery_capacity_unit="%"
+		unit_capacity_battery="%"
 
-		battery_temperature=$(system_event_parse temp /sys/class/power_supply/battery)
-		battery_temperature=$(decimal_calculate "${battery_temperature}" 10)
+		temperature_battery=$(system_event_parse temp /sys/class/power_supply/battery)
+		temperature_battery=$(decimal_calculate "${temperature_battery}" 10)
 
-		battery_temperature_unit="°C"
+		unit_temperature_battery="°C"
 
-		status+="BATTERY ${battery_capacity}${battery_capacity_unit}${separator}"
-		status+="TEMPERATURE ${battery_temperature}${battery_temperature_unit}${separator}"
+		status+="BATTERY ${capacity_battery}${unit_capacity_battery}${separator}"
+		status+="TEMPERATURE ${temperature_battery}${unit_temperature_battery}${separator}"
 	fi
 
 }
 
 status_cpu_temperature () {
 
-	cpu_count=$(nproc)
+	count_cpu=$(nproc)
 
-	for (( i=0 ; i<${cpu_count} ; i++ ))
+	for (( i = 0 ; i < ${count_cpu} ; i ++ ))
 	do
-		cpu_temperature_path="/sys/class/thermal/thermal_zone${i}/temp"
+		path_temperature_cpu="/sys/class/thermal/thermal_zone${i}/temp"
 
-		if [ -f "${cpu_temperature_path}" ]
+		if [ -f "${path_temperature_cpu}" ]
 		then
-			cpu_temperature=$(cat "${cpu_temperature_path}")
-			cpu_temperature=$(decimal_calculate "${cpu_temperature}" 1000)
+			temperature_cpu=$(cat "${path_temperature_cpu}")
+			temperature_cpu=$(decimal_calculate "${temperature_cpu}" 1000)
 
-			cpu_temperature_unit="°C"
+			unit_temperature_cpu="°C"
 
-			status+="CPU${i} ${cpu_temperature}${cpu_temperature_unit}${separator}"
+			status+="CPU${i} ${temperature_cpu}${unit_temperature_cpu}${separator}"
 		fi
 	done
 
@@ -304,46 +304,46 @@ status_cpu_temperature () {
 
 status_memory_information () {
 
-	memory_unit="GB"
+	unit_memory="GB"
 
 	memory_total=$(grep -i 'memtotal' /proc/meminfo | awk '{print $2}')
 	memory_available=$(grep -i 'memavailable' /proc/meminfo | awk '{print $2}')
 
-	memory_used=$((${memory_total} - ${memory_available}))
+	memory_used=$(( ${memory_total} - ${memory_available} ))
 
-	memory_total=$(memory_convert ${memory_total} KB "${memory_unit}")
-	memory_available=$(memory_convert ${memory_available} KB "${memory_unit}")
-	memory_used=$(memory_convert ${memory_used} KB "${memory_unit}")
+	memory_total=$(memory_convert ${memory_total} KB "${unit_memory}")
+	memory_available=$(memory_convert ${memory_available} KB "${unit_memory}")
+	memory_used=$(memory_convert ${memory_used} KB "${unit_memory}")
 
-	memory_unit="${memory_unit^^}"
+	unit_memory="${unit_memory^^}"
 
-	memory_available_percentage=$(echo "scale=2; (${memory_available} / ${memory_total}) * 100" | bc)
-	memory_used_percentage=$(echo "scale=2; (${memory_used} / ${memory_total}) * 100" | bc)
+	percentage_memory_available=$(echo "scale=2; (${memory_available} / ${memory_total}) * 100" | bc)
+	percentage_memory_used=$(echo "scale=2; (${memory_used} / ${memory_total}) * 100" | bc)
 
-	memory_unit_percentage="%"
+	unit_percentage_memory="%"
 
-	status+="MEMORY TOTAL ${memory_total}${memory_unit}${joiner}"
-	status+="MEMORY USED ${memory_used}${memory_unit} [ ${memory_used_percentage}${memory_unit_percentage} ]${joiner}"
-	status+="MEMORY AVAILABLE ${memory_available}${memory_unit} [ ${memory_available_percentage}${memory_unit_percentage} ]${separator}"
+	status+="MEMORY TOTAL ${memory_total}${unit_memory}${joiner}"
+	status+="MEMORY USED ${memory_used}${unit_memory} [ ${percentage_memory_used}${unit_percentage_memory} ]${joiner}"
+	status+="MEMORY AVAILABLE ${memory_available}${unit_memory} [ ${percentage_memory_available}${unit_percentage_memory} ]${separator}"
 
 }
 
 
 status_network_information () {
 
-	network_interface=$(ip route | grep 'default')
+	route_default=$(ip route | grep 'default')
 
-	if [[ -n "${network_interface}" ]]
+	if [[ -n "${route_default}" ]]
 	then
-		network_interface_device=$(ip route | grep '^default' | cut -d ' ' -f 5)
-		network_interface_gateway=$(ip route | grep '^default' | cut -d ' ' -f 3)
-		network_interface_address=$(ip route | grep '^default' | cut -d ' ' -f 9)
+		device_interface_network=$(ip route | grep '^default' | cut -d ' ' -f 5)
+		gateway_interface_network=$(ip route | grep '^default' | cut -d ' ' -f 3)
+		address_interface_network=$(ip route | grep '^default' | cut -d ' ' -f 9)
 
-		network_interface_device="${network_interface_device^^}"
+		device_interface_network="${device_interface_network^^}"
 
-		status+="INTERFACE ${network_interface_device}${joiner}"
-		status+="GATEWAY ${network_interface_gateway}${joiner}"
-		status+="IP ${network_interface_address}${separator}"
+		status+="INTERFACE ${device_interface_network}${joiner}"
+		status+="GATEWAY ${gateway_interface_network}${joiner}"
+		status+="IP ${address_interface_network}${separator}"
 	else
 		status+="Network: Disconnected${separator}"
 	fi
