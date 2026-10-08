@@ -69,10 +69,10 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-keep_list=()
+list_keep=()
 prune=false
 
-while (($#))
+while (( $# ))
 do
 	case "${1}"
 	in
@@ -83,7 +83,7 @@ do
 		;;
 
 		-d|--destination)
-			destination_base="${2}"
+			directory_destination_base="${2}"
 
 			shift
 		;;
@@ -95,7 +95,7 @@ do
 		;;
 
 		-k|--keep)
-			keep_list+=("${2}")
+			list_keep+=("${2}")
 
 			shift
 		;;
@@ -166,25 +166,25 @@ done
 directory_mount="/media"
 
 directory_source="${directory_source:-${directory_mount}/internal}"
-destination_base="${destination_base:-${directory_mount}/${USER}}"
-directory_destination="${destination_base}/external"
+directory_destination_base="${directory_destination_base:-${directory_mount}/${USER}}"
+directory_destination="${directory_destination_base}/external"
 interval_periodic="${interval_periodic:-300}"
 
-arguments_exclude_keep=()
+list_arguments_exclude_keep=()
 
-for keep_item in "${keep_list[@]}"
+for item_keep in "${list_keep[@]}"
 do
-	arguments_exclude_keep+=(--exclude "${keep_item}")
+	list_arguments_exclude_keep+=(--exclude "${item_keep}")
 done
 
-arguments_prune=()
+list_arguments_prune=()
 
 if [ "${prune}" = true ]
 then
-	arguments_prune+=(--delete)
+	list_arguments_prune+=(--delete)
 fi
 
-lock_synchronize="${HOME}"/.local/bin/backup-internal-external-sync-lock
+file_lock_synchronize="${HOME}"/.local/bin/backup-internal-external-sync-lock
 
 # requirements ─────────────────────────────────────────────────────────────────
 
@@ -220,17 +220,17 @@ fi
 # raises the per-user watch limit so recursive monitoring of large trees
 # does not silently fail past the default (typically far too low)
 
-inotify_watches_required="524288"
+count_watches_required="524288"
 
-inotify_watches_current=$(cat /proc/sys/fs/inotify/max_user_watches)
+count_watches_current=$(cat /proc/sys/fs/inotify/max_user_watches)
 
-if [ "${inotify_watches_current}" -lt "${inotify_watches_required}" ]
+if [ "${count_watches_current}" -lt "${count_watches_required}" ]
 then
-	frobulator.inf "Raising inotify watch limit" "[ ${inotify_watches_required} ]"
+	frobulator.inf "Raising inotify watch limit" "[ ${count_watches_required} ]"
 
-	sysctl -w fs.inotify.max_user_watches="${inotify_watches_required}" > "${sink}"
+	sysctl -w fs.inotify.max_user_watches="${count_watches_required}" > "${sink}"
 
-	frobulator.write "write" "fs.inotify.max_user_watches=${inotify_watches_required}" /etc/sysctl.d 99-inotify.conf
+	frobulator.write "write" "fs.inotify.max_user_watches=${count_watches_required}" /etc/sysctl.d 99-inotify.conf
 
 	frobulator.complete
 fi
@@ -239,7 +239,7 @@ fi
 
 synchronize () {
 
-	exec 200> "${lock_synchronize}"
+	exec 200> "${file_lock_synchronize}"
 
 	if ! flock -n 200
 	then
@@ -253,10 +253,10 @@ synchronize () {
 
 	rsync									\
 		--archive							\
-		"${arguments_prune[@]}"			\
+		"${list_arguments_prune[@]}"			\
 		--exclude '.Trash-*'				\
 		--exclude 'lost+found'				\
-		"${arguments_exclude_keep[@]}"		\
+		"${list_arguments_exclude_keep[@]}"		\
 									"${directory_source}/" "${directory_destination}/"
 
 	frobulator.fail "Mirror failed"
@@ -286,18 +286,18 @@ inotifywait																\
 	--event modify,create,delete,move,attrib							\
 	--exclude '(\.?Trash.*|lost\+found)'								\
 																		"${directory_source}" |
-while read -r inotify_directory inotify_event inotify_file
+while read -r directory_event name_event file_event
 do
-	debounce_pending=true
+	state_debounce_pending=true
 
-	while ${debounce_pending}
+	while ${state_debounce_pending}
 	do
-		read -t 2 -r inotify_directory inotify_event inotify_file 2> "${sink}"
-		read_status="${?}"
+		read -t 2 -r directory_event name_event file_event 2> "${sink}"
+		status_read="${?}"
 
-		if [ "${read_status}" -ge 128 ] || [ "${read_status}" -eq 1 ]
+		if [ "${status_read}" -ge 128 ] || [ "${status_read}" -eq 1 ]
 		then
-			debounce_pending=false
+			state_debounce_pending=false
 		fi
 	done
 
