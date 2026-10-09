@@ -197,7 +197,7 @@ fi
 
 frobulator.silence "git submodule update --init --recursive" &
 
-frobulator.progress "submodules"
+frobulator.progress "update" "[ submodules ]"
 
 frobulator.complete
 
@@ -207,7 +207,7 @@ chmod a+rx install-linux-edl-drivers.sh
 
 frobulator.log "bash install-linux-edl-drivers.sh" &
 
-frobulator.progress "drivers"
+frobulator.progress "install" "[ drivers ]"
 
 frobulator.complete halt "Unable to install drivers" "[ ${process} ]"
 
@@ -217,7 +217,7 @@ frobulator.complete
 
 frobulator.log "pip3 install -r requirements.txt --break-system-packages" &
 
-frobulator.progress "dependencies"
+frobulator.progress "install" "[ dependencies ]"
 
 frobulator.complete halt "Unable to install dependencies" "[ ${process} ]"
 
