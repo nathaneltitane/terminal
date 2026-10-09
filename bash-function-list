@@ -8,6 +8,9 @@ list () {
 
 	directory="${1}"
 
+	local label_directory="directories"
+	local label_file="files"
+
 	if [ -z "${directory}" ]
 	then
 		directory="${PWD}"
@@ -27,9 +30,22 @@ list () {
 		--group-directories-first	\
 									"${directory}"
 
+	if [ "$(find "${directory}" -type d | wc -l) -eq 1 ]
+	then
+		label_directory="directory"
+	fi
+
+	if [ "$(find "${directory}" -type f | wc -l) -eq 1 ]
+	then
+		label_directory="directory"
+	fi
+
 	echo
-	echo "$(find "${directory}" -type d | wc -l) directories"
+	echo "$(find "${directory}" -type d | wc -l) ${label_directory}"
 	echo
-	echo "$(find "${directory}" -type f | wc -l) files"
+	echo "$(find "${directory}" -type f | wc -l) ${label_file}"
 	echo
+
+	unset label_directory
+	unset label_file
 }
