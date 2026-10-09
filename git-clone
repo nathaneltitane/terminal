@@ -74,7 +74,7 @@ do
 	case "${1}"
 	in
 		-p|--project)
-			project="${2}"
+			name_project="${2}"
 
 			shift
 		;;
@@ -128,17 +128,17 @@ done
 
 # validate arguments
 
-if [[ "${project}" = -* ]]
+if [[ "${name_project}" = -* ]]
 then
 	frobulator.err "Missing argument for '--project'."
 
 	exit 1
 fi
 
-url="https://github.com/"
-username="nathaneltitane"
+url_github="https://github.com/"
+name_user="nathaneltitane"
 
-depth=1
+depth_clone=1
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -160,7 +160,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-list+=(
+list_projects=(
 	chatty
 	dextop
 	frobulator
@@ -172,29 +172,29 @@ list+=(
 	terminal
 )
 
-if [ -n "${project}" ]
+if [ -n "${name_project}" ]
 then
-	list=(
-		"${project}"
+	list_projects=(
+		"${name_project}"
 	)
 fi
 
-for project in ${list[@]}
+for name_project in "${list_projects[@]}"
 do
-	if [[ -d "${project}" ]]
+	if [[ -d "${name_project}" ]]
 	then
-		frobulator.wrn "Project directory exists" "[ ${project} ]"
+		frobulator.wrn "Project directory exists" "[ ${name_project} ]"
 
-		frobulator.delete "${project}"
+		frobulator.delete "${name_project}"
 	fi
 
 	git clone				\
 		--quiet				\
-		--depth "${depth}"	\
-							"${url}"/"${username}"/"${project}" &
+		--depth "${depth_clone}"	\
+							"${url_github}"/"${name_user}"/"${name_project}" &
 
-	frobulator.progress "clone" "[ ${project} ]"
+	frobulator.progress "clone" "[ ${name_project} ]"
 
 done
 
-list=()
+list_projects=()
