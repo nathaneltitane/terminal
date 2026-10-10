@@ -132,6 +132,8 @@ do
 			echo
 			echo -e "                 [ mirror ] [ Default ]"
 			echo
+			echo -e "                 Audio files and playlists only - other files ignored."
+			echo
 			echo -e "-e, --execute    Ex[e]cute selected operation."
 			echo
 			echo -e "-y, --yes        Assume [y]es and skip confirmation."
@@ -220,6 +222,43 @@ list_remove="${directory_temporary}/remove.list"
 count_differential=0
 
 reply=""
+
+# handled formats - audio files and playlists - every other file ignored
+
+list_extensions_handled=(
+	aac
+	aif
+	aiff
+	alac
+	ape
+	flac
+	m4a
+	mka
+	mp3
+	mpc
+	oga
+	ogg
+	opus
+	wav
+	wma
+	wv
+	m3u
+	m3u8
+	pls
+	wpl
+	xspf
+)
+
+# find filter - one name test per format - case insensitive
+
+list_filter_find=()
+
+for extension_handled in "${list_extensions_handled[@]}"
+do
+	list_filter_find+=(-o -iname "*.${extension_handled}")
+done
+
+list_filter_find=(\( "${list_filter_find[@]:1}" \))
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -353,7 +392,7 @@ index () {
 		return 1
 	fi
 
-	find . -type f | sed 's|^\./||' | sort > "${destination}"
+	find . -type f "${list_filter_find[@]}" | sed 's|^\./||' | sort > "${destination}"
 
 	status="${?}"
 
@@ -456,7 +495,7 @@ index_size () {
 	local source="${1}"
 	local destination="${2}"
 
-	find "${source}" -type f -printf '%P\t%s\n' > "${destination}"
+	find "${source}" -type f "${list_filter_find[@]}" -printf '%P\t%s\n' > "${destination}"
 }
 
 # mirror: case and accent insensitive name for matching renamed files
@@ -674,8 +713,6 @@ then
 		frobulator.inf "Files to be renamed" "[ ${count_rename} ]"
 
 		display "${list_rename}"
-
-		echo
 	fi
 
 	if [ "${count_copy}" -gt 0 ]
@@ -683,8 +720,6 @@ then
 		frobulator.add "Files to be copied" "[ ${count_copy} ]"
 
 		display "${list_copy}" lime
-
-		echo
 	fi
 
 	if [ "${count_remove}" -gt 0 ]
@@ -692,8 +727,6 @@ then
 		frobulator.rem "Files to be removed" "[ ${count_remove} ]"
 
 		display "${list_remove}" crimson
-
-		echo
 	fi
 
 	if [ "${execute}" = false ]
@@ -800,8 +833,6 @@ then
 	else
 		display "${list_changes}"
 	fi
-
-	echo
 else
 	if [ "${operation}" = "add" ]
 	then
