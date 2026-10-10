@@ -1,0 +1,926 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-10"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-m|--mirror)
+			option_mirror="true"
+		;;
+
+		-p|--process)
+			option_process="true"
+		;;
+
+		-f|--follow)
+			option_follow="true"
+		;;
+
+		-d|--directory)
+			option_directory="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -m | -p [-f] [-d Directory] | -h"
+			echo
+			echo -e "Note:              Books follow the curated epub library conventions - style d covers."
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-m, --mirror       Run [m]irror download of the gutenberg collection - epub, record and cover per book."
+			echo
+			echo -e "-p, --process      Run [p]rocessing of downloaded books into the flat gutenberg library."
+			echo
+			echo -e "-f, --follow       [F]ollow the download - process in batches of 50 until it ends."
+			echo
+			echo -e "-d, --directory    Specify books [d]irectory."
+			echo
+			echo -e "                   [ /media/nathanel/external/Books ] [ Default ]"
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'        [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -m | -p [-f] [-d Directory] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+# official rsync mirror - generated collection - one directory per book
+
+url_mirror="gutenberg.pglaf.org::gutenberg-epub/"
+
+# follow mode - books per batch - wait while the download catches up
+
+size_batch=50
+seconds_wait=300
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ -z "${option_mirror}" ] && [ -z "${option_process}" ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Specify '--mirror' or '--process'."
+
+	exit 1
+
+elif [[ "${option_directory}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+
+	exit 1
+fi
+
+directory_books="${option_directory:-/media/nathanel/external/Books}"
+
+# mirror and library - exfat ignores letter case - names differ by more than case
+
+directory_mirror="${directory_books}/Gutenberg"
+directory_library="${directory_books}/epub"
+directory_output="${directory_books}/epub-gutenberg"
+
+file_log_mirror="${directory_books}/gutenberg-rsync.log"
+
+# functions ────────────────────────────────────────────────────────────────────
+
+gutenberg_scripts () {
+
+	# cover and processing scripts - temporary - removed on exit
+
+	local status=0
+
+	frobulator.temporary directory_temporary
+
+	frobulator.track || return "${status}"
+
+	frobulator.trap "${directory_temporary}"
+
+	file_cover="${directory_temporary}/cover.py"
+	file_process="${directory_temporary}/process.py"
+
+	# python indentation in tabs - only the shell indentation removed
+
+	sed -e 's/^\t\t//' > "${file_cover}" << 'COVER'
+		#!/usr/bin/env python3
+
+		# cover - plain typographic book cover - 1200 x 1800 greyscale
+		# light background - bold sans title - short rule - italic author - series and volume as small lines
+
+		import functools
+		import re
+
+		from PIL import Image, ImageDraw, ImageFont
+
+		directory_fonts = '/usr/share/fonts/truetype/noto/'
+
+		width_cover = 1200
+		height_cover = 1800
+
+		# short words a balanced line should not end with
+
+		list_words_weak = {'de', 'du', 'des', 'le', 'la', 'les', 'et', 'à', 'au', 'un', 'une', 'l\'', 'd\''}
+
+		# collective authors - no author line on the cover
+
+		list_authors_collective = ('Galaxie', 'Fiction', 'Univers')
+
+
+		def font_load(name_font, size_font):
+
+			return ImageFont.truetype(directory_fonts + name_font, size_font)
+
+
+		def text_wrap(draw, text, font, width_maximum):
+
+			# greedy line count - then a balanced split with the same number of lines - smallest widest line
+
+			list_words = text.split()
+
+			if not list_words:
+				return []
+
+			list_lines = []
+			line_current = ''
+
+			for word in list_words:
+				line_candidate = (line_current + ' ' + word).strip()
+
+				if draw.textlength(line_candidate, font=font) <= width_maximum or not line_current:
+					line_current = line_candidate
+				else:
+					list_lines.append(line_current)
+					line_current = word
+
+			list_lines.append(line_current)
+			count_lines = len(list_lines)
+
+			if count_lines == 1:
+				return list_lines
+
+			list_widths = [draw.textlength(word, font=font) for word in list_words]
+			width_space = draw.textlength(' ', font=font)
+
+			@functools.lru_cache(None)
+			def split_best(index_start, count_remaining):
+
+				if count_remaining == 1:
+					width_line = sum(list_widths[index_start:]) + width_space * (len(list_widths) - index_start - 1)
+
+					return (width_line, [' '.join(list_words[index_start:])])
+
+				result_best = (1e9, None)
+
+				for index_end in range(index_start + 1, len(list_words) - count_remaining + 2):
+					width_line = sum(list_widths[index_start:index_end]) + width_space * (index_end - index_start - 1)
+
+					if width_line > width_maximum and index_end > index_start + 1:
+						break
+
+					width_rest, list_rest = split_best(index_end, count_remaining - 1)
+
+					penalty_weak = 40 if list_words[index_end - 1].lower().rstrip(',') in list_words_weak else 0
+
+					score = max(width_line, width_rest) + penalty_weak
+
+					if score < result_best[0]:
+						result_best = (score, [' '.join(list_words[index_start:index_end])] + list_rest)
+
+				return result_best
+
+			list_balanced = split_best(0, count_lines)[1]
+
+			return list_balanced or list_lines
+
+
+		def text_fit(draw, text, name_font, width_maximum, height_maximum, size_start, size_minimum=40, spacing=1.18, count_lines_maximum=6):
+
+			# largest size that fits the box - no orphan words of three letters or less unless near the minimum
+
+			size_font = size_start
+
+			while size_font >= size_minimum:
+				font = font_load(name_font, size_font)
+				list_lines = text_wrap(draw, text, font, width_maximum)
+
+				state_orphan = len(list_lines) > 1 and any(len(line) <= 3 for line in list_lines)
+
+				if len(list_lines) <= count_lines_maximum and len(list_lines) * size_font * spacing <= height_maximum and all(draw.textlength(line, font=font) <= width_maximum for line in list_lines) and (not state_orphan or size_font <= size_minimum + 20):
+					return font, list_lines, size_font
+
+				size_font -= 4
+
+			font = font_load(name_font, size_minimum)
+
+			return font, text_wrap(draw, text, font, width_maximum), size_minimum
+
+
+		def text_block(draw, list_lines, font, size_font, center_y, fill, spacing=1.18, align='center', position_x=None):
+
+			height_block = len(list_lines) * size_font * spacing
+			position_y = center_y - height_block / 2
+
+			for line in list_lines:
+				width_line = draw.textlength(line, font=font)
+				position_line = (width_cover - width_line) / 2 if align == 'center' else position_x
+
+				draw.text((position_line, position_y), line, font=font, fill=fill)
+
+				position_y += size_font * spacing
+
+			return height_block
+
+
+		def title_split(title):
+
+			# kicker - main title - colon subtitle - volume line
+			# series numbers - tome / livre / partie / volume / book / part lines
+
+			title = title.replace("'", '’')
+
+			kicker = ''
+			line_volume = ''
+
+			match = re.match(r'^(.+?)\s*(\(([^)]*)\))?\s*n°\s*0*(\d+(?: bis)?)$', title)
+
+			if match:
+				return 'N° ' + match.group(4), match.group(1).strip(), '', (match.group(3) or '')
+
+			match = re.match(r'^(.+?),\s*(tome|livre|partie|épisode|vol\.?|volume|book|part)\s*(\d{1,3})\s*-\s*(.+)$', title, re.I)
+
+			if match:
+				word_volume = match.group(2).lower().rstrip('.')
+				word_volume = 'volume' if word_volume == 'vol' else word_volume
+
+				return match.group(1).strip(), match.group(4).strip(), '', f'{word_volume.capitalize()} {int(match.group(3))}'
+
+			match = re.match(r'^(\d{1,4})\s*-\s*(.+)$', title)
+
+			if match:
+				kicker = 'N° ' + str(int(match.group(1)))
+				title = match.group(2)
+
+			match = re.match(r'^(.+?)\s+(\d{1,3})\s*-\s*(.+)$', title)
+
+			if match and not kicker:
+				kicker = f'{match.group(1)} · {int(match.group(2))}'
+				title = match.group(3)
+
+			match = re.match(r'^(.+?),\s*(tome|vol\.?|volume|livre|partie|book|part)\s*([0-9ivxlc]+)\b\s*(?:[:\-]\s*(.+))?$', title, re.I)
+
+			if match:
+				line_volume = f'{match.group(2).capitalize()} {match.group(3).upper() if not match.group(3).isdigit() else match.group(3)}'
+				title = match.group(1) + (': ' + match.group(4) if match.group(4) else '')
+
+			title_main = title
+			title_colon = ''
+
+			if ': ' in title and len(title) > 40:
+				title_main, title_colon = title.split(': ', 1)
+
+			return kicker, title_main, title_colon, line_volume
+
+
+		def title_stack(draw, title, center_y, height_maximum, name_font_title, size_title, fill, fill_secondary, name_font_secondary):
+
+			# kicker - title - colon subtitle - volume line - centred as one group
+
+			kicker, title_main, title_colon, line_volume = title_split(title)
+
+			list_parts = []
+
+			if kicker:
+				font, list_lines, size_font = text_fit(draw, kicker.upper(), name_font_secondary, width_cover - 300, 120, 52, count_lines_maximum=1)
+				list_parts.append((font, list_lines, size_font, fill_secondary, 40))
+
+			font, list_lines, size_font = text_fit(draw, title_main, name_font_title, width_cover - 260, height_maximum - (260 if (kicker or title_colon or line_volume) else 0), size_title)
+			list_parts.append((font, list_lines, size_font, fill, 40))
+
+			if title_colon:
+				font, list_lines, size_font = text_fit(draw, title_colon, name_font_secondary, width_cover - 300, 220, 60, count_lines_maximum=3)
+				list_parts.append((font, list_lines, size_font, fill_secondary, 40))
+
+			if line_volume:
+				font, list_lines, size_font = text_fit(draw, line_volume, name_font_secondary, width_cover - 300, 120, 60, count_lines_maximum=1)
+				list_parts.append((font, list_lines, size_font, fill_secondary, 40))
+
+			height_total = sum(len(list_lines) * size_font * 1.18 + gap for font, list_lines, size_font, color, gap in list_parts) - list_parts[-1][4]
+			position_y = center_y - height_total / 2
+
+			for font, list_lines, size_font, color, gap in list_parts:
+				height_part = len(list_lines) * size_font * 1.18
+
+				text_block(draw, list_lines, font, size_font, position_y + height_part / 2, color)
+
+				position_y += height_part + gap
+
+
+		def cover_style_d(author, title):
+
+			# light background - bold sans title - short rule - italic author
+
+			image = Image.new('L', (width_cover, height_cover), 246)
+			draw = ImageDraw.Draw(image)
+
+			title_stack(draw, title, 780, 1000, 'NotoSans-Bold.ttf', 150, 10, 70, 'NotoSans-Regular.ttf')
+
+			if author not in list_authors_collective:
+				draw.line([width_cover / 2 - 120, 1360, width_cover / 2 + 120, 1360], fill=30, width=3)
+
+				font, list_lines, size_font = text_fit(draw, author, 'NotoSans-Italic.ttf', width_cover - 300, 200, 70, count_lines_maximum=2)
+
+				text_block(draw, list_lines, font, size_font, 1480, 40)
+
+			return image
+COVER
+
+	frobulator.track
+
+	sed -e 's/^\t\t//' > "${file_process}" << 'PROCESS'
+		#!/usr/bin/env python3
+
+		# process - gutenberg mirror books into the flat library - one call handles up to a limit of books
+		# gutenberg summary kept as the description - subjects removed - canonical authors - first line titles
+		# volumes as tome / volume N - english punctuation - lowercase exfat safe names - style d covers
+		# books already in the curated library skipped and listed
+		# arguments: --books DIRECTORY --output DIRECTORY [--limit N] [--ids ID ...] - prints the number of books handled
+
+		import argparse
+		import io
+		import os
+		import re
+		import shutil
+		import sys
+		import unicodedata
+		import zipfile
+		import xml.etree.ElementTree as tree
+
+		sys.dont_write_bytecode = True
+		sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+		import cover
+
+		dictionary_namespaces = {
+			'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+			'dcterms': 'http://purl.org/dc/terms/',
+			'pgterms': 'http://www.gutenberg.org/2009/pgterms/',
+		}
+
+		# volume words - per language - french uses tome as in the library
+
+		pattern_volume = r'tome|tomo|volume|vol\.?|book|part|livre|partie|band|teil|libro|parte|deel|osa|del'
+
+		dictionary_romans = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100}
+
+
+		def number_roman(text):
+
+			total = 0
+
+			for index, character in enumerate(text):
+				value = dictionary_romans[character]
+
+				if index + 1 < len(text) and dictionary_romans[text[index + 1]] > value:
+					total -= value
+				else:
+					total += value
+
+			return total
+
+
+		def text_key(text):
+
+			# comparison key - case and accent insensitive - punctuation ignored
+
+			text = unicodedata.normalize('NFKD', text.casefold())
+			text = ''.join(character for character in text if not unicodedata.combining(character))
+
+			return re.sub(r'[^a-z0-9]+', ' ', text).strip()
+
+
+		def text_xml(text):
+
+			return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
+		def punctuation_english(text):
+
+			# english typography - no space before ! ? : ; - french quotes to straight quotes
+
+			text = re.sub(r'«\s*', '"', text)
+			text = re.sub(r'\s*»', '"', text)
+			text = re.sub(r'\s+([!?:;])', r'\1', text)
+			text = text.replace(' ', ' ')
+
+			return re.sub(r'\s{2,}', ' ', text).strip()
+
+
+		def name_author(name):
+
+			# canonical reading order - surname first form reversed - initials spaced
+
+			name = re.sub(r'\s*\([^)]*\)', '', name).strip()
+			list_parts = [part.strip() for part in name.split(',')]
+
+			if len(list_parts) >= 2 and list_parts[1] and not re.match(r'^(jr|sr|[ivx]+)\.?$', list_parts[1], re.I):
+				name = list_parts[1] + ' ' + list_parts[0]
+
+			name = re.sub(r'\b([A-Z])\.(?=[A-Z])', r'\1. ', name)
+			name = re.sub(r'\s{2,}', ' ', name).strip()
+
+			# no author - one form in the library
+
+			if name.lower() in ('unknown', 'anonymous'):
+				name = 'Anonymous'
+
+			return name
+
+
+		def title_book(title, language):
+
+			# first line only - catalogue subfield codes cut - volume marker normalised
+
+			title = re.split(r'[\r\n]+', title.strip())[0]
+			title = re.split(r'\s*\$[a-z]\b', title)[0]
+			title = title.rstrip(' :;,-—–')
+			title = punctuation_english(title)
+
+			match = re.match(r'^(.*?)[\s,.;:—–-]*\b(' + pattern_volume + r')\s+([IVXLC]+|\d+)\b\.?\s*[:.,;—–-]*\s*(.*)$', title, re.I)
+
+			if match and match.group(1).strip():
+				title_main, word_volume, number_volume, title_rest = match.groups()
+
+				number_volume = str(number_roman(number_volume.upper())) if not number_volume.isdigit() else str(int(number_volume))
+
+				word_volume = word_volume.lower().rstrip('.')
+
+				if language == 'fr' and word_volume in ('tome', 'volume', 'vol'):
+					word_volume = 'tome'
+
+				elif word_volume == 'vol':
+					word_volume = 'volume'
+
+				title = f'{title_main.strip()}, {word_volume} {number_volume}' + (f' - {title_rest.strip()}' if title_rest.strip() else '')
+
+			title = title[:1].upper() + title[1:]
+
+			# french - first word after a leading article capitalised
+
+			if language == 'fr':
+				title = re.sub(r"^(Le|La|Les|L’|L')\s*(\w)", lambda found: found.group(1) + ('' if found.group(1) in ('L’', "L'") else ' ') + found.group(2).upper(), title)
+
+			return title
+
+
+		def name_file(author, title):
+
+			# lowercase - exfat forbidden characters dropped - length kept reasonable
+
+			text = f'{author} - {title}'.lower()
+			text = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '', text)
+			text = re.sub(r'\s{2,}', ' ', text).strip(' .')
+
+			return text[:180].rstrip(' .') + '.epub'
+
+
+		def record_read(file_rdf):
+
+			# catalogue record - type - title - language - authors - summary
+
+			root = tree.parse(file_rdf).getroot()
+			ebook = root.find('pgterms:ebook', dictionary_namespaces)
+
+			type_book = ebook.findtext('dcterms:type/rdf:Description/rdf:value', default='Text', namespaces=dictionary_namespaces)
+			title = ebook.findtext('dcterms:title', default='', namespaces=dictionary_namespaces)
+			language = ebook.findtext('dcterms:language/rdf:Description/rdf:value', default='en', namespaces=dictionary_namespaces)
+
+			list_authors = [agent.findtext('pgterms:name', default='', namespaces=dictionary_namespaces) for agent in ebook.findall('dcterms:creator/pgterms:agent', dictionary_namespaces)]
+			list_authors = [name_author(author) for author in list_authors if author] or ['Anonymous']
+
+			# gutenberg summary - trusted - kept as the book description
+
+			description = re.sub(r'\s+', ' ', ebook.findtext('pgterms:marc520', default='', namespaces=dictionary_namespaces)).strip()
+
+			return type_book, title, language.split('-')[0].lower(), list_authors, description
+
+
+		def epub_rewrite(file_source, file_target, title, list_authors, language, description):
+
+			# metadata rewritten - subjects removed - gutenberg summary as the description - cover replaced - archive rebuilt mimetype first
+
+			archive_source = zipfile.ZipFile(file_source)
+
+			container = archive_source.read('META-INF/container.xml').decode('utf-8')
+			path_opf = re.search(r'full-path="([^"]+)"', container).group(1)
+			opf = archive_source.read(path_opf).decode('utf-8')
+
+			opf = re.sub(r'\s*<dc:subject\b[^>]*>.*?</dc:subject>', '', opf, flags=re.S)
+			opf = re.sub(r'\s*<dc:description\b[^>]*>.*?</dc:description>', '', opf, flags=re.S)
+			opf = re.sub(r'\s*<dc:creator\b[^>]*>.*?</dc:creator>', '', opf, flags=re.S)
+			opf = re.sub(r'\s*<meta [^>]*refines="#author_0"[^>]*>.*?</meta>', '', opf, flags=re.S)
+
+			file_as = ' & '.join(f'{author.split()[-1]}, {" ".join(author.split()[:-1])}' if len(author.split()) > 1 else author for author in list_authors)
+
+			opf = re.sub(r'<dc:title\b[^>]*>.*?</dc:title>', f'<dc:title>{text_xml(title)}</dc:title>', opf, count=1, flags=re.S)
+			opf = re.sub(r'<dc:language\b[^>]*>.*?</dc:language>', f'<dc:language>{language}</dc:language>', opf, count=1, flags=re.S)
+
+			if description:
+				opf = opf.replace('</dc:language>', '</dc:language>\n    <dc:description>' + text_xml(description) + '</dc:description>', 1)
+
+			opf = opf.replace('</dc:title>', '</dc:title>\n    <dc:creator id="author_0">' + text_xml(' & '.join(list_authors)) + '</dc:creator>\n    <meta property="file-as" refines="#author_0">' + text_xml(file_as) + '</meta>\n    <meta property="role" refines="#author_0" scheme="marc:relators">aut</meta>', 1)
+
+			# cover - manifest item marked cover-image - regenerated in style d - same file type
+
+			match_cover = re.search(r'<item\b[^>]*properties="cover-image"[^>]*>', opf)
+			path_cover = None
+
+			if match_cover:
+				href_cover = re.search(r'href="([^"]+)"', match_cover.group(0)).group(1)
+				path_cover = os.path.normpath(os.path.join(os.path.dirname(path_opf), href_cover)).replace('\\', '/')
+
+			image_cover = cover.cover_style_d(' & '.join(list_authors), title)
+			buffer_cover = io.BytesIO()
+
+			if path_cover and path_cover.lower().endswith('.png'):
+				image_cover.save(buffer_cover, 'PNG', optimize=True)
+			else:
+				image_cover.save(buffer_cover, 'JPEG', quality=90)
+
+			file_temporary = file_target + '.part'
+
+			with zipfile.ZipFile(file_temporary, 'w') as archive_target:
+				archive_target.writestr(zipfile.ZipInfo('mimetype'), archive_source.read('mimetype'), compress_type=zipfile.ZIP_STORED)
+
+				for entry in archive_source.infolist():
+					if entry.filename == 'mimetype':
+						continue
+
+					data_entry = archive_source.read(entry.filename)
+
+					if entry.filename == path_opf:
+						data_entry = opf.encode('utf-8')
+
+					elif entry.filename == path_cover:
+						data_entry = buffer_cover.getvalue()
+
+					archive_target.writestr(entry, data_entry, compress_type=zipfile.ZIP_DEFLATED)
+
+			# every entry decompresses before the archive takes its place
+
+			with zipfile.ZipFile(file_temporary) as archive_check:
+				if archive_check.testzip() is not None:
+					raise RuntimeError('archive check failed')
+
+			os.replace(file_temporary, file_target)
+
+			return path_cover is not None
+
+
+		def books_process(directory_books, directory_output, list_ids_requested, limit):
+
+			# up to limit books - each logged - duplicates of the curated library listed - failures quarantined
+
+			directory_mirror = os.path.join(directory_books, 'Gutenberg')
+			directory_library = os.path.join(directory_books, 'epub')
+			directory_quarantine = os.path.join(directory_output, '.quarantine')
+
+			file_log = os.path.join(directory_output, '.processed.tsv')
+			file_duplicates = os.path.join(directory_output, '.duplicates.tsv')
+
+			os.makedirs(directory_quarantine, exist_ok=True)
+
+			list_keys_library = {text_key(name[:-5]) for name in os.listdir(directory_library) if name.endswith('.epub')}
+
+			list_processed = set()
+
+			if os.path.exists(file_log):
+				list_processed = {line.split('\t')[0] for line in open(file_log, encoding='utf-8')}
+
+			list_ids = list_ids_requested or sorted((name for name in os.listdir(directory_mirror) if name.isdigit()), key=int)
+			count_handled = 0
+
+			with open(file_log, 'a', encoding='utf-8') as log, open(file_duplicates, 'a', encoding='utf-8') as log_duplicates:
+				for id_book in list_ids:
+					if id_book in list_processed:
+						continue
+
+					file_epub = os.path.join(directory_mirror, id_book, f'pg{id_book}-images-3.epub')
+					file_rdf = os.path.join(directory_mirror, id_book, f'pg{id_book}.rdf')
+
+					# record arrives last - its presence means the book is fully downloaded
+
+					if not (os.path.exists(file_epub) and os.path.exists(file_rdf)):
+						continue
+
+					# every handled book counts - written, duplicate, skipped or quarantined
+
+					if limit and count_handled >= limit:
+						break
+
+					count_handled += 1
+
+					try:
+						type_book, title_record, language, list_authors, description = record_read(file_rdf)
+
+						if type_book != 'Text':
+							log.write(f'{id_book}\tskipped\t{type_book}\n')
+							continue
+
+						title = title_book(title_record, language)
+						author_first = list_authors[0]
+						name = name_file(author_first, title)
+
+						if text_key(name[:-5]) in list_keys_library:
+							log_duplicates.write(f'{id_book}\t{name}\n')
+							log.write(f'{id_book}\tduplicate\t{name}\n')
+							continue
+
+						# same author and title already produced - other edition marked as in the library
+
+						if os.path.exists(os.path.join(directory_output, name)):
+							title = title + (' (autre édition)' if language == 'fr' else ' (other edition)')
+							name = name_file(author_first, title)
+
+							if os.path.exists(os.path.join(directory_output, name)):
+								title = title + f' {id_book}'
+								name = name_file(author_first, title)
+
+						state_cover = epub_rewrite(file_epub, os.path.join(directory_output, name), title, list_authors, language, description)
+
+						log.write(f'{id_book}\tdone\t{name}\t{"cover" if state_cover else "no cover item"}\n')
+
+					except Exception as error:
+						shutil.copy2(file_epub, os.path.join(directory_quarantine, f'pg{id_book}.epub'))
+						log.write(f'{id_book}\tquarantine\t{type(error).__name__}: {error}\n')
+
+					log.flush()
+
+			return count_handled
+
+
+		def main():
+
+			parser = argparse.ArgumentParser()
+			parser.add_argument('--books', required=True)
+			parser.add_argument('--output', required=True)
+			parser.add_argument('--limit', type=int, default=0)
+			parser.add_argument('--ids', nargs='*')
+
+			arguments = parser.parse_args()
+
+			print(books_process(arguments.books, arguments.output, arguments.ids, arguments.limit))
+
+
+		if __name__ == '__main__':
+			main()
+PROCESS
+
+	frobulator.track
+
+	return "${status}"
+}
+
+gutenberg_mirror () {
+
+	# filtered mirror - epub with images - catalogue record - cover - files and times only for exfat
+	# low priority - partial files resumed - empty directories pruned
+
+	local status=0
+
+	frobulator.directory "${directory_books}" "$(basename "${directory_mirror}")"
+
+	nice -n 10 ionice -c 3							\
+		rsync										\
+			--recursive								\
+			--times									\
+			--prune-empty-dirs						\
+			--partial								\
+			--bwlimit=64m							\
+			--log-file="${file_log_mirror}"			\
+			--include='*/'							\
+			--include='pg*-images-3.epub'			\
+			--include='pg*.rdf'						\
+			--include='pg*.cover.medium.jpg'		\
+			--exclude='*'							\
+			"${url_mirror}"							\
+													"${directory_mirror}/" > "${sink}" 2>&1
+
+	frobulator.track
+
+	return "${status}"
+}
+
+gutenberg_batch () {
+
+	# one processing run - prints the number of books handled
+
+	local limit="${1:-0}"
+
+	python3 -I "${file_process}"			\
+		--books "${directory_books}"		\
+		--output "${directory_output}"		\
+											--limit "${limit}"
+}
+
+gutenberg_process () {
+
+	# all downloaded books - or batches following the download until it ends
+
+	local status=0
+	local count_handled
+
+	frobulator.directory "${directory_books}" "$(basename "${directory_output}")"
+
+	if [ "${option_follow}" != "true" ]
+	then
+		count_handled="$(gutenberg_batch 0)"
+
+		frobulator.track
+
+		frobulator.inf "Books handled" "[ ${count_handled} ]"
+
+		return "${status}"
+	fi
+
+	while true
+	do
+		count_handled="$(gutenberg_batch "${size_batch}")"
+
+		frobulator.track || return "${status}"
+
+		frobulator.inf "Batch" "[ ${count_handled} book(s) ]"
+
+		if [ "${count_handled}" -eq 0 ]
+		then
+			# nothing new - done once the download has ended
+
+			if [ -z "$(pgrep -f "${url_mirror}")" ]
+			then
+				frobulator.scs "Download finished - all books processed"
+
+				break
+			fi
+
+			frobulator.timeout "${seconds_wait}"
+		fi
+	done
+
+	return "${status}"
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+	rsync
+	python3
+	python3-pil
+	fonts-noto-core
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+if [ "${option_process}" = "true" ]
+then
+	gutenberg_scripts
+
+	frobulator.complete
+fi
+
+# mirror alone - foreground - with processing - in the background while batches follow it
+
+if [ "${option_mirror}" = "true" ] && [ "${option_process}" = "true" ]
+then
+	frobulator.inf "Mirroring in the background" "[ ${url_mirror} ]"
+
+	gutenberg_mirror &
+
+	option_follow="true"
+
+	sleep 5
+
+elif [ "${option_mirror}" = "true" ]
+then
+	frobulator.inf "Mirroring" "[ ${url_mirror} ]"
+
+	gutenberg_mirror &
+
+	frobulator.progress "download" "[ ${directory_mirror} ]"
+fi
+
+if [ "${option_process}" = "true" ]
+then
+	frobulator.inf "Processing" "[ ${directory_output} ]"
+
+	gutenberg_process
+
+	frobulator.complete
+fi
+
+frobulator.result "${script}"
