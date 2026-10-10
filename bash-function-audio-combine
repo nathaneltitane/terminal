@@ -134,6 +134,9 @@ audio_combine_load () {
 
 audio_combine_watch () {
 
+	local line_event_audio
+	local count_outputs_combined
+
 	# background watcher: reconnect dropped speakers - rebuild the combined sink once they return
 
 	local file_pid_watch="${1}"
@@ -141,6 +144,9 @@ audio_combine_watch () {
 
 	local -a list_addresses_bluetooth=(${3})
 	local -a list_sinks_slave=("${@:4}")
+	local address_bluetooth
+	local list_sinks
+	local name_sink_slave
 
 	(
 		pactl subscribe | while IFS= read -r line_event_audio

@@ -6,6 +6,11 @@
 
 icons () {
 
+	local list_directories_icons
+	local directory_icons
+	local directory_theme
+	local name_theme
+
 	frobulator.require gtk-update-icon-cache
 
 	list_directories_icons=(

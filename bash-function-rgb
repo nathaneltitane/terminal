@@ -6,6 +6,11 @@
 
 rgb () {
 
+	local code_hex
+	local value_red
+	local value_green
+	local value_blue
+
 	frobulator.require printf
 
 	read code_hex <<< "${1}"

@@ -6,6 +6,9 @@
 
 adb_write () {
 
+	local name_host
+	local text_write
+
 	adb_download
 
 	adb_set_environment

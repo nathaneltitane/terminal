@@ -9,6 +9,7 @@ terminate () {
 	local command_pgrep
 	local command_pkill
 	local ids_process
+	local name_process
 
 	name_process="${1}"
 

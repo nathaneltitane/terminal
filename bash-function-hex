@@ -6,15 +6,13 @@
 
 hex () {
 
-	# set IFS
+	local value_red
+	local value_green
+	local value_blue
 
-	IFS=' '
+	# red green blue values - space separated - hexadecimal color code
 
-	read r g b <<< "${@}"
+	read -r value_red value_green value_blue <<< "${*}"
 
-	printf '%02x%02x%02x\n' ${r} ${g} ${b}
-
-	# unset IFS
-
-	IFS=''
+	printf '%02x%02x%02x\n' "${value_red}" "${value_green}" "${value_blue}"
 }

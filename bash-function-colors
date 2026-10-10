@@ -6,6 +6,11 @@
 
 colors () {
 
+	local number_color_foreground
+	local code_color_foreground
+	local number_color_background
+	local code_color_background
+
 	list=(
 		tput
 		printf

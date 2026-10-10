@@ -6,6 +6,11 @@
 
 audio () {
 
+	local directory
+	local extension
+	local found
+	local file
+
 	frobulator.require ffmpeg
 
 	directory="${PWD}"

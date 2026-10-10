@@ -6,6 +6,8 @@
 
 adb_install_package () {
 
+	local package
+
 	adb_download
 
 	adb_set_environment

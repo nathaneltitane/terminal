@@ -7,6 +7,15 @@
 play () {
 
 	local command_mpv
+	local bracket_open
+	local bracket_close
+	local action
+	local file_audio
+	local title_audio
+	local list_frames_ticker
+	local index_frame
+	local id_process_player
+	local frame_ticker
 
 	# 'mpv' path - empty if not installed
 

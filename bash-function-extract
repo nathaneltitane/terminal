@@ -6,6 +6,11 @@
 
 extract () {
 
+	local file
+	local directory
+	local extension
+	local archive
+
 	list+=(
 		7zip
 		bunzip2
@@ -100,7 +105,7 @@ extract () {
 		*)
 			frobulator.err "Unsupported archive type" "[ '${archive}' ]"
 
-			exit 1
+			return 1
 		;;
 
 	esac

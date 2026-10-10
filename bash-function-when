@@ -6,6 +6,9 @@
 
 when () {
 
+	local time
+	local date
+
 	time=$(date '+%I:%M %p')
 	date=$(date '+%A, %B %d %Y')
 

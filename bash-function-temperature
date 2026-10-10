@@ -6,6 +6,16 @@
 
 temperature () {
 
+	local count_acpitz
+	local label_cpu
+	local degrees_cpu
+	local list_lines
+	local length_label_longest
+	local directory_zone
+	local label
+	local degrees
+	local width_label
+
 	if [[ -d /sys/class/thermal ]]
 	then
 		count_acpitz=0
