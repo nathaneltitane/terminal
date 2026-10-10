@@ -592,7 +592,7 @@ fi
 
 if [ "${option}" = "superuser" ] || [ "${option}" = "all" ]
 then
-	frobulator.write "append" "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
+	frobulator.write append "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
 fi
 
 # themes
@@ -610,7 +610,7 @@ then
 		FILE
 		)
 
-		frobulator.write "write" "${content_gtkrc}" /etc/gtk-2.0 gtkrc
+		frobulator.write write "${content_gtkrc}" /etc/gtk-2.0 gtkrc
 
 		content_settings=$(cat <<- 'FILE'
 		[Settings]
@@ -621,7 +621,7 @@ then
 		FILE
 		)
 
-		frobulator.write "write" "${content_settings}" /etc/gtk-3.0 settings.ini
+		frobulator.write write "${content_settings}" /etc/gtk-3.0 settings.ini
 
 		content_trolltech=$(cat <<- 'FILE'
 		[Qt]
@@ -629,7 +629,7 @@ then
 		FILE
 		)
 
-		frobulator.write "write" "${content_trolltech}" /etc/xdg Trolltech.conf
+		frobulator.write write "${content_trolltech}" /etc/xdg Trolltech.conf
 
 		frobulator.scs 'Done'
 	fi

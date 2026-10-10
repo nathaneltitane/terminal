@@ -189,7 +189,7 @@ do
 	FILE
 	)
 
-	frobulator.write "write" "${content_vhost}" /etc/apache2/sites-available "${item}.conf"
+	frobulator.write write "${content_vhost}" /etc/apache2/sites-available "${item}.conf"
 
 	frobulator.complete
 
@@ -210,13 +210,13 @@ do
 		exit 1
 	fi
 
-	# site hosts file entry - empty if missing
+	# site hosts file entry - written once - comments ignored - whole name matched
 
-	line_hosts_entry="$(grep -F "${item}.local" /etc/hosts)"
+	count_hosts_entry="$(grep -c -E "^[^#]*[[:space:]]${item//./\\.}\\.local([[:space:]]|$)" /etc/hosts)"
 
-	if [ -z "${line_hosts_entry}" ]
+	if [ "${count_hosts_entry}" -eq 0 ]
 	then
-		frobulator.write "append" "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
+		frobulator.write append "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
 
 		frobulator.complete
 	fi

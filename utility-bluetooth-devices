@@ -375,7 +375,7 @@ devices_backup () {
 
 	file_keys_archive="${directory_keys_temporary}/bluetooth-keys"
 
-	frobulator.archive "${file_keys_archive}" "tar.gz" "${directory_bluetooth}" > "${sink}"
+	frobulator.archive "${file_keys_archive}" tar.gz "${directory_bluetooth}" > "${sink}"
 
 	frobulator.track || return 1
 
