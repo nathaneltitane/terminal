@@ -474,11 +474,13 @@ ssh_restore_server () {
 
 	rm --force "${file_sshd_check}"
 
-	systemctl enable --now ssh > "${sink}" 2>&1
+	# service enabled at boot - cycled to apply the new configuration
+
+	systemctl enable ssh > "${sink}" 2>&1
 
 	frobulator.track
 
-	systemctl reload ssh
+	frobulator.service restart ssh
 
 	frobulator.track
 
@@ -512,7 +514,7 @@ ssh_restore_fail2ban () {
 
 	frobulator.track
 
-	systemctl restart fail2ban
+	frobulator.service restart fail2ban
 
 	frobulator.track
 
