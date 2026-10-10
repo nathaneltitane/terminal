@@ -95,7 +95,7 @@ do
 			echo
 			echo -e "-d, --device    Generate key for a single [d]evice."
 			echo
-			echo -e "                [ desktop | notebook | pi | tablet | phone ]"
+			echo -e "                [ desktop | laptop | pi | note | notebook | phone | tablet ]"
 			echo
 			echo -e "-h, --help      Show [h]elp and usage information."
 			echo
@@ -139,12 +139,16 @@ type_key="ed25519"
 
 directory_key=/media/internal/.ssh/.keys
 
+# computers and android devices - same as utility-ssh
+
 list_devices=(
 	desktop
-	notebook
+	laptop
 	pi
-	tablet
+	note
+	notebook
 	phone
+	tablet
 )
 
 # defaults ─────────────────────────────────────────────────────────────────────
