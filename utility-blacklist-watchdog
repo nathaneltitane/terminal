@@ -207,7 +207,7 @@ fi
 
 # blacklist module
 
-frobulator.write "append" "blacklist ${module}" "${directory_blacklist}" "${name_file_blacklist}"
+frobulator.write append "blacklist ${module}" "${directory_blacklist}" "${name_file_blacklist}"
 
 frobulator.complete halt "Failed to write blacklist entry" "[ ${path_blacklist} ]"
 

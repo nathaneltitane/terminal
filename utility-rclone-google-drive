@@ -369,7 +369,7 @@ then
 
 	sysctl -w fs.inotify.max_user_watches="${count_watches_required}" > "${sink}"
 
-	frobulator.write "write" "fs.inotify.max_user_watches=${count_watches_required}" /etc/sysctl.d 99-inotify.conf
+	frobulator.write write "fs.inotify.max_user_watches=${count_watches_required}" /etc/sysctl.d 99-inotify.conf
 
 	frobulator.complete
 fi

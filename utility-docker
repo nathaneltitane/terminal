@@ -447,7 +447,7 @@ setup_pi_hole () {
 
 	if [ -n "${line_password}" ] && [ -n "${password_admin}" ]
 	then
-		frobulator.write "append" "${password_admin}" "${directory_container}" password
+		frobulator.write append "${password_admin}" "${directory_container}" password
 
 		frobulator.track
 

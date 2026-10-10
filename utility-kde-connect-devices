@@ -355,7 +355,7 @@ devices_backup () {
 
 		if [ -d "${directory_kde_connect}/${id_device}" ]
 		then
-			frobulator.archive "${directory}/kde-connect-settings-${name_device}" "tar.gz" "${directory_kde_connect}/${id_device}"
+			frobulator.archive "${directory}/kde-connect-settings-${name_device}" tar.gz "${directory_kde_connect}/${id_device}"
 
 			if [ "${?}" -ne 0 ]
 			then
