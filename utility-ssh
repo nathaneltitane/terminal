@@ -326,8 +326,6 @@ ssh_restore_config () {
 	local name_host
 
 	{
-		ssh_frame "ssh user configuration"
-
 		for name_device in "${list_devices[@]}"
 		do
 			if [ "${name_device}" = "$(hostname)" ]
