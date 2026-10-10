@@ -82,7 +82,7 @@ weather () {
 
 	# wind - compass point and speed - arrow towards where the wind blows - opposite of where it comes from
 
-	frobulator.num aqua "${list_arrows_wind[( ( degrees_wind + 180 + 22 ) % 360 ) / 45]}" "Wind" "[ ${direction_wind} // ${speed_wind} km/h ]"
+	frobulator.num navy "${list_arrows_wind[( ( degrees_wind + 180 + 22 ) % 360 ) / 45]}" "Wind" "[ ${direction_wind} // ${speed_wind} km/h ]"
 
 	# rain - precipitation amount - blue when raining
 
@@ -97,7 +97,7 @@ weather () {
 
 	# humidity - relative - percent
 
-	frobulator.num aqua "🌢" "Humidity" "[ ${percent_humidity} % ]"
+	frobulator.num navy "🌢" "Humidity" "[ ${percent_humidity} % ]"
 
 	# sunlight - sunrise to sunset - ultraviolet index
 
@@ -176,7 +176,7 @@ weather_color () {
 
 	elif [ "${temperature}" -le 10 ]
 	then
-		echo "aqua"
+		echo "navy"
 
 	elif [ "${temperature}" -le 20 ]
 	then
