@@ -508,18 +508,18 @@ then
 
 	# i2c - the ups controller sits on bus 1 address 0x17
 
-	if grep -q '^#dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt
+	if [ "$(grep -c '^#dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)" -gt 0 ]
 	then
 		sed -i 's/^#dtparam=i2c_arm=on/dtparam=i2c_arm=on/' "${directory_mount_boot}"/config.txt
 
-	elif ! grep -q '^dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt
+	elif [ "$(grep -c '^dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)" -eq 0 ]
 	then
 		echo "dtparam=i2c_arm=on" >> "${directory_mount_boot}"/config.txt
 	fi
 
 	# real time clock on the board - ds1307 - address 0x68
 
-	if ! grep -q '^dtoverlay=i2c-rtc,ds1307' "${directory_mount_boot}"/config.txt
+	if [ "$(grep -c '^dtoverlay=i2c-rtc,ds1307' "${directory_mount_boot}"/config.txt)" -eq 0 ]
 	then
 		echo "dtoverlay=i2c-rtc,ds1307" >> "${directory_mount_boot}"/config.txt
 	fi

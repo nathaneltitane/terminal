@@ -430,7 +430,11 @@ do
 	frobulator.inf "Renaming" "[ ${name_source} ]"
 	frobulator.inf "To" "[ ${path_target##*/} ]"
 
-	if ! mv -- "${path_source}" "${path_target}"
+	mv -- "${path_source}" "${path_target}"
+
+	status_move="${?}"
+
+	if [ "${status_move}" -ne 0 ]
 	then
 		frobulator.err "Unable to rename" "[ ${name_source} ]"
 

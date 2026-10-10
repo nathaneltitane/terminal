@@ -236,6 +236,8 @@ audio-combine () {
 	local -a list_sinks_slave=()
 	local name_sink_slave
 	local file_pid_watch="${XDG_RUNTIME_DIR:-/tmp}/audio-combine.pid"
+	local status_connect
+	local status_wait
 
 	for address_bluetooth in "${list_addresses_bluetooth[@]}"
 	do
@@ -256,7 +258,11 @@ audio-combine () {
 
 	for address_bluetooth in "${list_addresses_bluetooth[@]}"
 	do
-		if ! audio_combine_connect "${address_bluetooth}"
+		audio_combine_connect "${address_bluetooth}"
+
+		status_connect="${?}"
+
+		if [ "${status_connect}" -ne 0 ]
 		then
 			frobulator.err "Unable to connect" "[ ${address_bluetooth} ]"
 			frobulator.nul "Make sure the device is powered on, paired and trusted."
@@ -267,7 +273,11 @@ audio-combine () {
 
 	for name_sink_slave in "${list_sinks_slave[@]}"
 	do
-		if ! audio_combine_sink_wait "${name_sink_slave}" 15
+		audio_combine_sink_wait "${name_sink_slave}" 15
+
+		status_wait="${?}"
+
+		if [ "${status_wait}" -ne 0 ]
 		then
 			frobulator.err "Sink not found after connecting" "[ ${name_sink_slave} ]"
 			frobulator.nul "Run 'pactl list short sinks' for details."

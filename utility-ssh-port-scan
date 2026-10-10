@@ -181,7 +181,7 @@ ssh_scan () {
 													"${address_host}" exit 2>&1
 			)
 
-			if echo "${output_ssh}" | grep -q -i -e "permission denied" -e "welcome" -e "last login"
+			if [[ "${output_ssh,,}" == *"permission denied"* || "${output_ssh,,}" == *"welcome"* || "${output_ssh,,}" == *"last login"* ]]
 			then
 				echo "ssh:${address_display}" >> "${file_results}"
 			fi
@@ -197,7 +197,7 @@ ssh_scan () {
 													"${address_host}" 2>&1
 			)
 
-			if echo "${output_sftp}" | grep -q -i -e "sftp>" -e "permission denied"
+			if [[ "${output_sftp,,}" == *"sftp>"* || "${output_sftp,,}" == *"permission denied"* ]]
 			then
 				echo "sftp:${address_display}" >> "${file_results}"
 			fi

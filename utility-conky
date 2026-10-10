@@ -302,7 +302,9 @@ do
 	FILE
 done
 
-if list_files_sensor=(/sys/class/hwmon/hwmon[0-9]*/temp*) && [[ -e "$list_files_sensor" ]]
+list_files_sensor=(/sys/class/hwmon/hwmon[0-9]*/temp*)
+
+if [[ -e "$list_files_sensor" ]]
 then
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${voffset -2}\${hr 1}
@@ -353,7 +355,9 @@ then
 	done
 fi
 
-if list_files_sensor=(/sys/class/hwmon/hwmon[0-9]*/fan*) && [[ -e "$list_files_sensor" ]]
+list_files_sensor=(/sys/class/hwmon/hwmon[0-9]*/fan*)
+
+if [[ -e "$list_files_sensor" ]]
 then
 	cat <<- FILE >> "${HOME}"/.config/conky/conkyrc
 	\${voffset -2}\${hr 1}
