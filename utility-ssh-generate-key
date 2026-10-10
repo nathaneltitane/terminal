@@ -134,7 +134,8 @@ done
 
 type_key="ed25519"
 
-# key store - copied to ~/.ssh by utility-ssh - names match ~/.ssh/config identity files
+# key store - copied to ~/.ssh by utility-ssh:
+# names match ~/.ssh/config identity files
 
 directory_key=/media/internal/.ssh/.keys
 

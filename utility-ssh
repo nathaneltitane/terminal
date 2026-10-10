@@ -151,7 +151,17 @@ file_fail2ban_sshd=/etc/fail2ban/jail.d/sshd.local
 
 file_places="${HOME}/.local/share/user-places.xbel"
 
-# android devices - shared storage as the place root
+# devices - one ssh config host each - this computer skipped
+
+list_devices=(
+	pi
+	phone
+	tablet
+	desktop
+	notebook
+)
+
+# android devices - router name - shared storage as the place root
 
 list_hosts_android=(
 	notebook
@@ -186,14 +196,14 @@ fi
 
 ssh_backup () {
 
-	# user files - keys - server configuration - fail2ban rule
+	# user files - keys - server configuration - fail2ban rule - config is generated
 
 	local status=0
 	local file_ssh
 
 	frobulator.directory "${directory_store}" .keys
 
-	for file_ssh in config known_hosts authorized_keys
+	for file_ssh in known_hosts authorized_keys
 	do
 		if [ -f "${directory_ssh}/${file_ssh}" ]
 		then
@@ -236,7 +246,7 @@ ssh_restore_user () {
 
 	frobulator.directory "${directory_ssh}" .keys
 
-	for file_ssh in config known_hosts authorized_keys
+	for file_ssh in known_hosts authorized_keys
 	do
 		if [ -f "${directory_store}/${file_ssh}" ]
 		then
@@ -272,6 +282,58 @@ ssh_restore_user () {
 	then
 		chmod 644 "${directory_ssh}"/known_hosts
 	fi
+
+	return "${status}"
+}
+
+ssh_restore_config () {
+
+	# user config generated - one framed host block per device - this computer skipped
+
+	local status=0
+	local file_config="${directory_ssh}/config"
+	local name_device
+	local name_host
+	local line_frame
+
+	{
+		for name_device in "${list_devices[@]}"
+		do
+			if [ "${name_device}" = "$(hostname)" ]
+			then
+				continue
+			fi
+
+			# android devices - router name - others announce themselves as .local
+
+			name_host="${name_device}.local"
+
+			if [[ " ${list_hosts_android[*]} " == *" ${name_device} "* ]]
+			then
+				name_host="${name_device}"
+			fi
+
+			# frame line - 80 columns as the script section headers
+
+			printf -v line_frame '%*s' $(( 80 - 3 - ${#name_device} )) ''
+
+			printf '# %s %s\n\n' "${name_device}" "${line_frame// /─}"
+
+			printf 'Host %s\n' "${name_device}"
+			printf '\tHostName %s\n' "${name_host}"
+			printf '\tUser %s\n' "${USER}"
+			printf '\tIdentityFile ~/.ssh/.keys/%s.key\n' "${name_device}"
+			printf '\tIdentitiesOnly yes\n'
+			printf '\tDynamicForward 1337\n'
+			printf '\tPort 22\n\n'
+		done
+	} > "${file_config}"
+
+	frobulator.track
+
+	chown "${USER}:${USER}" "${file_config}"
+
+	chmod 600 "${file_config}"
 
 	return "${status}"
 }
@@ -483,6 +545,12 @@ then
 	frobulator.inf "Restoring user files" "[ ${directory_ssh} ]"
 
 	ssh_restore_user
+
+	frobulator.complete
+
+	frobulator.inf "Generating user config" "[ ${directory_ssh}/config ]"
+
+	ssh_restore_config
 
 	frobulator.complete
 
