@@ -68,15 +68,23 @@ weather () {
 
 	# current conditions - symbol by weather code - colour by temperature
 
+	# location - nearest area and region
+
 	frobulator.inf "Location" "[ ${name_area}, ${name_region} ]"
+
+	# condition - sky description - symbol from its weather code
 
 	frobulator.num "$(weather_color "${temperature_current}")" "$(weather_symbol "${code_condition}")" "Condition" "[ ${condition_current} ]"
 
+	# temperature - current and felt - celsius
+
 	frobulator.num "$(weather_color "${temperature_current}")" "🌡" "Temperature" "[ ${temperature_current} °C // feels ${temperature_feels} °C ]"
 
-	# wind arrow - the direction the wind blows towards - opposite of where it comes from
+	# wind - compass point and speed - arrow towards where the wind blows - opposite of where it comes from
 
 	frobulator.num aqua "${list_arrows_wind[( ( degrees_wind + 180 + 22 ) % 360 ) / 45]}" "Wind" "[ ${direction_wind} // ${speed_wind} km/h ]"
+
+	# rain - precipitation amount - blue when raining
 
 	color_rain="white"
 
@@ -87,7 +95,11 @@ weather () {
 
 	frobulator.num "${color_rain}" "☂" "Rain" "[ ${amount_rain} mm ]"
 
+	# humidity - relative - percent
+
 	frobulator.num aqua "🌢" "Humidity" "[ ${percent_humidity} % ]"
+
+	# sunlight - sunrise to sunset - ultraviolet index
 
 	frobulator.num yellow "🌣" "Sunlight" "[ ${time_sunrise} - ${time_sunset} // uvi ${index_uv} ]"
 
@@ -126,6 +138,8 @@ weather () {
 	while IFS='|' read -r date_forecast temperature_low temperature_high code_day percent_rain condition_day
 	do
 		label_day="$(date -d "${date_forecast}" '+%a %d %b')"
+
+		# day - temperature range - rain chance - midday condition
 
 		frobulator.num grey "$(weather_symbol "${code_day}")" "${label_day}" "[ ${temperature_low} to ${temperature_high} °C - rain ${percent_rain} % // ${condition_day} ]"
 	done < <(
