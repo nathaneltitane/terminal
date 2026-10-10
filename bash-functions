@@ -92,6 +92,8 @@ then
 
 		directory_script="$(dirname "${file_script}")"
 
+		# script - copied unless already in place
+
 		if [ "${directory_script}" -ef "${directory_install}" ]
 		then
 			frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
@@ -99,19 +101,44 @@ then
 			frobulator.copy "${directory_script}" "${directory_install}" "${script}"
 
 			frobulator.permissions public execute "${directory_install}/${script}"
-
-			# one file per function - installed beside this one
-
-			for file_function in "${directory_script}"/bash-function-*
-			do
-				if [ -f "${file_function}" ]
-				then
-					frobulator.copy "${directory_script}" "${directory_install}" "$(basename -- "${file_function}")"
-				fi
-			done
-
-			frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
 		fi
+
+		# one file per function - copied from beside this script - downloaded from the repository otherwise
+
+		list_functions=()
+
+		for file_function in "${directory_script}"/bash-function-*
+		do
+			if [ -f "${file_function}" ]
+			then
+				list_functions+=("$(basename -- "${file_function}")")
+			fi
+		done
+
+		if [ "${#list_functions[@]}" -gt 0 ] && [ ! "${directory_script}" -ef "${directory_install}" ]
+		then
+			for name_function in "${list_functions[@]}"
+			do
+				frobulator.copy "${directory_script}" "${directory_install}" "${name_function}"
+			done
+		else
+			# function names listed from the repository
+
+			list=($(curl --silent --location --connect-timeout 30 "${marker_hts}api.github.com/repos/nathaneltitane/terminal/contents" | jq -r '.[].name | select(startswith("bash-function-"))'))
+
+			if [ "${#list[@]}" -eq 0 ]
+			then
+				frobulator.err "Unable to list function files" "[ github.com/nathaneltitane/terminal ]"
+
+				exit 1
+			fi
+
+			frobulator.download get.trmnl.me "${directory_install}" ${list[@]}
+
+			list=()
+		fi
+
+		frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
 	fi
 
 	exit
