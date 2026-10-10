@@ -70,7 +70,7 @@ ssh () {
 
 	unset password_ssh
 
-	# sshpass and ssh failures reported - silent otherwise
+	# sshpass and ssh failures reported - other codes belong to the remote command
 
 	if [ "${status_ssh}" -eq 5 ]
 	then
@@ -83,10 +83,6 @@ ssh () {
 	elif [ "${status_ssh}" -eq 255 ]
 	then
 		frobulator.err "Connection failed" "[ ${host_destination} ]"
-
-	elif [ "${status_ssh}" -ge 1 ] && [ "${status_ssh}" -le 4 ]
-	then
-		frobulator.err "Login failure" "[ ${host_destination} // status ${status_ssh} ]"
 	fi
 
 	return "${status_ssh}"
