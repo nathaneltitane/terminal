@@ -81,7 +81,9 @@ weather () {
 		color_rain="blue"
 	fi
 
-	frobulator.num "${color_rain}" "🌢" "Rain" "[ ${amount_rain} mm // humidity ${percent_humidity} % ]"
+	frobulator.num "${color_rain}" "☂" "Rain" "[ ${amount_rain} mm ]"
+
+	frobulator.num aqua "🌢" "Humidity" "[ ${percent_humidity} % ]"
 
 	frobulator.num yellow "🌣" "Sun" "[ ${time_sunrise} // ${time_sunset} // uv ${index_uv} ]"
 
