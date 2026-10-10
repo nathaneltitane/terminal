@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-10-09"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -161,18 +161,25 @@ list_hosts_android=(
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
+if [ -z "${option}" ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Specify '--backup' or '--restore'."
+
+	exit 1
+
+elif [[ "${directory_store}" = -* ]]
+then
+	frobulator.err "Missing argument for '--directory'."
+
+	exit 1
+fi
+
 # store - private - never a public repository
 
 if [ -z "${directory_store}" ]
 then
 	directory_store=/media/internal/.ssh
-fi
-
-if [ -z "${option}" ]
-then
-	frobulator.err "No option specified" "[ -b | -r ]"
-
-	exit 1
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
