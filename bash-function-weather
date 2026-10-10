@@ -43,6 +43,11 @@ weather () {
 		frobulator.require jq
 	fi
 
+	# weather colors - added to the palette - cornflower blue - fern green
+
+	frobulator.palette cornflower 68
+	frobulator.palette fern 71
+
 	# forecast data - location from this connection
 
 	text_weather="$(curl --silent --fail --max-time 15 "${url_weather}")"
@@ -172,15 +177,15 @@ weather_color () {
 
 	if [ "${temperature}" -le 0 ]
 	then
-		echo "blue"
+		echo "navy"
 
 	elif [ "${temperature}" -le 10 ]
 	then
-		echo "navy"
+		echo "cornflower"
 
 	elif [ "${temperature}" -le 20 ]
 	then
-		echo "green"
+		echo "fern"
 
 	elif [ "${temperature}" -le 27 ]
 	then
