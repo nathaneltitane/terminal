@@ -223,11 +223,14 @@ do
 
 	frobulator.inf "Setting ownership"
 
-	chmod -R 755 "${directory_web_development}"/"${item}"
+	# readable by the web server - directories traversable - file modes otherwise kept
+	# site may be a link to a git repository - a blanket 755 marks every file executable
+
+	chmod -R u+rwX,go+rX "${directory_web_development}"/"${item}"/
 
 	frobulator.complete
 
-	chown -R "${USER}":"${USER}" "${directory_web_development}"/"${item}"
+	chown -R "${USER}":"${USER}" "${directory_web_development}"/"${item}"/
 
 	frobulator.complete
 
