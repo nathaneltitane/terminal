@@ -200,11 +200,11 @@ zone_time="${zone_time:-UTC}"
 
 container_prepare () {
 
-	# fresh data directory - previous container and its data removed
+	# previous container removed - data directory kept - created when missing
 
 	local status=0
 
-	if [ -d "${directory_container}" ]
+	if [ -n "$(docker container ls --all --quiet --filter "name=^${name_container}$")" ]
 	then
 		frobulator.log "docker stop ${name_container}"
 
@@ -213,15 +213,14 @@ container_prepare () {
 		frobulator.log "docker rm -f ${name_container}"
 
 		frobulator.track
+	fi
 
-		frobulator.delete "${directory_docker}" "${name_container}"
+	if [ ! -d "${directory_container}" ]
+	then
+		frobulator.directory "${directory_docker}" "${name_container}"
 
 		frobulator.track
 	fi
-
-	frobulator.directory "${directory_docker}" "${name_container}"
-
-	frobulator.track
 
 	return "${status}"
 }
@@ -535,10 +534,6 @@ setup_tailscale () {
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	docker
-	docker-clean
-	docker-compose
-	docker-registry
 	docker.io
 )
 
