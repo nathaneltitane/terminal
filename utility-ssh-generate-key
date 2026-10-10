@@ -73,15 +73,33 @@ while (( $# ))
 do
 	case "${1}"
 	in
+		-a|--all)
+			option="all"
+		;;
+
+		-d|--device)
+			option="device"
+
+			device="${2}"
+
+			shift
+		;;
+
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -h"
+			echo -e "Usage: ./${script} -a | -d [Device] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-h, --help    Show [h]elp and usage information."
+			echo -e "-a, --all       Generate keys for [a]ll devices."
 			echo
-			echo -e "'${script}'   [ Version // ${version} ]"
+			echo -e "-d, --device    Generate key for a single [d]evice."
+			echo
+			echo -e "                [ desktop | notebook | pi | tablet | phone ]"
+			echo
+			echo -e "-h, --help      Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'     [ Version // ${version} ]"
 			echo
 
 			exit
@@ -96,7 +114,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -h"
+			echo -e "Usage: ./${script} -a | -d [Device] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -116,13 +134,44 @@ done
 
 type_key="ed25519"
 
-directory_key="${HOME}"
+# key store - copied to ~/.ssh by utility-ssh - names match ~/.ssh/config identity files
 
-key="${directory_key}"/"${device}"
+directory_key=/media/internal/.ssh/.keys
 
-file_key_public="${key}.pub"
+list_devices=(
+	desktop
+	notebook
+	pi
+	tablet
+	phone
+)
 
 # defaults ─────────────────────────────────────────────────────────────────────
+
+# all devices or one device - explicit
+
+if [ -z "${option}" ]
+then
+	frobulator.err "No option specified" "[ -a | -d [Device] ]"
+
+	exit 1
+fi
+
+# single device - must be one of the listed devices
+
+if [ "${option}" = "device" ]
+then
+	if [[ ! " ${list_devices[*]} " == *" ${device} "* ]]
+	then
+		frobulator.err "Unknown device" "[ ${device} ]"
+
+		exit 1
+	fi
+
+	list_devices=(
+		"${device}"
+	)
+fi
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -145,74 +194,40 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-list_devices=(
-	desktop
-	notebook
-	pi
-	tablet
-	phone
-)
+frobulator.directory "$(dirname "${directory_key}")" "$(basename "${directory_key}")"
 
-for device in ${list_devices[@]}
+for device in "${list_devices[@]}"
 do
+	# key files of this device
 
-	# remove existing key files if they exist
+	file_key_private="${directory_key}/${device}.key"
+	file_key_public="${file_key_private}.pub"
 
-	if [ -f "${key}" ]
-	then
-		rm					\
-			--recursive		\
-			--force			\
-							"${key}"
-	fi
+	# previous key pair replaced
 
-	if [ -f "${file_key_public}" ]
-	then
-		rm					\
-			--recursive		\
-			--force			\
-							"${file_key_public}"
-	fi
+	rm --force "${file_key_private}" "${file_key_public}"
 
-	# generate key(s):
-	# overwrite - no passphrase
+	# generate key - no passphrase
 
-	yes | ssh-keygen						\
+	ssh-keygen								\
+		-q									\
 		-t "${type_key}"					\
-		-f "${directory_key}"/"${device}"	\
+		-f "${file_key_private}"			\
 		-N ''								\
 		-C "${USER}@${device}"
 
-	# set ownership
+	frobulator.complete
 
-	if [ -f "${key}" ]
-	then
-		chown 					\
-			"${USER}:${USER}"	\
-								"${key}"
-	fi
+	# ownership - the user running the script - not root after escalation
 
-	if [ -f "${file_key_public}" ]
-	then
-		chown					\
-			"${USER}:${USER}"	\
-								"${file_key_public}"
-	fi
+	chown "${USER}:${USER}" "${file_key_private}" "${file_key_public}"
 
-	# set permissions
+	# permissions - private key readable by its owner only
 
-	if [ -f "${key}" ]
-	then
-		chmod		\
-			0600	\
-					"${key}"
-	fi
+	chmod 0600 "${file_key_private}"
+	chmod 0644 "${file_key_public}"
 
-	if [ -f "${file_key_public}" ]
-	then
-		chmod		\
-			0644	\
-					"${file_key_public}"
-	fi
-
+	frobulator.scs "Key generated" "[ ${device} // ${file_key_private} ]"
 done
+
+frobulator.result "${script}"

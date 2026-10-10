@@ -181,7 +181,7 @@ list=(
 	"${PREFIX}"/media/internal/.ssh
 )
 
-for directory in ${list_directories[@]}
+for directory in "${list[@]}"
 do
 	# ownership
 
@@ -193,8 +193,9 @@ do
 	# permissions
 
 	sudo chmod 700 "${directory}"
-	sudo chmod 755 "${directory}"/known_hosts
+	sudo chmod 644 "${directory}"/known_hosts
 	sudo chmod 400 "${directory}"/.keys/*
+	sudo chmod 644 "${directory}"/.keys/*.pub
 	sudo chmod 600 "${directory}"/config
 	sudo chmod 600 "${directory}"/authorized_keys
 done
