@@ -15,6 +15,7 @@ ssh () {
 	local status_ssh
 	local name_option
 	local file_identity
+	local host_key
 
 	# destination - first argument that is neither an option nor an option value
 
@@ -41,17 +42,26 @@ ssh () {
 
 	# key host - an identity file ssh would offer exists - key login - no prompt
 
+	# session started after the loop - inside it stdin would be the ssh -G output
+
 	while read -r name_option file_identity
 	do
 		file_identity="${file_identity/#\~/${HOME}}"
 
 		if [ "${name_option}" = "identityfile" ] && [ -f "${file_identity}" ]
 		then
-			command ssh -X "${@}"
+			host_key="true"
 
-			return "${?}"
+			break
 		fi
 	done < <(command ssh -G "${@}" 2> "${sink}")
+
+	if [ "${host_key}" = "true" ]
+	then
+		command ssh -X "${@}"
+
+		return "${?}"
+	fi
 
 	# password prompt colors: destination in yellow - then back to normal
 

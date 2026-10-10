@@ -138,11 +138,28 @@ list=()
 
 # set position
 
+# main window
+
 wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
+
+# color palette
+
 wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350
+
+# preview widget
+
 wmctrl -r "Preview — LeoCAD"       -e 0,1660,0000,0450,0350
+
+# properties widget
+
 wmctrl -r "Properties — LeoCAD"    -e 0,1660,0350,0450,0370
+
+# parts widget
+
 wmctrl -r "Parts — LeoCAD"         -e 0,1660,0720,0900,0360
+
+# parts ordering / timeline widget
+
 wmctrl -r "Timeline — LeoCAD"      -e 0,2110,0000,0450,0720
 
 frobulator.scs "Done"
