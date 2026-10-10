@@ -128,14 +128,9 @@ then
 		else
 			# function names listed from the repository
 
-			list=($(curl --silent --location --connect-timeout 30 "${marker_hts}api.github.com/repos/nathaneltitane/terminal/contents" | jq -r '.[].name | select(startswith("bash-function-"))'))
+			frobulator.repository "nathaneltitane/terminal" "bash-function-" || exit 1
 
-			if [ "${#list[@]}" -eq 0 ]
-			then
-				frobulator.err "Unable to list function files" "[ github.com/nathaneltitane/terminal ]"
-
-				exit 1
-			fi
+			list=("${frobulator_return[@]}")
 
 			frobulator.download get.trmnl.me "${directory_install}" ${list[@]}
 
