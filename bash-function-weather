@@ -7,6 +7,7 @@
 weather () {
 
 	local url_weather="wttr.in/?format=j1"
+	local url_space="https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"
 	local number_day=0
 
 	local text_weather
@@ -31,6 +32,9 @@ weather () {
 	local percent_rain
 	local label_day
 	local color_rain
+	local index_kp
+	local label_kp
+	local color_kp
 
 	local -a list_arrows_wind=( ↑ ↗ → ↘ ↓ ↙ ← ↖ )
 
@@ -86,6 +90,34 @@ weather () {
 	frobulator.num aqua "🌢" "Humidity" "[ ${percent_humidity} % ]"
 
 	frobulator.num yellow "🌣" "Sun" "[ ${time_sunrise} // ${time_sunset} // uv ${index_uv} ]"
+
+	# space weather - noaa planetary k index - geomagnetic activity - 0 to 9
+
+	index_kp="$(curl --silent --fail --max-time 10 "${url_space}" | jq -r '.[-1].kp_index' 2> "${sink}")"
+
+	if [[ "${index_kp}" =~ ^[0-9]$ ]]
+	then
+		if [ "${index_kp}" -le 3 ]
+		then
+			label_kp="quiet"
+			color_kp="green"
+
+		elif [ "${index_kp}" -eq 4 ]
+		then
+			label_kp="active"
+			color_kp="yellow"
+
+		elif [ "${index_kp}" -le 6 ]
+		then
+			label_kp="storm // auroras possible"
+			color_kp="orange"
+		else
+			label_kp="severe storm // auroras possible"
+			color_kp="red"
+		fi
+
+		frobulator.num "${color_kp}" "☄" "Space" "[ kp ${index_kp} // ${label_kp} ]"
+	fi
 
 	# forecast - midday symbol - lowest and highest temperature - highest rain chance of the day
 
