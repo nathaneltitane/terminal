@@ -215,9 +215,9 @@ then
 
 	for color in ${colors_selection[@]}
 	do
-		IFS='='
+		# name and code - split on the equal sign for this read only
 
-		read name_color value_color <<< "${color}"
+		IFS='=' read -r name_color value_color <<< "${color}"
 
 		if [ ${#value_color} = 3 ]
 		then
@@ -233,8 +233,6 @@ then
 		then
 			value_color="00${value_color}"
 		fi
-
-		IFS=''
 
 		eval "${name_color}=${value_color}"
 
@@ -281,11 +279,9 @@ else
 
 	for color in ${colors_selection[@]}
 	do
-		IFS='='
+		# name and code - split on the equal sign for this read only
 
-		read name_color value_color <<< "${color}"
-
-		IFS=''
+		IFS='=' read -r name_color value_color <<< "${color}"
 
 		eval "${name_color}=${value_color}"
 
