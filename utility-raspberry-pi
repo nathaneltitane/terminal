@@ -582,7 +582,8 @@ then
 
 	frobulator.directory "${directory_mount_boot}" power-supply
 
-	# monitor - runs every minute - powers off cleanly before the ups cuts a low battery
+	# monitor - runs every 5 minutes - powers off cleanly before the ups cuts a low battery
+	# polled sparingly - frequent i2c polling is suspected to stall ups charging - geeekpi/upsplus issue 36
 
 	cat << 'MONITOR' > "${directory_mount_boot}"/power-supply/ups-plus-monitor
 #!/bin/bash
@@ -662,7 +663,7 @@ register_write () {
 
 voltage_battery="$(register_read 0x05)"
 
-# controller unreachable - logged once - not every minute
+# controller unreachable - logged once - not every run
 
 if [ -z "${voltage_battery}" ]
 then
@@ -752,11 +753,11 @@ SERVICE
 
 	cat << 'TIMER' > "${directory_mount_boot}"/power-supply/ups-plus-monitor.timer
 [Unit]
-Description=UPS Plus battery monitor - every minute
+Description=UPS Plus battery monitor - every 5 minutes
 
 [Timer]
 OnBootSec=1min
-OnUnitActiveSec=1min
+OnUnitActiveSec=5min
 
 [Install]
 WantedBy=timers.target
