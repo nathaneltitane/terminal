@@ -185,6 +185,7 @@ directory_mount_boot="/mnt/raspberry-pi-boot"
 name_host_default="pi"
 name_user_default="${USER}"
 country_wifi_default="US"
+zone_time_default="America/Toronto"
 
 # requirements ─────────────────────────────────────────────────────────────────
 
@@ -215,6 +216,7 @@ list_credentials=(
 	"wifi_ssid"
 	"wifi_password"
 	"wifi_country"
+	"timezone"
 )
 
 frobulator.input "${list_credentials[@]}"
@@ -251,6 +253,11 @@ do
 	if [ "${key_entry}" = "wifi_country" ]
 	then
 		country_wifi="${value_entry:-${country_wifi_default}}"
+	fi
+
+	if [ "${key_entry}" = "timezone" ]
+	then
+		zone_time="${value_entry:-${zone_time_default}}"
 	fi
 
 done
@@ -291,6 +298,10 @@ name_host="${name_host:-${name_host_default}}"
 country_wifi="${country_wifi:-${country_wifi_default}}"
 country_wifi="${country_wifi^^}"
 
+# timezone - region/city name - as listed under /usr/share/zoneinfo
+
+zone_time="${zone_time:-${zone_time_default}}"
+
 # values checked before anything is written - same rules as the first boot user setup
 
 if [[ ! "${name_host}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$ ]]
@@ -310,6 +321,13 @@ fi
 if [[ ! "${country_wifi}" =~ ^[A-Z]{2}$ ]]
 then
 	frobulator.err "Invalid wifi country - two letter code" "[ ${country_wifi} ]"
+
+	exit 1
+fi
+
+if [[ ! "${zone_time}" =~ ^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$ ]] || [ ! -f /usr/share/zoneinfo/"${zone_time}" ]
+then
+	frobulator.err "Invalid timezone - region/city" "[ ${zone_time} ]"
 
 	exit 1
 fi
@@ -457,6 +475,7 @@ cat <<- FILE > "${directory_mount_boot}"/user-data
 #cloud-config
 hostname: ${name_host}
 manage_etc_hosts: true
+timezone: ${zone_time}
 users:
   - name: ${name_user}
     groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
