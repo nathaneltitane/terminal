@@ -82,7 +82,7 @@ do
 		;;
 
 		-d|--directory)
-			directory_store="${2}"
+			option_directory="${2}"
 
 			shift
 		;;
@@ -99,7 +99,7 @@ do
 			echo
 			echo -e "-r, --restore      Run [r]estore of the ssh setup from the directory."
 			echo
-			echo -e "-d, --directory    Specify ssh files [d]irectory."
+			echo -e "-d, --directory    Specify ssh files [d]irectory - linked into ~/.ssh on restore."
 			echo
 			echo -e "                   [ /media/internal/.ssh ] [ Default ]"
 			echo
@@ -144,6 +144,7 @@ directory_ssh="${HOME}"/.ssh
 
 # server configuration and brute force protection rule
 
+file_ssh_config=/etc/ssh/ssh_config
 file_sshd_config=/etc/ssh/sshd_config
 file_fail2ban_sshd=/etc/fail2ban/jail.d/sshd.local
 
@@ -151,24 +152,24 @@ file_fail2ban_sshd=/etc/fail2ban/jail.d/sshd.local
 
 file_places="${HOME}/.local/share/user-places.xbel"
 
-# devices - one ssh config host each - this computer skipped
+# computers - one ssh config host each - announced as .local - this computer skipped
 
 list_devices=(
 	desktop
 	laptop
-	notebook
-	phone
 	pi
-	tablet
 )
 
-# android devices - router name - shared storage as the place root
+# android devices - same as kde connect - router name - shared storage as the place root
 
 list_hosts_android=(
+	note
 	notebook
 	phone
 	tablet
 )
+
+list_devices+=("${list_hosts_android[@]}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -179,25 +180,34 @@ then
 
 	exit 1
 
-elif [[ "${directory_store}" = -* ]]
+elif [[ "${option_directory}" = -* ]]
 then
 	frobulator.err "Missing argument for '--directory'."
 
 	exit 1
 fi
 
-# store - private - never a public repository
+# store - private - never a public repository - linked on restore when specified
 
-if [ -z "${directory_store}" ]
-then
-	directory_store=/media/internal/.ssh
-fi
+directory_store="${option_directory:-/media/internal/.ssh}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
+ssh_frame () {
+
+	# section header - name and frame line - 80 columns as the script section headers
+
+	local name_section="${1}"
+	local line_frame
+
+	printf -v line_frame '%*s' $(( 80 - 3 - ${#name_section} )) ''
+
+	printf '# %s %s\n\n' "${name_section}" "${line_frame// /─}"
+}
+
 ssh_backup () {
 
-	# user files - keys - server configuration - fail2ban rule - config is generated
+	# keys - known hosts - authorized keys - fail2ban rule - configs are generated
 
 	local status=0
 	local file_ssh
@@ -206,7 +216,7 @@ ssh_backup () {
 
 	for file_ssh in known_hosts authorized_keys
 	do
-		if [ -f "${directory_ssh}/${file_ssh}" ]
+		if [ -f "${directory_ssh}/${file_ssh}" ] && [ ! -L "${directory_ssh}/${file_ssh}" ]
 		then
 			cp "${directory_ssh}/${file_ssh}" "${directory_store}/${file_ssh}"
 
@@ -214,13 +224,12 @@ ssh_backup () {
 		fi
 	done
 
-	cp "${directory_ssh}"/.keys/* "${directory_store}"/.keys/ 2> "${sink}"
+	if [ ! -L "${directory_ssh}"/.keys ]
+	then
+		cp "${directory_ssh}"/.keys/* "${directory_store}"/.keys/ 2> "${sink}"
 
-	frobulator.track
-
-	cp "${file_sshd_config}" "${directory_store}"/sshd_config
-
-	frobulator.track
+		frobulator.track
+	fi
 
 	if [ -f "${file_fail2ban_sshd}" ]
 	then
@@ -240,49 +249,69 @@ ssh_backup () {
 
 ssh_restore_user () {
 
-	# user directory rebuilt from the store - ownership and permissions ssh accepts
+	# user directory - real directory sshd accepts
+	# specified store: keys and known hosts linked - copied otherwise
+	# authorized keys always copied - sshd refuses world writable parents
 
 	local status=0
-	local file_ssh
 
-	frobulator.directory "${directory_ssh}" .keys
+	if [ -L "${directory_ssh}" ]
+	then
+		rm --force "${directory_ssh}"
+	fi
 
-	for file_ssh in known_hosts authorized_keys
-	do
-		if [ -f "${directory_store}/${file_ssh}" ]
+	frobulator.directory "$(dirname "${directory_ssh}")" "$(basename "${directory_ssh}")"
+
+	# private keys readable by their owner only - also in the store when linked
+
+	find "${directory_store}"/.keys -type f ! -name "*.pub" -exec chmod 600 {} + 2> "${sink}"
+	find "${directory_store}"/.keys -type f -name "*.pub" -exec chmod 644 {} + 2> "${sink}"
+
+	rm --recursive --force "${directory_ssh}"/.keys "${directory_ssh}"/known_hosts
+
+	if [ -n "${option_directory}" ]
+	then
+		ln --symbolic "${directory_store}"/.keys "${directory_ssh}"/.keys
+
+		frobulator.track
+
+		touch "${directory_store}"/known_hosts
+
+		ln --symbolic "${directory_store}"/known_hosts "${directory_ssh}"/known_hosts
+
+		frobulator.track
+	else
+		frobulator.directory "${directory_ssh}" .keys
+
+		cp "${directory_store}"/.keys/* "${directory_ssh}"/.keys/ 2> "${sink}"
+
+		frobulator.track
+
+		if [ -f "${directory_store}"/known_hosts ]
 		then
-			cp "${directory_store}/${file_ssh}" "${directory_ssh}/${file_ssh}"
+			cp "${directory_store}"/known_hosts "${directory_ssh}"/known_hosts
 
 			frobulator.track
 		fi
-	done
 
-	# authorized keys - created empty when missing - public keys of devices logging in
+		chmod 700 "${directory_ssh}"/.keys
+	fi
+
+	# authorized keys - public keys of devices logging in - created empty when missing
+
+	if [ -f "${directory_store}"/authorized_keys ]
+	then
+		cp "${directory_store}"/authorized_keys "${directory_ssh}"/authorized_keys
+
+		frobulator.track
+	fi
 
 	touch "${directory_ssh}"/authorized_keys
 
-	cp "${directory_store}"/.keys/* "${directory_ssh}"/.keys/ 2> "${sink}"
+	chown --no-dereference -R "${USER}:${USER}" "${directory_ssh}"
 
-	frobulator.track
-
-	chown -R "${USER}:${USER}" "${directory_ssh}"
-
-	chmod 700 "${directory_ssh}" "${directory_ssh}"/.keys
-
-	find "${directory_ssh}"/.keys -type f ! -name "*.pub" -exec chmod 600 {} +
-	find "${directory_ssh}"/.keys -type f -name "*.pub" -exec chmod 644 {} +
-
+	chmod 700 "${directory_ssh}"
 	chmod 600 "${directory_ssh}"/authorized_keys
-
-	if [ -f "${directory_ssh}"/config ]
-	then
-		chmod 600 "${directory_ssh}"/config
-	fi
-
-	if [ -f "${directory_ssh}"/known_hosts ]
-	then
-		chmod 644 "${directory_ssh}"/known_hosts
-	fi
 
 	return "${status}"
 }
@@ -295,7 +324,6 @@ ssh_restore_config () {
 	local file_config="${directory_ssh}/config"
 	local name_device
 	local name_host
-	local line_frame
 
 	{
 		for name_device in "${list_devices[@]}"
@@ -314,11 +342,7 @@ ssh_restore_config () {
 				name_host="${name_device}"
 			fi
 
-			# frame line - 80 columns as the script section headers
-
-			printf -v line_frame '%*s' $(( 80 - 3 - ${#name_device} )) ''
-
-			printf '# %s %s\n\n' "${name_device}" "${line_frame// /─}"
+			ssh_frame "${name_device}"
 
 			printf 'Host %s\n' "${name_device}"
 			printf '\tHostName %s\n' "${name_host}"
@@ -339,22 +363,116 @@ ssh_restore_config () {
 	return "${status}"
 }
 
-ssh_restore_server () {
+ssh_restore_client () {
 
-	# server configuration - checked before install - service enabled and reloaded
+	# system client config generated - host keys checked - new hosts accepted - changed ones refused
 
 	local status=0
 
-	if [ -f "${directory_store}"/sshd_config ]
-	then
-		sshd -t -f "${directory_store}"/sshd_config
+	{
+		ssh_frame "include"
 
-		frobulator.track || return "${status}"
+		printf 'Include /etc/ssh/ssh_config.d/*.conf\n\n'
 
-		cp "${directory_store}"/sshd_config "${file_sshd_config}"
+		ssh_frame "hosts"
 
-		frobulator.track
-	fi
+		printf 'Host *\n'
+		printf '\tPort 22\n'
+		printf '\tPasswordAuthentication yes\n'
+		printf '\tStrictHostKeyChecking accept-new\n'
+		printf '\tHashKnownHosts yes\n\n'
+
+		ssh_frame "forwarding"
+
+		printf '\tForwardAgent yes\n'
+		printf '\tForwardX11 yes\n'
+		printf '\tForwardX11Trusted yes\n\n'
+
+		ssh_frame "authentication"
+
+		printf '\tGSSAPIAuthentication yes\n'
+		printf '\tGSSAPIDelegateCredentials no\n\n'
+
+		ssh_frame "environment"
+
+		printf '\tSendEnv LANG LC_*\n'
+	} > "${file_ssh_config}"
+
+	frobulator.track
+
+	chmod 644 "${file_ssh_config}"
+
+	return "${status}"
+}
+
+ssh_restore_server () {
+
+	# server config generated - checked before install - service enabled and reloaded
+
+	local status=0
+	local file_sshd_check
+
+	file_sshd_check="$(mktemp)"
+
+	{
+		ssh_frame "include"
+
+		printf 'Include /etc/ssh/sshd_config.d/*.conf\n\n'
+
+		ssh_frame "network"
+
+		printf 'Port 22\n\n'
+
+		ssh_frame "host keys"
+
+		printf 'HostKey /etc/ssh/ssh_host_ed25519_key\n'
+		printf 'HostKey /etc/ssh/ssh_host_ecdsa_key\n'
+		printf 'HostKey /etc/ssh/ssh_host_rsa_key\n\n'
+
+		ssh_frame "logging"
+
+		printf 'SyslogFacility AUTH\n'
+		printf 'LogLevel INFO\n\n'
+
+		ssh_frame "authentication"
+
+		printf 'LoginGraceTime 120\n'
+		printf 'PermitRootLogin prohibit-password\n'
+		printf 'StrictModes yes\n'
+		printf 'PubkeyAuthentication yes\n'
+		printf 'PasswordAuthentication yes\n'
+		printf 'PermitEmptyPasswords no\n'
+		printf 'KbdInteractiveAuthentication no\n'
+		printf 'HostbasedAuthentication no\n'
+		printf 'IgnoreRhosts yes\n'
+		printf 'UsePAM yes\n\n'
+
+		ssh_frame "forwarding"
+
+		printf 'X11Forwarding yes\n'
+		printf 'X11DisplayOffset 10\n\n'
+
+		ssh_frame "session"
+
+		printf 'PrintMotd no\n'
+		printf 'PrintLastLog no\n'
+		printf 'TCPKeepAlive yes\n'
+		printf 'AcceptEnv LANG LC_*\n\n'
+
+		ssh_frame "subsystems"
+
+		printf 'Subsystem sftp internal-sftp\n'
+	} > "${file_sshd_check}"
+
+	sshd -t -f "${file_sshd_check}"
+
+	frobulator.track || { rm --force "${file_sshd_check}"; return "${status}"; }
+
+	install -m 644 "${file_sshd_check}" "${file_sshd_config}"
+
+	frobulator.track
+
+	rm --force "${file_sshd_check}"
 
 	systemctl enable --now ssh > "${sink}" 2>&1
 
@@ -555,7 +673,13 @@ then
 
 	frobulator.complete
 
-	frobulator.inf "Restoring server" "[ ${file_sshd_config} ]"
+	frobulator.inf "Generating client config" "[ ${file_ssh_config} ]"
+
+	ssh_restore_client
+
+	frobulator.complete
+
+	frobulator.inf "Generating server config" "[ ${file_sshd_config} ]"
 
 	ssh_restore_server
 
