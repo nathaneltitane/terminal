@@ -560,6 +560,30 @@ then
 # geeekpi ups plus - ep-0136 - controller on i2c bus 1 address 0x17
 # usage: ups-plus-monitor [status]
 
+# ups plus battery gauge - four blue leds - led1 first lit at low charge - blink at 1.5 hz
+
+# charging - usb-c input of the ups connected
+#
+# | charge        | led1     | led2     | led3     | led4     |
+# |---------------|----------|----------|----------|----------|
+# | under 25 %    | blinking | off      | off      | off      |
+# | 25 to 50 %    | on       | blinking | off      | off      |
+# | 50 to 75 %    | on       | on       | blinking | off      |
+# | 75 % and up   | on       | on       | on       | blinking |
+# | full          | on       | on       | on       | on       |
+
+# discharging - no input - wrong battery: parameters stored in the ups do not match the cells
+#
+# | charge        | led1     | led2     | led3     | led4     |
+# |---------------|----------|----------|----------|----------|
+# | under 25 %    | on       | off      | off      | off      |
+# | 25 to 50 %    | on       | on       | off      | off      |
+# | 50 to 75 %    | on       | on       | on       | off      |
+# | 75 % and up   | on       | on       | on       | on       |
+# | wrong battery | blinking | off      | off      | off      |
+
+# never power the raspberry pi through its own usb-c port while the ups is fitted - it may damage the ups
+
 bus_i2c=1
 address_ups=0x17
 
