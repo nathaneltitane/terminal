@@ -154,11 +154,12 @@ file_places="${HOME}/.local/share/user-places.xbel"
 # devices - one ssh config host each - this computer skipped
 
 list_devices=(
-	pi
-	phone
-	tablet
 	desktop
+	laptop
 	notebook
+	phone
+	pi
+	tablet
 )
 
 # android devices - router name - shared storage as the place root
