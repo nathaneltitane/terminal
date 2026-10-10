@@ -6,15 +6,12 @@
 
 list () {
 
-	directory="${1}"
-
-	local label_directory="directories"
-	local label_file="files"
-
-	if [ -z "${directory}" ]
-	then
-		directory="${PWD}"
-	fi
+	local directory="${1:-${PWD}}"
+	local label_directories="directories"
+	local label_files="files"
+	local count_directories
+	local count_files
+	local text_types
 
 	if [ ! -d "${directory}" ]
 	then
@@ -30,22 +27,31 @@ list () {
 		--group-directories-first	\
 									"${directory}"
 
-	if [ "$(find "${directory}" -type d | wc -l)" -eq 1 ]
+	# whole tree in one pass - one letter per entry - listed directory itself excluded
+
+	text_types="$(find "${directory}" -mindepth 1 \( -type d -printf 'd' \) -o \( -type f -printf 'f' \))"
+
+	# letters counted by removing the other one
+
+	count_directories="${text_types//f/}"
+	count_directories="${#count_directories}"
+
+	count_files="${text_types//d/}"
+	count_files="${#count_files}"
+
+	if [ "${count_directories}" -eq 1 ]
 	then
-		label_directory="directory"
+		label_directories="directory"
 	fi
 
-	if [ "$(find "${directory}" -type f | wc -l) -eq 1 ]
+	if [ "${count_files}" -eq 1 ]
 	then
-		label_directory="directory"
+		label_files="file"
 	fi
 
 	echo
-	echo "$(find "${directory}" -type d | wc -l) ${label_directory}"
+	echo "${count_directories} ${label_directories}"
 	echo
-	echo "$(find "${directory}" -type f | wc -l) ${label_file}"
+	echo "${count_files} ${label_files}"
 	echo
-
-	unset label_directory
-	unset label_file
 }
