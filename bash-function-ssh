@@ -6,12 +6,27 @@
 
 ssh () {
 
+	local host_destination
+	local argument_ssh
+	local argument_previous
 	local color_destination
 	local color_reset
+	local password_ssh
+	local status_ssh
 
-	# destination is always the last argument
+	# destination - first argument that is neither an option nor an option value
 
-	host_destination=${!#}
+	for argument_ssh in "${@}"
+	do
+		if [[ "${argument_ssh}" != -* ]] && [[ ! "${argument_previous}" =~ ^-[BbcDEeFIiJLlmOoPpQRSWw]$ ]]
+		then
+			host_destination="${argument_ssh}"
+
+			break
+		fi
+
+		argument_previous="${argument_ssh}"
+	done
 
 	# password prompt colors: destination in yellow - then back to normal
 
@@ -20,16 +35,51 @@ ssh () {
 
 	echo -n -e "[  ${color_destination}${host_destination}${color_reset}  ] >_ ? "
 
-	read -r -s password
+	read -r -s password_ssh
 
 	echo
 
-	sshpass					\
-		-p "${password}"	\
-							ssh -X "${@}"
+	# empty password - plain ssh - key login and its own prompts
 
-	unset host_destination
+	if [ -z "${password_ssh}" ]
+	then
+		command ssh -X "${@}"
 
-	unset password
+		return "${?}"
+	fi
+
+	# password passed through the environment - not shown in the process list
+	# new host keys accepted - changed host keys still refused
+
+	SSHPASS="${password_ssh}"							\
+		sshpass -e										\
+			ssh -X										\
+				-o StrictHostKeyChecking=accept-new		\
+														"${@}"
+
+	status_ssh="${?}"
+
+	unset password_ssh
+
+	# sshpass and ssh failures reported - silent otherwise
+
+	if [ "${status_ssh}" -eq 5 ]
+	then
+		frobulator.err "Login refused - incorrect password" "[ ${host_destination} ]"
+
+	elif [ "${status_ssh}" -eq 6 ]
+	then
+		frobulator.err "Host key unknown - not accepted" "[ ${host_destination} ]"
+
+	elif [ "${status_ssh}" -eq 255 ]
+	then
+		frobulator.err "Connection failed" "[ ${host_destination} ]"
+
+	elif [ "${status_ssh}" -ge 1 ] && [ "${status_ssh}" -le 4 ]
+	then
+		frobulator.err "Login failure" "[ ${host_destination} // status ${status_ssh} ]"
+	fi
+
+	return "${status_ssh}"
 
 }
