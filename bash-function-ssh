@@ -28,6 +28,15 @@ ssh () {
 		argument_previous="${argument_ssh}"
 	done
 
+	# no destination - options only - plain ssh
+
+	if [ -z "${host_destination}" ]
+	then
+		command ssh "${@}"
+
+		return "${?}"
+	fi
+
 	# password prompt colors: destination in yellow - then back to normal
 
 	color_destination="$(tput setaf 3)"
