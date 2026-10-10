@@ -8,7 +8,6 @@ weather () {
 
 	local url_weather="wttr.in/?format=j1"
 	local url_space="https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"
-	local number_day=0
 
 	local text_weather
 	local name_area
@@ -31,6 +30,7 @@ weather () {
 	local code_day
 	local percent_rain
 	local label_day
+	local condition_day
 	local color_rain
 	local index_kp
 	local label_kp
@@ -123,15 +123,13 @@ weather () {
 
 	frobulator.sep
 
-	while IFS='|' read -r date_forecast temperature_low temperature_high code_day percent_rain
+	while IFS='|' read -r date_forecast temperature_low temperature_high code_day percent_rain condition_day
 	do
-		(( number_day ++ ))
-
 		label_day="$(date -d "${date_forecast}" '+%a %d %b')"
 
-		frobulator.num grey "${number_day}" "${label_day} $(weather_symbol "${code_day}")" "[ ${temperature_low} to ${temperature_high} °C // rain ${percent_rain} % ]"
+		frobulator.num grey "$(weather_symbol "${code_day}")" "${label_day}" "[ ${temperature_low} to ${temperature_high} °C // rain ${percent_rain} % // ${condition_day} ]"
 	done < <(
-		jq -r '.weather[] | [.date, .mintempC, .maxtempC, .hourly[4].weatherCode, ([.hourly[].chanceofrain | tonumber] | max)] | map(tostring) | join("|")' <<< "${text_weather}"
+		jq -r '.weather[] | [.date, .mintempC, .maxtempC, .hourly[4].weatherCode, ([.hourly[].chanceofrain | tonumber] | max), (.hourly[4].weatherDesc[0].value | rtrimstr(" "))] | map(tostring) | join("|")' <<< "${text_weather}"
 	)
 }
 
