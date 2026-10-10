@@ -326,6 +326,8 @@ ssh_restore_config () {
 	local name_host
 
 	{
+		ssh_frame "ssh user configuration"
+
 		for name_device in "${list_devices[@]}"
 		do
 			if [ "${name_device}" = "$(hostname)" ]
@@ -370,6 +372,8 @@ ssh_restore_client () {
 	local status=0
 
 	{
+		ssh_frame "ssh configuration"
+
 		ssh_frame "include"
 
 		printf 'Include /etc/ssh/ssh_config.d/*.conf\n\n'
@@ -415,6 +419,8 @@ ssh_restore_server () {
 	file_sshd_check="$(mktemp)"
 
 	{
+		ssh_frame "ssh daemon configuration"
+
 		ssh_frame "include"
 
 		printf 'Include /etc/ssh/sshd_config.d/*.conf\n\n'
