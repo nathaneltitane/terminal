@@ -289,7 +289,9 @@ if [ -z "${command_vulkaninfo}" ]
 then
 	frobulator.wrn "Vulkan diagnostic utility not found" "[ vulkaninfo ]"
 else
-	if ! vulkaninfo --summary 2>"${sink}" | grep -q "AMD Radeon RX Vega M"
+	text_vulkan_summary="$(vulkaninfo --summary 2> "${sink}")"
+
+	if [[ "${text_vulkan_summary}" != *"AMD Radeon RX Vega M"* ]]
 	then
 		frobulator.wrn "Expected Radeon RX Vega M Vulkan device not detected"
 	fi
@@ -311,14 +313,14 @@ chown -R "${process}:${process}" "${directory_models}"
 
 # gpu permissions
 
-if id "${process}" > "${sink}" 2>&1
+if [ -n "$(id -u "${process}" 2> "${sink}")" ]
 then
-	if getent group render > "${sink}" 2>&1
+	if [ -n "$(getent group render)" ]
 	then
 		usermod --append --groups render "${process}"
 	fi
 
-	if getent group video > "${sink}" 2>&1
+	if [ -n "$(getent group video)" ]
 	then
 		usermod --append --groups video "${process}"
 	fi

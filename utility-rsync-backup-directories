@@ -241,7 +241,11 @@ synchronize () {
 
 	exec 200> "${file_lock_synchronize}"
 
-	if ! flock -n 200
+	flock -n 200
+
+	status_lock="${?}"
+
+	if [ "${status_lock}" -ne 0 ]
 	then
 		echo "Synchronize already running - skipping"
 		return 0
