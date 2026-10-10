@@ -120,6 +120,8 @@ do
 			echo
 			echo -e "Options:"
 			echo
+			echo -e "Note:            Audio files and playlists only - other files ignored."
+			echo
 			echo -e "-f, --from       Set '[f]rom' (origin) directory reference."
 			echo
 			echo -e "-t, --to         Set '[t]o' (destination) directory."
@@ -131,8 +133,6 @@ do
 			echo -e "-m, --mirror     Run [m]irror operation to make 'to' directory an exact copy of 'from' directory."
 			echo
 			echo -e "                 [ mirror ] [ Default ]"
-			echo
-			echo -e "                 Audio files and playlists only - other files ignored."
 			echo
 			echo -e "-e, --execute    Ex[e]cute selected operation."
 			echo
