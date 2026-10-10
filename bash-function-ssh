@@ -13,6 +13,8 @@ ssh () {
 	local color_reset
 	local password_ssh
 	local status_ssh
+	local name_option
+	local file_identity
 
 	# destination - first argument that is neither an option nor an option value
 
@@ -36,6 +38,20 @@ ssh () {
 
 		return "${?}"
 	fi
+
+	# key host - an identity file ssh would offer exists - key login - no prompt
+
+	while read -r name_option file_identity
+	do
+		file_identity="${file_identity/#\~/${HOME}}"
+
+		if [ "${name_option}" = "identityfile" ] && [ -f "${file_identity}" ]
+		then
+			command ssh -X "${@}"
+
+			return "${?}"
+		fi
+	done < <(command ssh -G "${@}" 2> "${sink}")
 
 	# password prompt colors: destination in yellow - then back to normal
 
