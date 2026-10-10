@@ -6,6 +6,19 @@
 
 record () {
 
+	local directory_output
+	local date_recording
+	local id_window
+
+	# window recording - needs a desktop session - not available over ssh or a console
+
+	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ]
+	then
+		frobulator.err "Screen recording needs a desktop session" "[ no display ]"
+
+		return 1
+	fi
+
 	list=(
 		recordmydesktop
 		wmctrl

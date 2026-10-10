@@ -21,6 +21,9 @@ media () {
 	local duration_sleep
 	local format_download
 	local extension_media
+	local directory_origin="${PWD}"
+	local architecture_machine
+	local directory_profile
 
 	local -a list_options_type=()
 	local -a list_options_url=()
@@ -73,7 +76,16 @@ media () {
 
 	if [ ! -f "${directory_binary}/deno" ]
 	then
-		file_archive_deno="deno-x86_64-unknown-linux-gnu.zip"
+		# deno build matching this processor - x86_64 or aarch64
+
+		architecture_machine="$(uname -m)"
+
+		if [ "${architecture_machine}" = "arm64" ]
+		then
+			architecture_machine="aarch64"
+		fi
+
+		file_archive_deno="deno-${architecture_machine}-unknown-linux-gnu.zip"
 
 		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${directory_binary}" "${file_archive_deno}"
 
@@ -117,34 +129,62 @@ media () {
 		list_options_url+=( --batch-file )
 	fi
 
+	# browser cookies - not for soundcloud
+	# desktop default browser - else the first browser profile on disk - else none
+
 	if [ "${source_media#*soundcloud.com}" = "${source_media}" ]
 	then
-		name_browser="$(xdg-settings get default-web-browser 2>"${sink}")"
+		name_browser="$(xdg-settings get default-web-browser 2> "${sink}")"
 
 		name_browser="${name_browser%.desktop}"
 
-		if [[ "${name_browser}" = firefox* ]] ||
-		[[ "${name_browser}" = librewolf*  ]] ||
-		[[ "${name_browser}" = waterfox*   ]]
+		case "${name_browser}"
+		in
+			firefox*)			name_browser="firefox" ;;
+			librewolf*)			name_browser="firefox:${HOME}/.librewolf" ;;
+			waterfox*)			name_browser="firefox:${HOME}/.waterfox" ;;
+			google-chrome*)		name_browser="chrome" ;;
+			chromium*)			name_browser="chromium" ;;
+			brave*)				name_browser="brave" ;;
+			vivaldi*)			name_browser="vivaldi" ;;
+			opera*)				name_browser="opera" ;;
+			*)					name_browser="" ;;
+		esac
+
+		# no desktop session - browser profiles on disk
+
+		if [ -z "${name_browser}" ]
 		then
-			name_browser="firefox"
+			for directory_profile in									\
+				"firefox:${HOME}/.mozilla/firefox"						\
+				"firefox:${HOME}/.librewolf"							\
+				"chrome:${HOME}/.config/google-chrome"					\
+				"chromium:${HOME}/.config/chromium"						\
+				"brave:${HOME}/.config/BraveSoftware/Brave-Browser"		\
+				"vivaldi:${HOME}/.config/vivaldi"						\
+				"opera:${HOME}/.config/opera"
+			do
+				if [ -d "${directory_profile#*:}" ]
+				then
+					name_browser="${directory_profile%%:*}"
 
-		elif [[ "${name_browser}" = chrome*       ]] ||
-			[[ "${name_browser}" = google-chrome* ]] ||
-			[[ "${name_browser}" = chromium*      ]] ||
-			[[ "${name_browser}" = brave*         ]] ||
-			[[ "${name_browser}" = vivaldi*       ]] ||
-			[[ "${name_browser}" = opera*         ]]
-		then
-			name_browser="chrome"
+					if [ "${directory_profile}" = "firefox:${HOME}/.librewolf" ]
+					then
+						name_browser="${directory_profile}"
+					fi
 
-		else
-			frobulator.err "No compatible browser found on system"
-
-			return 1
+					break
+				fi
+			done
 		fi
 
-		list_options_site+=( --cookies-from-browser "${name_browser}" )
+		if [ -n "${name_browser}" ]
+		then
+			list_options_site+=( --cookies-from-browser "${name_browser}" )
+		else
+			frobulator.wrn "No browser profile found - downloading without cookies"
+			frobulator.nul "Some videos may need a signed in browser to download."
+		fi
 	fi
 
 	cd "${directory_output}"
@@ -187,4 +227,8 @@ media () {
 	done
 
 	unset IFS
+
+	# back to the directory the function was called from
+
+	cd "${directory_origin}"
 }
