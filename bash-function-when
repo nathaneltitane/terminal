@@ -6,15 +6,15 @@
 
 when () {
 
-	local time
-	local date
+	local time_current
+	local date_current
 
-	time=$(date '+%I:%M %p')
-	date=$(date '+%A, %B %d %Y')
+	time_current=$(date '+%I:%M %p')
+	date_current=$(date '+%A, %B %d %Y')
 
 	echo
 
-	echo "It is ${time} on ${date}"
+	echo "It is ${time_current} on ${date_current}"
 
 	echo
 }
