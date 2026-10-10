@@ -355,11 +355,11 @@ ssh_restore_places () {
 		return 0
 	fi
 
-	# hosts named in the ssh config - wildcard entries skipped
+	# hosts named in the ssh config - wildcard entries and this computer skipped
 
 	while read -r _ name_host
 	do
-		if [[ "${name_host}" != *[*?]* ]]
+		if [[ "${name_host}" != *[*?]* ]] && [ "${name_host}" != "$(hostname)" ]
 		then
 			list_hosts+=("${name_host}")
 		fi
