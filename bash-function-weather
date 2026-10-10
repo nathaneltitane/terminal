@@ -119,7 +119,9 @@ weather () {
 		frobulator.num "${color_kp}" "☄" "Space" "[ kp ${index_kp} // ${label_kp} ]"
 	fi
 
-	# forecast - midday symbol - lowest and highest temperature - highest rain chance of the day
+	# forecast - separated - grey - midday symbol - lowest and highest temperature - highest rain chance of the day
+
+	frobulator.sep
 
 	while IFS='|' read -r date_forecast temperature_low temperature_high code_day percent_rain
 	do
@@ -127,7 +129,7 @@ weather () {
 
 		label_day="$(date -d "${date_forecast}" '+%a %d %b')"
 
-		frobulator.num "$(weather_color "${temperature_high}")" "${number_day}" "${label_day} $(weather_symbol "${code_day}")" "[ ${temperature_low} to ${temperature_high} °C // rain ${percent_rain} % ]"
+		frobulator.num grey "${number_day}" "${label_day} $(weather_symbol "${code_day}")" "[ ${temperature_low} to ${temperature_high} °C // rain ${percent_rain} % ]"
 	done < <(
 		jq -r '.weather[] | [.date, .mintempC, .maxtempC, .hourly[4].weatherCode, ([.hourly[].chanceofrain | tonumber] | max)] | map(tostring) | join("|")' <<< "${text_weather}"
 	)
