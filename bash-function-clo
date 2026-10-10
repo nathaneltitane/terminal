@@ -8,6 +8,10 @@ clo () {
 
 	local command_path
 	local name_command
+	local directory_projects
+	local command_search
+	local file_session
+	local id_session
 
 	name_command="claude"
 

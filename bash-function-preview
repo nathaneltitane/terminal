@@ -8,6 +8,8 @@ preview () {
 
 	local command_cat
 	local command_head
+	local count_lines
+	local file
 
 	count_lines="${1}"
 

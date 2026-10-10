@@ -6,6 +6,9 @@
 
 dimensions () {
 
+	local columns
+	local lines
+
 	columns=$(tput cols)
 	lines=$(tput lines)
 

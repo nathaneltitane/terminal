@@ -6,6 +6,8 @@
 
 weather () {
 
+	local url
+
 	url="wttr.in"
 
 	echo

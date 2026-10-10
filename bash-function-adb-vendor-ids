@@ -7,6 +7,8 @@
 adb_vendor_ids () {
 
 	local status_package_udev
+	local number_id
+	local id_vendor
 
 	adb_download
 

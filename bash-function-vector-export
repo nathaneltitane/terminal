@@ -6,6 +6,10 @@
 
 vector-export () {
 
+	local type_export
+	local file
+	local name_file
+
 	frobulator.require inkscape
 
 	type_export="${1}"

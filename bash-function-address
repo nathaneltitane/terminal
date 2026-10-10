@@ -6,6 +6,8 @@
 
 address () {
 
+	local url
+
 	frobulator.require curl
 
 	url="ipinfo.io/ip"

@@ -6,6 +6,8 @@
 
 adb_settings_get () {
 
+	local setting
+
 	adb_download
 
 	adb_set_environment

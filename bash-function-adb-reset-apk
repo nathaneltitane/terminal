@@ -6,6 +6,9 @@
 
 adb_reset_apk () {
 
+	local application
+	local activity
+
 	adb_download
 
 	adb_set_environment

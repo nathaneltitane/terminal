@@ -9,6 +9,7 @@ adb_download () {
 	local directory_temporary
 	local file_archive
 	local directory_extracted
+	local item
 
 	frobulator.temporary directory_temporary
 
@@ -16,7 +17,7 @@ adb_download () {
 	then
 		frobulator.err "Unable to create temporary directory"
 
-		exit 1
+		return 1
 	fi
 
 	file_archive="${directory_temporary}/platform-tools.zip"
@@ -37,7 +38,7 @@ adb_download () {
 
 		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
 
-		exit 1
+		return 1
 	fi
 
 	unzip -q "${file_archive}" -d "${directory_temporary}"
@@ -48,7 +49,7 @@ adb_download () {
 
 		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
 
-		exit 1
+		return 1
 	fi
 
 	if [ ! -x "${directory_extracted}/adb" ] || [ ! -x "${directory_extracted}/fastboot" ]
@@ -57,7 +58,7 @@ adb_download () {
 
 		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
 
-		exit 1
+		return 1
 	fi
 
 	frobulator.terminate "adb"

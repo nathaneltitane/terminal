@@ -6,6 +6,8 @@
 
 snippet () {
 
+	local url
+
 	url="http://sprunge.us"
 
 	if (( $# ))
