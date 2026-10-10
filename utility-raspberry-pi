@@ -154,15 +154,12 @@ directory_download="${HOME}/.cache/raspberry-pi"
 file_archive_image="${directory_download}/raspios_lite_arm64.img.xz"
 
 directory_mount_boot="/mnt/raspberry-pi-boot"
-directory_mount_root="/mnt/raspberry-pi-root"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
 name_host_default="pi"
 name_user_default="${USER}"
 country_wifi_default="US"
-
-address_localhost="127.0.1.1"
 
 # requirements ─────────────────────────────────────────────────────────────────
 
@@ -173,7 +170,6 @@ list=(
 	util-linux
 	e2fsprogs
 	dosfstools
-	uuid-runtime
 	openssl
 )
 
@@ -193,6 +189,7 @@ list_credentials=(
 	"user_password"
 	"wifi_ssid"
 	"wifi_password"
+	"wifi_country"
 )
 
 frobulator.input "${list_credentials[@]}"
@@ -224,6 +221,11 @@ do
 	if [ "${key_entry}" = "wifi_password" ]
 	then
 		password_wifi="${value_entry}"
+	fi
+
+	if [ "${key_entry}" = "wifi_country" ]
+	then
+		country_wifi="${value_entry:-${country_wifi_default}}"
 	fi
 
 done
@@ -258,6 +260,41 @@ then
 fi
 
 name_host="${name_host:-${name_host_default}}"
+
+# wifi country - two letter code - radio blocked until set
+
+country_wifi="${country_wifi:-${country_wifi_default}}"
+country_wifi="${country_wifi^^}"
+
+# values checked before anything is written - same rules as the first boot user setup
+
+if [[ ! "${name_host}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$ ]]
+then
+	frobulator.err "Invalid hostname - letters, digits and hyphens" "[ ${name_host} ]"
+
+	exit 1
+fi
+
+if [[ ! "${name_user}" =~ ^[a-z][a-z0-9-]{0,31}$ ]] || [ "${name_user}" = "root" ]
+then
+	frobulator.err "Invalid username - lower-case letters, digits and hyphens - starting with a letter" "[ ${name_user} ]"
+
+	exit 1
+fi
+
+if [[ ! "${country_wifi}" =~ ^[A-Z]{2}$ ]]
+then
+	frobulator.err "Invalid wifi country - two letter code" "[ ${country_wifi} ]"
+
+	exit 1
+fi
+
+if [ "${#password_wifi}" -lt 8 ] || [ "${#password_wifi}" -gt 63 ]
+then
+	frobulator.err "Invalid wifi password - 8 to 63 characters" "[ ${#password_wifi} ]"
+
+	exit 1
+fi
 
 # download
 
@@ -334,7 +371,18 @@ done
 
 frobulator.inf "Writing image" "[ ${device} ]"
 
-xz -dc "${file_archive_image}" | dd of="${device}" bs=4M conv=fsync status=progress oflag=direct
+xz -dc "${file_archive_image}" | dd of="${device}" bs=4M iflag=fullblock conv=fsync status=progress oflag=direct
+
+# exit status of both sides of the pipe - read before any other command
+
+list_status_write=("${PIPESTATUS[@]}")
+
+if [ "${list_status_write[0]}" -ne 0 ] || [ "${list_status_write[1]}" -ne 0 ]
+then
+	frobulator.err "Image write failed" "[ xz // ${list_status_write[0]} ] [ dd // ${list_status_write[1]} ]"
+
+	exit 1
+fi
 
 sync
 
@@ -366,88 +414,74 @@ fi
 
 # mount
 
-# mount newly written boot and root partitions
+# mount newly written boot partition - cloud-init reads the first boot configuration from it
 
 frobulator.directory "${directory_mount_boot}"
-frobulator.directory "${directory_mount_root}"
 
 mount "${path_partition_boot}" "${directory_mount_boot}"
-mount "${path_partition_root}" "${directory_mount_root}"
 
 frobulator.complete
 
-# ssh
+# user, ssh and hostname - cloud-init user data
 
-# enable sshd on first boot
+# password stored as a sha-512 hash
+
+hash_password_user=$(echo "${password_user}" | openssl passwd -6 -stdin)
+
+cat <<- FILE > "${directory_mount_boot}"/user-data
+#cloud-config
+hostname: ${name_host}
+manage_etc_hosts: true
+users:
+  - name: ${name_user}
+    groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: ${hash_password_user}
+enable_ssh: true
+ssh_pwauth: true
+FILE
+
+frobulator.complete
+
+# ssh - also enabled by the boot partition marker file - independent of cloud-init
 
 touch "${directory_mount_boot}"/ssh
 
 frobulator.complete
 
-# user
+# wifi - cloud-init network configuration - country unblocks the radio
 
-# create default user account with a hashed password
+# ssid and password quoted for yaml - backslashes and double quotes escaped
 
-hash_password_user=$(echo "${password_user}" | openssl passwd -6 -stdin)
+text_ssid_wifi="${ssid_wifi//\\/\\\\}"
+text_ssid_wifi="${text_ssid_wifi//\"/\\\"}"
 
-echo "${name_user}:${hash_password_user}" > "${directory_mount_boot}"/userconf.txt
+text_password_wifi="${password_wifi//\\/\\\\}"
+text_password_wifi="${text_password_wifi//\"/\\\"}"
 
-frobulator.complete
-
-# wifi (NetworkManager - wpa_supplicant.conf no longer works on Bookworm)
-
-# write a network connection profile directly into rootfs partition
-
-frobulator.directory "${directory_mount_root}"/etc/NetworkManager/system-connections
-
-uuid_connection="$(uuidgen)"
-
-cat <<- FILE > "${directory_mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
-[connection]
-id=preconfigured
-uuid=${uuid_connection}
-type=wifi
-
-[wifi]
-mode=infrastructure
-ssid=${ssid_wifi}
-
-[wifi-security]
-key-mgmt=wpa-psk
-psk=${password_wifi}
-
-[ipv4]
-method=auto
-
-[ipv6]
-method=auto
-addr-gen-mode=default
-
-[proxy]
+cat <<- FILE > "${directory_mount_boot}"/network-config
+network:
+  version: 2
+  wifis:
+    wlan0:
+      dhcp4: true
+      optional: true
+      regulatory-domain: "${country_wifi}"
+      access-points:
+        "${text_ssid_wifi}":
+          password: "${text_password_wifi}"
 FILE
-
-chmod 600 "${directory_mount_root}"/etc/NetworkManager/system-connections/preconfigured.nmconnection
-
-frobulator.complete
-
-# hostname
-
-# set system hostname and its matching /etc/hosts entry
-
-echo "${name_host}" > "${directory_mount_root}"/etc/hostname
-
-sed -i "s/${address_localhost}.*/${address_localhost}\t${name_host}/" "${directory_mount_root}"/etc/hosts
 
 frobulator.complete
 
 # unmount
 
-# flush writes and detach both partitions
+# flush writes and detach boot partition
 
 sync
 
 umount "${directory_mount_boot}"
-umount "${directory_mount_root}"
 
 frobulator.complete
 
