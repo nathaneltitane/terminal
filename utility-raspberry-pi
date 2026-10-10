@@ -554,6 +554,15 @@ seconds_countdown=240
 
 file_state=/run/ups-plus-monitor.state
 
+# not root - status only - no state - no settings - no power off
+
+state_root="false"
+
+if [ "${EUID}" -eq 0 ]
+then
+	state_root="true"
+fi
+
 # value of two registers - low byte first
 
 register_read () {
@@ -579,7 +588,7 @@ voltage_battery="$(register_read 0x05)"
 
 if [ -z "${voltage_battery}" ]
 then
-	if [ "$(cat "${file_state}" 2> /dev/null)" != "unreachable" ]
+	if [ "${state_root}" = "true" ] && [ "$(cat "${file_state}" 2> /dev/null)" != "unreachable" ]
 	then
 		echo "unreachable" > "${file_state}"
 
@@ -598,18 +607,6 @@ voltage_usb_c="$(register_read 0x07)"
 voltage_usb_micro="$(register_read 0x09)"
 percent_battery="$(register_read 0x13)"
 
-# protection voltage and power back on when power returns - written only when different
-
-if [ "$(register_read 0x11)" != "${voltage_protection}" ]
-then
-	register_write 0x11 "${voltage_protection}"
-fi
-
-if [ "$(( $(i2cget -y "${bus_i2c}" "${address_ups}" 0x19) ))" -ne 1 ]
-then
-	i2cset -y "${bus_i2c}" "${address_ups}" 0x19 1
-fi
-
 # power state - charging when either port carries a charger
 
 state_power="battery"
@@ -622,6 +619,23 @@ fi
 if [ "${1}" = "status" ]
 then
 	echo "power ${state_power} - battery ${percent_battery} % // ${voltage_battery} mV - usb-c ${voltage_usb_c} mV - micro-usb ${voltage_usb_micro} mV"
+fi
+
+if [ "${state_root}" != "true" ]
+then
+	exit 0
+fi
+
+# protection voltage and power back on when power returns - written only when different
+
+if [ "$(register_read 0x11)" != "${voltage_protection}" ]
+then
+	register_write 0x11 "${voltage_protection}"
+fi
+
+if [ "$(( $(i2cget -y "${bus_i2c}" "${address_ups}" 0x19) ))" -ne 1 ]
+then
+	i2cset -y "${bus_i2c}" "${address_ups}" 0x19 1
 fi
 
 # power state changes logged
