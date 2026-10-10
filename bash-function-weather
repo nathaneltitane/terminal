@@ -89,7 +89,7 @@ weather () {
 
 	frobulator.num aqua "🌢" "Humidity" "[ ${percent_humidity} % ]"
 
-	frobulator.num yellow "🌣" "Sun" "[ ${time_sunrise} // ${time_sunset} // uv ${index_uv} ]"
+	frobulator.num yellow "🌣" "Sunlight" "[ ${time_sunrise} - ${time_sunset} // uvi ${index_uv} ]"
 
 	# space weather - noaa planetary k index - geomagnetic activity - 0 to 9
 
