@@ -68,7 +68,7 @@ weather () {
 
 	# current conditions - symbol by weather code - colour by temperature
 
-	frobulator.inf "Weather" "[ ${name_area}, ${name_region} ]"
+	frobulator.inf "Location" "[ ${name_area}, ${name_region} ]"
 
 	frobulator.num "$(weather_color "${temperature_current}")" "$(weather_symbol "${code_condition}")" "Condition" "[ ${condition_current} ]"
 
