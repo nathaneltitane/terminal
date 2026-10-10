@@ -79,20 +79,30 @@ do
 			shift
 		;;
 
+		-u|--power-supply)
+			option_power_supply="${2}"
+
+			shift
+		;;
+
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -d [Device] | -h"
+			echo -e "Usage: ./${script} -d [Device] [-u Power supply] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-d, --device    Specify target block [d]evice to write the image to."
+			echo -e "-d, --device          Specify target block [d]evice to write the image to."
 			echo
-			echo -e "                [ /dev/sdX ]"
-			echo -e "                [ /dev/mmcblkX ]"
+			echo -e "                      [ /dev/sdX ]"
+			echo -e "                      [ /dev/mmcblkX ]"
 			echo
-			echo -e "-h, --help      Show [h]elp and usage information."
+			echo -e "-u, --power-supply    Add [u]ninterruptible power supply support."
 			echo
-			echo -e "'${script}'     [ Version // ${version} ]"
+			echo -e "                      ep-0136    GeeekPi UPS Plus - safe shutdown on low battery."
+			echo
+			echo -e "-h, --help            Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'           [ Version // ${version} ]"
 			echo
 
 			exit
@@ -107,7 +117,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -d [Device] | -h"
+			echo -e "Usage: ./${script} -d [Device] [-u Power supply] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -141,6 +151,21 @@ fi
 if [ ! -b "${device}" ]
 then
 	frobulator.err "Not a block device" "[ '${device}' ]"
+
+	exit 1
+fi
+
+# power supply - supported models only
+
+if [[ "${option_power_supply}" = -* ]]
+then
+	frobulator.err "Missing argument for '--power-supply'."
+
+	exit 1
+
+elif [ -n "${option_power_supply}" ] && [ "${option_power_supply}" != "ep-0136" ]
+then
+	frobulator.err "Unknown power supply" "[ ${option_power_supply} ]"
 
 	exit 1
 fi
@@ -474,6 +499,195 @@ network:
 FILE
 
 frobulator.complete
+
+# power supply - geeekpi ups plus ep-0136 - battery monitor installed on first boot
+
+if [ "${option_power_supply}" = "ep-0136" ]
+then
+	frobulator.inf "Adding power supply support" "[ ep-0136 // ups plus ]"
+
+	# i2c - the ups controller sits on bus 1 address 0x17
+
+	if grep -q '^#dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt
+	then
+		sed -i 's/^#dtparam=i2c_arm=on/dtparam=i2c_arm=on/' "${directory_mount_boot}"/config.txt
+
+	elif ! grep -q '^dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt
+	then
+		echo "dtparam=i2c_arm=on" >> "${directory_mount_boot}"/config.txt
+	fi
+
+	# real time clock on the board - ds1307 - address 0x68
+
+	if ! grep -q '^dtoverlay=i2c-rtc,ds1307' "${directory_mount_boot}"/config.txt
+	then
+		echo "dtoverlay=i2c-rtc,ds1307" >> "${directory_mount_boot}"/config.txt
+	fi
+
+	frobulator.complete
+
+	frobulator.directory "${directory_mount_boot}" power-supply
+
+	# monitor - runs every minute - powers off cleanly before the ups cuts a low battery
+
+	cat << 'MONITOR' > "${directory_mount_boot}"/power-supply/ups-plus-monitor
+#!/bin/bash
+
+# geeekpi ups plus - ep-0136 - controller on i2c bus 1 address 0x17
+# usage: ups-plus-monitor [status]
+
+bus_i2c=1
+address_ups=0x17
+
+# battery protection - the ups cuts power below it - shutdown margin above it - millivolts
+
+voltage_protection=3700
+voltage_margin=200
+
+# charger present above this port voltage - millivolts
+
+voltage_charger=4000
+
+# countdown before the ups cuts power after a shutdown - seconds
+
+seconds_countdown=240
+
+file_state=/run/ups-plus-monitor.state
+
+# value of two registers - low byte first
+
+register_read () {
+
+	local value_low
+	local value_high
+
+	value_low="$(i2cget -y "${bus_i2c}" "${address_ups}" "${1}" 2> /dev/null)" || return 1
+	value_high="$(i2cget -y "${bus_i2c}" "${address_ups}" "$(( ${1} + 1 ))" 2> /dev/null)" || return 1
+
+	echo "$(( value_high << 8 | value_low ))"
+}
+
+register_write () {
+
+	i2cset -y "${bus_i2c}" "${address_ups}" "${1}" "$(( ${2} & 0xFF ))"
+	i2cset -y "${bus_i2c}" "${address_ups}" "$(( ${1} + 1 ))" "$(( ${2} >> 8 & 0xFF ))"
+}
+
+voltage_battery="$(register_read 0x05)"
+
+# controller unreachable - logged once - not every minute
+
+if [ -z "${voltage_battery}" ]
+then
+	if [ "$(cat "${file_state}" 2> /dev/null)" != "unreachable" ]
+	then
+		echo "unreachable" > "${file_state}"
+
+		logger -t ups-plus "ups not reachable - i2c bus ${bus_i2c} address ${address_ups}"
+	fi
+
+	if [ "${1}" = "status" ]
+	then
+		echo "ups not reachable - i2c bus ${bus_i2c} address ${address_ups}"
+	fi
+
+	exit 1
+fi
+
+voltage_usb_c="$(register_read 0x07)"
+voltage_usb_micro="$(register_read 0x09)"
+percent_battery="$(register_read 0x13)"
+
+# protection voltage and power back on when power returns - written only when different
+
+if [ "$(register_read 0x11)" != "${voltage_protection}" ]
+then
+	register_write 0x11 "${voltage_protection}"
+fi
+
+if [ "$(( $(i2cget -y "${bus_i2c}" "${address_ups}" 0x19) ))" -ne 1 ]
+then
+	i2cset -y "${bus_i2c}" "${address_ups}" 0x19 1
+fi
+
+# power state - charging when either port carries a charger
+
+state_power="battery"
+
+if [ "${voltage_usb_c}" -gt "${voltage_charger}" ] || [ "${voltage_usb_micro}" -gt "${voltage_charger}" ]
+then
+	state_power="charging"
+fi
+
+if [ "${1}" = "status" ]
+then
+	echo "power ${state_power} - battery ${percent_battery} % // ${voltage_battery} mV - usb-c ${voltage_usb_c} mV - micro-usb ${voltage_usb_micro} mV"
+fi
+
+# power state changes logged
+
+if [ "$(cat "${file_state}" 2> /dev/null)" != "${state_power}" ]
+then
+	echo "${state_power}" > "${file_state}"
+
+	logger -t ups-plus "power ${state_power} - battery ${percent_battery} % // ${voltage_battery} mV"
+fi
+
+# low battery on battery power - ups power cut scheduled - system powered off before it
+
+if [ "${state_power}" = "battery" ] && [ "${voltage_battery}" -lt "$(( voltage_protection + voltage_margin ))" ]
+then
+	logger -t ups-plus "battery low - ${voltage_battery} mV - powering off - ups power cut in ${seconds_countdown} seconds"
+
+	i2cset -y "${bus_i2c}" "${address_ups}" 0x18 "${seconds_countdown}"
+
+	systemctl poweroff
+fi
+MONITOR
+
+	frobulator.complete
+
+	cat << 'SERVICE' > "${directory_mount_boot}"/power-supply/ups-plus-monitor.service
+[Unit]
+Description=UPS Plus battery monitor - safe shutdown on low battery
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ups-plus-monitor
+SERVICE
+
+	frobulator.complete
+
+	cat << 'TIMER' > "${directory_mount_boot}"/power-supply/ups-plus-monitor.timer
+[Unit]
+Description=UPS Plus battery monitor - every minute
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+
+[Install]
+WantedBy=timers.target
+TIMER
+
+	frobulator.complete
+
+	# first boot - i2c tools and module - monitor installed and enabled
+
+	cat <<- FILE >> "${directory_mount_boot}"/user-data
+packages:
+  - i2c-tools
+runcmd:
+  - [ sh, -c, "echo i2c-dev > /etc/modules-load.d/i2c-dev.conf && modprobe i2c-dev" ]
+  - [ install, -m, "0755", /boot/firmware/power-supply/ups-plus-monitor, /usr/local/bin/ups-plus-monitor ]
+  - [ install, -m, "0644", /boot/firmware/power-supply/ups-plus-monitor.service, /etc/systemd/system/ups-plus-monitor.service ]
+  - [ install, -m, "0644", /boot/firmware/power-supply/ups-plus-monitor.timer, /etc/systemd/system/ups-plus-monitor.timer ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, --now, ups-plus-monitor.timer ]
+FILE
+
+	frobulator.complete
+fi
 
 # unmount
 
