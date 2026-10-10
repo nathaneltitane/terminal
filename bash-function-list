@@ -30,7 +30,7 @@ list () {
 		--group-directories-first	\
 									"${directory}"
 
-	if [ "$(find "${directory}" -type d | wc -l) -eq 1 ]
+	if [ "$(find "${directory}" -type d | wc -l)" -eq 1 ]
 	then
 		label_directory="directory"
 	fi
