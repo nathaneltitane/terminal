@@ -61,7 +61,7 @@ adb_download () {
 		return 1
 	fi
 
-	frobulator.terminate "adb"
+	frobulator.terminate adb
 
 	frobulator.directory "${directory_android}"
 
