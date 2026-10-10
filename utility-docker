@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-10-09"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -73,35 +73,40 @@ while (( $# ))
 do
 	case "${1}"
 	in
-		-n|--name)
-			name_image_docker="${2}"
+		-s|--setup)
+			option_setup="${2}"
 
 			shift
 		;;
 
-		-a|--address)
-			address_docker="${2}"
+		-n|--name)
+			option_name="${2}"
 
 			shift
 		;;
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -n [Name] -a [Address] | -h"
+			echo -e "Usage: ./${script} -s [Setup] [-n Name] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-n, --name       Specify [n]ame of the deployed container."
+			echo -e "-s, --setup    Specify container [s]etup to deploy."
 			echo
-			echo -e "                 [ pihole ] [ Default ]"
+			echo -e "               auto-update       Daily image updates - containers recreated from their run files."
+			echo -e "               home-assistant    Home automation - web on port 8123."
+			echo -e "               nextcloud         File hosting and sharing - web on port 8080."
+			echo -e "               pi-hole           Network wide ad blocking - dns on port 53 - web on port 80."
+			echo -e "               portainer         Container management - web on port 9443."
+			echo -e "               tailscale         Private network access - login link shown after deploying."
 			echo
-			echo -e "-a, --address    Specify LAN [a]ddress to bind for FTL DNS resolution."
+			echo -e "-n, --name     Specify [n]ame of the deployed container."
 			echo
-			echo -e "                 [ XXX.XXX.XXX.XXX ]"
+			echo -e "               [ setup name ] [ Default ]"
 			echo
-			echo -e "-h, --help       Show [h]elp and usage information."
+			echo -e "-h, --help     Show [h]elp and usage information."
 			echo
-			echo -e "'${script}'      [ Version // ${version} ]"
+			echo -e "'${script}'    [ Version // ${version} ]"
 			echo
 
 			exit
@@ -116,7 +121,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -n [Name] -a [Address] | -h"
+			echo -e "Usage: ./${script} -s [Setup] [-n Name] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -134,16 +139,392 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-name_image_docker="${name_image_docker:-pihole}"
-address_docker="${address_docker:-192.168.86.13}"
-directory_base_docker="/var"
-name_directory_docker="docker"
-directory_image_docker="${directory_base_docker}"/"${name_directory_docker}"/"${name_image_docker}"
-source_image_docker="${name_image_docker}"/"${name_image_docker}:latest"
+# setups - one setup_<name> function each - dashes become underscores
+
+list_setups=(
+	auto-update
+	home-assistant
+	nextcloud
+	pi-hole
+	portainer
+	tailscale
+)
+
+# containers - one data directory each
+
+directory_docker=/var/docker
+
+# timezone of this computer - handed to the containers
+
+zone_time="$(timedatectl show --property Timezone --value 2> "${sink}")"
+
+# lan address of this computer - web interface links
+
+address_lan="$(hostname -I | cut -d ' ' -f 1)"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
+if [ -z "${option_setup}" ]
+then
+	frobulator.err "Missing setup."
+	frobulator.nul "Specify '--setup' - one of: ${list_setups[*]}"
+
+	exit 1
+
+elif [[ "${option_setup}" = -* ]]
+then
+	frobulator.err "Missing argument for '--setup'."
+
+	exit 1
+
+elif [[ ! " ${list_setups[*]} " == *" ${option_setup} "* ]]
+then
+	frobulator.err "Unknown setup" "[ ${option_setup} ]"
+
+	exit 1
+
+elif [[ "${option_name}" = -* ]]
+then
+	frobulator.err "Missing argument for '--name'."
+
+	exit 1
+fi
+
+name_container="${option_name:-${option_setup}}"
+
+directory_container="${directory_docker}/${name_container}"
+
+zone_time="${zone_time:-UTC}"
+
 # functions ────────────────────────────────────────────────────────────────────
+
+container_prepare () {
+
+	# fresh data directory - previous container and its data removed
+
+	local status=0
+
+	if [ -d "${directory_container}" ]
+	then
+		frobulator.log "docker stop ${name_container}"
+
+		frobulator.track
+
+		frobulator.log "docker rm -f ${name_container}"
+
+		frobulator.track
+
+		frobulator.delete "${directory_docker}" "${name_container}"
+
+		frobulator.track
+	fi
+
+	frobulator.directory "${directory_docker}" "${name_container}"
+
+	frobulator.track
+
+	return "${status}"
+}
+
+container_log_line () {
+
+	# first log line holding a text - waited for up to 30 seconds
+
+	local text_search="${1}"
+	local seconds=0
+	local timeout=30
+	local line_log
+
+	while [ -z "${line_log}" ] && [ "${seconds}" -lt "${timeout}" ]
+	do
+		line_log="$(docker logs "${name_container}" 2>&1 | grep -m 1 -F "${text_search}")"
+
+		if [ -z "${line_log}" ]
+		then
+			sleep 1
+
+			seconds=$(( seconds + 1 ))
+		fi
+	done
+
+	echo "${line_log}"
+}
+
+container_run () {
+
+	# run file kept beside the data - reused by the automatic updates
+
+	local status=0
+	local file_run="${directory_container}/run"
+	local argument_run
+
+	{
+		printf '#!/bin/bash\n\n'
+		printf 'docker run'
+
+		for argument_run in "${@}"
+		do
+			printf ' \\\n\t%q' "${argument_run}"
+		done
+
+		printf '\n'
+	} > "${file_run}"
+
+	frobulator.track || return "${status}"
+
+	chmod 700 "${file_run}"
+
+	bash "${file_run}" > "${sink}" 2>&1
+
+	frobulator.track
+
+	return "${status}"
+}
+
+setup_auto_update () {
+
+	# daily image updates - containers with a newer image recreated from their run file - data kept
+
+	local status=0
+
+	cat << 'UPDATE' > /usr/local/bin/docker-auto-update
+#!/bin/bash
+
+# docker auto update - images pulled - containers with a newer image recreated from their run file
+
+directory_docker=/var/docker
+
+for file_run in "${directory_docker}"/*/run
+do
+	if [ ! -f "${file_run}" ]
+	then
+		continue
+	fi
+
+	name_container="$(basename "$(dirname "${file_run}")")"
+	name_image="$(docker inspect --format '{{.Config.Image}}' "${name_container}" 2> /dev/null)"
+
+	if [ -z "${name_image}" ]
+	then
+		continue
+	fi
+
+	docker pull --quiet "${name_image}" > /dev/null 2>&1
+
+	id_image_running="$(docker inspect --format '{{.Image}}' "${name_container}")"
+	id_image_latest="$(docker image inspect --format '{{.Id}}' "${name_image}")"
+
+	if [ "${id_image_running}" != "${id_image_latest}" ]
+	then
+		logger -t docker-auto-update "updating ${name_container} - ${name_image}"
+
+		docker rm --force "${name_container}" > /dev/null
+
+		bash "${file_run}" > /dev/null
+	fi
+done
+
+# images no longer used by any container
+
+docker image prune --force > /dev/null
+UPDATE
+
+	frobulator.track || return "${status}"
+
+	chmod 755 /usr/local/bin/docker-auto-update
+
+	cat << 'SERVICE' > /etc/systemd/system/docker-auto-update.service
+[Unit]
+Description=Docker auto update - newer images pulled - containers recreated
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/docker-auto-update
+SERVICE
+
+	frobulator.track
+
+	cat << 'TIMER' > /etc/systemd/system/docker-auto-update.timer
+[Unit]
+Description=Docker auto update - daily
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+RandomizedDelaySec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+TIMER
+
+	frobulator.track
+
+	systemctl daemon-reload
+
+	systemctl enable --now docker-auto-update.timer > "${sink}" 2>&1
+
+	frobulator.track
+
+	frobulator.inf "Daily updates" "[ docker-auto-update.timer // 04:00 ]"
+
+	return "${status}"
+}
+
+setup_home_assistant () {
+
+	# home automation - host network for device discovery - dbus read only for bluetooth
+
+	local status=0
+
+	container_run										\
+		--detach										\
+		--name "${name_container}"						\
+		--restart=unless-stopped						\
+		--network=host									\
+		-v "${directory_container}/config:/config"		\
+		-v /run/dbus:/run/dbus:ro						\
+		-e TZ="${zone_time}"							\
+														ghcr.io/home-assistant/home-assistant:stable
+
+	frobulator.track || return "${status}"
+
+	frobulator.inf "Web interface" "[ http://${address_lan}:8123 ]"
+
+	return "${status}"
+}
+
+setup_nextcloud () {
+
+	# file hosting - port 8080 - port 80 kept for pi-hole - admin created in the web interface
+
+	local status=0
+
+	container_run											\
+		--detach											\
+		--name "${name_container}"							\
+		--restart=unless-stopped							\
+		-p 8080:80/tcp										\
+		-v "${directory_container}/html:/var/www/html"		\
+		-e TZ="${zone_time}"								\
+															nextcloud:latest
+
+	frobulator.track || return "${status}"
+
+	frobulator.inf "Web interface" "[ http://${address_lan}:8080 ]"
+
+	return "${status}"
+}
+
+setup_pi_hole () {
+
+	# network wide ad blocking - random admin password read from the logs
+
+	local status=0
+	local line_password
+	local password_admin
+
+	container_run												\
+		--detach												\
+		--name "${name_container}"								\
+		--hostname "${name_container}"							\
+		--dns=127.0.0.1											\
+		--dns=1.1.1.1											\
+		--restart=unless-stopped								\
+		-p 53:53/tcp											\
+		-p 53:53/udp											\
+		-p 80:80/tcp											\
+		-v "${directory_container}/etc-pihole:/etc/pihole"		\
+		-e TZ="${zone_time}"									\
+		-e FTLCONF_dns_listeningMode=ALL						\
+																pihole/pihole:latest
+
+	frobulator.track || return "${status}"
+
+	line_password="$(container_log_line "password:")"
+
+	password_admin="${line_password##*: }"
+
+	if [ -n "${line_password}" ] && [ -n "${password_admin}" ]
+	then
+		frobulator.write "append" "${password_admin}" "${directory_container}" password
+
+		frobulator.track
+
+		frobulator.inf "Password" "[ ${password_admin} ]"
+	else
+		frobulator.wrn "Password not found in the logs" "[ docker logs ${name_container} ]"
+	fi
+
+	frobulator.inf "Web interface" "[ http://${address_lan}/admin ]"
+
+	return "${status}"
+}
+
+setup_portainer () {
+
+	# container management - docker socket - admin created in the web interface within minutes of the first start
+
+	local status=0
+
+	container_run										\
+		--detach										\
+		--name "${name_container}"						\
+		--restart=unless-stopped						\
+		-p 8000:8000/tcp								\
+		-p 9443:9443/tcp								\
+		-v /var/run/docker.sock:/var/run/docker.sock	\
+		-v "${directory_container}/data:/data"			\
+														portainer/portainer-ce:latest
+
+	frobulator.track || return "${status}"
+
+	frobulator.inf "Web interface" "[ https://${address_lan}:9443 ]"
+	frobulator.nul "Create the admin account within a few minutes of the first start."
+
+	return "${status}"
+}
+
+setup_tailscale () {
+
+	# private network access - host network - tun device - login link read from the logs
+
+	local status=0
+	local line_login
+	local url_login
+
+	container_run												\
+		--detach												\
+		--name "${name_container}"								\
+		--hostname "$(hostname)"								\
+		--restart=unless-stopped								\
+		--network=host											\
+		--cap-add=NET_ADMIN										\
+		--cap-add=NET_RAW										\
+		--device /dev/net/tun:/dev/net/tun						\
+		-v "${directory_container}/state:/var/lib/tailscale"	\
+		-e TS_STATE_DIR=/var/lib/tailscale						\
+		-e TS_USERSPACE=false									\
+																tailscale/tailscale:latest
+
+	frobulator.track || return "${status}"
+
+	line_login="$(container_log_line "https://login.tailscale.com/")"
+
+	url_login="https://login.tailscale.com/${line_login##*https://login.tailscale.com/}"
+	url_login="${url_login%% *}"
+
+	if [ -n "${line_login}" ]
+	then
+		frobulator.inf "Login" "[ ${url_login} ]"
+		frobulator.nul "Open the link to add this computer to your tailnet."
+	else
+		frobulator.wrn "Login link not found in the logs" "[ docker logs ${name_container} ]"
+	fi
+
+	return "${status}"
+}
 
 # update ───────────────────────────────────────────────────────────────────────
 
@@ -169,81 +550,29 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [[ ! -d "${directory_image_docker}" ]]
+# container setups - data directory prepared - auto-update installs a timer only
+
+if [ "${option_setup}" != "auto-update" ]
 then
-	frobulator.directory "${directory_base_docker}/${name_directory_docker}" "${name_image_docker}"
+	frobulator.inf "Preparing" "[ ${name_container} // ${directory_container} ]"
 
-	frobulator.complete
-else
-	frobulator.log "docker stop ${name_image_docker}"
-
-	frobulator.complete
-
-	frobulator.log "docker rm -f ${name_image_docker}"
-
-	frobulator.complete
-
-	frobulator.delete "${directory_base_docker}/${name_directory_docker}" "${name_image_docker}"
-
-	frobulator.complete
-
-	frobulator.directory "${directory_base_docker}/${name_directory_docker}" "${name_image_docker}"
+	container_prepare
 
 	frobulator.complete
 fi
 
-frobulator.inf "Deploying" "[ ${name_image_docker} ]"
+frobulator.inf "Deploying" "[ ${option_setup} // ${name_container} ]"
 
-frobulator.fwd "Deploying..."
-
-docker run																					\
-	--detach																				\
-	--name "${name_image_docker}"															\
-	--dns=127.0.0.1																			\
-	--dns=1.1.1.1																			\
-	--restart=unless-stopped																\
-	--hostname "${name_image_docker}"														\
-	-p 53:53/tcp																			\
-	-p 53:53/udp																			\
-	-p 80:80																				\
-	-v "${directory_image_docker}/etc-${name_image_docker}:/etc/${name_image_docker}"		\
-	-v "${directory_image_docker}/etc-dnsmasq.d:/etc/dnsmasq.d"								\
-	-e tz="america/toronto"																	\
-	-e virtual_host="${name_image_docker}"													\
-	-e proxy_location="${name_image_docker}"												\
-	-e ftlconf_local_ipv4="${address_docker}"											\
-																							"${source_image_docker}" > "${sink}" 2>&1
+"setup_${option_setup//-/_}"
 
 frobulator.complete
 
-id_image_docker=$(docker container ls --all --quiet --filter "name=${name_image_docker}")
+if [ "${option_setup}" != "auto-update" ]
+then
+	id_container="$(docker container ls --all --quiet --filter "name=${name_container}")"
 
-frobulator.complete
-
-seconds="0"
-timeout="30"
-
-while [ -z "${password_docker}" ] && [ "${seconds}" -lt "${timeout}" ]
-do
-	password_docker=$(docker logs "${name_image_docker}" 2> "${sink}" | grep 'password:' | cut -d ':' -f 2 | sed 's/^ //')
-
-	if [ -z "${password_docker}" ]
-	then
-		sleep 1
-
-		seconds=$(( seconds + 1 ))
-	fi
-done
-
-frobulator.complete
-
-frobulator.write "append" "${password_docker}" "${directory_image_docker}" password
-
-frobulator.complete
-
-frobulator.inf "Image ID" "[ ${id_image_docker} ]"
-
-frobulator.inf "Password" "[ ${password_docker} ]"
+	frobulator.inf "Container ID" "[ ${id_container} ]"
+fi
 
 frobulator.result "${script}"
 
