@@ -88,6 +88,10 @@ then
 
 	if [ "${option}" = "install" ]
 	then
+		# blank line - output separated from the shell prompt
+
+		echo
+
 		file_script="$(realpath "${self}")"
 
 		directory_script="$(dirname "${file_script}")"
