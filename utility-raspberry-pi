@@ -488,6 +488,17 @@ FILE
 
 frobulator.complete
 
+# standard home directories - desktop documents downloads music pictures public templates videos
+# lite image has no desktop session to create them
+
+list_packages=(
+	"xdg-user-dirs"
+)
+
+list_commands=(
+	"[ su, -, \"${name_user}\", -c, xdg-user-dirs-update ]"
+)
+
 # ssh - also enabled by the boot partition marker file - independent of cloud-init
 
 touch "${directory_mount_boot}"/ssh
@@ -755,20 +766,39 @@ TIMER
 
 	# first boot - i2c tools and module - monitor installed and enabled
 
-	cat <<- FILE >> "${directory_mount_boot}"/user-data
-packages:
-  - i2c-tools
-runcmd:
-  - [ sh, -c, "echo i2c-dev > /etc/modules-load.d/i2c-dev.conf && modprobe i2c-dev" ]
-  - [ install, -m, "0755", /boot/firmware/power-supply/ups-plus-monitor, /usr/local/bin/ups-plus-monitor ]
-  - [ install, -m, "0644", /boot/firmware/power-supply/ups-plus-monitor.service, /etc/systemd/system/ups-plus-monitor.service ]
-  - [ install, -m, "0644", /boot/firmware/power-supply/ups-plus-monitor.timer, /etc/systemd/system/ups-plus-monitor.timer ]
-  - [ systemctl, daemon-reload ]
-  - [ systemctl, enable, --now, ups-plus-monitor.timer ]
-FILE
+	list_packages+=(
+		"i2c-tools"
+	)
 
-	frobulator.complete
+	list_commands+=(
+		'[ sh, -c, "echo i2c-dev > /etc/modules-load.d/i2c-dev.conf && modprobe i2c-dev" ]'
+		'[ install, -m, "0755", /boot/firmware/power-supply/ups-plus-monitor, /usr/local/bin/ups-plus-monitor ]'
+		'[ install, -m, "0644", /boot/firmware/power-supply/ups-plus-monitor.service, /etc/systemd/system/ups-plus-monitor.service ]'
+		'[ install, -m, "0644", /boot/firmware/power-supply/ups-plus-monitor.timer, /etc/systemd/system/ups-plus-monitor.timer ]'
+		'[ systemctl, daemon-reload ]'
+		'[ systemctl, enable, --now, ups-plus-monitor.timer ]'
+	)
 fi
+
+# first boot packages and commands - written once - yaml keys must not repeat
+
+{
+	echo "packages:"
+
+	for name_package in "${list_packages[@]}"
+	do
+		echo "  - ${name_package}"
+	done
+
+	echo "runcmd:"
+
+	for command_boot in "${list_commands[@]}"
+	do
+		echo "  - ${command_boot}"
+	done
+} >> "${directory_mount_boot}"/user-data
+
+frobulator.complete
 
 # unmount
 
