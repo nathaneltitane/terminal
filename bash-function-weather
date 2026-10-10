@@ -127,7 +127,7 @@ weather () {
 	do
 		label_day="$(date -d "${date_forecast}" '+%a %d %b')"
 
-		frobulator.num grey "$(weather_symbol "${code_day}")" "${label_day}" "[ ${temperature_low} to ${temperature_high} °C // rain ${percent_rain} % // ${condition_day} ]"
+		frobulator.num grey "$(weather_symbol "${code_day}")" "${label_day}" "[ ${temperature_low} to ${temperature_high} °C - rain ${percent_rain} % // ${condition_day} ]"
 	done < <(
 		jq -r '.weather[] | [.date, .mintempC, .maxtempC, .hourly[4].weatherCode, ([.hourly[].chanceofrain | tonumber] | max), (.hourly[4].weatherDesc[0].value | rtrimstr(" "))] | map(tostring) | join("|")' <<< "${text_weather}"
 	)
