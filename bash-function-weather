@@ -117,7 +117,7 @@ weather () {
 		if [ "${index_kp}" -le 3 ]
 		then
 			label_kp="quiet"
-			color_kp="green"
+			color_kp="fern"
 
 		elif [ "${index_kp}" -eq 4 ]
 		then
