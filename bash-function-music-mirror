@@ -26,6 +26,8 @@ music-mirror () {
 	local name_device
 	local name_priority
 	local path_dbus
+	local path_kdeconnect
+	local path_qdbus
 
 	local -a list_devices=()
 	local -a list_devices_ordered=()
@@ -41,7 +43,9 @@ music-mirror () {
 		return 1
 	fi
 
-	if [ -z "$(command -v kdeconnect-cli)" ]
+	path_kdeconnect="$(command -v kdeconnect-cli)"
+
+	if [ -z "${path_kdeconnect}" ]
 	then
 		frobulator.err "KDE Connect not available" "[ kdeconnect-cli ]"
 
@@ -59,7 +63,7 @@ music-mirror () {
 
 	# reachable devices - 'id name' per line
 
-	mapfile -t list_devices < <(kdeconnect-cli --list-available --id-name-only 2> "${sink}")
+	mapfile -t list_devices < <("${path_kdeconnect}" --list-available --id-name-only 2> "${sink}")
 
 	if [ "${#list_devices[@]}" -eq 0 ]
 	then
@@ -91,6 +95,8 @@ music-mirror () {
 		fi
 	done
 
+	path_qdbus="$(command -v qdbus)"
+
 	for line_device in "${list_devices_ordered[@]}"
 	do
 		id_device="${line_device%% *}"
@@ -99,20 +105,20 @@ music-mirror () {
 		directory_music_device=""
 		list_paths_relative=()
 
-		frobulator.sep
+		frobulator.separate
 		frobulator.fwd "Device" "[ ${name_device} ]"
 
 		# storage mounted through kde connect - mounted here when not yet
 
 		directory_mount="/run/user/$(id -u)/${id_device}"
 
-		if [ -n "$(command -v qdbus)" ]
+		if [ -n "${path_qdbus}" ]
 		then
 			path_dbus="/modules/kdeconnect/devices/${id_device}/sftp"
 
-			qdbus org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.mountAndWait > "${sink}" 2>&1
+			"${path_qdbus}" org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.mountAndWait > "${sink}" 2>&1
 
-			directory_mount="$(qdbus org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.mountPoint 2> "${sink}")"
+			directory_mount="$("${path_qdbus}" org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.mountPoint 2> "${sink}")"
 			directory_mount="${directory_mount:-/run/user/$(id -u)/${id_device}}"
 		fi
 

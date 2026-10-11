@@ -562,18 +562,23 @@ then
 
 	# i2c - the ups controller sits on bus 1 address 0x17
 
-	if [ "$(grep -c '^#dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)" -gt 0 ]
+	count_i2c_commented="$(grep -c '^#dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)"
+	count_i2c_enabled="$(grep -c '^dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)"
+
+	if [ "${count_i2c_commented}" -gt 0 ]
 	then
 		sed -i 's/^#dtparam=i2c_arm=on/dtparam=i2c_arm=on/' "${directory_mount_boot}"/config.txt
 
-	elif [ "$(grep -c '^dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)" -eq 0 ]
+	elif [ "${count_i2c_enabled}" -eq 0 ]
 	then
 		echo "dtparam=i2c_arm=on" >> "${directory_mount_boot}"/config.txt
 	fi
 
 	# real time clock on the board - ds1307 - address 0x68
 
-	if [ "$(grep -c '^dtoverlay=i2c-rtc,ds1307' "${directory_mount_boot}"/config.txt)" -eq 0 ]
+	count_rtc="$(grep -c '^dtoverlay=i2c-rtc,ds1307' "${directory_mount_boot}"/config.txt)"
+
+	if [ "${count_rtc}" -eq 0 ]
 	then
 		echo "dtoverlay=i2c-rtc,ds1307" >> "${directory_mount_boot}"/config.txt
 	fi
@@ -663,11 +668,15 @@ register_write () {
 
 voltage_battery="$(register_read 0x05)"
 
+# state of the previous run - empty on the first
+
+state_previous="$(cat "${file_state}" 2> /dev/null)"
+
 # controller unreachable - logged once - not every run
 
 if [ -z "${voltage_battery}" ]
 then
-	if [ "${state_root}" = "true" ] && [ "$(cat "${file_state}" 2> /dev/null)" != "unreachable" ]
+	if [ "${state_root}" = "true" ] && [ "${state_previous}" != "unreachable" ]
 	then
 		echo "unreachable" > "${file_state}"
 
@@ -707,19 +716,23 @@ fi
 
 # protection voltage and power back on when power returns - written only when different
 
-if [ "$(register_read 0x11)" != "${voltage_protection}" ]
+voltage_protection_stored="$(register_read 0x11)"
+state_power_restore="$(i2cget -y "${bus_i2c}" "${address_ups}" 0x19)"
+state_power_restore="$(( state_power_restore ))"
+
+if [ "${voltage_protection_stored}" != "${voltage_protection}" ]
 then
 	register_write 0x11 "${voltage_protection}"
 fi
 
-if [ "$(( $(i2cget -y "${bus_i2c}" "${address_ups}" 0x19) ))" -ne 1 ]
+if [ "${state_power_restore}" -ne 1 ]
 then
 	i2cset -y "${bus_i2c}" "${address_ups}" 0x19 1
 fi
 
 # power state changes logged
 
-if [ "$(cat "${file_state}" 2> /dev/null)" != "${state_power}" ]
+if [ "${state_previous}" != "${state_power}" ]
 then
 	echo "${state_power}" > "${file_state}"
 
@@ -728,7 +741,9 @@ fi
 
 # low battery on battery power - ups power cut scheduled - system powered off before it
 
-if [ "${state_power}" = "battery" ] && [ "${voltage_battery}" -lt "$(( voltage_protection + voltage_margin ))" ]
+voltage_shutdown=$(( voltage_protection + voltage_margin ))
+
+if [ "${state_power}" = "battery" ] && [ "${voltage_battery}" -lt "${voltage_shutdown}" ]
 then
 	logger -t ups-plus "battery low - ${voltage_battery} mV - powering off - ups power cut in ${seconds_countdown} seconds"
 
