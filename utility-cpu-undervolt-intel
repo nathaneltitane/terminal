@@ -1,0 +1,791 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-11"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+# voltage offsets per plane - name=millivolts - applied in the order given
+
+declare -A offsets_plane=()
+
+list_planes_order=()
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-r|--read)
+			option_read="true"
+		;;
+
+		-c|--core|-g|--gpu|-k|--cache|-u|--uncore|-a|--analogio)
+			case "${1}"
+			in
+				-c|--core)		name_plane="core" ;;
+				-g|--gpu)		name_plane="gpu" ;;
+				-k|--cache)		name_plane="cache" ;;
+				-u|--uncore)	name_plane="uncore" ;;
+				-a|--analogio)	name_plane="analogio" ;;
+			esac
+
+			offsets_plane["${name_plane}"]="${2}"
+			list_planes_order+=("${name_plane}")
+
+			shift
+		;;
+
+		-f|--force)
+			option_force="true"
+		;;
+
+		-t|--temperature)
+			temperature_target="${2}"
+
+			shift
+		;;
+
+		-l|--power-long)
+			power_long="${2}"
+			seconds_long="${3}"
+
+			shift 2
+		;;
+
+		-s|--power-short)
+			power_short="${2}"
+			seconds_short="${3}"
+
+			shift 2
+		;;
+
+		-L|--lock-power)
+			option_lock_power="true"
+		;;
+
+		-b|--turbo)
+			state_turbo="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -r | [-c mV] [-g mV] [-k mV] [-u mV] [-a mV] [-f] [-t Celsius] [-l Watts Seconds] [-s Watts Seconds] [-L] [-b on|off] | -h"
+			echo
+			echo -e "Note:                 Settings last until the next reboot. Intel core processors 6th to 10th generation."
+			echo -e "                      Voltage changes are refused while SGX is enabled in the bios."
+			echo
+			echo -e "                      1. Disable SGX in the bios."
+			echo -e "                      2. Run '${script} -r' - offsets read back as numbers: voltage interface open."
+			echo -e "                      3. Step down gradually - '-c -50 -k -50' then '-c -80 -k -80' - stress test after each step."
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-r, --read            [R]ead temperature target, voltage offsets, power limits and turbo state."
+			echo
+			echo -e "-c, --core            Voltage offset of the processor [c]ores - millivolts - negative to undervolt."
+			echo
+			echo -e "-g, --gpu             Voltage offset of the integrated [g]raphics - millivolts."
+			echo
+			echo -e "-k, --cache           Voltage offset of the [k]ache - millivolts - keep equal to the core offset."
+			echo
+			echo -e "-u, --uncore          Voltage offset of the [u]ncore - system agent - millivolts."
+			echo
+			echo -e "-a, --analogio        Voltage offset of the [a]nalog input / output - millivolts."
+			echo
+			echo -e "-f, --force           [F]orce positive voltage offsets - overvolting."
+			echo
+			echo -e "-t, --temperature     Processor [t]emperature target - degrees celsius - throttling starts there."
+			echo
+			echo -e "-l, --power-long      Sustained power [l]imit - watts and time window in seconds."
+			echo
+			echo -e "-s, --power-short     [S]hort term power limit - watts and time window in seconds."
+			echo
+			echo -e "-L, --lock-power      [L]ock the power limits until the next reboot."
+			echo
+			echo -e "-b, --turbo           Turbo [b]oost on or off."
+			echo
+			echo -e "                      [ on | off ]"
+			echo
+			echo -e "-h, --help            Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'           [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -r | [-c mV] [-g mV] [-k mV] [-u mV] [-a mV] [-f] [-t Celsius] [-l Watts Seconds] [-s Watts Seconds] [-L] [-b on|off] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+# model specific registers - intel core 6th to 10th generation
+
+address_voltage=0x150
+address_units=0x606
+address_power=0x610
+address_temperature=0x1a2
+
+file_turbo=/sys/devices/system/cpu/intel_pstate/no_turbo
+
+# voltage plane indexes in the voltage mailbox
+
+declare -A index_plane=(
+	[core]=0
+	[gpu]=1
+	[cache]=2
+	[uncore]=3
+	[analogio]=4
+)
+
+list_planes=(
+	core
+	gpu
+	cache
+	uncore
+	analogio
+)
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+# functions ────────────────────────────────────────────────────────────────────
+
+msr_read () {
+
+	# register value on the first processor - 16 hex digits
+
+	local address_register="${1}"
+	local value_register
+
+	value_register="$(rdmsr --processor 0 --zero-pad "${address_register}" 2> "${sink}")"
+
+	echo "0x${value_register}"
+}
+
+msr_write () {
+
+	# register value written on every processor
+
+	local address_register="${1}"
+	local value_register="${2}"
+	local text_value
+
+	printf -v text_value '0x%016x' "${value_register}"
+
+	wrmsr --all "${address_register}" "${text_value}" 2> "${sink}"
+}
+
+offset_encode () {
+
+	# millivolts to the 11 bit offset field - steps of 1/1.024 millivolt - bits 21 to 31
+
+	local millivolts="${1}"
+	local steps
+	local scaled=$(( millivolts * 1024 ))
+
+	if [ "${scaled}" -ge 0 ]
+	then
+		steps=$(( (scaled + 500) / 1000 ))
+	else
+		steps=$(( - ((- scaled + 500) / 1000) ))
+	fi
+
+	echo $(( ((steps & 0xFFF) << 21) & 0xFFE00000 ))
+}
+
+offset_decode () {
+
+	# offset field to millivolts - two decimals
+
+	local value_offset="${1}"
+	local steps=$(( (value_offset & 0xFFFFFFFF) >> 21 ))
+	local hundredths
+	local sign=""
+
+	if [ "${steps}" -gt 1024 ]
+	then
+		steps=$(( - (2048 - steps) ))
+	fi
+
+	hundredths=$(( steps * 100000 / 1024 ))
+
+	if [ "${hundredths}" -lt 0 ]
+	then
+		sign="-"
+		hundredths=$(( - hundredths ))
+	fi
+
+	printf '%s%d.%02d' "${sign}" $(( hundredths / 100 )) $(( hundredths % 100 ))
+}
+
+offset_read () {
+
+	# read request written to the mailbox - answer read back
+
+	local name_plane="${1}"
+	local value_request=$(( (1 << 63) | (index_plane[${name_plane}] << 40) | (1 << 36) ))
+	local value_answer
+
+	msr_write "${address_voltage}" "${value_request}"
+
+	value_answer="$(msr_read "${address_voltage}")"
+
+	offset_decode "${value_answer}"
+}
+
+offset_write () {
+
+	# write request with the offset - read back to confirm
+
+	local name_plane="${1}"
+	local millivolts="${2}"
+	local value_offset
+	local value_request
+	local millivolts_wanted
+	local millivolts_read
+
+	value_offset="$(offset_encode "${millivolts}")"
+	value_request=$(( (1 << 63) | (index_plane[${name_plane}] << 40) | (1 << 36) | (1 << 32) | value_offset ))
+
+	msr_write "${address_voltage}" "${value_request}"
+
+	millivolts_wanted="$(offset_decode "${value_offset}")"
+	millivolts_read="$(offset_read "${name_plane}")"
+
+	if [ "${millivolts_wanted}" != "${millivolts_read}" ]
+	then
+		frobulator.err "Voltage offset refused - SGX enabled or interface locked" "[ ${name_plane} // set ${millivolts_wanted} mV // read ${millivolts_read} mV ]"
+
+		return 1
+	fi
+
+	frobulator.scs "Voltage offset applied" "[ ${name_plane} // ${millivolts_read} mV ]"
+}
+
+seconds_format () {
+
+	# time window field to seconds - 2^y * (1 + z/4) / time unit - three decimals
+
+	local field_time="${1}"
+	local unit_time="${2}"
+	local exponent=$(( field_time & 0x1F ))
+	local fraction=$(( (field_time >> 5) & 0x3 ))
+	local milliseconds=$(( (1 << exponent) * (4 + fraction) * 1000 / (4 * unit_time) ))
+
+	printf '%d.%03d' $(( milliseconds / 1000 )) $(( milliseconds % 1000 ))
+}
+
+seconds_encode () {
+
+	# seconds to the closest 2^y * (1 + z/4) time window field - y up to 31 - z up to 3
+
+	local seconds="${1}"
+	local unit_time="${2}"
+	local milliseconds
+	local target
+	local exponent
+	local fraction
+	local candidate
+	local error
+	local error_best=-1
+	local field_best=0
+
+	# whole seconds or up to three decimals
+
+	if [[ "${seconds}" = *.* ]]
+	then
+		milliseconds=$(( 10#${seconds%%.*} * 1000 + 10#$(printf '%-3.3s' "${seconds#*.}" | tr ' ' '0') ))
+	else
+		milliseconds=$(( 10#${seconds} * 1000 ))
+	fi
+
+	# compared in quarters - 2^y * (4 + z)
+
+	target=$(( milliseconds * unit_time * 4 / 1000 ))
+
+	for (( exponent = 0 ; exponent <= 31 ; exponent ++ ))
+	do
+		for (( fraction = 0 ; fraction <= 3 ; fraction ++ ))
+		do
+			candidate=$(( (1 << exponent) * (4 + fraction) ))
+			error=$(( candidate - target ))
+			error=$(( error < 0 ? - error : error ))
+
+			if [ "${error_best}" -lt 0 ] || [ "${error}" -lt "${error_best}" ]
+			then
+				error_best="${error}"
+				field_best=$(( (fraction << 5) | exponent ))
+			fi
+		done
+	done
+
+	echo "${field_best}"
+}
+
+power_read () {
+
+	# power limit register - long term bits 0 to 23 - short term bits 32 to 55 - lock bit 63
+
+	local value_units
+	local value_power
+	local unit_power
+	local unit_time
+	local text_lock=""
+	local text_long_state="disabled"
+	local text_short_state="disabled"
+	local bit_long
+	local bit_short
+	local bit_lock
+
+	value_units="$(msr_read "${address_units}")"
+	value_power="$(msr_read "${address_power}")"
+
+	unit_power=$(( 1 << (value_units & 0xF) ))
+	unit_time=$(( 1 << ((value_units >> 16) & 0xF) ))
+
+	bit_long=$(( (value_power >> 15) & 1 ))
+	bit_short=$(( (value_power >> 47) & 1 ))
+	bit_lock=$(( (value_power >> 63) & 1 ))
+
+	if [ "${bit_long}" -eq 1 ]
+	then
+		text_long_state="enabled"
+	fi
+
+	if [ "${bit_short}" -eq 1 ]
+	then
+		text_short_state="enabled"
+	fi
+
+	if [ "${bit_lock}" -eq 1 ]
+	then
+		text_lock=" // locked"
+	fi
+
+	frobulator.inf "Power limit - sustained" "[ $(( (value_power & 0x7FFF) / unit_power )) W // $(seconds_format $(( (value_power >> 17) & 0x7F )) "${unit_time}") s // ${text_long_state}${text_lock} ]"
+	frobulator.inf "Power limit - short term" "[ $(( ((value_power >> 32) & 0x7FFF) / unit_power )) W // $(seconds_format $(( (value_power >> 49) & 0x7F )) "${unit_time}") s // ${text_short_state}${text_lock} ]"
+}
+
+power_write () {
+
+	# limits not given keep their current values - reserved bits kept
+
+	local value_units
+	local value_power
+	local value_written
+	local value_check
+	local unit_power
+	local unit_time
+	local raw_power
+	local field_time
+	local bit_lock
+
+	value_units="$(msr_read "${address_units}")"
+	value_power="$(msr_read "${address_power}")"
+
+	bit_lock=$(( (value_power >> 63) & 1 ))
+
+	if [ "${bit_lock}" -eq 1 ]
+	then
+		frobulator.err "Power limits locked until the next reboot"
+
+		return 1
+	fi
+
+	unit_power=$(( 1 << (value_units & 0xF) ))
+	unit_time=$(( 1 << ((value_units >> 16) & 0xF) ))
+
+	value_written=$(( value_power ))
+
+	if [ -n "${power_long}" ]
+	then
+		raw_power=$(( power_long * unit_power ))
+
+		if [ "${raw_power}" -le 0 ] || [ "${raw_power}" -gt 0x7FFF ]
+		then
+			frobulator.err "Sustained power limit out of range" "[ ${power_long} W ]"
+
+			return 1
+		fi
+
+		field_time="$(seconds_encode "${seconds_long}" "${unit_time}")"
+
+		value_written=$(( (value_written & ~0xFFFFFF) | raw_power | (1 << 15) | (field_time << 17) ))
+	fi
+
+	if [ -n "${power_short}" ]
+	then
+		raw_power=$(( power_short * unit_power ))
+
+		if [ "${raw_power}" -le 0 ] || [ "${raw_power}" -gt 0x7FFF ]
+		then
+			frobulator.err "Short term power limit out of range" "[ ${power_short} W ]"
+
+			return 1
+		fi
+
+		field_time="$(seconds_encode "${seconds_short}" "${unit_time}")"
+
+		value_written=$(( (value_written & ~(0xFFFFFF << 32)) | (raw_power << 32) | (1 << 47) | (field_time << 49) ))
+	fi
+
+	if [ "${option_lock_power}" = "true" ]
+	then
+		value_written=$(( value_written | (1 << 63) ))
+	fi
+
+	msr_write "${address_power}" "${value_written}"
+
+	value_check="$(msr_read "${address_power}")"
+	value_check=$(( value_check ))
+
+	if [ "${value_check}" -ne "${value_written}" ]
+	then
+		frobulator.err "Power limit refused"
+
+		return 1
+	fi
+
+	frobulator.scs "Power limit applied"
+
+	power_read
+}
+
+temperature_read () {
+
+	# maximum junction temperature in bits 16 to 23 - target offset below it in bits 24 to 30
+
+	local value_temperature
+	local maximum
+	local offset
+
+	value_temperature="$(msr_read "${address_temperature}")"
+
+	maximum=$(( (value_temperature >> 16) & 0xFF ))
+	offset=$(( (value_temperature >> 24) & 0x7F ))
+
+	frobulator.inf "Temperature target" "[ $(( maximum - offset )) C // maximum ${maximum} C ]"
+}
+
+temperature_write () {
+
+	local value_temperature
+	local value_written
+	local value_check
+	local maximum
+	local offset
+
+	value_temperature="$(msr_read "${address_temperature}")"
+
+	maximum=$(( (value_temperature >> 16) & 0xFF ))
+	offset=$(( maximum - temperature_target ))
+
+	if [ "${offset}" -lt 0 ] || [ "${offset}" -gt 63 ]
+	then
+		frobulator.err "Temperature target out of range" "[ ${temperature_target} C // maximum ${maximum} C ]"
+
+		return 1
+	fi
+
+	value_written=$(( (value_temperature & ~(0x7F << 24)) | (offset << 24) ))
+
+	msr_write "${address_temperature}" "${value_written}"
+
+	value_check="$(msr_read "${address_temperature}")"
+	value_check=$(( (value_check >> 24) & 0x7F ))
+
+	if [ "${value_check}" -ne "${offset}" ]
+	then
+		frobulator.err "Temperature target refused"
+
+		return 1
+	fi
+
+	frobulator.scs "Temperature target applied" "[ ${temperature_target} C ]"
+}
+
+turbo_read () {
+
+	local state_turbo_current="on"
+	local value_turbo
+
+	value_turbo="$(cat "${file_turbo}" 2> "${sink}")"
+
+	if [ "${value_turbo}" = "1" ]
+	then
+		state_turbo_current="off"
+	fi
+
+	frobulator.inf "Turbo boost" "[ ${state_turbo_current} ]"
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+	msr-tools
+)
+
+frobulator.require ${list[@]}
+
+frobulator.complete
+
+list=()
+
+# validation ───────────────────────────────────────────────────────────────────
+
+count_actions=$(( ${#list_planes_order[@]} ))
+
+for value_check in "${option_read}" "${temperature_target}" "${power_long}" "${power_short}" "${option_lock_power}" "${state_turbo}"
+do
+	if [ -n "${value_check}" ]
+	then
+		count_actions=$(( count_actions + 1 ))
+	fi
+done
+
+if [ "${count_actions}" -eq 0 ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Type './${script} -h' for help and usage information."
+
+	exit 1
+fi
+
+for name_plane in "${list_planes_order[@]}"
+do
+	millivolts="${offsets_plane[${name_plane}]}"
+
+	if [[ ! "${millivolts}" =~ ^-?[0-9]+$ ]]
+	then
+		frobulator.err "Offset in whole millivolts" "[ ${name_plane} // ${millivolts} ]"
+
+		exit 1
+	fi
+
+	if [ "${millivolts}" -gt 0 ] && [ "${option_force}" != "true" ]
+	then
+		frobulator.err "Positive offset needs --force" "[ ${name_plane} // ${millivolts} mV ]"
+
+		exit 1
+	fi
+
+	if [ "${millivolts}" -lt -500 ] || [ "${millivolts}" -gt 500 ]
+	then
+		frobulator.err "Offset out of range - -500 to 500 mV" "[ ${name_plane} // ${millivolts} mV ]"
+
+		exit 1
+	fi
+done
+
+for value_check in "${temperature_target}" "${power_long}" "${power_short}"
+do
+	if [ -n "${value_check}" ] && [[ ! "${value_check}" =~ ^[0-9]+$ ]]
+	then
+		frobulator.err "Whole number expected" "[ ${value_check} ]"
+
+		exit 1
+	fi
+done
+
+for value_check in "${seconds_long}" "${seconds_short}"
+do
+	if [ -n "${value_check}" ] && [[ ! "${value_check}" =~ ^[0-9]+(\.[0-9]{1,3})?$ ]]
+	then
+		frobulator.err "Time window in seconds - up to three decimals" "[ ${value_check} ]"
+
+		exit 1
+	fi
+done
+
+if [ -n "${power_long}" ] && [ -z "${seconds_long}" ]
+then
+	frobulator.err "Missing time window for '--power-long'."
+
+	exit 1
+fi
+
+if [ -n "${power_short}" ] && [ -z "${seconds_short}" ]
+then
+	frobulator.err "Missing time window for '--power-short'."
+
+	exit 1
+fi
+
+if [ -n "${state_turbo}" ] && [ "${state_turbo}" != "on" ] && [ "${state_turbo}" != "off" ]
+then
+	frobulator.err "Turbo state - on or off" "[ ${state_turbo} ]"
+
+	exit 1
+fi
+
+# core and cache share one voltage on these processors - the higher offset is applied to both
+
+if [ -n "${offsets_plane[core]}" ] || [ -n "${offsets_plane[cache]}" ]
+then
+	if [ "${offsets_plane[core]}" != "${offsets_plane[cache]}" ]
+	then
+		frobulator.wrn "Core and cache offsets differ - the smaller one is applied to both"
+	fi
+fi
+
+# configuration ────────────────────────────────────────────────────────────────
+
+# register access through the msr kernel module
+
+list_msr=(/dev/cpu/*/msr)
+
+if [ ! -e "${list_msr[0]}" ]
+then
+	modprobe msr
+
+	frobulator.complete
+fi
+
+for name_plane in "${list_planes_order[@]}"
+do
+	offset_write "${name_plane}" "${offsets_plane[${name_plane}]}"
+
+	frobulator.complete
+done
+
+if [ -n "${temperature_target}" ]
+then
+	temperature_write
+
+	frobulator.complete
+fi
+
+if [ -n "${power_long}" ] || [ -n "${power_short}" ] || [ "${option_lock_power}" = "true" ]
+then
+	power_write
+
+	frobulator.complete
+fi
+
+if [ -n "${state_turbo}" ]
+then
+	value_turbo=0
+
+	if [ "${state_turbo}" = "off" ]
+	then
+		value_turbo=1
+	fi
+
+	echo "${value_turbo}" > "${file_turbo}"
+
+	frobulator.complete
+
+	frobulator.scs "Turbo boost" "[ ${state_turbo} ]"
+fi
+
+if [ "${option_read}" = "true" ]
+then
+	temperature_read
+
+	for name_plane in "${list_planes[@]}"
+	do
+		millivolts_read="$(offset_read "${name_plane}")"
+
+		frobulator.inf "Voltage offset - ${name_plane}" "[ ${millivolts_read} mV ]"
+	done
+
+	power_read
+
+	turbo_read
+fi
+
+frobulator.result "${script}"
