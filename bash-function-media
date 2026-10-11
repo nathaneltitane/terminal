@@ -113,6 +113,13 @@ media () {
 		list_options_type+=( --extract-audio )
 		list_options_type+=( --audio-format "${extension_media}" )
 		list_options_type+=( --audio-quality best )
+
+		# cover art - video thumbnail embedded in the file - converted to jpg for mp3 tags
+		# cropped to a centred square - the shorter side kept - album art without the 16:9 bars
+
+		list_options_type+=( --embed-thumbnail )
+		list_options_type+=( --convert-thumbnails jpg )
+		list_options_type+=( --postprocessor-args "ThumbnailsConvertor+ffmpeg_o:-c:v mjpeg -qmin 1 -qscale:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"" )
 		list_options_type+=( --output '%(uploader)s - %(title)s.%(ext)s' )
 
 	elif [ "${type_media}" = "video" ]
