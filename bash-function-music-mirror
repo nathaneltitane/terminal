@@ -20,15 +20,21 @@ music-mirror () {
 	local directory_subfolder_phone
 	local path_relative
 
+	local -a list_entries_candidate=()
 	local -a list_subfolders_phone=()
 	local -a list_paths_relative=()
 	local -a list_options=("${@}")
 
-	# phone storage mounted by kde connect
+	# phone storage mounted by kde connect - internal storage or external sd card
+	# first music folder holding anything is used
 
-	for directory_candidate in /run/user/"$(id -u)"/*/storage/emulated/0/Music
+	for directory_candidate in												\
+		/run/user/"$(id -u)"/*/storage/emulated/0/Music						\
+		/run/user/"$(id -u)"/*/storage/[0-9A-F][0-9A-F][0-9A-F][0-9A-F]-[0-9A-F][0-9A-F][0-9A-F][0-9A-F]/Music
 	do
-		if [ -d "${directory_candidate}" ]
+		list_entries_candidate=("${directory_candidate}"/*)
+
+		if [ -d "${directory_candidate}" ] && [ -e "${list_entries_candidate[0]}" ]
 		then
 			directory_music_phone="${directory_candidate}"
 
@@ -38,7 +44,7 @@ music-mirror () {
 
 	if [ -z "${directory_music_phone}" ]
 	then
-		frobulator.err "Phone music folder not mounted" "[ kde connect ]"
+		frobulator.err "Phone music folder not found or empty" "[ internal storage | sd card ]"
 		frobulator.nul "Open the phone in dolphin or browse it through kde connect first."
 
 		return 1
