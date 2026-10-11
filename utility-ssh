@@ -148,7 +148,7 @@ file_ssh_config=/etc/ssh/ssh_config
 file_sshd_config=/etc/ssh/sshd_config
 file_fail2ban_sshd=/etc/fail2ban/jail.d/sshd.local
 
-# dolphin places - sftp entries shown under network
+# dolphin places - sftp entries for computers - kde connect entries for android devices
 
 file_places="${HOME}/.local/share/user-places.xbel"
 
@@ -528,6 +528,7 @@ ssh_restore_fail2ban () {
 ssh_restore_places () {
 
 	# add a dolphin place for every ssh config host that has none
+	# computers through sftp - android devices through kde connect - no server app needed on the device
 
 	local status=0
 	local index_places=0
@@ -537,7 +538,11 @@ ssh_restore_places () {
 	local stamp_places
 	local name_host
 	local title_host
-	local path_host
+	local href_host
+	local icon_host
+	local id_device
+	local id_device_listed
+	local name_device
 
 	local -a list_hosts=()
 
@@ -559,25 +564,60 @@ ssh_restore_places () {
 		fi
 	done < <(grep -E '^Host[[:space:]]' "${directory_ssh}"/config 2> "${sink}")
 
+	# earlier sftp places of android devices removed - they need a server app on the device
+
+	for name_host in "${list_hosts_android[@]}"
+	do
+		if [ "$(grep -c "<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">" "${file_places}")" -gt 0 ]
+		then
+			sed -i "\|<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">|,\|</bookmark>|d" "${file_places}"
+
+			frobulator.rem "Place removed - sftp" "[ ${name_host} ]"
+		fi
+	done
+
 	content_places="$(< "${file_places}")"
 	stamp_places="$(date +%s)"
 
 	for name_host in "${list_hosts[@]}"
 	do
-		if [[ "${content_places}" = *"href=\"sftp://${name_host}/"* ]]
+		# computers - sftp at the file system root
+
+		href_host="sftp://${name_host}/"
+		icon_host="folder-remote"
+
+		# android devices - kde connect id of the paired device with the same name
+
+		if [[ " ${list_hosts_android[*]} " == *" ${name_host} "* ]]
+		then
+			id_device=""
+
+			while read -r id_device_listed name_device
+			do
+				if [ "${name_device}" = "${name_host}" ]
+				then
+					id_device="${id_device_listed}"
+
+					break
+				fi
+			done < <(kdeconnect-cli --list-devices --id-name-only 2> "${sink}")
+
+			if [ -z "${id_device}" ]
+			then
+				frobulator.wrn "Place skipped - not paired in kde connect" "[ ${name_host} ]"
+
+				continue
+			fi
+
+			href_host="kdeconnect://${id_device}/"
+			icon_host="kdeconnect"
+		fi
+
+		if [[ "${content_places}" = *"href=\"${href_host}"* ]]
 		then
 			frobulator.inf "Place present - host" "[ ${name_host} ]"
 
 			continue
-		fi
-
-		# place root - android shared storage - file system root otherwise
-
-		path_host="/"
-
-		if [[ " ${list_hosts_android[*]} " == *" ${name_host} "* ]]
-		then
-			path_host="/storage/emulated/0/"
 		fi
 
 		# title escaped for xml
@@ -586,11 +626,11 @@ ssh_restore_places () {
 		title_host="${title_host//</&lt;}"
 		title_host="${title_host//>/&gt;}"
 
-		list_entries_places+=" <bookmark href=\"sftp://${name_host}${path_host}\">${NLN}"
+		list_entries_places+=" <bookmark href=\"${href_host}\">${NLN}"
 		list_entries_places+="  <title>${title_host}</title>${NLN}"
 		list_entries_places+="  <info>${NLN}"
 		list_entries_places+="   <metadata owner=\"http://freedesktop.org\">${NLN}"
-		list_entries_places+="    <bookmark:icon name=\"folder-remote\"/>${NLN}"
+		list_entries_places+="    <bookmark:icon name=\"${icon_host}\"/>${NLN}"
 		list_entries_places+="   </metadata>${NLN}"
 		list_entries_places+="   <metadata owner=\"http://www.kde.org\">${NLN}"
 		list_entries_places+="    <ID>${stamp_places}/${index_places}</ID>${NLN}"
