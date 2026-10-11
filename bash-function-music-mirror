@@ -7,6 +7,7 @@
 music-mirror () {
 
 	# mirror external drive music to every reachable kde connect device - phone, tablet, note, then the others
+	# folders renamed on the external drive are followed - '<parent> <old name>' first, then a single name ending in it
 	# folder by folder - for the folders each device keeps:
 	# a folder's subfolders on the device are each mirrored - or the folder itself if it has none
 	# usage: music-mirror [utility-add-remove options: -e execute / -y skip confirmation]
@@ -28,12 +29,23 @@ music-mirror () {
 	local path_dbus
 	local path_kdeconnect
 	local path_qdbus
+	local line_directory
+	local path_source
+	local path_parent
+	local name_folder
+	local name_renamed
+	local directory_renamed
+	local option_execute="false"
+	local option
 
 	local -a list_devices=()
 	local -a list_devices_ordered=()
 	local -a list_entries_candidate=()
 	local -a list_subfolders_device=()
 	local -a list_paths_relative=()
+	local -a list_directories_device=()
+	local -a list_directories_ordered=()
+	local -a list_candidates_renamed=()
 	local -a list_options=("${@}")
 
 	if [ ! -d "${directory_music_external}" ]
@@ -97,6 +109,16 @@ music-mirror () {
 
 	path_qdbus="$(command -v qdbus)"
 
+	# dry run unless utility-add-remove is told to execute - folder renames on devices follow the same rule
+
+	for option in "${list_options[@]}"
+	do
+		if [ "${option}" = "-e" ]
+		then
+			option_execute="true"
+		fi
+	done
+
 	for line_device in "${list_devices_ordered[@]}"
 	do
 		id_device="${line_device%% *}"
@@ -123,11 +145,41 @@ music-mirror () {
 			directory_mount="${directory_mount:-/run/user/$(id -u)/${id_device}}"
 		fi
 
-		# internal storage or external sd card - first music folder holding anything is used
+		# storage places reported by kde connect - 'path: name' per line - internal storage and sd cards
+		# the storage folder itself cannot be listed on the device - places taken from kde connect instead
 
-		for directory_candidate in											\
-			"${directory_mount}"/storage/emulated/0/Music					\
-			"${directory_mount}"/storage/[0-9A-F][0-9A-F][0-9A-F][0-9A-F]-[0-9A-F][0-9A-F][0-9A-F][0-9A-F]/Music
+		list_directories_device=()
+
+		if [ -n "${path_qdbus}" ]
+		then
+			while IFS= read -r line_directory
+			do
+				list_directories_device+=("${line_directory%%: *}")
+			done < <("${path_qdbus}" org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.getDirectories 2> "${sink}")
+		fi
+
+		if [ "${#list_directories_device[@]}" -eq 0 ]
+		then
+			list_directories_device=("${directory_mount}/storage/emulated/0")
+		fi
+
+		# internal storage first - sd cards after
+
+		list_directories_ordered=()
+
+		for directory_candidate in "${list_directories_device[@]}"
+		do
+			if [[ "${directory_candidate}" = */storage/emulated/* ]]
+			then
+				list_directories_ordered=("${directory_candidate}" "${list_directories_ordered[@]}")
+			else
+				list_directories_ordered+=("${directory_candidate}")
+			fi
+		done
+
+		# first music folder holding anything is used
+
+		for directory_candidate in "${list_directories_ordered[@]/%//Music}"
 		do
 			list_entries_candidate=("${directory_candidate}"/*)
 
@@ -169,16 +221,63 @@ music-mirror () {
 
 		for path_relative in "${list_paths_relative[@]}"
 		do
+			path_source="${path_relative}"
+
+			# folder renamed on the external drive - new name searched next to the old one
+
 			if [ ! -d "${directory_music_external}/${path_relative}" ]
 			then
-				frobulator.wrn "Skipped - not on external drive" "[ '${path_relative}' ]"
+				name_folder="${path_relative##*/}"
+				path_parent=""
+				name_renamed=""
 
-				continue
+				if [ "${path_relative}" != "${name_folder}" ]
+				then
+					path_parent="${path_relative%/*}"
+				fi
+
+				# parent name in front of the old name - TRACKS becomes STEYOYOKE TRACKS
+
+				if [ -n "${path_parent}" ] && [ -d "${directory_music_external}/${path_parent}/${path_parent##*/} ${name_folder}" ]
+				then
+					name_renamed="${path_parent##*/} ${name_folder}"
+				else
+
+					# otherwise a single folder whose name ends with the old name
+
+					list_candidates_renamed=("${directory_music_external}/${path_parent:+${path_parent}/}"*" ${name_folder}"/)
+
+					if [ "${#list_candidates_renamed[@]}" -eq 1 ] && [ -d "${list_candidates_renamed[0]}" ]
+					then
+						name_renamed="$(basename -- "${list_candidates_renamed[0]}")"
+					fi
+				fi
+
+				if [ -z "${name_renamed}" ]
+				then
+					frobulator.wrn "Skipped - not on external drive" "[ '${path_relative}' ]"
+
+					continue
+				fi
+
+				path_source="${path_parent:+${path_parent}/}${name_renamed}"
+				directory_renamed="${directory_music_device}/${path_source}"
+
+				frobulator.inf "Renamed on external drive" "[ '${path_relative}' >> '${path_source}' ]"
+
+				# device folder renamed too when executing - its files are kept - only differences are copied
+
+				if [ "${option_execute}" = "true" ] && [ ! -e "${directory_renamed}" ]
+				then
+					mv -- "${directory_music_device}/${path_relative}" "${directory_renamed}"
+
+					path_relative="${path_source}"
+				fi
 			fi
 
-			frobulator.fwd "Mirroring" "[ '${path_relative}' ]"
+			frobulator.fwd "Mirroring" "[ '${path_source}' ]"
 
-			bash "${path_utility}" -f "${directory_music_external}/${path_relative}" -t "${directory_music_device}/${path_relative}" -m "${list_options[@]}"
+			bash "${path_utility}" -f "${directory_music_external}/${path_source}" -t "${directory_music_device}/${path_relative}" -m "${list_options[@]}"
 		done
 	done
 }
