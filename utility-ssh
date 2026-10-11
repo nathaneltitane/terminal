@@ -171,6 +171,10 @@ list_hosts_android=(
 
 list_devices+=("${list_hosts_android[@]}")
 
+# this computer - left out of generated hosts and places
+
+name_computer="$(hostname)"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${option}" ]
@@ -328,7 +332,7 @@ ssh_restore_config () {
 	{
 		for name_device in "${list_devices[@]}"
 		do
-			if [ "${name_device}" = "$(hostname)" ]
+			if [ "${name_device}" = "${name_computer}" ]
 			then
 				continue
 			fi
@@ -539,6 +543,7 @@ ssh_restore_places () {
 	local name_host
 	local title_host
 	local href_host
+	local count_places_sftp
 
 	local -a list_hosts=()
 
@@ -554,7 +559,7 @@ ssh_restore_places () {
 
 	while read -r _ name_host
 	do
-		if [[ "${name_host}" != *[*?]* ]] && [ "${name_host}" != "$(hostname)" ]
+		if [[ "${name_host}" != *[*?]* ]] && [ "${name_host}" != "${name_computer}" ]
 		then
 			list_hosts+=("${name_host}")
 		fi
@@ -564,7 +569,9 @@ ssh_restore_places () {
 
 	for name_host in "${list_hosts_android[@]}"
 	do
-		if [ "$(grep -c "<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">" "${file_places}")" -gt 0 ]
+		count_places_sftp="$(grep -c "<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">" "${file_places}")"
+
+		if [ "${count_places_sftp}" -gt 0 ]
 		then
 			sed -i "\|<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">|,\|</bookmark>|d" "${file_places}"
 
