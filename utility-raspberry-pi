@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-10-11"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -85,9 +85,19 @@ do
 			shift
 		;;
 
+		-g|--usb-gadget)
+			option_usb_gadget="true"
+		;;
+
+		-b|--boost)
+			option_boost="${2}"
+
+			shift
+		;;
+
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -d [Device] [-u Power supply] | -h"
+			echo -e "Usage: ./${script} -d [Device] [-u Power supply] [-g] [-b Level] | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -99,6 +109,17 @@ do
 			echo -e "-u, --power-supply    Add [u]ninterruptible power supply support."
 			echo
 			echo -e "                      ep-0136    GeeekPi UPS Plus - safe shutdown on low battery."
+			echo
+			echo -e "-g, --usb-gadget      Network and power over the usb-c port - usb [g]adget mode."
+			echo
+			echo -e "                      Not while a ups is fitted - the usb-c port must stay unplugged."
+			echo
+			echo -e "-b, --boost           [B]oost the processor - raspberry pi 4 - cooling needed."
+			echo
+			echo -e "                      1    1.9 GHz - voltage +0.05 V - graphics 500 MHz."
+			echo -e "                      2    2.0 GHz - voltage +0.15 V - graphics 600 MHz."
+			echo -e "                      3    2.1 GHz - voltage +0.20 V - graphics 700 MHz - not every board."
+			echo -e "                      4    2.2 GHz - voltage +0.20 V - graphics 750 MHz - not every board."
 			echo
 			echo -e "-h, --help            Show [h]elp and usage information."
 			echo
@@ -117,7 +138,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -d [Device] [-u Power supply] | -h"
+			echo -e "Usage: ./${script} -d [Device] [-u Power supply] [-g] [-b Level] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -168,6 +189,28 @@ then
 	frobulator.err "Unknown power supply" "[ ${option_power_supply} ]"
 
 	exit 1
+fi
+
+# boost - supported levels only
+
+if [[ "${option_boost}" = -* ]]
+then
+	frobulator.err "Missing argument for '--boost'."
+
+	exit 1
+
+elif [ -n "${option_boost}" ] && [[ ! " 1 2 3 4 " = *" ${option_boost} "* ]]
+then
+	frobulator.err "Unknown boost level - 1 to 4" "[ ${option_boost} ]"
+
+	exit 1
+fi
+
+# usb gadget with a ups - allowed - the usb-c port must stay unplugged while the ups is fitted
+
+if [ "${option_usb_gadget}" = "true" ] && [ -n "${option_power_supply}" ]
+then
+	frobulator.wrn "USB gadget mode with a ups" "[ keep the usb-c port unplugged while the ups is fitted ]"
 fi
 
 # variables ────────────────────────────────────────────────────────────────────
@@ -794,6 +837,82 @@ TIMER
 		'[ systemctl, daemon-reload ]'
 		'[ systemctl, enable, --now, ups-plus-monitor.timer ]'
 	)
+fi
+
+# usb gadget - the usb-c port acts as a usb network card - power and network over one cable
+# the usb-a ports are on another controller - unaffected
+
+if [ "${option_usb_gadget}" = "true" ]
+then
+	frobulator.inf "Adding usb gadget mode" "[ usb-c // usb0 ]"
+
+	# controller able to act as a usb device - global section - other models keep their own lines
+
+	count_dwc2="$(grep -c '^dtoverlay=dwc2$' "${directory_mount_boot}"/config.txt)"
+
+	if [ "${count_dwc2}" -eq 0 ]
+	then
+		echo "dtoverlay=dwc2" >> "${directory_mount_boot}"/config.txt
+	fi
+
+	# ethernet gadget loaded at boot - fixed addresses - the computer sees the same network card every time
+	# locally administered addresses - first byte 02
+
+	count_gadget="$(grep -c 'modules-load=dwc2,g_ether' "${directory_mount_boot}"/cmdline.txt)"
+
+	if [ "${count_gadget}" -eq 0 ]
+	then
+		address_device="$(printf '02:%02x:%02x:%02x:%02x:%02x' $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )))"
+		address_host="$(printf '02:%02x:%02x:%02x:%02x:%02x' $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )))"
+
+		# kernel command line - one line - options appended to it
+
+		line_cmdline="$(< "${directory_mount_boot}"/cmdline.txt)"
+
+		echo "${line_cmdline} modules-load=dwc2,g_ether g_ether.dev_addr=${address_device} g_ether.host_addr=${address_host}" > "${directory_mount_boot}"/cmdline.txt
+	fi
+
+	# usb0 - address from the computer when it shares its connection - link-local otherwise - pi.local reachable either way
+
+	cat <<- FILE >> "${directory_mount_boot}"/network-config
+  ethernets:
+    usb0:
+      dhcp4: true
+      optional: true
+      link-local: [ ipv4, ipv6 ]
+FILE
+
+	frobulator.complete
+fi
+
+# boost - raspberry pi 4 - 1.8 GHz by default - voltage raised for stability - 0.025 V per over_voltage step
+# heatsink or fan needed - the processor slows itself down at 80 degrees
+# over_voltage kept at 8 or below - higher values need force_turbo, which marks the board as overclocked for good
+
+if [ -n "${option_boost}" ]
+then
+	# level - processor MHz - over_voltage steps - graphics MHz
+
+	case "${option_boost}"
+	in
+		1)	list_boost=( 1900 2 500 ) ;;
+		2)	list_boost=( 2000 6 600 ) ;;
+		3)	list_boost=( 2100 8 700 ) ;;
+		4)	list_boost=( 2200 8 750 ) ;;
+	esac
+
+	frobulator.inf "Adding processor boost" "[ level ${option_boost} // ${list_boost[0]} MHz ]"
+
+	# pi 4 section only - a pi 5 runs faster by default and would be slowed down - global section restored after
+
+	count_boost="$(grep -c '^arm_freq=' "${directory_mount_boot}"/config.txt)"
+
+	if [ "${count_boost}" -eq 0 ]
+	then
+		printf '%s\n' "[pi4]" "arm_freq=${list_boost[0]}" "over_voltage=${list_boost[1]}" "gpu_freq=${list_boost[2]}" "[all]" >> "${directory_mount_boot}"/config.txt
+	fi
+
+	frobulator.complete
 fi
 
 # first boot packages and commands - written once - yaml keys must not repeat
