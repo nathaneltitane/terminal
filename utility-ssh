@@ -148,7 +148,7 @@ file_ssh_config=/etc/ssh/ssh_config
 file_sshd_config=/etc/ssh/sshd_config
 file_fail2ban_sshd=/etc/fail2ban/jail.d/sshd.local
 
-# dolphin places - sftp entries for computers - kde connect entries for android devices
+# dolphin places - sftp entries for computers - android devices placed by utility-kde-connect-devices
 
 file_places="${HOME}/.local/share/user-places.xbel"
 
@@ -528,7 +528,7 @@ ssh_restore_fail2ban () {
 ssh_restore_places () {
 
 	# add a dolphin place for every ssh config host that has none
-	# computers through sftp - android devices through kde connect - no server app needed on the device
+	# computers only - android devices are kde connect places from utility-kde-connect-devices
 
 	local status=0
 	local index_places=0
@@ -539,10 +539,6 @@ ssh_restore_places () {
 	local name_host
 	local title_host
 	local href_host
-	local icon_host
-	local id_device
-	local id_device_listed
-	local name_device
 
 	local -a list_hosts=()
 
@@ -581,37 +577,16 @@ ssh_restore_places () {
 
 	for name_host in "${list_hosts[@]}"
 	do
-		# computers - sftp at the file system root
-
-		href_host="sftp://${name_host}/"
-		icon_host="folder-remote"
-
-		# android devices - kde connect id of the paired device with the same name
+		# android devices - left to utility-kde-connect-devices
 
 		if [[ " ${list_hosts_android[*]} " == *" ${name_host} "* ]]
 		then
-			id_device=""
-
-			while read -r id_device_listed name_device
-			do
-				if [ "${name_device}" = "${name_host}" ]
-				then
-					id_device="${id_device_listed}"
-
-					break
-				fi
-			done < <(kdeconnect-cli --list-devices --id-name-only 2> "${sink}")
-
-			if [ -z "${id_device}" ]
-			then
-				frobulator.wrn "Place skipped - not paired in kde connect" "[ ${name_host} ]"
-
-				continue
-			fi
-
-			href_host="kdeconnect://${id_device}/"
-			icon_host="kdeconnect"
+			continue
 		fi
+
+		# computers - sftp at the file system root
+
+		href_host="sftp://${name_host}/"
 
 		if [[ "${content_places}" = *"href=\"${href_host}"* ]]
 		then
@@ -630,7 +605,7 @@ ssh_restore_places () {
 		list_entries_places+="  <title>${title_host}</title>${NLN}"
 		list_entries_places+="  <info>${NLN}"
 		list_entries_places+="   <metadata owner=\"http://freedesktop.org\">${NLN}"
-		list_entries_places+="    <bookmark:icon name=\"${icon_host}\"/>${NLN}"
+		list_entries_places+="    <bookmark:icon name=\"folder-remote\"/>${NLN}"
 		list_entries_places+="   </metadata>${NLN}"
 		list_entries_places+="   <metadata owner=\"http://www.kde.org\">${NLN}"
 		list_entries_places+="    <ID>${stamp_places}/${index_places}</ID>${NLN}"
