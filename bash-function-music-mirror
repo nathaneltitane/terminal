@@ -106,6 +106,7 @@ music-mirror () {
 		list_paths_relative=()
 
 		frobulator.separate
+
 		frobulator.fwd "Device" "[ ${name_device} ]"
 
 		# storage mounted through kde connect - mounted here when not yet
