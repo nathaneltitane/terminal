@@ -169,9 +169,17 @@ directory_storage_android="${HOME}/.local/share/waydroid/data/media/0"
 id_media_rw=1023
 
 file_repository=/etc/apt/sources.list.d/waydroid.list
+
+# local copy of the android images - system.img and vendor.img - used instead of downloading
+
+directory_images_local=/media/internal/Linux/Waydroid
 file_keyring=/usr/share/keyrings/waydroid.gpg
 
 socket_weston="waydroid-0"
+
+# weston settings for the android window - no top panel
+
+file_weston="${HOME}/.config/weston-waydroid.ini"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -272,10 +280,57 @@ then
 	if [ -e "${list_images[0]}" ]
 	then
 		frobulator.inf "Android image present" "[ /var/lib/waydroid/images ]"
+
+	elif [ -f "${directory_images_local}/system.img" ] && [ -f "${directory_images_local}/vendor.img" ]
+	then
+		frobulator.inf "Using local android image" "[ ${directory_images_local} ]"
+
+		waydroid init -i "${directory_images_local}" -f
+
+		frobulator.complete
 	else
 		frobulator.inf "Downloading android image" "[ lineage // google apps ]"
 
 		waydroid init -s GAPPS -f
+
+		frobulator.complete
+
+		# kept for the next install - no download then
+
+		frobulator.directory "${directory_images_local}"
+
+		cp /var/lib/waydroid/images/system.img /var/lib/waydroid/images/vendor.img "${directory_images_local}"/
+
+		frobulator.complete
+	fi
+
+	# docker drops forwarded traffic by default - android would have no internet
+	# waydroid allowed through the docker user chain - before every container start
+
+	path_docker="$(command -v docker)"
+
+	if [ -n "${path_docker}" ]
+	then
+		frobulator.inf "Allowing android network through docker" "[ DOCKER-USER // waydroid0 ]"
+
+		rule_inbound="iptables -C DOCKER-USER -i waydroid0 -j ACCEPT 2> /dev/null || iptables -I DOCKER-USER -i waydroid0 -j ACCEPT"
+		rule_return="iptables -C DOCKER-USER -o waydroid0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2> /dev/null || iptables -I DOCKER-USER -o waydroid0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"
+
+		content_dropin=$(cat <<- FILE
+		# waydroid network through docker - docker drops forwarded traffic by default
+		[Unit]
+		After=docker.service
+
+		[Service]
+		ExecStartPre=/bin/sh -c '${rule_inbound}; ${rule_return}; true'
+		FILE
+		)
+
+		frobulator.write write "${content_dropin}" /etc/systemd/system/waydroid-container.service.d docker-forward.conf
+
+		frobulator.complete
+
+		frobulator.service reload
 
 		frobulator.complete
 	fi
@@ -298,9 +353,37 @@ then
 
 	if [ "${type_session}" = "x11" ] || [ -z "${display_wayland}" ]
 	then
+		# weston already open - reused - a new one would leave android on the old display
+
+		list_weston="$(pgrep -u "${USER}" -f "weston .*--socket=${socket_weston}")"
+
+		if [ -n "${list_weston}" ]
+		then
+			frobulator.inf "Reusing weston window" "[ ${socket_weston} ]"
+
+			display_wayland="${socket_weston}"
+		fi
+	fi
+
+	if [ "${type_session}" = "x11" ] && [ -z "${list_weston}" ] || [ -z "${display_wayland}" ]
+	then
+		# android session tied to a closed window - stopped so it starts on the new one
+
+		user_run waydroid session stop > "${sink}" 2>&1
+
 		frobulator.inf "Starting weston window" "[ ${socket_weston} ]"
 
-		user_run weston --socket="${socket_weston}" --width=1280 --height=800 > "${sink}" 2>&1 &
+		content_weston=$(cat <<- FILE
+		[shell]
+		panel-position=none
+		FILE
+		)
+
+		frobulator.write write "${content_weston}" "${HOME}/.config" "${file_weston##*/}"
+
+		frobulator.complete
+
+		user_run weston --config="${file_weston}" --socket="${socket_weston}" --width=1280 --height=800 > "${sink}" 2>&1 &
 
 		sleep 3
 
@@ -320,13 +403,27 @@ if [ "${option_register}" = "true" ]
 then
 	# google services id - read from the running android
 
+	# created by google services on its first check-in - needs android online - up to two minutes
+
 	query_register="select value from main where name = 'android_id';"
 
-	id_android="$(waydroid shell -- sh -c "sqlite3 /data/data/com.google.android.gsf/databases/gservices.db \"${query_register}\"" 2> "${sink}")"
+	frobulator.inf "Waiting for the android id"
+
+	for (( count_wait = 0 ; count_wait < 24 ; count_wait ++ ))
+	do
+		id_android="$(waydroid shell -- sh -c "sqlite3 /data/data/com.google.android.gsf/databases/gservices.db \"${query_register}\"" 2> "${sink}")"
+
+		if [ -n "${id_android}" ]
+		then
+			break
+		fi
+
+		sleep 5
+	done
 
 	if [ -z "${id_android}" ]
 	then
-		frobulator.err "Android id not found - start the interface and wait for android to finish booting" "[ ${script} -u ]"
+		frobulator.err "Android id not found - android booted and online?" "[ ${script} -u ]"
 
 		exit 1
 	fi
