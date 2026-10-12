@@ -1,0 +1,399 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-12"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-i|--install)
+			option_install="true"
+		;;
+
+		-u|--ui)
+			option_ui="true"
+		;;
+
+		-r|--register)
+			option_register="true"
+		;;
+
+		-s|--share)
+			option_share="true"
+
+			# directory optional - default used when the next argument is another option
+
+			if [ -n "${2}" ] && [[ "${2}" != -* ]]
+			then
+				directory_share="${2}"
+
+				shift
+			fi
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -h"
+			echo
+			echo -e "Note:                 Android apps on this computer - waydroid with google apps - computer folders shared into android storage."
+			echo
+			echo -e "                      1. Run '${script} -i' - install and download the android image."
+			echo -e "                      2. Run '${script} -u' - first boot - android storage created."
+			echo -e "                      3. Run '${script} -r' - register the shown id at google.com/android/uncertified - restart waydroid."
+			echo -e "                      4. Run '${script} -s' - share the folder - sign in to google and install the sync app."
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-i, --install         [I]nstall waydroid, weston and bindfs - android ipc devices - google apps image."
+			echo
+			echo -e "-u, --ui              Start the android [u]ser interface - inside a weston window on x11."
+			echo
+			echo -e "-r, --register        Show the android id to [r]egister for google play services."
+			echo
+			echo -e "-s, --share           [S]hare a computer folder into android storage - started at every boot."
+			echo
+			echo -e "                      [ /media/internal ] [ Default ]"
+			echo
+			echo -e "-h, --help            Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'           [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+directory_share="${directory_share:-/media/internal}"
+directory_share="${directory_share%/}"
+
+id_user="$(id -u "${USER}")"
+
+directory_runtime="/run/user/${id_user}"
+directory_storage_android="${HOME}/.local/share/waydroid/data/media/0"
+
+# android storage user - media_rw - files seen by android apps as their own
+
+id_media_rw=1023
+
+file_repository=/etc/apt/sources.list.d/waydroid.list
+file_keyring=/usr/share/keyrings/waydroid.gpg
+
+socket_weston="waydroid-0"
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+# functions ────────────────────────────────────────────────────────────────────
+
+user_run () {
+
+	# command run as the desktop user - display and session bus kept
+
+	runuser -u "${USER}" --													\
+		env																	\
+			HOME="${HOME}"													\
+			DISPLAY="${DISPLAY:-:0}"										\
+			XAUTHORITY="${XAUTHORITY:-${HOME}/.Xauthority}"					\
+			XDG_RUNTIME_DIR="${directory_runtime}"							\
+			DBUS_SESSION_BUS_ADDRESS="unix:path=${directory_runtime}/bus"	\
+																			"${@}"
+}
+
+# validation ───────────────────────────────────────────────────────────────────
+
+if [ "${option_install}" != "true" ] && [ "${option_ui}" != "true" ] && [ "${option_register}" != "true" ] && [ "${option_share}" != "true" ]
+then
+	frobulator.err "Missing operation."
+	frobulator.nul "Type './${script} -h' for help and usage information."
+
+	exit 1
+fi
+
+# install ──────────────────────────────────────────────────────────────────────
+
+if [ "${option_install}" = "true" ]
+then
+	list=(
+		curl
+	)
+
+	frobulator.require ${list[@]}
+
+	frobulator.complete
+
+	list=()
+
+	# waydroid repository - signing key and source list - distribution codename
+
+	frobulator.inf "Adding repository" "[ repo.waydro.id ]"
+
+	name_codename="$(grep -m 1 '^VERSION_CODENAME=' /etc/os-release)"
+	name_codename="${name_codename#*=}"
+
+	if [ ! -f "${file_keyring}" ]
+	then
+		curl -s --proto '=https' --tlsv1.2 -Sf https://repo.waydro.id/waydroid.gpg --output "${file_keyring}"
+
+		frobulator.complete
+	fi
+
+	frobulator.write write "deb [signed-by=${file_keyring}] https://repo.waydro.id/ ${name_codename} main" /etc/apt/sources.list.d waydroid.list
+
+	frobulator.complete
+
+	frobulator.silence "apt-get update"
+
+	frobulator.complete
+
+	list=(
+		waydroid
+		weston
+		bindfs
+	)
+
+	frobulator.install ${list[@]}
+
+	frobulator.complete
+
+	list=()
+
+	# android ipc - three binder devices - the debian kernel has no binderfs
+
+	frobulator.inf "Configuring android ipc" "[ binder // hwbinder // vndbinder ]"
+
+	frobulator.write write "options binder_linux devices=binder,hwbinder,vndbinder" /etc/modprobe.d binder.conf
+
+	frobulator.complete
+
+	frobulator.write write "binder_linux" /etc/modules-load.d binder.conf
+
+	frobulator.complete
+
+	modprobe binder_linux
+
+	frobulator.complete
+
+	# android image with google apps - downloaded once
+
+	list_images=(/var/lib/waydroid/images/*.img)
+
+	if [ -e "${list_images[0]}" ]
+	then
+		frobulator.inf "Android image present" "[ /var/lib/waydroid/images ]"
+	else
+		frobulator.inf "Downloading android image" "[ lineage // google apps ]"
+
+		waydroid init -s GAPPS -f
+
+		frobulator.complete
+	fi
+
+	frobulator.service activate waydroid-container.service
+
+	frobulator.complete
+fi
+
+# user interface ───────────────────────────────────────────────────────────────
+
+if [ "${option_ui}" = "true" ]
+then
+	# x11 session - waydroid needs wayland - weston window as the wayland display
+
+	type_session="$(loginctl show-user "${USER}" -p Display --value 2> "${sink}")"
+	type_session="$(loginctl show-session "${type_session}" -p Type --value 2> "${sink}")"
+
+	display_wayland="${WAYLAND_DISPLAY}"
+
+	if [ "${type_session}" = "x11" ] || [ -z "${display_wayland}" ]
+	then
+		frobulator.inf "Starting weston window" "[ ${socket_weston} ]"
+
+		user_run weston --socket="${socket_weston}" --width=1280 --height=800 > "${sink}" 2>&1 &
+
+		sleep 3
+
+		display_wayland="${socket_weston}"
+	fi
+
+	frobulator.inf "Starting android interface"
+
+	user_run env WAYLAND_DISPLAY="${display_wayland}" waydroid show-full-ui > "${sink}" 2>&1 &
+
+	frobulator.complete
+fi
+
+# register ─────────────────────────────────────────────────────────────────────
+
+if [ "${option_register}" = "true" ]
+then
+	# google services id - read from the running android
+
+	query_register="select value from main where name = 'android_id';"
+
+	id_android="$(waydroid shell -- sh -c "sqlite3 /data/data/com.google.android.gsf/databases/gservices.db \"${query_register}\"" 2> "${sink}")"
+
+	if [ -z "${id_android}" ]
+	then
+		frobulator.err "Android id not found - start the interface and wait for android to finish booting" "[ ${script} -u ]"
+
+		exit 1
+	fi
+
+	frobulator.scs "Android id" "[ ${id_android} ]"
+	frobulator.nul "Register it at https://www.google.com/android/uncertified - then restart waydroid."
+fi
+
+# share ────────────────────────────────────────────────────────────────────────
+
+if [ "${option_share}" = "true" ]
+then
+	if [ ! -d "${directory_share}" ]
+	then
+		frobulator.err "Directory not found" "[ ${directory_share} ]"
+
+		exit 1
+	fi
+
+	if [ ! -d "${directory_storage_android}" ]
+	then
+		frobulator.err "Android storage not created yet - start the interface once first" "[ ${script} -u ]"
+
+		exit 1
+	fi
+
+	# folder name inside android storage - service named after it
+
+	name_share="$(basename -- "${directory_share}")"
+	name_share="${name_share^}"
+
+	directory_target="${directory_storage_android}/${name_share}"
+	name_service="waydroid-share-${name_share,,}.service"
+
+	# bindfs - android sees media_rw as owner - files created from android belong to the desktop user
+
+	content_service=$(cat <<- FILE
+	[Unit]
+	Description=Waydroid - ${directory_share} shared into android storage as ${name_share}
+	After=local-fs.target
+
+	[Service]
+	Type=forking
+	ExecStartPre=/usr/bin/mkdir -p "${directory_target}"
+	ExecStart=/usr/bin/bindfs --force-user=${id_media_rw} --force-group=${id_media_rw} --create-for-user=${id_user} --create-for-group=${id_user} -o allow_other "${directory_share}" "${directory_target}"
+	ExecStop=/usr/bin/fusermount -u "${directory_target}"
+	RemainAfterExit=yes
+
+	[Install]
+	WantedBy=multi-user.target
+	FILE
+	)
+
+	frobulator.write write "${content_service}" /etc/systemd/system "${name_service}"
+
+	frobulator.complete
+
+	frobulator.service reload
+
+	frobulator.complete
+
+	frobulator.service activate "${name_service}"
+
+	frobulator.complete
+
+	frobulator.scs "Shared into android storage" "[ ${directory_share} >> ${name_share} ]"
+	frobulator.nul "Restart waydroid so android sees the new folder."
+fi
+
+frobulator.result "${script}"
