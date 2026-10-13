@@ -4,22 +4,51 @@
 
 # clo ──────────────────────────────────────────────────────────────────────────
 
+#!/bin/bash
+
+# loaded by "${HOME}"/.local/bin/bash-functions
+
+# clo ──────────────────────────────────────────────────────────────────────────
+
 clo () {
 
-	local command_path
+	local path_command
 	local name_command
 	local directory_projects
-	local command_search
+	local command_search_list
 	local file_session
 	local id_session
+	local id_session_short
+	local output_agents
 
 	name_command="claude"
 
+	case "${1}" in
+
+		-h|--help)
+			cat <<- EOF
+
+			Usage: clo [option]
+
+			Attach to the most recent ${name_command} session when it runs in the background
+			or resume it in this terminal when it is not running.
+
+			Options:
+
+			-h, --help          Show this [h]elp message.
+
+			EOF
+
+			return 0
+		;;
+
+	esac
+
 	# ${name_command} command path - empty if not installed
 
-	command_path="$(command -v "${name_command}")"
+	path_command="$(command -v "${name_command}")"
 
-	if [ -z "${command_path}" ]
+	if [ -z "${path_command}" ]
 	then
 		frobulator.err "Command not found" "[ ${name_command} ]"
 
@@ -35,9 +64,9 @@ clo () {
 		return 1
 	fi
 
-	command_search=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
+	command_search_list=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
 
-	file_session=$("${command_search[@]}" 2>"${sink}" | sort -r -n | head -n 1 | cut -d ' ' -f 2-)
+	file_session=$("${command_search_list[@]}" 2>"${sink}" | sort --reverse --numeric-sort | head --lines=1 | cut --delimiter=' ' --fields=2-)
 
 	if [ -z "${file_session}" ]
 	then
@@ -49,13 +78,23 @@ clo () {
 	echo
 
 	id_session="$(basename "${file_session}" .jsonl)"
+	id_session_short="${id_session:0:8}"
 
 	frobulator.scs "Session found."
 
-	frobulator.inf "Resuming session" "[ ${id_session} ]"
+	# active background sessions - completed sessions excluded by default
 
-	claude --dangerously-skip-permissions --resume "${id_session}"
+	output_agents="$("${path_command}" agents --json 2>"${sink}")"
 
-	unset name_command
+	if grep --quiet --fixed-strings "${id_session}" <<< "${output_agents}"
+	then
+		frobulator.inf "Attaching to background session" "[ ${id_session} ]"
+
+		"${path_command}" attach "${id_session_short}"
+	else
+		frobulator.inf "Resuming session" "[ ${id_session} ]"
+
+		"${path_command}" --dangerously-skip-permissions --resume "${id_session}"
+	fi
 
 }
