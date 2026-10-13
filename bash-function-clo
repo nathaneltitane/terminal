@@ -4,12 +4,6 @@
 
 # clo ──────────────────────────────────────────────────────────────────────────
 
-#!/bin/bash
-
-# loaded by "${HOME}"/.local/bin/bash-functions
-
-# clo ──────────────────────────────────────────────────────────────────────────
-
 clo () {
 
 	local path_command
@@ -20,6 +14,9 @@ clo () {
 	local id_session
 	local id_session_short
 	local output_agents
+	local count_session
+
+	# set before the help text - it is named there
 
 	name_command="claude"
 
@@ -86,7 +83,9 @@ clo () {
 
 	output_agents="$("${path_command}" agents --json 2>"${sink}")"
 
-	if grep --quiet --fixed-strings "${id_session}" <<< "${output_agents}"
+	count_session="$(grep --count --fixed-strings "${id_session}" <<< "${output_agents}")"
+
+	if [ "${count_session}" -gt 0 ]
 	then
 		frobulator.inf "Attaching to background session" "[ ${id_session} ]"
 
