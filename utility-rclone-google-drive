@@ -181,6 +181,17 @@ directory_server_local="/media/internal"
 file_count_runs="\${HOME}"/.local/bin/rclone-google-drive-run-count
 file_lock_synchronize="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
 
+# folders left out of the sync
+# Books - too large - LLM - live claude state and login token - RClone - this sync's own login token
+# Music - empty on both sides - music lives on the external drive - bisync refuses an empty history
+
+list_directories_excluded=(
+${TAB}Books
+${TAB}LLM
+${TAB}Music
+${TAB}RClone
+)
+
 rclone_transfer () {
 
 ${TAB}command_rclone=/usr/bin/rclone
@@ -203,26 +214,25 @@ ${TAB}list_arguments_extra=("\${@}")
 
 ${TAB}command_transfer=()
 
-${TAB}command_transfer+=(\${command_rclone})
-${TAB}command_transfer+=(\${mode_synchronization})
-${TAB}command_transfer+=(\${path_source})
-${TAB}command_transfer+=(\${path_destination})
+${TAB}command_transfer+=("\${command_rclone}")
+${TAB}command_transfer+=("\${mode_synchronization}")
+${TAB}command_transfer+=("\${path_source}")
+${TAB}command_transfer+=("\${path_destination}")
 ${TAB}command_transfer+=(--compare size,modtime,checksum)
-${TAB}command_transfer+=(--checkers \${count_checkers})
+${TAB}command_transfer+=(--checkers "\${count_checkers}")
 ${TAB}command_transfer+=(--create-empty-src-dirs)
 ${TAB}command_transfer+=(--drive-acknowledge-abuse)
 ${TAB}command_transfer+=(--drive-skip-dangling-shortcuts)
 ${TAB}command_transfer+=(--drive-skip-gdocs)
 ${TAB}command_transfer+=(--drive-skip-shortcuts)
 ${TAB}command_transfer+=(--fix-case)
-${TAB}command_transfer+=(--max-lock \${duration_lock_maximum}s)
+${TAB}command_transfer+=(--max-lock "\${duration_lock_maximum}s")
 ${TAB}command_transfer+=(--metadata)
 ${TAB}command_transfer+=(--exclude '.Trash-*/**')
-${TAB}command_transfer+=(--modify-window \${duration_window_modify}s)
-${TAB}command_transfer+=(--multi-thread-streams \${count_streams})
+${TAB}command_transfer+=(--modify-window "\${duration_window_modify}s")
+${TAB}command_transfer+=(--multi-thread-streams "\${count_streams}")
 ${TAB}command_transfer+=(--recover)
-${TAB}command_transfer+=(--track-renames)
-${TAB}command_transfer+=(--transfers \${count_transfers})
+${TAB}command_transfer+=(--transfers "\${count_transfers}")
 ${TAB}if (( count_runs == 0 ))
 ${TAB}then
 ${TAB}${TAB}echo "Resync triggered - initial run"
@@ -234,11 +244,13 @@ ${TAB}fi
 
 ${TAB}command_transfer+=(--progress)
 ${TAB}command_transfer+=(--verbose)
-${TAB}command_transfer+=(--log-file \${file_log})
+${TAB}command_transfer+=(--log-file "\${file_log}")
 
 ${TAB}command_transfer+=("\${list_arguments_extra[@]}")
 
-${TAB}eval \${command_transfer[@]}
+${TAB}# run as built - no eval - paths and patterns passed untouched
+
+${TAB}"\${command_transfer[@]}"
 }
 
 # batch directory management
@@ -247,10 +259,18 @@ ${TAB}eval \${command_transfer[@]}
 
 synchronize () {
 
+${TAB}# lock held only while a run lasts - released and closed at its end - skipped runs close it too
+
 ${TAB}exec 200> "\${file_lock_synchronize}"
 
-${TAB}if ! flock -n 200
+${TAB}status_lock=0
+
+${TAB}flock -n 200 || status_lock=1
+
+${TAB}if [ "\${status_lock}" -ne 0 ]
 ${TAB}then
+${TAB}${TAB}exec 200>&-
+
 ${TAB}${TAB}echo "Synchronize already running - skipping"
 ${TAB}${TAB}return 0
 ${TAB}fi
@@ -285,11 +305,31 @@ ${TAB})
 
 ${TAB}IFS=''
 
-${TAB}rclone_transfer bisync "\${directory_server_cloud}/" "\${directory_server_local}/" --max-depth 1
+${TAB}# top level - excluded folders left out
+
+${TAB}list_arguments_excluded=()
+
+${TAB}for name_directory_excluded in "\${list_directories_excluded[@]}"
+${TAB}do
+${TAB}${TAB}list_arguments_excluded+=(--exclude "/\${name_directory_excluded}/**")
+${TAB}done
+
+${TAB}rclone_transfer bisync "\${directory_server_cloud}/" "\${directory_server_local}/" --max-depth 1 "\${list_arguments_excluded[@]}"
+
+${TAB}# excluded names spaced for matching - independent of IFS - empty here
+
+${TAB}text_directories_excluded="\$(printf ' %s ' "\${list_directories_excluded[@]}")"
 
 ${TAB}for name_directory_server in "\${list_directories_server[@]}"
 ${TAB}do
 ${TAB}${TAB}name_directory_server=\${name_directory_server##*/}
+
+${TAB}${TAB}# excluded folder - skipped
+
+${TAB}${TAB}if [[ "\${text_directories_excluded}" == *" \${name_directory_server} "* ]]
+${TAB}${TAB}then
+${TAB}${TAB}${TAB}continue
+${TAB}${TAB}fi
 
 ${TAB}${TAB}rclone_transfer bisync "\${directory_server_cloud}/\${name_directory_server}" "\${directory_server_local}/\${name_directory_server}"
 
@@ -303,6 +343,10 @@ ${TAB}echo "\${count_runs}" > "\${file_count_runs}"
 ${TAB}echo
 ${TAB}echo "Run end - count: \${count_runs}"
 ${TAB}echo
+
+${TAB}flock -u 200
+
+${TAB}exec 200>&-
 }
 
 # unset directory list
@@ -404,13 +448,21 @@ FILE
 
 frobulator.complete
 
-# prepare
+# prepare - first install only
+# earlier sync state kept - a fresh resync merges both sides and brings back every file deleted since
 
-frobulator.delete "$(dirname "${file_count_runs}")" "$(basename "${file_count_runs}")"
+list_listings_bisync=("${HOME}"/.cache/rclone/bisync/*.lst)
 
-frobulator.delete "${HOME}"/.cache rclone
+if [ -e "${list_listings_bisync[0]}" ]
+then
+	frobulator.inf "Keeping sync state" "[ ${#list_listings_bisync[@]} listings // no resync ]"
+else
+	frobulator.delete "$(dirname "${file_count_runs}")" "$(basename "${file_count_runs}")"
 
-frobulator.complete
+	frobulator.delete "${HOME}"/.cache rclone
+
+	frobulator.complete
+fi
 
 # service activation
 
