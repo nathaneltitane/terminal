@@ -199,9 +199,9 @@ media () {
 
 		if [[ "${name_browser}" =~ ^(chrome|chromium|brave|vivaldi|opera) ]]
 		then
-			DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+			# exported for this function only - the shell keeps its own values
 
-			export DBUS_SESSION_BUS_ADDRESS
+			local -x DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
 
 			path_dbus_send="$(command -v dbus-send)"
 
@@ -253,6 +253,13 @@ media () {
 			if [ -n "${name_keyring}" ] && [ "${state_keyring}" = "unlocked" ]
 			then
 				name_browser="${name_browser}+${name_keyring}"
+
+				# kwallet-query is a qt program - it aborts without a display - ssh sessions have none
+
+				if [[ "${name_keyring}" == kwallet* ]] && [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ]
+				then
+					local -x QT_QPA_PLATFORM="offscreen"
+				fi
 
 			elif [ "${state_keyring}" = "locked" ]
 			then
