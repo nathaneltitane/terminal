@@ -24,6 +24,7 @@ media () {
 	local directory_origin="${PWD}"
 	local architecture_machine
 	local directory_profile
+	local state_monitor
 
 	local -a list_options_type=()
 	local -a list_options_url=()
@@ -198,11 +199,28 @@ media () {
 
 	duration_sleep=$(( RANDOM % 5 + 1 ))
 
+	# job control off while the download runs in the background - no '[1] pid' or '[1]+ Done' lines
+	# restored after - the shell keeps its own setting
+
+	state_monitor="off"
+
+	if [[ "${-}" == *m* ]]
+	then
+		state_monitor="on"
+	fi
+
+	set +m
+
+	# warnings hidden - cookie decryption and the like - the ticker stays on one line
+	# job start notice sent to the sink - yt-dlp errors still shown through descriptor 3
+
+	{
 	"${directory_binary}/yt-dlp"									\
 		--remote-components		"ejs:github"				\
 		--js-runtimes			"deno:${directory_binary}/deno"	\
 		--ffmpeg-location		"/usr/bin/ffmpeg"			\
 		--quiet												\
+		--no-warnings										\
 		--no-update											\
 		--ignore-errors										\
 		--no-overwrites										\
@@ -212,9 +230,15 @@ media () {
 		"${list_options_site[@]}"								\
 		"${list_options_type[@]}"								\
 		"${list_options_url[@]}"									\
-		"${source_media}" &
+		"${source_media}" 2>&3 &
+	} 3>&2 2> "${sink}"
 
 	frobulator.progress download
+
+	if [ "${state_monitor}" = "on" ]
+	then
+		set -m
+	fi
 
 	list_files_media="$(find "${PWD}" -type f -iname "*.${extension_media}")"
 
