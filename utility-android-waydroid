@@ -85,6 +85,10 @@ do
 			option_register="true"
 		;;
 
+		-x|--uninstall)
+			option_uninstall="true"
+		;;
+
 		-s|--share)
 			option_share="true"
 
@@ -100,7 +104,7 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -h"
+			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -x | -h"
 			echo
 			echo -e "Note:                 Android apps on this computer - waydroid with google apps - computer folders shared into android storage."
 			echo
@@ -121,6 +125,8 @@ do
 			echo
 			echo -e "                      [ /media/internal ] [ Default ]"
 			echo
+			echo -e "-x, --uninstall       Remove waydroid and everything it installed - shared folders untouched - local images kept."
+			echo
 			echo -e "-h, --help            Show [h]elp and usage information."
 			echo
 			echo -e "'${script}'           [ Version // ${version} ]"
@@ -138,7 +144,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -h"
+			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -x | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -201,7 +207,7 @@ user_run () {
 
 # validation ───────────────────────────────────────────────────────────────────
 
-if [ "${option_install}" != "true" ] && [ "${option_ui}" != "true" ] && [ "${option_register}" != "true" ] && [ "${option_share}" != "true" ]
+if [ "${option_install}" != "true" ] && [ "${option_ui}" != "true" ] && [ "${option_register}" != "true" ] && [ "${option_share}" != "true" ] && [ "${option_uninstall}" != "true" ]
 then
 	frobulator.err "Missing operation."
 	frobulator.nul "Type './${script} -h' for help and usage information."
@@ -491,6 +497,142 @@ then
 
 	frobulator.scs "Shared into android storage" "[ ${directory_share} >> ${name_share} ]"
 	frobulator.nul "Restart waydroid so android sees the new folder."
+fi
+
+# uninstall ────────────────────────────────────────────────────────────────────
+
+if [ "${option_uninstall}" = "true" ]
+then
+	# stopped first - window, android session, container and shares
+
+	frobulator.inf "Stopping waydroid"
+
+	pkill -u "${USER}" -f "weston .*--socket=${socket_weston}" > "${sink}" 2>&1
+
+	user_run waydroid session stop > "${sink}" 2>&1
+
+	list_units_share=(/etc/systemd/system/waydroid-share-*.service)
+
+	for file_unit in "${list_units_share[@]}"
+	do
+		if [ -f "${file_unit}" ]
+		then
+			systemctl disable --now "${file_unit##*/}" > "${sink}" 2>&1
+		fi
+	done
+
+	systemctl disable --now waydroid-container.service > "${sink}" 2>&1
+
+	frobulator.complete
+
+	# shared folders - must be unmounted - anything removed below would otherwise reach the real folders
+
+	list_mounts_share="$(findmnt -rno TARGET | grep -F "${directory_storage_android}/")"
+
+	for directory_mount in ${list_mounts_share}
+	do
+		fusermount -u "${directory_mount}" > "${sink}" 2>&1
+	done
+
+	list_mounts_share="$(findmnt -rno TARGET | grep -F "${directory_storage_android}/")"
+
+	if [ -n "${list_mounts_share}" ]
+	then
+		frobulator.err "Shared folder still mounted - nothing removed" "[ ${list_mounts_share} ]"
+
+		exit 1
+	fi
+
+	# configuration - share units - docker drop-in - android ipc - repository
+
+	frobulator.inf "Removing configuration"
+
+	list_files_configuration=(
+		/etc/systemd/system/waydroid-share-*.service
+		/etc/systemd/system/waydroid-container.service.d
+		/etc/modprobe.d/binder.conf
+		/etc/modules-load.d/binder.conf
+		"${file_repository}"
+		"${file_keyring}"
+	)
+
+	for file_configuration in "${list_files_configuration[@]}"
+	do
+		if [ -e "${file_configuration}" ]
+		then
+			gio trash "${file_configuration}"
+		fi
+	done
+
+	systemctl daemon-reload
+
+	frobulator.complete
+
+	# firewall rules added for the android network
+
+	iptables -D DOCKER-USER -i waydroid0 -j ACCEPT > "${sink}" 2>&1
+	iptables -D DOCKER-USER -o waydroid0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > "${sink}" 2>&1
+
+	# android ipc driver - unloaded now when free - at next reboot otherwise
+
+	modprobe -r binder_linux > "${sink}" 2>&1
+
+	# packages - those installed together with waydroid - read from the apt history - nothing installed before it
+
+	frobulator.inf "Removing packages"
+
+	list_packages_installed=(
+		$(grep -h "^Install: .*waydroid:" /var/log/apt/history.log 2> "${sink}" |
+			sed -e 's/^Install: //' -e 's/), /)\n/g' |
+			sed -e 's/:.*//' |
+			sort -u)
+	)
+
+	list_packages_removed=()
+
+	for name_package in "${list_packages_installed[@]}" waydroid weston bindfs
+	do
+		state_package="$(dpkg-query -W -f='${Status}' "${name_package}" 2> "${sink}")"
+
+		if [ "${state_package}" = "install ok installed" ]
+		then
+			list_packages_removed+=("${name_package}")
+		fi
+	done
+
+	if [ "${#list_packages_removed[@]}" -gt 0 ]
+	then
+		DEBIAN_FRONTEND=noninteractive apt-get purge --assume-yes "${list_packages_removed[@]}" > "${sink}" 2>&1
+
+		frobulator.complete
+	fi
+
+	# data - android system and user data - app launchers - weston settings
+	# moved to the trash - recoverable until emptied
+
+	frobulator.inf "Removing waydroid data"
+
+	list_launchers=("${HOME}"/.local/share/applications/waydroid.*.desktop)
+
+	list_files_data=(
+		/var/lib/waydroid
+		"${HOME}/.local/share/waydroid"
+		"${file_weston}"
+		"${list_launchers[@]}"
+	)
+
+	for file_data in "${list_files_data[@]}"
+	do
+		if [ -e "${file_data}" ]
+		then
+			gio trash "${file_data}"
+		fi
+	done
+
+	frobulator.complete
+
+	frobulator.scs "Waydroid removed" "[ ${#list_packages_removed[@]} package(s) ]"
+	frobulator.nul "Local images kept - ${directory_images_local}"
 fi
 
 frobulator.result "${script}"
