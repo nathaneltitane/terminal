@@ -25,6 +25,12 @@ media () {
 	local architecture_machine
 	local directory_profile
 	local state_monitor
+	local path_dbus_send
+	local name_keyring
+	local state_keyring
+	local version_kwallet
+	local output_keyring
+	local name_wallet
 
 	local -a list_options_type=()
 	local -a list_options_url=()
@@ -184,6 +190,75 @@ media () {
 					break
 				fi
 			done
+		fi
+
+		# chromium based browsers - cookie key kept in the desktop keyring - kde wallet or secret service
+		# keyring found over the session bus - named for yt-dlp - works over ssh where the desktop is not detected
+		# kde wallet 6 then 5 - then the secret service - gnome keyring, keepassxc and others
+		# a locked keyring is opened at desktop login - not from a terminal - nothing found: yt-dlp detects on its own
+
+		if [[ "${name_browser}" =~ ^(chrome|chromium|brave|vivaldi|opera) ]]
+		then
+			DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+
+			export DBUS_SESSION_BUS_ADDRESS
+
+			path_dbus_send="$(command -v dbus-send)"
+
+			name_keyring=""
+			state_keyring="unlocked"
+
+			if [ -n "${path_dbus_send}" ]
+			then
+				for version_kwallet in 6 5
+				do
+					output_keyring="$("${path_dbus_send}" --session --print-reply --dest="org.kde.kwalletd${version_kwallet}" "/modules/kwalletd${version_kwallet}" org.kde.KWallet.networkWallet 2> "${sink}")"
+
+					if [ -n "${output_keyring}" ]
+					then
+						# reply line: string "kdewallet"
+
+						name_wallet="${output_keyring##*string \"}"
+						name_wallet="${name_wallet%\"*}"
+
+						output_keyring="$("${path_dbus_send}" --session --print-reply --dest="org.kde.kwalletd${version_kwallet}" "/modules/kwalletd${version_kwallet}" org.kde.KWallet.isOpen string:"${name_wallet}" 2> "${sink}")"
+
+						name_keyring="kwallet${version_kwallet}"
+
+						if [[ "${output_keyring}" != *"boolean true"* ]]
+						then
+							state_keyring="locked"
+						fi
+
+						break
+					fi
+				done
+
+				if [ -z "${name_keyring}" ]
+				then
+					output_keyring="$("${path_dbus_send}" --session --print-reply --dest=org.freedesktop.secrets /org/freedesktop/secrets/aliases/default org.freedesktop.DBus.Properties.Get string:org.freedesktop.Secret.Collection string:Locked 2> "${sink}")"
+
+					if [ -n "${output_keyring}" ]
+					then
+						name_keyring="gnomekeyring"
+
+						if [[ "${output_keyring}" == *"boolean true"* ]]
+						then
+							state_keyring="locked"
+						fi
+					fi
+				fi
+			fi
+
+			if [ -n "${name_keyring}" ] && [ "${state_keyring}" = "unlocked" ]
+			then
+				name_browser="${name_browser}+${name_keyring}"
+
+			elif [ "${state_keyring}" = "locked" ]
+			then
+				frobulator.wrn "Browser cookies locked" "[ ${name_keyring} ]"
+				frobulator.nul "Log in to the desktop once to unlock the keyring - downloading without a signed in session."
+			fi
 		fi
 
 		if [ -n "${name_browser}" ]
