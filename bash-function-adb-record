@@ -20,9 +20,11 @@ adb_record () {
 
 	file_recording="recording-${date_recording}.mp4"
 
-	adb shell screenrecord /sdcard/"${file_recording}" &
+	# recording started in the background - no job notices - stopped on enter
 
-	id_process_record=$!
+	frobulator.background -- adb shell screenrecord /sdcard/"${file_recording}"
+
+	id_process_record="${frobulator_return[0]}"
 
 	read -r -p 'Press enter to stop recording...'
 

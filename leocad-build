@@ -186,9 +186,7 @@ frobulator.complete continue "Cleanup trap failure" "[ ${directory_build} ]"
 
 command_clone="git clone --quiet"
 
-frobulator.silence "${command_clone} '${url_source}' '${directory_build}'" &
-
-frobulator.progress "clone"
+frobulator.background "clone" -- frobulator.silence "${command_clone} '${url_source}' '${directory_build}'"
 
 frobulator.complete halt "Clone failure" "[ ${url_source} ]"
 
@@ -206,9 +204,7 @@ frobulator.complete halt "Unable to configure project" "[ ${application} ]"
 
 command_build="make -j${count_processors}"
 
-frobulator.log "${command_build}" &
-
-frobulator.progress "build"
+frobulator.background "build" -- frobulator.silence log "${command_build}"
 
 frobulator.complete halt "Build failure" "[ ${application} ]"
 

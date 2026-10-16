@@ -348,9 +348,7 @@ fi
 
 file_results="$(mktemp)"
 
-ssh_scan "${lan}" &
-
-frobulator.progress scan
+frobulator.background scan -- ssh_scan "${lan}"
 
 while IFS=':' read -r category address
 do

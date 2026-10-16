@@ -176,9 +176,7 @@ fi
 
 # source
 
-frobulator.silence "git clone ${url_source} ${directory_edl}" &
-
-frobulator.progress "clone"
+frobulator.background "clone" -- frobulator.silence "git clone ${url_source} ${directory_edl}"
 
 frobulator.complete
 
@@ -195,9 +193,7 @@ fi
 
 # loaders submodule
 
-frobulator.silence "git submodule update --init --recursive" &
-
-frobulator.progress "update" "[ submodules ]"
+frobulator.background "update" "[ submodules ]" -- frobulator.silence "git submodule update --init --recursive"
 
 frobulator.complete
 
@@ -205,9 +201,7 @@ frobulator.complete
 
 chmod a+rx install-linux-edl-drivers.sh
 
-frobulator.log "bash install-linux-edl-drivers.sh" &
-
-frobulator.progress "install" "[ drivers ]"
+frobulator.background "install" "[ drivers ]" -- frobulator.silence log "bash install-linux-edl-drivers.sh"
 
 frobulator.complete halt "Unable to install drivers" "[ ${process} ]"
 
@@ -215,9 +209,7 @@ frobulator.complete
 
 # python dependencies
 
-frobulator.log "pip3 install -r requirements.txt --break-system-packages" &
-
-frobulator.progress "install" "[ dependencies ]"
+frobulator.background "install" "[ dependencies ]" -- frobulator.silence log "pip3 install -r requirements.txt --break-system-packages"
 
 frobulator.complete halt "Unable to install dependencies" "[ ${process} ]"
 
@@ -229,9 +221,7 @@ frobulator.complete
 
 export CFLAGS="-Wno-int-conversion"
 
-frobulator.log "pip3 install -U . --break-system-packages" &
-
-frobulator.progress "install"
+frobulator.background "install" -- frobulator.silence log "pip3 install -U . --break-system-packages"
 
 status="${?}"
 

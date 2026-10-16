@@ -188,12 +188,10 @@ do
 		frobulator.delete "${name_project}"
 	fi
 
-	git clone				\
+	frobulator.background "clone" "[ ${name_project} ]" -- git clone				\
 		--quiet				\
 		--depth "${depth_clone}"	\
-							"${url_github}"/"${name_user}"/"${name_project}" &
-
-	frobulator.progress "clone" "[ ${name_project} ]"
+							"${url_github}"/"${name_user}"/"${name_project}"
 
 done
 

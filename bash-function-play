@@ -63,12 +63,15 @@ play () {
 
 	index_frame=0
 
-	mpv					\
-		--no-video		\
-		--really-quiet	\
-						"${file_audio}" < "${sink}" > "${sink}" 2>&1 &
+	# player started in the background - no job notices - ticker drawn below while it plays
 
-	id_process_player=$!
+	frobulator.background --	\
+		mpv						\
+			--no-video			\
+			--really-quiet		\
+								"${file_audio}" < "${sink}" > "${sink}" 2>&1
+
+	id_process_player="${frobulator_return[0]}"
 
 	while [ -d /proc/"${id_process_player}" ]
 	do

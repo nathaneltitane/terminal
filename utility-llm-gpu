@@ -351,9 +351,7 @@ frobulator.service activate "${service}"
 
 # model
 
-frobulator.silence "ollama pull ${model}" &
-
-frobulator.progress pull
+frobulator.background pull -- frobulator.silence "ollama pull ${model}"
 
 frobulator.complete halt "Unable to pull model" "[ ${model} ]"
 

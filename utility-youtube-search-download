@@ -558,13 +558,11 @@ then
 
 		# download
 
-		youtube_download	\
+		frobulator.background "download" -- youtube_download	\
 			"${url}"		\
 			"${artist}"		\
 			"${title}"		\
-							"${filename}" &
-
-		frobulator.progress "download"
+							"${filename}"
 
 		echo
 

@@ -152,8 +152,6 @@ frobulator.download "${url_archive}" "${directory_download}"
 
 # extract
 
-frobulator.silence "${output_extract}" &
-
-frobulator.progress "extract"
+frobulator.background "extract" -- frobulator.silence "${output_extract}"
 
 frobulator.scs "Done."
