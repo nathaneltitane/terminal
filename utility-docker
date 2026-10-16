@@ -206,11 +206,11 @@ container_prepare () {
 
 	if [ -n "$(docker container ls --all --quiet --filter "name=^${name_container}$")" ]
 	then
-		frobulator.log "docker stop ${name_container}"
+		frobulator.silence log "docker stop ${name_container}"
 
 		frobulator.track
 
-		frobulator.log "docker rm -f ${name_container}"
+		frobulator.silence log "docker rm -f ${name_container}"
 
 		frobulator.track
 	fi

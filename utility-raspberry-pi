@@ -400,9 +400,7 @@ checksum_existing="$(sha256sum "${file_archive_image}" 2> "${sink}" | cut -d ' '
 
 if [ ! -f "${file_archive_image}" ] || [ "${checksum_existing}" != "${checksum_expected}" ]
 then
-	curl -L -o "${file_archive_image}" "${url_install}" &
-
-	frobulator.progress download "[ ${url_install} ]"
+	frobulator.background download "[ ${url_install} ]" -- curl -L -o "${file_archive_image}" "${url_install}"
 
 	checksum_actual=$(sha256sum "${file_archive_image}" | cut -d ' ' -f 1)
 

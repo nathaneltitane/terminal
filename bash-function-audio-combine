@@ -132,6 +132,50 @@ audio_combine_load () {
 	pactl set-sink-volume "${name_sink_combined}" 75%
 }
 
+audio_combine_watch_loop () {
+
+	# reconnect dropped speakers - rebuild the combined sink once they return
+	# runs from audio_combine_watch - uses its variables
+
+	pactl subscribe | while IFS= read -r line_event_audio
+	do
+		if [[ "${line_event_audio}" = *"'remove' on sink"* ]]
+		then
+			# bluetooth still reports the device connected while it drops
+
+			sleep 5
+
+			for address_bluetooth in "${list_addresses_bluetooth[@]}"
+			do
+				audio_combine_connect "${address_bluetooth}" &
+			done
+
+		elif [[ "${line_event_audio}" = *"'new' on sink"* ]]
+		then
+			sleep 2
+
+			list_sinks="$(pactl list short sinks)"
+
+			for name_sink_slave in "${list_sinks_slave[@]}"
+			do
+				if [[ "${list_sinks}" != *"	${name_sink_slave}	"* ]]
+				then
+					continue 2
+				fi
+			done
+
+			# speakers the combined sink plays to
+
+			count_outputs_combined="$(audio_combine_outputs)"
+
+			if [ "${count_outputs_combined}" -lt "${#list_sinks_slave[@]}" ]
+			then
+				audio_combine_load "${name_sink_combined}" "${list_sinks_slave[@]}"
+			fi
+		fi
+	done
+}
+
 audio_combine_watch () {
 
 	local line_event_audio
@@ -148,49 +192,11 @@ audio_combine_watch () {
 	local list_sinks
 	local name_sink_slave
 
-	(
-		pactl subscribe | while IFS= read -r line_event_audio
-		do
-			if [[ "${line_event_audio}" = *"'remove' on sink"* ]]
-			then
-				# bluetooth still reports the device connected while it drops
+	# watcher started in the background - no job notices - its process identifier kept for stopping it
 
-				sleep 5
+	frobulator.background -- audio_combine_watch_loop > "${sink}" 2>&1
 
-				for address_bluetooth in "${list_addresses_bluetooth[@]}"
-				do
-					audio_combine_connect "${address_bluetooth}" &
-				done
-
-			elif [[ "${line_event_audio}" = *"'new' on sink"* ]]
-			then
-				sleep 2
-
-				list_sinks="$(pactl list short sinks)"
-
-				for name_sink_slave in "${list_sinks_slave[@]}"
-				do
-					if [[ "${list_sinks}" != *"	${name_sink_slave}	"* ]]
-					then
-						continue 2
-					fi
-				done
-
-				# speakers the combined sink plays to
-
-				count_outputs_combined="$(audio_combine_outputs)"
-
-				if [ "${count_outputs_combined}" -lt "${#list_sinks_slave[@]}" ]
-				then
-					audio_combine_load "${name_sink_combined}" "${list_sinks_slave[@]}"
-				fi
-			fi
-		done
-	) > "${sink}" 2>&1 &
-
-	echo "${!}" > "${file_pid_watch}"
-
-	disown
+	echo "${frobulator_return[0]}" > "${file_pid_watch}"
 }
 
 audio_combine_watch_stop () {

@@ -217,9 +217,7 @@ frobulator.inf "Module blacklisted" "[ ${label_module} ]"
 
 # rebuild the initramfs
 
-frobulator.silence "update-initramfs -u" &
-
-frobulator.progress rebuild "[ initramfs ]"
+frobulator.background rebuild "[ initramfs ]" -- frobulator.silence "update-initramfs -u"
 
 frobulator.complete halt "Failed to rebuild initramfs."
 

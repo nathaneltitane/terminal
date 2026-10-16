@@ -229,15 +229,11 @@ list_actions_service+=(
 
 for action_service in ${list_actions_service[@]}
 do
-	systemctl "${action_service}" "${service}" > "${sink}" 2>&1 &
-
-	frobulator.process "Service ${action_service}" "[ ${service} ]"
+	frobulator.background quiet process "Service ${action_service}" "[ ${service} ]" -- systemctl "${action_service}" "${service}"
 
 	sleep 1
 
-	systemctl daemon-reload > "${sink}" 2>&1 &
-
-	frobulator.process "Reloading"
+	frobulator.background quiet process "Reloading" -- systemctl daemon-reload
 
 	sleep 1
 done

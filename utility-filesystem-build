@@ -477,7 +477,7 @@ image_build () {
 													"${parameters}"
 	"
 
-	frobulator.log ${command_image_build}
+	frobulator.silence log ${command_image_build}
 
 }
 
@@ -498,7 +498,7 @@ image_archive () {
 													*
 	"
 
-	frobulator.log ${command_image_archive}
+	frobulator.silence log ${command_image_archive}
 
 	cp "${directory_build}"/"${archive}" "${HOME}"/"${archive}"
 
@@ -542,12 +542,8 @@ directory_build=${frobulator_return[@]}
 
 frobulator.trap "${directory_build}"
 
-image_build &
+frobulator.background "build" -- image_build
 
-frobulator.progress "build"
-
-image_archive &
-
-frobulator.progress "archive"
+frobulator.background "archive" -- image_archive
 
 frobulator.scs "Done"

@@ -909,9 +909,7 @@ elif [ "${option_mirror}" = "true" ]
 then
 	frobulator.inf "Mirroring" "[ ${url_mirror} ]"
 
-	gutenberg_mirror &
-
-	frobulator.progress "download" "[ ${directory_mirror} ]"
+	frobulator.background "download" "[ ${directory_mirror} ]" -- gutenberg_mirror
 fi
 
 if [ "${option_process}" = "true" ]

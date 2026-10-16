@@ -683,13 +683,9 @@ list=()
 
 if [ "${operation}" = "mirror" ]
 then
-	index_size "${from}" "${list_sizes_from}" &
+	frobulator.background index "[ from ]" -- index_size "${from}" "${list_sizes_from}"
 
-	frobulator.progress index "[ from ]"
-
-	index_size "${to}" "${list_sizes_to}" &
-
-	frobulator.progress index "[ to ]"
+	frobulator.background index "[ to ]" -- index_size "${to}" "${list_sizes_to}"
 
 	mirror_plan true
 
@@ -794,13 +790,9 @@ fi
 
 # index directories
 
-index "${from}" "${list_from}" &
+frobulator.background index "[ from ]" -- index "${from}" "${list_from}"
 
-frobulator.progress index "[ from ]"
-
-index "${to}" "${list_to}" &
-
-frobulator.progress index "[ to ]"
+frobulator.background index "[ to ]" -- index "${to}" "${list_to}"
 
 # determine changes
 
