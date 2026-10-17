@@ -4,10 +4,128 @@
 
 # music mirror ─────────────────────────────────────────────────────────────────
 
+music_mirror_match () {
+
+	# renamed folder on the external drive - new name of a device folder - empty when none
+	# 1 - CD NN and DISC NN alike - same number
+	# 2 - parent folder name in front of the old name
+	# 3 - a single folder whose name starts or ends with the old name
+
+	local directory_external="${1}"
+	local name_folder="${2}"
+	local name_parent="${3}"
+
+	local number_disc
+	local name_candidate
+	local directory_candidate
+
+	local -a list_candidates=()
+
+	if [[ "${name_folder}" =~ ^(CD|DISC)[[:space:]]*0*([0-9]+)$ ]]
+	then
+		number_disc="${BASH_REMATCH[2]}"
+
+		for directory_candidate in "${directory_external}"/*/
+		do
+			name_candidate="$(basename -- "${directory_candidate}")"
+
+			if [[ "${name_candidate}" =~ ^(CD|DISC)[[:space:]]*0*([0-9]+)$ ]] && [ "${BASH_REMATCH[2]}" = "${number_disc}" ]
+			then
+				list_candidates+=("${name_candidate}")
+			fi
+		done
+
+		if [ "${#list_candidates[@]}" -eq 1 ]
+		then
+			echo "${list_candidates[0]}"
+
+			return 0
+		fi
+	fi
+
+	if [ -n "${name_parent}" ] && [ -d "${directory_external}/${name_parent} ${name_folder}" ]
+	then
+		echo "${name_parent} ${name_folder}"
+
+		return 0
+	fi
+
+	list_candidates=()
+
+	for directory_candidate in "${directory_external}/${name_folder} "*/ "${directory_external}/"*" ${name_folder}"/
+	do
+		if [ -d "${directory_candidate}" ]
+		then
+			list_candidates+=("$(basename -- "${directory_candidate}")")
+		fi
+	done
+
+	if [ "${#list_candidates[@]}" -eq 1 ]
+	then
+		echo "${list_candidates[0]}"
+	fi
+}
+
+music_mirror_rename () {
+
+	# device folders renamed to their external drive names - top down - every depth
+	# executing: renamed on the device - files kept - only differences copied by the mirror afterwards
+	# dry run: renames listed - deeper folders checked under their future name
+	# runs from music-mirror - uses its option_execute and list_paths_renamed
+
+	local directory_external="${1}"
+	local directory_device="${2}"
+	local path_relative="${3}"
+
+	local directory_folder
+	local name_folder
+	local name_parent
+	local name_renamed
+
+	name_parent="$(basename -- "${directory_external}")"
+
+	for directory_folder in "${directory_device}"/*/
+	do
+		if [ ! -d "${directory_folder}" ]
+		then
+			continue
+		fi
+
+		name_folder="$(basename -- "${directory_folder}")"
+
+		if [ -d "${directory_external}/${name_folder}" ]
+		then
+			music_mirror_rename "${directory_external}/${name_folder}" "${directory_device}/${name_folder}" "${path_relative:+${path_relative}/}${name_folder}"
+
+			continue
+		fi
+
+		name_renamed="$(music_mirror_match "${directory_external}" "${name_folder}" "${name_parent}")"
+
+		if [ -z "${name_renamed}" ]
+		then
+			continue
+		fi
+
+		frobulator.inf "Renamed on external drive" "[ '${path_relative:+${path_relative}/}${name_folder}' >> '${name_renamed}' ]"
+
+		if [ "${option_execute}" = "true" ] && [ ! -e "${directory_device}/${name_renamed}" ]
+		then
+			mv -- "${directory_device}/${name_folder}" "${directory_device}/${name_renamed}"
+
+			music_mirror_rename "${directory_external}/${name_renamed}" "${directory_device}/${name_renamed}" "${path_relative:+${path_relative}/}${name_renamed}"
+		else
+			list_paths_renamed+=("${path_relative:+${path_relative}/}${name_folder}")
+
+			music_mirror_rename "${directory_external}/${name_renamed}" "${directory_device}/${name_folder}" "${path_relative:+${path_relative}/}${name_folder}"
+		fi
+	done
+}
+
 music-mirror () {
 
-	# mirror external drive music to every reachable kde connect device - phone, tablet, note, then the others
-	# folders renamed on the external drive are followed - '<parent> <old name>' first, then a single name ending in it
+	# mirror external drive music to every reachable kde connect device - priority devices first, then the others
+	# folders renamed on the external drive are renamed on the device first - every depth - see music_mirror_match
 	# folder by folder - for the folders each device keeps:
 	# a folder's subfolders on the device are each mirrored - or the folder itself if it has none
 	# usage: music-mirror [utility-add-remove options: -e execute / -y skip confirmation]
@@ -30,11 +148,6 @@ music-mirror () {
 	local path_kdeconnect
 	local path_qdbus
 	local line_directory
-	local path_source
-	local path_parent
-	local name_folder
-	local name_renamed
-	local directory_renamed
 	local option_execute="false"
 	local option
 
@@ -45,8 +158,9 @@ music-mirror () {
 	local -a list_paths_relative=()
 	local -a list_directories_device=()
 	local -a list_directories_ordered=()
-	local -a list_candidates_renamed=()
 	local -a list_options=("${@}")
+	local -a list_paths_renamed=()
+	local text_paths_renamed
 
 	if [ ! -d "${directory_music_external}" ]
 	then
@@ -84,7 +198,7 @@ music-mirror () {
 		return 1
 	fi
 
-	# order: phone, tablet, note - then the others as listed
+	# order: priority device names first - then the others as listed
 
 	for name_priority in phone tablet note
 	do
@@ -200,6 +314,14 @@ music-mirror () {
 
 		frobulator.inf "Music folder" "[ ${directory_music_device#"${directory_mount}"/} ]"
 
+		# renames first - the mirror then finds the device folders under their new names
+
+		list_paths_renamed=()
+
+		music_mirror_rename "${directory_music_external}" "${directory_music_device}" ""
+
+		text_paths_renamed="$(printf ' |%s| ' "${list_paths_renamed[@]}")"
+
 		# folder list: subfolders kept on the device or the folder itself when it has none
 
 		for directory_folder_device in "${directory_music_device}"/*/
@@ -221,63 +343,23 @@ music-mirror () {
 
 		for path_relative in "${list_paths_relative[@]}"
 		do
-			path_source="${path_relative}"
-
-			# folder renamed on the external drive - new name searched next to the old one
-
 			if [ ! -d "${directory_music_external}/${path_relative}" ]
 			then
-				name_folder="${path_relative##*/}"
-				path_parent=""
-				name_renamed=""
+				# dry run - renamed folders mirrored once the renames are executed
 
-				if [ "${path_relative}" != "${name_folder}" ]
+				if [[ "${text_paths_renamed}" == *" |${path_relative}| "* ]] || [[ "${text_paths_renamed}" == *" |${path_relative%/*}| "* ]]
 				then
-					path_parent="${path_relative%/*}"
-				fi
-
-				# parent name in front of the old name - TRACKS becomes STEYOYOKE TRACKS
-
-				if [ -n "${path_parent}" ] && [ -d "${directory_music_external}/${path_parent}/${path_parent##*/} ${name_folder}" ]
-				then
-					name_renamed="${path_parent##*/} ${name_folder}"
+					frobulator.inf "Mirrored after the rename" "[ '${path_relative}' ]"
 				else
-
-					# otherwise a single folder whose name ends with the old name
-
-					list_candidates_renamed=("${directory_music_external}/${path_parent:+${path_parent}/}"*" ${name_folder}"/)
-
-					if [ "${#list_candidates_renamed[@]}" -eq 1 ] && [ -d "${list_candidates_renamed[0]}" ]
-					then
-						name_renamed="$(basename -- "${list_candidates_renamed[0]}")"
-					fi
-				fi
-
-				if [ -z "${name_renamed}" ]
-				then
 					frobulator.wrn "Skipped - not on external drive" "[ '${path_relative}' ]"
-
-					continue
 				fi
 
-				path_source="${path_parent:+${path_parent}/}${name_renamed}"
-				directory_renamed="${directory_music_device}/${path_source}"
-
-				frobulator.inf "Renamed on external drive" "[ '${path_relative}' >> '${path_source}' ]"
-
-				# device folder renamed too when executing - its files are kept - only differences are copied
-
-				if [ "${option_execute}" = "true" ] && [ ! -e "${directory_renamed}" ]
-				then
-					mv -- "${directory_music_device}/${path_relative}" "${directory_renamed}"
-
-					path_relative="${path_source}"
-				fi
+				continue
 			fi
 
-			frobulator.fwd "Mirroring" "[ '${path_source}' ]"
+			frobulator.fwd "Mirroring" "[ '${path_relative}' ]"
 
-			bash "${path_utility}" -f "${directory_music_external}/${path_source}" -t "${directory_music_device}/${path_relative}" -m "${list_options[@]}"
+			bash "${path_utility}" -f "${directory_music_external}/${path_relative}" -t "${directory_music_device}/${path_relative}" -m "${list_options[@]}"
 		done
 	done
 }
