@@ -89,6 +89,19 @@ do
 			option_uninstall="true"
 		;;
 
+		-k|--keyboard)
+			option_keyboard="true"
+
+			# layout optional - taken from the desktop keyboard when the next argument is another option
+
+			if [ -n "${2}" ] && [[ "${2}" != -* ]]
+			then
+				name_layout="${2}"
+
+				shift
+			fi
+		;;
+
 		-s|--share)
 			option_share="true"
 
@@ -104,7 +117,7 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -x | -h"
+			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -k [Layout] | -x | -h"
 			echo
 			echo -e "Note:                 Android apps on this computer - waydroid with google apps - computer folders shared into android storage."
 			echo
@@ -125,6 +138,11 @@ do
 			echo
 			echo -e "                      [ /media/internal ] [ Default ]"
 			echo
+			echo -e "-k, --keyboard        Set the android physical [k]eyboard layout - on-screen keyboard hidden while typing."
+			echo
+			echo -e "                      [ desktop keyboard layout ] [ Default ]"
+			echo -e "                      [ us | gb | ca | fr | de | es | it | pt | br | be | ch | se | no | dk | fi | ru ]"
+			echo
 			echo -e "-x, --uninstall       Remove waydroid and everything it installed - shared folders untouched - local images kept."
 			echo
 			echo -e "-h, --help            Show [h]elp and usage information."
@@ -144,7 +162,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -x | -h"
+			echo -e "Usage: ./${script} -i | -u | -r | -s [Directory] | -k [Layout] | -x | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -207,7 +225,7 @@ user_run () {
 
 # validation ───────────────────────────────────────────────────────────────────
 
-if [ "${option_install}" != "true" ] && [ "${option_ui}" != "true" ] && [ "${option_register}" != "true" ] && [ "${option_share}" != "true" ] && [ "${option_uninstall}" != "true" ]
+if [ "${option_install}" != "true" ] && [ "${option_ui}" != "true" ] && [ "${option_register}" != "true" ] && [ "${option_share}" != "true" ] && [ "${option_uninstall}" != "true" ] && [ "${option_keyboard}" != "true" ]
 then
 	frobulator.err "Missing operation."
 	frobulator.nul "Type './${script} -h' for help and usage information."
@@ -497,6 +515,110 @@ then
 
 	frobulator.scs "Shared into android storage" "[ ${directory_share} >> ${name_share} ]"
 	frobulator.nul "Restart waydroid so android sees the new folder."
+fi
+
+# keyboard ─────────────────────────────────────────────────────────────────────
+
+if [ "${option_keyboard}" = "true" ]
+then
+	# desktop keyboard layout - first one listed by the x keyboard settings
+
+	if [ -z "${name_layout}" ]
+	then
+		text_layout="$(user_run setxkbmap -query 2> "${sink}" | grep -m 1 '^layout:')"
+		text_layout="${text_layout#layout:}"
+		text_layout="${text_layout// /}"
+
+		name_layout="${text_layout%%,*}"
+	fi
+
+	# desktop layout code to the android keyboard layout name
+
+	declare -A layouts_android=(
+		[us]="english_us"
+		[gb]="english_uk"
+		[ca]="french_ca"
+		[fr]="french"
+		[de]="german"
+		[es]="spanish"
+		[it]="italian"
+		[pt]="portuguese"
+		[br]="brazilian"
+		[be]="belgian"
+		[ch]="swiss_german"
+		[se]="swedish"
+		[no]="norwegian"
+		[dk]="danish"
+		[fi]="finnish"
+		[ru]="russian"
+	)
+
+	name_layout_android="${layouts_android[${name_layout}]}"
+
+	if [ -z "${name_layout_android}" ]
+	then
+		frobulator.err "Keyboard layout not supported" "[ ${name_layout:-none} ]"
+
+		exit 1
+	fi
+
+	frobulator.inf "Setting android keyboard layout" "[ ${name_layout} // ${name_layout_android} ]"
+
+	# android stopped - its input settings are read at start - written back on change only
+
+	user_run waydroid session stop > "${sink}" 2>&1
+
+	frobulator.complete
+
+	# waydroid keyboard - device vendor 1 product 1 - plain xml read as well as binary xml
+
+	directory_system_android="${HOME}/.local/share/waydroid/data/system"
+
+	content_keyboard=$(cat <<- FILE
+	<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+	<input-manager-state>
+	  <input-devices>
+	    <input-device descriptor="vendor:1,product:1">
+	      <keyboard-layout descriptor="com.android.inputdevices/com.android.inputdevices.InputDeviceReceiver/keyboard_layout_${name_layout_android}" current="true" />
+	    </input-device>
+	  </input-devices>
+	</input-manager-state>
+	FILE
+	)
+
+	frobulator.write write "${content_keyboard}" "${directory_system_android}" input-manager-state.xml
+
+	frobulator.complete
+
+	# android system user owns it
+
+	chown 1000:1000 "${directory_system_android}/input-manager-state.xml"
+	chmod 0600 "${directory_system_android}/input-manager-state.xml"
+
+	frobulator.complete
+
+	# android started again in the open window - on-screen keyboard hidden while a physical keyboard types
+
+	user_run env WAYLAND_DISPLAY="${socket_weston}" waydroid show-full-ui > "${sink}" 2>&1 &
+
+	for (( count_wait = 0 ; count_wait < 60 ; count_wait ++ ))
+	do
+		state_boot="$(waydroid shell -- getprop sys.boot_completed < "${sink}" 2> "${sink}")"
+
+		if [ "${state_boot}" = "1" ]
+		then
+			break
+		fi
+
+		sleep 3
+	done
+
+	waydroid shell -- settings put secure show_ime_with_hard_keyboard 0 < "${sink}" > "${sink}" 2>&1
+
+	frobulator.complete
+
+	frobulator.scs "Android keyboard layout set" "[ ${name_layout_android} ]"
+	frobulator.nul "The on-screen keyboard language is chosen in android settings - system - languages and input."
 fi
 
 # uninstall ────────────────────────────────────────────────────────────────────
