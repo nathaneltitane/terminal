@@ -126,9 +126,11 @@ music-mirror () {
 
 	# mirror external drive music to every reachable kde connect device - priority devices first, then the others
 	# folders renamed on the external drive are renamed on the device first - every depth - see music_mirror_match
-	# folder by folder - for the folders each device keeps:
+	# internal and sd card music folders used as one library - internal storage first, then sd cards
+	# folder by folder - for the folders each device keeps - mirrored where they are:
 	# a folder's subfolders on the device are each mirrored - or the folder itself if it has none
-	# usage: music-mirror [utility-add-remove options: -e execute / -y skip confirmation]
+	# usage: music-mirror [-r] [utility-add-remove options: -e execute / -y skip confirmation]
+	# -r: full resync - each top folder on the device mirrored whole - subfolders it lacks added too
 	# without options every folder is a dry run
 
 	local directory_music_external="/media/${USER}/external/Music"
@@ -149,6 +151,7 @@ music-mirror () {
 	local path_qdbus
 	local line_directory
 	local option_execute="false"
+	local option_resync="false"
 	local option
 
 	local -a list_devices=()
@@ -158,9 +161,16 @@ music-mirror () {
 	local -a list_paths_relative=()
 	local -a list_directories_device=()
 	local -a list_directories_ordered=()
-	local -a list_options=("${@}")
+	local -a list_options=()
 	local -a list_paths_renamed=()
 	local text_paths_renamed
+	local text_folders_seen
+	local name_folder_top
+	local index_path
+
+	local -a list_directories_music_device=()
+	local -a list_directories_target=()
+	local -a list_paths_candidate=()
 
 	if [ ! -d "${directory_music_external}" ]
 	then
@@ -225,12 +235,23 @@ music-mirror () {
 
 	# dry run unless utility-add-remove is told to execute - folder renames on devices follow the same rule
 
-	for option in "${list_options[@]}"
+	# -r kept here - every other option passed on to utility-add-remove
+
+	for option in "${@}"
 	do
+		if [ "${option}" = "-r" ]
+		then
+			option_resync="true"
+
+			continue
+		fi
+
 		if [ "${option}" = "-e" ]
 		then
 			option_execute="true"
 		fi
+
+		list_options+=("${option}")
 	done
 
 	for line_device in "${list_devices_ordered[@]}"
@@ -240,6 +261,7 @@ music-mirror () {
 
 		directory_music_device=""
 		list_paths_relative=()
+		text_paths_renamed=""
 
 		frobulator.separate
 
@@ -291,7 +313,10 @@ music-mirror () {
 			fi
 		done
 
-		# first music folder holding anything is used
+		# every music folder holding anything is used - internal storage first, then sd cards
+		# one library across them: each folder is mirrored where it already is on the device
+
+		list_directories_music_device=()
 
 		for directory_candidate in "${list_directories_ordered[@]/%//Music}"
 		do
@@ -299,50 +324,89 @@ music-mirror () {
 
 			if [ -d "${directory_candidate}" ] && [ -e "${list_entries_candidate[0]}" ]
 			then
-				directory_music_device="${directory_candidate}"
-
-				break
+				list_directories_music_device+=("${directory_candidate}")
 			fi
 		done
 
-		if [ -z "${directory_music_device}" ]
+		if [ "${#list_directories_music_device[@]}" -eq 0 ]
 		then
 			frobulator.wrn "Skipped - music folder not found or empty" "[ ${name_device} ]"
 
 			continue
 		fi
 
-		frobulator.inf "Music folder" "[ ${directory_music_device#"${directory_mount}"/} ]"
+		list_directories_target=()
+		text_folders_seen=""
 
-		# renames first - the mirror then finds the device folders under their new names
-
-		list_paths_renamed=()
-
-		music_mirror_rename "${directory_music_external}" "${directory_music_device}" ""
-
-		text_paths_renamed="$(printf ' |%s| ' "${list_paths_renamed[@]}")"
-
-		# folder list: subfolders kept on the device or the folder itself when it has none
-
-		for directory_folder_device in "${directory_music_device}"/*/
+		for directory_music_device in "${list_directories_music_device[@]}"
 		do
-			list_subfolders_device=("${directory_folder_device}"*/)
+			frobulator.inf "Music folder" "[ ${directory_music_device#"${directory_mount}"/} ]"
 
-			if [ -d "${list_subfolders_device[0]}" ]
-			then
-				for directory_subfolder_device in "${list_subfolders_device[@]}"
-				do
-					list_paths_relative+=("$(basename -- "${directory_folder_device}")/$(basename -- "${directory_subfolder_device}")")
-				done
-			else
-				list_paths_relative+=("$(basename -- "${directory_folder_device}")")
-			fi
+			# renames first - the mirror then finds the device folders under their new names
+
+			list_paths_renamed=()
+
+			music_mirror_rename "${directory_music_external}" "${directory_music_device}" ""
+
+			text_paths_renamed+="$(printf ' |%s| ' "${list_paths_renamed[@]}")"
+
+			# folder list: subfolders kept on the device or the folder itself when it has none
+			# a folder already found in an earlier music folder is left out - the earlier copy is mirrored
+			# a top folder may be split across music folders - each part mirrored where it is
+
+			list_paths_candidate=()
+
+			for directory_folder_device in "${directory_music_device}"/*/
+			do
+				if [ ! -d "${directory_folder_device}" ]
+				then
+					continue
+				fi
+
+				name_folder_top="$(basename -- "${directory_folder_device}")"
+
+				list_subfolders_device=("${directory_folder_device}"*/)
+
+				if [ "${option_resync}" = "true" ]
+				then
+					list_paths_candidate+=("${name_folder_top}")
+				elif [ -d "${list_subfolders_device[0]}" ]
+				then
+					for directory_subfolder_device in "${list_subfolders_device[@]}"
+					do
+						list_paths_candidate+=("${name_folder_top}/$(basename -- "${directory_subfolder_device}")")
+					done
+				else
+					list_paths_candidate+=("${name_folder_top}")
+				fi
+			done
+
+			for path_relative in "${list_paths_candidate[@]}"
+			do
+				if [[ "${text_folders_seen}" == *" |${path_relative}| "* ]] || [[ "${text_folders_seen}" == *" |${path_relative%%/*}| "* ]] || [[ "${text_folders_seen}" == *" |${path_relative}/"* ]]
+				then
+					frobulator.wrn "Skipped - also in an earlier music folder" "[ '${path_relative}' ]"
+
+					continue
+				fi
+
+				list_paths_relative+=("${path_relative}")
+				list_directories_target+=("${directory_music_device}")
+			done
+
+			for path_relative in "${list_paths_candidate[@]}"
+			do
+				text_folders_seen+=" |${path_relative}| "
+			done
 		done
 
-		# each folder mirrored on its own from the external drive
+		# each folder mirrored on its own from the external drive - into the music folder holding it
 
-		for path_relative in "${list_paths_relative[@]}"
+		for index_path in "${!list_paths_relative[@]}"
 		do
+			path_relative="${list_paths_relative[${index_path}]}"
+			directory_music_device="${list_directories_target[${index_path}]}"
+
 			if [ ! -d "${directory_music_external}/${path_relative}" ]
 			then
 				# dry run - renamed folders mirrored once the renames are executed
