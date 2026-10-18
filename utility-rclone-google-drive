@@ -229,6 +229,8 @@ ${TAB}command_transfer+=(--fix-case)
 ${TAB}command_transfer+=(--max-lock "\${duration_lock_maximum}s")
 ${TAB}command_transfer+=(--metadata)
 ${TAB}command_transfer+=(--exclude '.Trash-*/**')
+${TAB}# git metadata left out at every depth - refs and index change on each commit - a sync between commits splits them into conflict copies
+${TAB}command_transfer+=(--exclude '.git/**')
 ${TAB}command_transfer+=(--modify-window "\${duration_window_modify}s")
 ${TAB}command_transfer+=(--multi-thread-streams "\${count_streams}")
 ${TAB}command_transfer+=(--recover)
