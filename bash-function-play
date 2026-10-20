@@ -19,6 +19,10 @@ play () {
 
 	# 'mpv' path - empty if not installed
 
+	# output starts one line below the command
+
+	echo
+
 	command_mpv="$(command -v mpv)"
 
 	if [ -z "${command_mpv}" ]

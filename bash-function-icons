@@ -11,6 +11,10 @@ icons () {
 	local directory_theme
 	local name_theme
 
+	# output starts one line below the command
+
+	echo
+
 	frobulator.require gtk-update-icon-cache
 
 	list_directories_icons=(

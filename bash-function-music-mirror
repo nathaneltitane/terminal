@@ -172,6 +172,10 @@ music-mirror () {
 	local -a list_directories_target=()
 	local -a list_paths_candidate=()
 
+	# output starts one line below the command
+
+	echo
+
 	if [ ! -d "${directory_music_external}" ]
 	then
 		frobulator.err "External music folder not found" "[ ${directory_music_external} ]"

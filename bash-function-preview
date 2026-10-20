@@ -11,6 +11,10 @@ preview () {
 	local count_lines
 	local file
 
+	# output starts one line below the command
+
+	echo
+
 	count_lines="${1}"
 
 	file="${2}"

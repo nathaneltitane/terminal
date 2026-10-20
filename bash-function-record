@@ -10,6 +10,10 @@ record () {
 	local date_recording
 	local id_window
 
+	# output starts one line below the command
+
+	echo
+
 	# window recording - needs a desktop session - not available over ssh or a console
 
 	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ]

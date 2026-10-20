@@ -13,6 +13,10 @@ list () {
 	local count_files
 	local text_types
 
+	# output starts one line below the command
+
+	echo
+
 	if [ ! -d "${directory}" ]
 	then
 		frobulator.err "Directory not found" "[ ${directory} ]"

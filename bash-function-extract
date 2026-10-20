@@ -11,6 +11,10 @@ extract () {
 	local extension
 	local archive
 
+	# output starts one line below the command
+
+	echo
+
 	list+=(
 		7zip
 		bunzip2

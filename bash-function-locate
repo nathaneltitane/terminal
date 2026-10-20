@@ -10,6 +10,10 @@ locate () {
 	local type_find
 	local query
 
+	# output starts one line below the command
+
+	echo
+
 	type_find="${1}"
 
 	query="${2}"

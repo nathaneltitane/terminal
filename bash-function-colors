@@ -11,6 +11,10 @@ colors () {
 	local number_color_background
 	local code_color_background
 
+	# output starts one line below the command
+
+	echo
+
 	list=(
 		tput
 		printf

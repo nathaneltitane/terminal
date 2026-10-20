@@ -38,6 +38,10 @@ weather () {
 
 	local -a list_arrows_wind=( ↑ ↗ → ↘ ↓ ↙ ← ↖ )
 
+	# output starts one line below the command
+
+	echo
+
 	if [ -z "$(command -v jq)" ]
 	then
 		frobulator.require jq

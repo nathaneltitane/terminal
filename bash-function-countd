@@ -6,6 +6,10 @@
 
 countd () {
 
+	# output starts one line below the command
+
+	echo
+
 	echo "$(find "${PWD}" -maxdepth 1 -type d | wc -l) directories under ${PWD}"
 
 }

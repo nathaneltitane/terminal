@@ -6,6 +6,10 @@
 
 countf () {
 
+	# output starts one line below the command
+
+	echo
+
 	echo "$(find . -type f | wc -l) files under ${PWD}"
 
 }
