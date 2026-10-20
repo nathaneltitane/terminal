@@ -35,6 +35,10 @@ media () {
 	local -a list_options_url=()
 	local -a list_options_site=()
 
+	# output starts one line below the command
+
+	echo
+
 	if [ -z "${type_media}" ]
 	then
 		frobulator.err "No type specified" "[ audio | video ]"
