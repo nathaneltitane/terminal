@@ -16,6 +16,10 @@ temperature () {
 	local degrees
 	local width_label
 
+	# output starts one line below the command
+
+	echo
+
 	if [[ -d /sys/class/thermal ]]
 	then
 		count_acpitz=0

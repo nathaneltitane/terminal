@@ -251,6 +251,10 @@ audio-combine () {
 	local status_connect
 	local status_wait
 
+	# output starts one line below the command
+
+	echo
+
 	for address_bluetooth in "${list_addresses_bluetooth[@]}"
 	do
 		list_sinks_slave+=("bluez_sink.${address_bluetooth//:/_}.a2dp_sink")

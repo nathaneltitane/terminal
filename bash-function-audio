@@ -11,6 +11,10 @@ audio () {
 	local found
 	local file
 
+	# output starts one line below the command
+
+	echo
+
 	frobulator.require ffmpeg
 
 	directory="${PWD}"

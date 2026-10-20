@@ -9,6 +9,10 @@ dimensions () {
 	local columns
 	local lines
 
+	# output starts one line below the command
+
+	echo
+
 	columns=$(tput cols)
 	lines=$(tput lines)
 
