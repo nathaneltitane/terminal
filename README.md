@@ -24,6 +24,18 @@ The following projects incorporate Terminal files in their usage:
 
 [[ Dextop // Project Page ]](https://github.com/nathaneltitane/dextop)
 
+### Uninstall:
+
+To remove what the terminal setup installed, run:
+
+```
+bash terminal -n
+```
+
+After a confirmation, it removes the shell files and functions in `~/.local/bin`, the dotfile links it made (`.bashrc`, `.bash_aliases`, `.gitconfig` ...), the storage links in `/media` and the passwordless sudo line. A default `.bashrc` is put back in place of the removed link.
+
+Kept: home directories, themes, the boot theme and every package.
+
 ### Repositories:
 
 [Frobulator](https://github.com/nathaneltitane/frobulator) to streamline the scripts and make redundant code a thing of the past.
