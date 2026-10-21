@@ -4,6 +4,15 @@
 
 frobulator="${HOME}"/.local/bin/frobulator
 
+# root shells reach the user's files through links - frobulator taken from beside them
+
+directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+
+if [ -f "${directory_shell}"/frobulator ]
+then
+	frobulator="${directory_shell}"/frobulator
+fi
+
 source "${frobulator}"
 
 # superuser ────────────────────────────────────────────────────────────────────
@@ -12,7 +21,7 @@ source "${frobulator}"
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-09-20"
+version="2026-10-21"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -616,7 +625,9 @@ then
 	color_user="$(tput setaf 3)"
 	color_reset="$(tput sgr 0)"
 
-	alias 'sudo'="sudo -p \"[ ${color_user}${USER}${color_reset} ] >_ ? \""
+	# trailing space - aliases expand after sudo as well
+
+	alias 'sudo'="sudo -p \"[ ${color_user}${USER}${color_reset} ] >_ ? \" "
 fi
 
 unset color_user color_reset command_sudo command_tput

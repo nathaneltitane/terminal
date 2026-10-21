@@ -4,7 +4,7 @@
 
 ⭐ Useful? Star the repository - it helps others find it.
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2023-01-21 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-21 ]
 
 ---
 
@@ -23,6 +23,16 @@ Regular updates are applied, and their names are modified exclusively for ease o
 The following projects incorporate Terminal files in their usage:
 
 [[ Dextop // Project Page ]](https://github.com/nathaneltitane/dextop)
+
+### Superuser:
+
+The shell setup links the superuser's dotfiles (`.bashrc`, `.bash_aliases`, `.bash_functions` ...) to the user's files in `~/.local/bin`. Each file loads frobulator and the function files from the folder behind its link, so a root shell gets every function, alias and script of the user:
+
+```
+sudo -i
+```
+
+Aliases also work after `sudo` (`sudo <alias>`). Functions need a root shell - `sudo` only runs programs.
 
 ### Uninstall:
 
@@ -68,7 +78,7 @@ Kept: home directories, themes, the boot theme and every package.
 
 ---
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2023-01-21 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-21 ]
 
 ### Enjoying Terminal? Buy me a coffee to show your appreciation!
 
