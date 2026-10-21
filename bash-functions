@@ -4,6 +4,15 @@
 
 frobulator="${HOME}"/.local/bin/frobulator
 
+# root shells reach the user's files through links - frobulator taken from beside them
+
+directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+
+if [ -f "${directory_shell}"/frobulator ]
+then
+	frobulator="${directory_shell}"/frobulator
+fi
+
 source "${frobulator}"
 
 # superuser ────────────────────────────────────────────────────────────────────
@@ -12,7 +21,7 @@ source "${frobulator}"
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-09-20"
+version="2026-10-21"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -147,7 +156,7 @@ fi
 
 # each function file next to this one holds one function and its helpers
 
-for file_function in "${HOME}"/.local/bin/bash-function-*
+for file_function in "${directory_shell}"/bash-function-*
 do
 	if [ -f "${file_function}" ]
 	then

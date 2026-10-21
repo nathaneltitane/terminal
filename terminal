@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-10-21"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -728,21 +728,25 @@ then
 
 	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
 
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-aliases       .bash_aliases
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bashrc
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-configuration .bash_configuration
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-functions     .bash_functions
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-login         .bash_login
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-logout        .bash_logout
-	frobulator.link "${HOME}"/.local/bin "${HOME}"      bash-profile       .bash_profile
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-aliases       .bash_aliases
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-configuration .bashrc
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-configuration .bash_configuration
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-functions     .bash_functions
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-login         .bash_login
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-logout        .bash_logout
+	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-profile       .bash_profile
 
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-aliases       .bash_aliases
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bashrc
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-configuration .bash_configuration
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-functions     .bash_functions
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-login         .bash_login
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-logout        .bash_logout
-	frobulator.link "${HOME}"/.local/bin "${SUDO_HOME}" bash-profile       .bash_profile
+	# superuser home - root shells load the same files through these links
+
+	directory_home_root="$(getent passwd root | cut -d ':' -f 6)"
+
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-aliases       .bash_aliases
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-configuration .bashrc
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-configuration .bash_configuration
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-functions     .bash_functions
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-login         .bash_login
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-logout        .bash_logout
+	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-profile       .bash_profile
 
 	# user running the script
 

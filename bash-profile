@@ -4,6 +4,15 @@
 
 frobulator="${HOME}"/.local/bin/frobulator
 
+# root shells reach the user's files through links - frobulator taken from beside them
+
+directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+
+if [ -f "${directory_shell}"/frobulator ]
+then
+	frobulator="${directory_shell}"/frobulator
+fi
+
 source "${frobulator}"
 
 # superuser ────────────────────────────────────────────────────────────────────
@@ -12,7 +21,7 @@ source "${frobulator}"
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-09-20"
+version="2026-10-21"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -197,8 +206,14 @@ PATH=""
 [ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
 [ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
 
-[ -d "${PREFIX}"/sbin ]      && PATH+="${PREFIX}/sbin:"
-[ -d "${PREFIX}"/bin ]       && PATH+="${PREFIX}/bin:"
+# root shells - the user's scripts from the linked files' directory
+
+[ "${directory_shell}" != "${HOME}/.local/bin" ] && PATH+="${directory_shell}:"
+
+# termux prefix only - an empty prefix would add /sbin and /bin twice
+
+[ -n "${PREFIX}" ] && [ -d "${PREFIX}"/sbin ] && PATH+="${PREFIX}/sbin:"
+[ -n "${PREFIX}" ] && [ -d "${PREFIX}"/bin ]  && PATH+="${PREFIX}/bin:"
 
 # android
 
