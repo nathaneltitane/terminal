@@ -129,9 +129,13 @@ do
 			option="all"
 		;;
 
+		-n|--uninstall)
+			option="uninstall"
+		;;
+
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -h"
+			echo -e "Usage: ./${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -166,6 +170,8 @@ do
 			echo
 			echo -e "-a, --all             Run [a]ll modules explicitly."
 			echo
+			echo -e "-n, --uninstall       Run u[n]installation of the ${script} setup - shell files, links and passwordless sudo."
+			echo
 			echo -e "-h, --help            Show [h]elp and usage information."
 			echo
 			echo -e "'${script}'           [ Version // ${version} ]"
@@ -183,7 +189,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -h"
+			echo -e "Usage: ./${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -226,6 +232,173 @@ then
 fi
 
 name_environment="${XDG_CURRENT_DESKTOP}"
+
+# uninstall ────────────────────────────────────────────────────────────────────
+
+# files and links the setup created removed - home directories, themes, boot theme and packages kept
+
+if [ "${option}" = "uninstall" ]
+then
+	frobulator.qst "Remove the ${script} setup - shell files, links and passwordless sudo? [ y / N ]"
+
+	frobulator.read reply
+
+	if [[ ! "${reply}" =~ ^[yY] ]]
+	then
+		frobulator.inf "Aborting" "[ ${option} ]"
+
+		exit 1
+	fi
+
+	# homes linked by the shell setup - user and superuser
+
+	directory_home_root="$(getent passwd root | cut -d ':' -f 6)"
+
+	list_homes=("${HOME}")
+
+	if [ -n "${directory_home_root}" ] && [ "${directory_home_root}" != "${HOME}" ]
+	then
+		list_homes+=("${directory_home_root}")
+	fi
+
+	# links only - shell dotfiles - git configuration - known files from storage
+
+	list_links=(
+		.bash_aliases
+		.bashrc
+		.bash_configuration
+		.bash_functions
+		.bash_login
+		.bash_logout
+		.bash_profile
+		.gitconfig
+		.git-credentials
+		.dns
+		.dns-dynamic
+		.modem
+		.router
+		.wifi
+	)
+
+	for directory_home in "${list_homes[@]}"
+	do
+		state_link_shell="false"
+
+		if [ -L "${directory_home}/.bashrc" ]
+		then
+			state_link_shell="true"
+		fi
+
+		for name_link in "${list_links[@]}"
+		do
+			if [ -L "${directory_home}/${name_link}" ]
+			then
+				frobulator.delete "${directory_home}" "${name_link}"
+			fi
+		done
+
+		# default shell configuration in place of the removed link only
+
+		if [ "${state_link_shell}" = "true" ] && [ -f /etc/skel/.bashrc ]
+		then
+			cp /etc/skel/.bashrc "${directory_home}/.bashrc"
+
+			chown --reference="${directory_home}" "${directory_home}/.bashrc"
+
+			frobulator.inf "Default shell configuration restored" "[ ${directory_home}/.bashrc ]"
+		fi
+	done
+
+	# shell files in the user's local bin - functions included
+
+	list_files_shell=(
+		bash-aliases
+		bash-configuration
+		bash-functions
+		bash-login
+		bash-logout
+		bash-profile
+	)
+
+	for path_function in "${HOME}"/.local/bin/bash-function-*
+	do
+		if [ -e "${path_function}" ]
+		then
+			list_files_shell+=("${path_function##*/}")
+		fi
+	done
+
+	for name_file in "${list_files_shell[@]}"
+	do
+		if [ -e "${HOME}/.local/bin/${name_file}" ]
+		then
+			frobulator.delete "${HOME}/.local/bin" "${name_file}"
+		fi
+	done
+
+	# login notice file - only while still empty as the setup left it
+
+	if [ -f "${HOME}/.hushlogin" ] && [ ! -s "${HOME}/.hushlogin" ]
+	then
+		frobulator.delete "${HOME}" .hushlogin
+	fi
+
+	# storage links - links to mounted storage only - the storage itself untouched
+
+	for path_link in /media/* "${HOME}/Downloads"
+	do
+		if [ ! -L "${path_link}" ]
+		then
+			continue
+		fi
+
+		target_link="$(readlink "${path_link}")"
+
+		case "${target_link}"
+		in
+			/mnt/*|/opt/google/*|/media/"${SUDO_USER:-${USER}}"/*)
+				frobulator.delete "${path_link%/*}" "${path_link##*/}"
+			;;
+		esac
+	done
+
+	# passwordless sudo line - replaced only when the result passes the sudoers check
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		line_sudoers="${SUDO_USER} ALL=(ALL) NOPASSWD: ALL"
+
+		count_line="$(grep -c -x -F "${line_sudoers}" /etc/sudoers)"
+
+		if [ "${count_line}" -gt 0 ]
+		then
+			file_sudoers_temporary="$(mktemp)"
+
+			grep -v -x -F "${line_sudoers}" /etc/sudoers > "${file_sudoers_temporary}"
+
+			visudo -c -q -f "${file_sudoers_temporary}"
+
+			status_sudoers="${?}"
+
+			if [ "${status_sudoers}" -eq 0 ]
+			then
+				cat "${file_sudoers_temporary}" > /etc/sudoers
+
+				frobulator.scs "Passwordless sudo removed" "[ ${SUDO_USER} ]"
+			else
+				frobulator.err "Sudoers check failed - left unchanged" "[ /etc/sudoers ]"
+			fi
+
+			rm -f "${file_sudoers_temporary}"
+		fi
+	fi
+
+	frobulator.scs "Uninstalled" "[ ${script} ]"
+
+	frobulator.inf "Kept" "[ home directories // themes // boot theme // packages ]"
+
+	exit
+fi
 
 # functions ────────────────────────────────────────────────────────────────────
 
