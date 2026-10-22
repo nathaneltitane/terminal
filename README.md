@@ -34,6 +34,8 @@ sudo -i
 
 Aliases also work after `sudo` (`sudo <alias>`). Functions need a root shell - `sudo` only runs programs.
 
+Passwordless sudo is set in its own file, `/etc/sudoers.d/<user>`, rewritten on each run so it never repeats. Lines appended to `/etc/sudoers` by earlier versions are removed once the result passes the sudoers check.
+
 ### Uninstall:
 
 To remove what the terminal setup installed, run:
@@ -42,7 +44,7 @@ To remove what the terminal setup installed, run:
 bash terminal -n
 ```
 
-After a confirmation, it removes the shell files and functions in `~/.local/bin`, the dotfile links it made (`.bashrc`, `.bash_aliases`, `.gitconfig` ...), the storage links in `/media` and the passwordless sudo line. A default `.bashrc` is put back in place of the removed link.
+After a confirmation, it removes the shell files and functions in `~/.local/bin`, the dotfile links it made (`.bashrc`, `.bash_aliases`, `.gitconfig` ...), the storage links in `/media` and passwordless sudo - its `/etc/sudoers.d` file and any lines earlier versions added to `/etc/sudoers`. A default `.bashrc` is put back in place of the removed link.
 
 Kept: home directories, themes, the boot theme and every package.
 
