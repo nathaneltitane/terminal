@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-10-21"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ then
 
 	# purge
 
-	apt purge grub* > "${sink}" 2>&1
+	apt purge --yes 'grub*' > "${sink}" 2>&1
 
 	list=(
 		grub
@@ -178,5 +178,71 @@ then
 	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
 
 	frobulator.delete /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+
+	# cleanup
+
+	# leftover grub and shim loaders on the efi partition - refind boots the kernels directly
+
+	name_distribution="$(source /etc/os-release && echo "${ID}")"
+
+	if [ -f /boot/efi/EFI/refind/refind_x64.efi ] && [ -n "${name_distribution}" ]
+	then
+		list=(
+			"${name_distribution}"
+		)
+
+		frobulator.delete /boot/efi/EFI ${list[@]}
+
+		list=()
+	fi
+
+	# shim only needed with secure boot
+
+	state_secure_boot="$(mokutil --sb-state 2> "${sink}")"
+
+	if [[ "${state_secure_boot}" = *disabled* ]]
+	then
+		apt purge --yes 'shim*' > "${sink}" 2>&1
+	fi
+
+	# firmware boot entries - distribution loaders and stale efi partition paths removed
+
+	partition_efi="$(findmnt --noheadings --output SOURCE /boot/efi)"
+	number_partition_efi="$(cat /sys/class/block/"${partition_efi##*/}"/partition 2> "${sink}")"
+	guid_partition_efi="$(lsblk --noheadings --output PARTUUID "${partition_efi}")"
+
+	mapfile -t list_entries < <(efibootmgr --verbose 2> "${sink}")
+
+	for entry in "${list_entries[@]}"
+	do
+		if [[ "${entry}" =~ ^Boot([0-9A-Fa-f]{4})[*[:space:]][[:space:]](.*)$ ]]
+		then
+			number_entry="${BASH_REMATCH[1]}"
+			label_entry="${BASH_REMATCH[2]%%$'\t'*}"
+			path_entry="${BASH_REMATCH[2]#*$'\t'}"
+
+			unset state_entry_remove
+
+			if [ "${label_entry,,}" = "${name_distribution,,}" ]
+			then
+				state_entry_remove="true"
+			fi
+
+			if [[ "${path_entry,,}" =~ ^hd\(([0-9]+),gpt,${guid_partition_efi,,} ]] &&
+			   [ "${BASH_REMATCH[1]}" != "${number_partition_efi}" ]
+			then
+				state_entry_remove="true"
+			fi
+
+			if [ "${state_entry_remove}" = "true" ]
+			then
+				frobulator.rem "Removing boot entry" "[ ${number_entry} // ${label_entry} ]"
+
+				efibootmgr --quiet --bootnum "${number_entry}" --delete-bootnum
+			fi
+		fi
+	done
+
+	unset list_entries state_entry_remove
 
 fi
