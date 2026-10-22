@@ -1,0 +1,554 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-22"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-r|--root)
+			directory_root="${2%/}"
+
+			shift
+		;;
+
+		-u|--uninstall)
+			option="uninstall"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -r [Directory] -u | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-r, --root         Specify [r]oot directory of another installed system."
+			echo
+			echo -e "                   [ / ] [ Default ]"
+			echo
+			echo -e "-u, --uninstall    Run [u]ninstall and restore the text boot."
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'        [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -r [Directory] -u | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+name_theme="refind"
+
+directory_theme="${directory_root}/usr/share/plymouth/themes/${name_theme}"
+directory_icons="/boot/efi/EFI/refind/themes/icons"
+
+file_options="${directory_root}/boot/refind_linux.conf"
+file_modules="${directory_root}/etc/initramfs-tools/modules"
+file_refind="/boot/efi/EFI/refind/refind.conf"
+
+line_refind="use_graphics_for linux"
+line_modules="# plymouth early graphics"
+
+# silent boot parameters
+
+list_parameters=(
+	splash
+	loglevel=3
+	udev.log_level=3
+	vt.global_cursor_default=0
+	systemd.show_status=auto
+)
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ -z "${option}" ]
+then
+	option="install"
+fi
+
+# functions ────────────────────────────────────────────────────────────────────
+
+# use to run commands on target system
+
+intent_run () {
+
+	if [ -n "${directory_root}" ]
+	then
+		chroot "${directory_root}" "${@}"
+	else
+		"${@}"
+	fi
+}
+
+# use to bind system mounts into target
+
+intent_mounts () {
+
+	local mode="${1}"
+	local item
+	local list_mounts=(dev dev/pts proc sys run)
+	local index_mount
+	local text_mounts
+
+	if [ -z "${directory_root}" ]
+	then
+		return
+	fi
+
+	text_mounts="$(< /proc/mounts)"
+
+	if [ "${mode}" = "bind" ]
+	then
+		for item in "${list_mounts[@]}"
+		do
+			if [[ "${text_mounts}" != *" ${directory_root}/${item} "* ]]
+			then
+				mount --bind /"${item}" "${directory_root}/${item}"
+			fi
+		done
+	else
+		# unmount in reverse
+
+		for (( index_mount = ${#list_mounts[@]} - 1; index_mount >= 0; index_mount-- ))
+		do
+			item="${list_mounts[${index_mount}]}"
+
+			if [[ "${text_mounts}" == *" ${directory_root}/${item} "* ]]
+			then
+				umount "${directory_root}/${item}"
+			fi
+		done
+	fi
+}
+
+# use to set kernel boot parameters
+
+intent_options () {
+
+	local mode="${1}"
+	local index_line
+	local line_options
+	local list_keep
+	local list_line
+	local list_option
+	local option_boot
+	local options_boot
+
+	if [ ! -f "${file_options}" ]
+	then
+		frobulator.wrn "No rEFInd boot options" "[ ${file_options} ]"
+
+		return
+	fi
+
+	mapfile -t list_line < "${file_options}"
+
+	for index_line in "${!list_line[@]}"
+	do
+		line_options="${list_line[${index_line}]}"
+
+		# standard entry only
+
+		if [[ "${line_options}" != '"Boot with standard options"'* ]]
+		then
+			continue
+		fi
+
+		options_boot="${line_options%\"}"
+		options_boot="${options_boot##*\"}"
+
+		read -r -a list_option <<< "${options_boot}"
+
+		list_keep=()
+
+		for option_boot in "${list_option[@]}"
+		do
+			if [[ " ${list_parameters[*]} " != *" ${option_boot} "* ]]
+			then
+				list_keep+=("${option_boot}")
+			fi
+		done
+
+		if [ "${mode}" = "install" ]
+		then
+			if [[ " ${list_keep[*]} " != *" quiet "* ]]
+			then
+				list_keep+=(quiet)
+			fi
+
+			list_keep+=("${list_parameters[@]}")
+		fi
+
+		list_line[${index_line}]="${line_options%\"${options_boot}\"}\"${list_keep[*]}\""
+
+		frobulator.add "Boot options" "[ ${list_keep[*]} ]"
+	done
+
+	printf '%s\n' "${list_line[@]}" > "${file_options}"
+}
+
+# use to load graphics driver early
+
+intent_modules () {
+
+	local mode="${1}"
+	local directory_card
+	local directory_driver
+	local index_line
+	local list_drivers=()
+	local list_keep=()
+	local list_line=()
+	local name_driver
+
+	if [ -f "${file_modules}" ]
+	then
+		mapfile -t list_line < "${file_modules}"
+	fi
+
+	# drop previous block
+
+	for (( index_line = 0; index_line < ${#list_line[@]}; index_line++ ))
+	do
+		if [ "${list_line[${index_line}]}" = "${line_modules}" ]
+		then
+			(( index_line++ ))
+
+			continue
+		fi
+
+		list_keep+=("${list_line[${index_line}]}")
+	done
+
+	if [ "${mode}" = "install" ]
+	then
+		# drivers of display cards
+
+		for directory_card in /sys/class/drm/card*
+		do
+			if [[ "${directory_card##*/}" == *-* ]] || [ ! -d "${directory_card}"/device/driver ]
+			then
+				continue
+			fi
+
+			directory_driver="$(cd -P "${directory_card}"/device/driver && pwd)"
+			name_driver="${directory_driver##*/}"
+
+			if [[ " ${list_drivers[*]} " != *" ${name_driver} "* ]]
+			then
+				list_drivers+=("${name_driver}")
+			fi
+		done
+
+		for name_driver in "${list_drivers[@]}"
+		do
+			list_keep+=("${line_modules}" "${name_driver}")
+
+			frobulator.add "Early graphics" "[ ${name_driver} ]"
+		done
+	fi
+
+	printf '%s\n' "${list_keep[@]}" > "${file_modules}"
+}
+
+# use to keep refind in graphics mode
+
+intent_refind () {
+
+	local mode="${1}"
+	local item
+	local list_keep=()
+	local list_line
+
+	if [ ! -f "${file_refind}" ]
+	then
+		return
+	fi
+
+	mapfile -t list_line < "${file_refind}"
+
+	for item in "${list_line[@]}"
+	do
+		if [ "${item}" != "${line_refind}" ]
+		then
+			list_keep+=("${item}")
+		fi
+	done
+
+	if [ "${mode}" = "install" ]
+	then
+		list_keep+=("${line_refind}")
+	fi
+
+	printf '%s\n' "${list_keep[@]}" > "${file_refind}"
+}
+
+# use to write plymouth theme
+
+intent_theme () {
+
+	local file_icon
+	local name_distribution
+	local name_entry
+	local value_entry
+
+	# distribution icon from refind theme
+
+	while IFS='=' read -r name_entry value_entry
+	do
+		if [ "${name_entry}" = "ID" ]
+		then
+			name_distribution="${value_entry//\"/}"
+		fi
+	done < "${directory_root}"/etc/os-release
+
+	file_icon="${directory_icons}/os_${name_distribution}.png"
+
+	if [ ! -f "${file_icon}" ]
+	then
+		file_icon="${directory_icons}/os_linux.png"
+	fi
+
+	frobulator.directory "${directory_root}"/usr/share/plymouth/themes "${name_theme}"
+
+	cp "${file_icon}" "${directory_theme}"/logo.png
+
+	chmod 644 "${directory_theme}"/logo.png
+
+	cat <<- FILE > "${directory_theme}/${name_theme}.plymouth"
+		[Plymouth Theme]
+		Name=${name_theme}
+		Description=refind background with distribution logo
+		ModuleName=script
+
+		[script]
+		ImageDir=/usr/share/plymouth/themes/${name_theme}
+		ScriptFile=/usr/share/plymouth/themes/${name_theme}/${name_theme}.script
+	FILE
+
+	cat <<- 'FILE' > "${directory_theme}/${name_theme}.script"
+		# refind banner color
+
+		Window.SetBackgroundTopColor(0.008, 0.024, 0.024);
+		Window.SetBackgroundBottomColor(0.008, 0.024, 0.024);
+
+		# centered logo
+
+		logo.image = Image("logo.png");
+		logo.sprite = Sprite(logo.image);
+		logo.sprite.SetX(Window.GetX() + Window.GetWidth() / 2 - logo.image.GetWidth() / 2);
+		logo.sprite.SetY(Window.GetY() + Window.GetHeight() / 2 - logo.image.GetHeight() / 2);
+
+		# text under logo
+
+		message.sprite = Sprite();
+
+		fun message_show (text)
+		{
+			global.message.image = Image.Text(text, 0.8, 0.8, 0.8);
+			global.message.sprite.SetImage(global.message.image);
+			global.message.sprite.SetX(Window.GetX() + Window.GetWidth() / 2 - global.message.image.GetWidth() / 2);
+			global.message.sprite.SetY(global.logo.sprite.GetY() + global.logo.image.GetHeight() + 48);
+			global.message.sprite.SetOpacity(1);
+		}
+
+		fun message_hide ()
+		{
+			global.message.sprite.SetOpacity(0);
+		}
+
+		# password prompt
+
+		fun password_show (prompt, bullets)
+		{
+			text = prompt + " ";
+
+			for (index = 0; index < bullets; index++)
+				text = text + "*";
+
+			message_show(text);
+		}
+
+		# question prompt
+
+		fun question_show (prompt, entry)
+		{
+			message_show(prompt + " " + entry);
+		}
+
+		Plymouth.SetDisplayPasswordFunction(password_show);
+		Plymouth.SetDisplayQuestionFunction(question_show);
+		Plymouth.SetDisplayNormalFunction(message_hide);
+		Plymouth.SetMessageFunction(message_show);
+	FILE
+}
+
+# update ───────────────────────────────────────────────────────────────────────
+
+frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+
+)
+
+frobulator.require ${list[@]}
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+if [ -n "${directory_root}" ] && [ ! -f "${directory_root}"/etc/os-release ]
+then
+	frobulator.err "No system found" "[ ${directory_root} ]"
+
+	exit 1
+fi
+
+intent_mounts bind
+
+if [ "${option}" = "install" ]
+then
+	frobulator.inf "Setting up silent boot" "[ ${directory_root:-/} ]"
+
+	intent_run apt-get install --yes plymouth plymouth-label > "${sink}" 2>&1
+
+	frobulator.complete halt "Package install failed" "[ plymouth ]"
+
+	intent_theme
+
+	intent_run plymouth-set-default-theme "${name_theme}"
+
+	frobulator.complete
+
+	intent_modules install
+
+	intent_options install
+
+	intent_refind install
+fi
+
+if [ "${option}" = "uninstall" ]
+then
+	frobulator.inf "Restoring text boot" "[ ${directory_root:-/} ]"
+
+	intent_run plymouth-set-default-theme --reset
+
+	frobulator.delete "${directory_root}"/usr/share/plymouth/themes "${name_theme}"
+
+	intent_modules uninstall
+
+	intent_options uninstall
+
+	# shared refind setting kept for other systems
+
+	if [ -z "${directory_root}" ]
+	then
+		intent_refind uninstall
+	fi
+fi
+
+frobulator.fwd "Updating initramfs"
+
+intent_run update-initramfs -u -k all > "${sink}" 2>&1
+
+frobulator.complete
+
+intent_mounts unbind
+
+frobulator.result "${script}"
