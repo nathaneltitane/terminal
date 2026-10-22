@@ -285,8 +285,11 @@ intent_fstab_align () {
 	local line_fstab
 	local list_field
 	local list_fstab
+	local list_header=("# <file system>" "<mount point>" "<type>" "<options>")
 	local list_width=(0 0 0 0)
 	local line_aligned
+	local pattern_header='^#[[:space:]]*<file system>'
+	local status_header
 
 	mapfile -t list_fstab < "${file_fstab}"
 
@@ -294,6 +297,11 @@ intent_fstab_align () {
 
 	for line_fstab in "${list_fstab[@]}"
 	do
+		if [[ "${line_fstab}" =~ ${pattern_header} ]]
+		then
+			status_header="found"
+		fi
+
 		if [[ "${line_fstab}" =~ ^[[:space:]]*(#|$) ]]
 		then
 			continue
@@ -310,8 +318,37 @@ intent_fstab_align () {
 		done
 	done
 
+	# header labels count too
+
+	if [ -n "${status_header}" ]
+	then
+		for index_field in 0 1 2 3
+		do
+			if [ "${#list_header[${index_field}]}" -gt "${list_width[${index_field}]}" ]
+			then
+				list_width[${index_field}]="${#list_header[${index_field}]}"
+			fi
+		done
+	fi
+
 	for line_fstab in "${list_fstab[@]}"
 	do
+		# header to column widths
+
+		if [[ "${line_fstab}" =~ ${pattern_header} ]]
+		then
+			printf -v line_aligned '%-*s   %-*s   %-*s   %-*s   %s'	\
+				"${list_width[0]}" "${list_header[0]}"					\
+				"${list_width[1]}" "${list_header[1]}"					\
+				"${list_width[2]}" "${list_header[2]}"					\
+				"${list_width[3]}" "${list_header[3]}"					\
+				"<dump> <pass>"
+
+			printf '%s\n' "${line_aligned}"
+
+			continue
+		fi
+
 		# keep comments and blank lines
 
 		if [[ "${line_fstab}" =~ ^[[:space:]]*(#|$) ]]
