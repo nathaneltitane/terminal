@@ -1,4 +1,5 @@
-timeout   5
-use_nvram false
-showtools shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
-include   themes/theme.conf
+timeout          5
+use_nvram        false
+showtools        shell, bootorder,  mok_tool, about, hidden_tags, reboot, exit, firmware, fwupdate
+include          themes/theme.conf
+use_graphics_for linux
