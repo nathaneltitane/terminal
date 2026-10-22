@@ -235,7 +235,7 @@ name_environment="${XDG_CURRENT_DESKTOP}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
-# use to remove the passwordless sudo line from /etc/sudoers - replaced only when the result passes the sudoers check
+# use to remove passwordless sudo lines from sudoers
 
 intent_sudoers_clean () {
 
@@ -272,7 +272,7 @@ intent_sudoers_clean () {
 
 # uninstall ────────────────────────────────────────────────────────────────────
 
-# files and links the setup created removed - home directories, themes, boot theme and packages kept
+# remove setup files and links
 
 if [ "${option}" = "uninstall" ]
 then
@@ -287,7 +287,7 @@ then
 		exit 1
 	fi
 
-	# homes linked by the shell setup - user and superuser
+	# user and superuser homes
 
 	directory_home_root="$(getent passwd root | cut -d ':' -f 6)"
 
@@ -298,7 +298,7 @@ then
 		list_homes+=("${directory_home_root}")
 	fi
 
-	# links only - shell dotfiles - git configuration - known files from storage
+	# setup links
 
 	list_links=(
 		.bash_aliases
@@ -334,7 +334,7 @@ then
 			fi
 		done
 
-		# default shell configuration in place of the removed link only
+		# restore default bashrc
 
 		if [ "${state_link_shell}" = "true" ] && [ -f /etc/skel/.bashrc ]
 		then
@@ -346,7 +346,7 @@ then
 		fi
 	done
 
-	# shell files in the user's local bin - functions included
+	# shell files and functions
 
 	list_files_shell=(
 		bash-aliases
@@ -373,14 +373,14 @@ then
 		fi
 	done
 
-	# login notice file - only while still empty as the setup left it
+	# empty login notice file
 
 	if [ -f "${HOME}/.hushlogin" ] && [ ! -s "${HOME}/.hushlogin" ]
 	then
 		frobulator.delete "${HOME}" .hushlogin
 	fi
 
-	# storage links - links to mounted storage only - the storage itself untouched
+	# storage links
 
 	for path_link in /media/* "${HOME}/Downloads"
 	do
@@ -399,7 +399,7 @@ then
 		esac
 	done
 
-	# passwordless sudo - own file and lines from earlier versions
+	# remove passwordless sudo
 
 	if [ -n "${SUDO_USER}" ]
 	then
@@ -752,7 +752,7 @@ then
 	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-logout        .bash_logout
 	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-profile       .bash_profile
 
-	# superuser home - root shells load the same files through these links
+	# superuser home
 
 	directory_home_root="$(getent passwd root | cut -d ':' -f 6)"
 
@@ -787,7 +787,7 @@ if [ "${option}" = "superuser" ] || [ "${option}" = "all" ]
 then
 	if [ -n "${SUDO_USER}" ]
 	then
-		# passwordless sudo in its own file - rewritten on each run so it never repeats
+		# passwordless sudo file
 
 		file_sudoers_temporary="$(mktemp)"
 
@@ -805,7 +805,7 @@ then
 
 			frobulator.scs "Passwordless sudo" "[ /etc/sudoers.d/${SUDO_USER} ]"
 
-			# lines appended to /etc/sudoers by earlier versions
+			# remove legacy sudoers lines
 
 			intent_sudoers_clean
 		else
@@ -969,7 +969,7 @@ then
 
 		# cleanup
 
-		# leftover grub and shim loaders on the efi partition - refind boots the kernels directly
+		# remove leftover efi loaders
 
 		name_distribution="$(source /etc/os-release && echo "${ID}")"
 
@@ -984,7 +984,7 @@ then
 			list=()
 		fi
 
-		# shim only needed with secure boot
+		# purge shim without secure boot
 
 		state_secure_boot="$(mokutil --sb-state 2> "${sink}")"
 
@@ -993,7 +993,7 @@ then
 			apt purge --yes 'shim*' > "${sink}" 2>&1
 		fi
 
-		# firmware boot entries - distribution loaders and stale efi partition paths removed
+		# remove stale firmware boot entries
 
 		partition_efi="$(findmnt --noheadings --output SOURCE /boot/efi)"
 		number_partition_efi="$(cat /sys/class/block/"${partition_efi##*/}"/partition 2> "${sink}")"

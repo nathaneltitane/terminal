@@ -4,7 +4,7 @@
 
 frobulator="${HOME}"/.local/bin/frobulator
 
-# root shells reach the user's files through links - frobulator taken from beside them
+# frobulator next to linked files
 
 directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 
@@ -625,7 +625,7 @@ then
 	color_user="$(tput setaf 3)"
 	color_reset="$(tput sgr 0)"
 
-	# trailing space - aliases expand after sudo as well
+	# expand aliases after sudo
 
 	alias 'sudo'="sudo -p \"[ ${color_user}${USER}${color_reset} ] >_ ? \" "
 fi
