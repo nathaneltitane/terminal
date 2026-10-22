@@ -4,7 +4,7 @@
 
 frobulator="${HOME}"/.local/bin/frobulator
 
-# root shells reach the user's files through links - frobulator taken from beside them
+# frobulator next to linked files
 
 directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 

@@ -181,7 +181,7 @@ then
 
 	# cleanup
 
-	# leftover grub and shim loaders on the efi partition - refind boots the kernels directly
+	# remove leftover efi loaders
 
 	name_distribution="$(source /etc/os-release && echo "${ID}")"
 
@@ -196,7 +196,7 @@ then
 		list=()
 	fi
 
-	# shim only needed with secure boot
+	# purge shim without secure boot
 
 	state_secure_boot="$(mokutil --sb-state 2> "${sink}")"
 
@@ -205,7 +205,7 @@ then
 		apt purge --yes 'shim*' > "${sink}" 2>&1
 	fi
 
-	# firmware boot entries - distribution loaders and stale efi partition paths removed
+	# remove stale firmware boot entries
 
 	partition_efi="$(findmnt --noheadings --output SOURCE /boot/efi)"
 	number_partition_efi="$(cat /sys/class/block/"${partition_efi##*/}"/partition 2> "${sink}")"

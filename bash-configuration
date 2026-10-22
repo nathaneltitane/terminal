@@ -4,7 +4,7 @@
 
 frobulator="${HOME}"/.local/bin/frobulator
 
-# root shells reach the user's files through links - frobulator taken from beside them
+# frobulator next to linked files
 
 directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 
@@ -395,11 +395,11 @@ PATH=""
 [ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
 [ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
 
-# root shells - the user's scripts from the linked files' directory
+# linked files directory for root shells
 
 [ "${directory_shell}" != "${HOME}/.local/bin" ] && PATH+="${directory_shell}:"
 
-# termux prefix only - an empty prefix would add /sbin and /bin twice
+# termux prefix
 
 [ -n "${PREFIX}" ] && [ -d "${PREFIX}"/sbin ] && PATH+="${PREFIX}/sbin:"
 [ -n "${PREFIX}" ] && [ -d "${PREFIX}"/bin ]  && PATH+="${PREFIX}/bin:"
