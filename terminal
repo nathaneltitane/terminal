@@ -466,7 +466,14 @@ intent_fstab_entry () {
 
 	if [ "${status_fstab}" -eq 0 ]
 	then
-		cp /etc/fstab /etc/fstab.backup
+		# original kept once per run
+
+		if [ -z "${status_fstab_backup}" ]
+		then
+			cp /etc/fstab /etc/fstab.backup
+
+			status_fstab_backup="done"
+		fi
 
 		cat "${file_fstab_temporary}" > /etc/fstab
 
