@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-10"
+version="2026-10-22"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -851,7 +851,14 @@ gutenberg_process () {
 		then
 			# nothing new - done once the download has ended
 
-			if [ -z "$(pgrep -f "${url_mirror}")" ]
+			if [ -n "${pid_mirror}" ] && [ -d /proc/"${pid_mirror}" ]
+			then
+				status_mirror="running"
+			else
+				unset status_mirror
+			fi
+
+			if [ -z "$(pgrep -f "${url_mirror}")" ] && [ -z "${status_mirror}" ]
 			then
 				frobulator.scs "Download finished - all books processed"
 
@@ -900,6 +907,10 @@ then
 	frobulator.inf "Mirroring in the background" "[ ${url_mirror} ]"
 
 	gutenberg_mirror &
+
+	# mirror alive check
+
+	pid_mirror="${!}"
 
 	option_follow="true"
 
