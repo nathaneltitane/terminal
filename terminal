@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-21"
+version="2026-10-22"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -87,6 +87,10 @@ do
 			option_storage="${2}"
 
 			shift
+		;;
+
+		-m|--mounts)
+			option="mounts"
 		;;
 
 		-f|--files)
@@ -135,7 +139,7 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h"
+			echo -e "Usage: ./${script} -p | -x | -w [Type] | -m | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h"
 			echo
 			echo -e "Options:"
 			echo
@@ -149,6 +153,8 @@ do
 			echo -e "                      [ chromeos ]"
 			echo -e "                      [ android ]"
 			echo -e "                      [ removable ]"
+			echo
+			echo -e "-m, --mounts          Set up drive [m]ounts at boot."
 			echo
 			echo -e "-f, --files           Link known [f]iles from storage."
 			echo
@@ -189,7 +195,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -p | -x | -w [Type] | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h"
+			echo -e "Usage: ./${script} -p | -x | -w [Type] | -m | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -268,6 +274,208 @@ intent_sudoers_clean () {
 		rm -f "${file_sudoers_temporary}"
 	fi
 
+}
+
+# use to align fstab columns
+
+intent_fstab_align () {
+
+	local file_fstab="${1}"
+	local index_field
+	local line_fstab
+	local list_field
+	local list_fstab
+	local list_width=(0 0 0 0)
+	local line_aligned
+
+	mapfile -t list_fstab < "${file_fstab}"
+
+	# longest entry per column
+
+	for line_fstab in "${list_fstab[@]}"
+	do
+		if [[ "${line_fstab}" =~ ^[[:space:]]*(#|$) ]]
+		then
+			continue
+		fi
+
+		read -r -a list_field <<< "${line_fstab}"
+
+		for index_field in 0 1 2 3
+		do
+			if [ "${#list_field[${index_field}]}" -gt "${list_width[${index_field}]}" ]
+			then
+				list_width[${index_field}]="${#list_field[${index_field}]}"
+			fi
+		done
+	done
+
+	for line_fstab in "${list_fstab[@]}"
+	do
+		# keep comments and blank lines
+
+		if [[ "${line_fstab}" =~ ^[[:space:]]*(#|$) ]]
+		then
+			printf '%s\n' "${line_fstab}"
+
+			continue
+		fi
+
+		read -r -a list_field <<< "${line_fstab}"
+
+		printf -v line_aligned '%-*s   %-*s   %-*s   %-*s   %s %s'	\
+			"${list_width[0]}" "${list_field[0]}"						\
+			"${list_width[1]}" "${list_field[1]}"						\
+			"${list_width[2]}" "${list_field[2]}"						\
+			"${list_width[3]}" "${list_field[3]:-defaults}"			\
+			"${list_field[4]:-0}" "${list_field[5]:-0}"
+
+		printf '%s\n' "${line_aligned}"
+	done > "${file_fstab}"
+}
+
+# use to mount labeled drive at boot
+
+intent_fstab_entry () {
+
+	local label_drive="${1}"
+	local directory_mount="${2}"
+	local device_drive="/dev/disk/by-label/${1}"
+	local name_user="${SUDO_USER:-${USER}}"
+
+	local device_block
+	local entry_fstab
+	local field_device
+	local field_mount
+	local file_fstab_temporary
+	local id_group
+	local id_user
+	local line_fstab
+	local line_udev
+	local list_fstab
+	local list_keep=()
+	local list_udev
+	local name_entry
+	local options_mount
+	local status_block
+	local status_fstab
+	local type_drive
+	local uuid_drive
+
+	if [ ! -e "${device_drive}" ]
+	then
+		frobulator.wrn "Drive not connected" "[ ${label_drive} ]"
+
+		return
+	fi
+
+	# block device behind label
+
+	for device_block in /sys/class/block/*
+	do
+		if [ /dev/"${device_block##*/}" -ef "${device_drive}" ]
+		then
+			status_block="found"
+
+			break
+		fi
+	done
+
+	if [ -z "${status_block}" ] || [ ! -f /run/udev/data/b"$(< "${device_block}"/dev)" ]
+	then
+		frobulator.err "Drive details not found" "[ ${label_drive} ]"
+
+		return 1
+	fi
+
+	# filesystem from udev database
+
+	mapfile -t list_udev < /run/udev/data/b"$(< "${device_block}"/dev)"
+
+	for line_udev in "${list_udev[@]}"
+	do
+		case "${line_udev}"
+		in
+			E:ID_FS_TYPE=*)
+				type_drive="${line_udev#*=}"
+			;;
+
+			E:ID_FS_UUID=*)
+				uuid_drive="${line_udev#*=}"
+			;;
+		esac
+	done
+
+	options_mount="users,nofail,x-systemd.device-timeout=5s"
+
+	# ownership for windows filesystems
+
+	case "${type_drive}"
+	in
+		exfat|vfat|ntfs|ntfs3)
+			while IFS=':' read -r name_entry _ id_user id_group _
+			do
+				if [ "${name_entry}" = "${name_user}" ]
+				then
+					break
+				fi
+			done < /etc/passwd
+
+			options_mount+=",exec,uid=${id_user},gid=${id_group},fmask=0022,dmask=0022,iocharset=utf8"
+		;;
+	esac
+
+	entry_fstab="UUID=${uuid_drive} ${directory_mount} ${type_drive} ${options_mount} 0 0"
+
+	# replace previous entry
+
+	mapfile -t list_fstab < /etc/fstab
+
+	for line_fstab in "${list_fstab[@]}"
+	do
+		read -r field_device field_mount _ <<< "${line_fstab}"
+
+		if [ "${field_mount}" = "${directory_mount}" ] || [ "${field_device}" = "UUID=${uuid_drive}" ] || [ "${field_device}" = "LABEL=${label_drive}" ]
+		then
+			continue
+		fi
+
+		list_keep+=("${line_fstab}")
+	done
+
+	list_keep+=("${entry_fstab}")
+
+	# new mount point only
+
+	if [ ! -d "${directory_mount}" ]
+	then
+		frobulator.directory "${directory_mount%/*}" "${directory_mount##*/}"
+	fi
+
+	# validate before replacing
+
+	file_fstab_temporary="$(mktemp)"
+
+	printf '%s\n' "${list_keep[@]}" > "${file_fstab_temporary}"
+
+	intent_fstab_align "${file_fstab_temporary}"
+
+	findmnt --verify --tab-file "${file_fstab_temporary}" > "${sink}" 2>&1
+
+	status_fstab="${?}"
+
+	if [ "${status_fstab}" -eq 0 ]
+	then
+		cp /etc/fstab /etc/fstab.backup
+
+		cat "${file_fstab_temporary}" > /etc/fstab
+
+		frobulator.scs "Drive mounted at boot" "[ ${label_drive} // ${directory_mount} ]"
+	else
+		frobulator.err "Fstab check failed - left unchanged" "[ ${label_drive} ]"
+	fi
+
+	rm -f "${file_fstab_temporary}"
 }
 
 # uninstall ────────────────────────────────────────────────────────────────────
@@ -628,6 +836,34 @@ then
 	fi
 
 	list=()
+fi
+
+# mounts
+
+if [ "${option}" = "mounts" ] || [ "${option}" = "all" ]
+then
+	if [ -f /etc/fstab ] && [ -d /run/udev/data ]
+	then
+		intent_fstab_entry internal /media/internal
+		intent_fstab_entry external /media/"${SUDO_USER:-${USER}}"/external
+
+		if [ -n "$(command -v systemctl)" ]
+		then
+			systemctl daemon-reload
+		fi
+
+		# mount now if missing
+
+		for directory_mount in /media/internal /media/"${SUDO_USER:-${USER}}"/external
+		do
+			if [[ "$(< /proc/mounts)" != *" ${directory_mount} "* ]] && [ -d "${directory_mount}" ]
+			then
+				mount "${directory_mount}" > "${sink}" 2>&1
+			fi
+		done
+
+		unset directory_mount
+	fi
 fi
 
 # files
