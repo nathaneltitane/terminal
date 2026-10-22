@@ -443,7 +443,7 @@ intent_fstab_entry () {
 		esac
 	done
 
-	options_mount="users,nofail,x-systemd.device-timeout=5s"
+	options_mount="users,nofail,x-mount.mkdir,x-systemd.device-timeout=5s"
 
 	# ownership for windows filesystems
 
@@ -888,8 +888,27 @@ if [ "${option}" = "mounts" ] || [ "${option}" = "all" ]
 then
 	if [ -f /etc/fstab ] && [ -d /run/udev/data ]
 	then
-		intent_fstab_entry internal /media/internal
-		intent_fstab_entry external /media/"${SUDO_USER:-${USER}}"/external
+		list_mounts=(
+			internal /media/internal
+			external /media/"${SUDO_USER:-${USER}}"/external
+		)
+
+		# mount points first for fstab check
+
+		for (( index_mount = 0; index_mount < ${#list_mounts[@]}; index_mount += 2 ))
+		do
+			directory_mount="${list_mounts[$(( index_mount + 1 ))]}"
+
+			if [ -e /dev/disk/by-label/"${list_mounts[${index_mount}]}" ] && [ ! -d "${directory_mount}" ]
+			then
+				frobulator.directory "${directory_mount%/*}" "${directory_mount##*/}"
+			fi
+		done
+
+		for (( index_mount = 0; index_mount < ${#list_mounts[@]}; index_mount += 2 ))
+		do
+			intent_fstab_entry "${list_mounts[${index_mount}]}" "${list_mounts[$(( index_mount + 1 ))]}"
+		done
 
 		if [ -n "$(command -v systemctl)" ]
 		then
@@ -898,15 +917,17 @@ then
 
 		# mount now if missing
 
-		for directory_mount in /media/internal /media/"${SUDO_USER:-${USER}}"/external
+		for (( index_mount = 1; index_mount < ${#list_mounts[@]}; index_mount += 2 ))
 		do
+			directory_mount="${list_mounts[${index_mount}]}"
+
 			if [[ "$(< /proc/mounts)" != *" ${directory_mount} "* ]] && [ -d "${directory_mount}" ]
 			then
 				mount "${directory_mount}" > "${sink}" 2>&1
 			fi
 		done
 
-		unset directory_mount
+		unset directory_mount index_mount list_mounts
 	fi
 fi
 
