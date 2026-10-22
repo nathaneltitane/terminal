@@ -233,6 +233,43 @@ fi
 
 name_environment="${XDG_CURRENT_DESKTOP}"
 
+# functions ────────────────────────────────────────────────────────────────────
+
+# use to remove the passwordless sudo line from /etc/sudoers - replaced only when the result passes the sudoers check
+
+intent_sudoers_clean () {
+
+	local line_sudoers="${SUDO_USER} ALL=(ALL) NOPASSWD: ALL"
+	local count_line
+	local file_sudoers_temporary
+	local status_sudoers
+
+	count_line="$(grep -c -x -F "${line_sudoers}" /etc/sudoers)"
+
+	if [ "${count_line}" -gt 0 ]
+	then
+		file_sudoers_temporary="$(mktemp)"
+
+		grep -v -x -F "${line_sudoers}" /etc/sudoers > "${file_sudoers_temporary}"
+
+		visudo -c -q -f "${file_sudoers_temporary}"
+
+		status_sudoers="${?}"
+
+		if [ "${status_sudoers}" -eq 0 ]
+		then
+			cat "${file_sudoers_temporary}" > /etc/sudoers
+
+			frobulator.scs "Passwordless sudo line removed" "[ /etc/sudoers // ${count_line} ]"
+		else
+			frobulator.err "Sudoers check failed - left unchanged" "[ /etc/sudoers ]"
+		fi
+
+		rm -f "${file_sudoers_temporary}"
+	fi
+
+}
+
 # uninstall ────────────────────────────────────────────────────────────────────
 
 # files and links the setup created removed - home directories, themes, boot theme and packages kept
@@ -362,35 +399,16 @@ then
 		esac
 	done
 
-	# passwordless sudo line - replaced only when the result passes the sudoers check
+	# passwordless sudo - own file and lines from earlier versions
 
 	if [ -n "${SUDO_USER}" ]
 	then
-		line_sudoers="${SUDO_USER} ALL=(ALL) NOPASSWD: ALL"
-
-		count_line="$(grep -c -x -F "${line_sudoers}" /etc/sudoers)"
-
-		if [ "${count_line}" -gt 0 ]
+		if [ -f /etc/sudoers.d/"${SUDO_USER}" ]
 		then
-			file_sudoers_temporary="$(mktemp)"
-
-			grep -v -x -F "${line_sudoers}" /etc/sudoers > "${file_sudoers_temporary}"
-
-			visudo -c -q -f "${file_sudoers_temporary}"
-
-			status_sudoers="${?}"
-
-			if [ "${status_sudoers}" -eq 0 ]
-			then
-				cat "${file_sudoers_temporary}" > /etc/sudoers
-
-				frobulator.scs "Passwordless sudo removed" "[ ${SUDO_USER} ]"
-			else
-				frobulator.err "Sudoers check failed - left unchanged" "[ /etc/sudoers ]"
-			fi
-
-			rm -f "${file_sudoers_temporary}"
+			frobulator.delete /etc/sudoers.d "${SUDO_USER}"
 		fi
+
+		intent_sudoers_clean
 	fi
 
 	frobulator.scs "Uninstalled" "[ ${script} ]"
@@ -399,8 +417,6 @@ then
 
 	exit
 fi
-
-# functions ────────────────────────────────────────────────────────────────────
 
 # update ───────────────────────────────────────────────────────────────────────
 
@@ -769,7 +785,35 @@ fi
 
 if [ "${option}" = "superuser" ] || [ "${option}" = "all" ]
 then
-	frobulator.write append "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" /etc sudoers
+	if [ -n "${SUDO_USER}" ]
+	then
+		# passwordless sudo in its own file - rewritten on each run so it never repeats
+
+		file_sudoers_temporary="$(mktemp)"
+
+		echo "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" > "${file_sudoers_temporary}"
+
+		visudo -c -q -f "${file_sudoers_temporary}"
+
+		status_sudoers="${?}"
+
+		if [ "${status_sudoers}" -eq 0 ]
+		then
+			cp "${file_sudoers_temporary}" /etc/sudoers.d/"${SUDO_USER}"
+
+			chmod 0440 /etc/sudoers.d/"${SUDO_USER}"
+
+			frobulator.scs "Passwordless sudo" "[ /etc/sudoers.d/${SUDO_USER} ]"
+
+			# lines appended to /etc/sudoers by earlier versions
+
+			intent_sudoers_clean
+		else
+			frobulator.err "Sudoers check failed - left unchanged" "[ /etc/sudoers.d/${SUDO_USER} ]"
+		fi
+
+		rm -f "${file_sudoers_temporary}"
+	fi
 fi
 
 # themes
