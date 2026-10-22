@@ -4,7 +4,7 @@
 
 ⭐ Useful? Star the repository - it helps others find it.
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-21 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-22 ]
 
 ---
 
@@ -36,6 +36,16 @@ Aliases also work after `sudo` (`sudo <alias>`). Functions need a root shell - `
 
 Passwordless sudo is set in its own file, `/etc/sudoers.d/<user>`, rewritten on each run so it never repeats. Lines appended to `/etc/sudoers` by earlier versions are removed once the result passes the sudoers check.
 
+### Mounts:
+
+Drives labelled `internal` and `external` are mounted at boot through `/etc/fstab`, by UUID:
+
+```
+bash terminal -m
+```
+
+`internal` mounts at `/media/internal`, `external` at `/media/<user>/external`. Missing mount points are created and the previous entry for each drive is replaced. Every entry is `users` and `nofail`, so drives stay user unmountable and a missing drive never blocks the boot. Windows filesystems (exFAT, FAT, NTFS) are owned by the user. The new file must pass `findmnt --verify` first, columns are aligned to the longest entry and the old file is kept as `/etc/fstab.backup`.
+
 ### Uninstall:
 
 To remove what the terminal setup installed, run:
@@ -46,7 +56,7 @@ bash terminal -n
 
 After a confirmation, it removes the shell files and functions in `~/.local/bin`, the dotfile links it made (`.bashrc`, `.bash_aliases`, `.gitconfig` ...), the storage links in `/media` and passwordless sudo - its `/etc/sudoers.d` file and any lines earlier versions added to `/etc/sudoers`. A default `.bashrc` is put back in place of the removed link.
 
-Kept: home directories, themes, the boot theme and every package.
+Kept: home directories, themes, the boot theme, drive mounts and every package.
 
 ### Repositories:
 
@@ -80,7 +90,7 @@ Kept: home directories, themes, the boot theme and every package.
 
 ---
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-21 ]
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-22 ]
 
 ### Enjoying Terminal? Buy me a coffee to show your appreciation!
 
