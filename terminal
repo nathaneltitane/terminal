@@ -285,10 +285,10 @@ intent_fstab_align () {
 	local line_fstab
 	local list_field
 	local list_fstab
-	local list_header=("# <file system>" "<mount point>" "<type>" "<options>")
+	local list_header=("# file system" "mount point" "type" "options")
 	local list_width=(0 0 0 0)
 	local line_aligned
-	local pattern_header='^#[[:space:]]*<file system>'
+	local pattern_header='^#[[:space:]]*<?file system>?'
 	local status_header
 
 	mapfile -t list_fstab < "${file_fstab}"
@@ -342,7 +342,7 @@ intent_fstab_align () {
 				"${list_width[1]}" "${list_header[1]}"					\
 				"${list_width[2]}" "${list_header[2]}"					\
 				"${list_width[3]}" "${list_header[3]}"					\
-				"<dump> <pass>"
+				"dump pass"
 
 			printf '%s\n' "${line_aligned}"
 
