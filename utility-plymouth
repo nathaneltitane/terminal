@@ -391,9 +391,12 @@ intent_quit () {
 	then
 		mkdir -p "${directory_systemd}"/plymouth-quit.service.d "${directory_systemd}"/display-manager.service.d
 
+		# splash delay and console font missed while splash held tty1
+
 		cat <<- FILE > "${directory_systemd}"/plymouth-quit.service.d/delay.conf
 			[Service]
 			ExecStartPre=/bin/sleep ${seconds_splash}
+			ExecStartPost=-/bin/sh -c '[ -f /etc/console-setup/cached_setup_font.sh ] && exec /bin/sh /etc/console-setup/cached_setup_font.sh'
 		FILE
 
 		# login screen after splash
