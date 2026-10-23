@@ -58,14 +58,14 @@ bash terminal -m
 
 ### Images:
 
-Dextop container images are built with `utility-filesystem-build` - Debian (10 to 13), Ubuntu (18.04 to 24.04) and Fedora (41 to 44):
+Dextop container images are built with `utility-filesystem-build` - Debian (10 to 13), Ubuntu (18.04 to 24.04) and Fedora (41 to 44). Debian 13 is the default:
 
 ```
 ./utility-filesystem-build -s
 ./utility-filesystem-build -i fedora 44
 ```
 
-Debian and Ubuntu are bootstrapped with `debootstrap`. Fedora is taken from the official Base-Generic container image, checked against its published checksum. Fedora needs no codename. The finished `archive-<name>-<version>.tar.xz` is copied next to the script, so a build run from the repository lands in the repository, where Dextop downloads it.
+Debian and Ubuntu are bootstrapped with `debootstrap`, both stages, so every package is installed and configured - images of another architecture (the default is arm64) need `qemu-user-static` for the second stage. Archived Debian releases come from `archive.debian.org` with their retired release keys, and Ubuntu is verified against the official Ubuntu keyring, fetched over https. Fedora is taken from the official Base-Generic container image, checked against its published checksum. Fedora needs no codename. The finished `archive-<name>-<version>.tar.xz` is copied next to the script, so a build run from the repository lands in the repository, where Dextop downloads it.
 
 ### Gutenberg:
 
