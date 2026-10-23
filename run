@@ -1,25 +1,240 @@
 #!/bin/bash
 
-# run a bash function from krunner
+# run a bash function from any launcher
 
 # usage:      run [function] [arguments]
 #             [function] [arguments]      [ link to run ]
+
+# functions ────────────────────────────────────────────────────────────────────
+
+# use to read a key from an ini style file
+
+intent_value_ini () {
+
+	local file_ini="${1}"
+	local section_ini="${2}"
+	local key_ini="${3}"
+
+	local line_ini
+	local section_current
+
+	if [ ! -f "${file_ini}" ]
+	then
+		return
+	fi
+
+	while IFS= read -r line_ini || [ -n "${line_ini}" ]
+	do
+		if [[ "${line_ini}" =~ ^\[(.*)\]$ ]]
+		then
+			section_current="${BASH_REMATCH[1]}"
+
+			continue
+		fi
+
+		if [ "${section_current}" = "${section_ini}" ] && [[ "${line_ini}" == "${key_ini}="* ]]
+		then
+			echo "${line_ini#*=}"
+
+			return
+		fi
+	done < "${file_ini}"
+}
+
+# use to find a terminal emulator command
+
+intent_terminal_find () {
+
+	local directory_config="${XDG_CONFIG_HOME:-${HOME}/.config}"
+	local directory_data
+	local file_desktop
+	local line_desktop
+	local name_candidate
+	local status_terminal
+	local command_desktop
+	local name_desktop
+
+	local list_candidates=()
+	local list_directories_data=()
+
+	local list_terminals=(
+		konsole
+		gnome-terminal
+		kgx
+		xfce4-terminal
+		mate-terminal
+		qterminal
+		lxterminal
+		tilix
+		terminator
+		kitty
+		alacritty
+		foot
+		wezterm
+		st
+		urxvt
+		xterm
+		zutty
+	)
+
+	# preferred terminal variable
+
+	list_candidates+=("${TERMINAL%% *}")
+
+	# desktop setting then desktop default
+
+	name_desktop=":${XDG_CURRENT_DESKTOP}:"
+
+	if [[ "${name_desktop}" == *:KDE:* ]]
+	then
+		list_candidates+=("$(intent_value_ini "${directory_config}"/kdeglobals General TerminalApplication)")
+		list_candidates+=(konsole)
+
+	elif [[ "${name_desktop}" == *:XFCE:* ]]
+	then
+		list_candidates+=("$(intent_value_ini "${directory_config}"/xfce4/helpers.rc "" TerminalEmulator)")
+		list_candidates+=(xfce4-terminal)
+
+	elif [[ "${name_desktop}" == *:GNOME:* ]]
+	then
+		list_candidates+=(kgx gnome-terminal)
+
+	elif [[ "${name_desktop}" == *:MATE:* ]]
+	then
+		list_candidates+=(mate-terminal)
+
+	elif [[ "${name_desktop}" == *:X-Cinnamon:* ]]
+	then
+		list_candidates+=(gnome-terminal)
+
+	elif [[ "${name_desktop}" == *:LXQt:* ]]
+	then
+		list_candidates+=(qterminal)
+
+	elif [[ "${name_desktop}" == *:LXDE:* ]]
+	then
+		list_candidates+=(lxterminal)
+	fi
+
+	# system default
+
+	list_candidates+=(x-terminal-emulator)
+
+	# installed terminal entries
+
+	IFS=':' read -r -a list_directories_data <<< "${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+
+	for directory_data in "${XDG_DATA_HOME:-${HOME}/.local/share}" "${list_directories_data[@]}"
+	do
+		if [ ! -d "${directory_data}"/applications ]
+		then
+			continue
+		fi
+
+		while IFS= read -r file_desktop
+		do
+			unset status_terminal
+			unset command_desktop
+
+			while IFS= read -r line_desktop || [ -n "${line_desktop}" ]
+			do
+				if [[ "${line_desktop}" == Categories=*TerminalEmulator* ]]
+				then
+					status_terminal="found"
+				fi
+
+				if [ -z "${command_desktop}" ] && [[ "${line_desktop}" == Exec=* ]]
+				then
+					command_desktop="${line_desktop#Exec=}"
+					command_desktop="${command_desktop%% *}"
+				fi
+			done < "${file_desktop}"
+
+			if [ -n "${status_terminal}" ] && [ -n "${command_desktop}" ]
+			then
+				list_candidates+=("${command_desktop}")
+			fi
+		done < <(find "${directory_data}"/applications -maxdepth 1 -name '*.desktop' 2> /dev/null)
+	done
+
+	# well known terminals
+
+	list_candidates+=("${list_terminals[@]}")
+
+	# first installed candidate
+
+	for name_candidate in "${list_candidates[@]}"
+	do
+		name_candidate="${name_candidate%% *}"
+
+		if [ -n "${name_candidate}" ] && [ -n "$(command -v "${name_candidate}")" ]
+		then
+			echo "${name_candidate}"
+
+			return
+		fi
+	done
+}
+
+# use to open a command in a terminal emulator
+
+intent_terminal_open () {
+
+	local name_terminal="${1}"
+
+	shift
+
+	local list_command=("${@}")
+	local text_command
+	local name_base
+
+	printf -v text_command '%q ' "${list_command[@]}"
+
+	# command syntax per terminal
+
+	name_base="${name_terminal##*/}"
+
+	if [ "${name_base}" = "gnome-terminal" ] || [ "${name_base}" = "kgx" ]
+	then
+		exec "${name_terminal}" -- "${list_command[@]}"
+
+	elif [ "${name_base}" = "wezterm" ]
+	then
+		exec "${name_terminal}" start -- "${list_command[@]}"
+
+	elif [ "${name_base}" = "kitty" ] || [ "${name_base}" = "foot" ]
+	then
+		exec "${name_terminal}" "${list_command[@]}"
+
+	elif [ "${name_base}" = "xfce4-terminal" ] || [ "${name_base}" = "mate-terminal" ] || [ "${name_base}" = "terminator" ]
+	then
+		exec "${name_terminal}" -x "${list_command[@]}"
+
+	elif [ "${name_base}" = "qterminal" ] || [ "${name_base}" = "lxterminal" ] || [ "${name_base}" = "tilix" ]
+	then
+		exec "${name_terminal}" -e "${text_command}"
+	else
+		exec "${name_terminal}" -e "${list_command[@]}"
+	fi
+}
+
+# terminal ─────────────────────────────────────────────────────────────────────
 
 # reopen in a terminal when launched without one
 
 if [ ! -t 0 ] || [ ! -t 1 ]
 then
-	command_terminal="$(command -v konsole)"
+	name_terminal="$(intent_terminal_find)"
 
-	# window name for the closing prompt
+	# no terminal runs in place
 
-	if [ -n "${command_terminal}" ]
+	if [ -n "${name_terminal}" ]
 	then
-		exec konsole -e env name_window_run=konsole bash "${BASH_SOURCE[0]}" "${@}"
-	else
-		exec x-terminal-emulator -e env name_window_run=terminal bash "${BASH_SOURCE[0]}" "${@}"
+		intent_terminal_open "${name_terminal}" env name_window_run="${name_terminal##*/}" bash "${BASH_SOURCE[0]}" "${@}"
 	fi
 fi
+
+# function ─────────────────────────────────────────────────────────────────────
 
 # user functions
 
