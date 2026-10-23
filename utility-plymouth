@@ -151,11 +151,17 @@ line_modules="# plymouth early graphics"
 # silent boot parameters
 
 list_parameters=(
+	# boot splash
 	splash
+	# small native console font
 	fbcon=font:VGA8x16
+	# kernel errors only
 	loglevel=3
+	# udev errors only
 	udev.log_level=3
+	# hidden console cursor
 	vt.global_cursor_default=0
+	# no systemd status output
 	systemd.show_status=false
 )
 
@@ -415,6 +421,25 @@ intent_quit () {
 	fi
 }
 
+# use to silence reboot broadcasts
+
+intent_wall () {
+
+	local mode="${1}"
+
+	if [ "${mode}" = "install" ]
+	then
+		mkdir -p "${directory_systemd}"/systemd-logind.service.d
+
+		cat <<- 'FILE' > "${directory_systemd}"/systemd-logind.service.d/wall.conf
+			[Service]
+			ExecStartPost=-/usr/bin/busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager SetWallMessage sb "" false
+		FILE
+	else
+		frobulator.delete "${directory_systemd}"/systemd-logind.service.d wall.conf
+	fi
+}
+
 # use to write plymouth theme
 
 intent_theme () {
@@ -565,6 +590,8 @@ then
 	intent_refind install
 
 	intent_quit install
+
+	intent_wall install
 fi
 
 if [ "${option}" = "uninstall" ]
@@ -580,6 +607,8 @@ then
 	intent_options uninstall
 
 	intent_quit uninstall
+
+	intent_wall uninstall
 
 	# shared refind setting kept for other systems
 
