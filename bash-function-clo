@@ -13,8 +13,10 @@ clo () {
 	local file_session
 	local id_session
 	local id_session_short
-	local output_agents
-	local count_session
+	local line_agent
+	local kind_agent
+	local id_agent
+	local status_background
 
 	# set before the help text - it is named there
 
@@ -79,13 +81,37 @@ clo () {
 
 	frobulator.scs "Session found."
 
-	# active background sessions - completed sessions excluded by default
+	# active sessions - interactive ones live in another terminal and only resume
 
-	output_agents="$("${path_command}" agents --json 2>"${sink}")"
+	unset kind_agent
+	unset id_agent
+	unset status_background
 
-	count_session="$(grep --count --fixed-strings "${id_session}" <<< "${output_agents}")"
+	while IFS= read -r line_agent
+	do
+		if [[ "${line_agent}" == *'"kind":'* ]]
+		then
+			kind_agent="${line_agent#*: \"}"
+			kind_agent="${kind_agent%%\"*}"
 
-	if [ "${count_session}" -gt 0 ]
+		elif [[ "${line_agent}" == *'"sessionId":'* ]]
+		then
+			id_agent="${line_agent#*: \"}"
+			id_agent="${id_agent%%\"*}"
+
+		elif [[ "${line_agent}" == *'}'* ]]
+		then
+			if [ "${id_agent}" = "${id_session}" ] && [ -n "${kind_agent}" ] && [ "${kind_agent}" != "interactive" ]
+			then
+				status_background="found"
+			fi
+
+			unset kind_agent
+			unset id_agent
+		fi
+	done < <("${path_command}" agents --json 2>"${sink}")
+
+	if [ -n "${status_background}" ]
 	then
 		frobulator.inf "Attaching to background session" "[ ${id_session} ]"
 
