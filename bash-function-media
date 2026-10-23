@@ -305,7 +305,9 @@ media () {
 			"${list_options_url[@]}"									\
 			"${source_media}"
 
-	list_files_media="$(find "${PWD}" -type f -iname "*.${extension_media}")"
+	# downloaded files in output folder only
+
+	list_files_media="$(find "${PWD}" -maxdepth 1 -type f -iname "*.${extension_media}")"
 
 	IFS=$'\n'
 
