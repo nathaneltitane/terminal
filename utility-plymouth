@@ -139,7 +139,7 @@ file_options="${directory_root}/boot/refind_linux.conf"
 file_modules="${directory_root}/etc/initramfs-tools/modules"
 file_refind="/boot/efi/EFI/refind/refind.conf"
 
-directory_quit="${directory_root}/etc/systemd/system/plymouth-quit.service.d"
+directory_systemd="${directory_root}/etc/systemd/system"
 
 line_refind="use_graphics_for linux"
 line_modules="# plymouth early graphics"
@@ -377,7 +377,7 @@ intent_refind () {
 	printf '%s\n' "${list_keep[@]}" > "${file_refind}"
 }
 
-# use to keep logo until login screen
+# use to show logo one second longer
 
 intent_quit () {
 
@@ -385,15 +385,23 @@ intent_quit () {
 
 	if [ "${mode}" = "install" ]
 	then
-		frobulator.directory "${directory_quit%/*}" "${directory_quit##*/}"
+		mkdir -p "${directory_systemd}"/plymouth-quit.service.d "${directory_systemd}"/display-manager.service.d
 
-		cat <<- 'FILE' > "${directory_quit}"/retain-splash.conf
+		cat <<- 'FILE' > "${directory_systemd}"/plymouth-quit.service.d/delay.conf
 			[Service]
-			ExecStart=
-			ExecStart=-/usr/bin/plymouth quit --retain-splash
+			ExecStartPre=/bin/sleep 1
+		FILE
+
+		# login screen after splash
+
+		cat <<- 'FILE' > "${directory_systemd}"/display-manager.service.d/plymouth.conf
+			[Unit]
+			After=plymouth-quit.service
 		FILE
 	else
-		frobulator.delete "${directory_quit}" retain-splash.conf
+		frobulator.delete "${directory_systemd}"/plymouth-quit.service.d delay.conf
+
+		frobulator.delete "${directory_systemd}"/display-manager.service.d plymouth.conf
 	fi
 }
 
@@ -423,7 +431,9 @@ intent_theme () {
 		file_icon="${directory_icons}/os_linux.png"
 	fi
 
-	frobulator.directory "${directory_root}"/usr/share/plymouth/themes "${name_theme}"
+	# system folders stay root owned
+
+	mkdir -p "${directory_theme}"
 
 	cp "${file_icon}" "${directory_theme}"/logo.png
 
