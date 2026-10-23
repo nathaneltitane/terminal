@@ -56,6 +56,25 @@ bash terminal -m
 
 `internal` mounts at `/media/internal`, `external` at `/media/<user>/external`. Missing mount points are created and the previous entry for each drive is replaced. Every entry is `users` and `nofail`, so drives stay user unmountable and a missing drive never blocks the boot. Windows filesystems (exFAT, FAT, NTFS) are owned by the user. The new file must pass `findmnt --verify` first, columns are aligned to the longest entry and the old file is kept as `/etc/fstab.backup`.
 
+### Images:
+
+Dextop container images are built with `utility-filesystem-build` - Debian (10 to 13), Ubuntu (18.04 to 24.04) and Fedora (41 to 44):
+
+```
+./utility-filesystem-build -s
+./utility-filesystem-build -i fedora 44
+```
+
+Debian and Ubuntu are bootstrapped with `debootstrap`. Fedora is taken from the official Base-Generic container image, checked against its published checksum. Fedora needs no codename. The finished `archive-<name>-<version>.tar.xz` is copied next to the script, so a build run from the repository lands in the repository, where Dextop downloads it.
+
+### Gutenberg:
+
+`utility-gutenberg -r` runs the download as a resume service: it continues after a reboot and removes itself once done. Nothing carries over to later runs.
+
+```
+./utility-gutenberg -m -p -r -d <directory>
+```
+
 ### Uninstall:
 
 To remove what the terminal setup installed, run:
