@@ -6,6 +6,23 @@
 
 pipx () {
 
-	command pipx --global "$@"
+	# global locations for any pipx version
+
+	local list_pipx=(
+		env
+		PIPX_HOME=/opt/pipx
+		PIPX_BIN_DIR=/usr/local/bin
+		PIPX_MAN_DIR=/usr/local/share/man
+		pipx
+	)
+
+	# global locations need root
+
+	if [ "${EUID}" -ne 0 ]
+	then
+		command sudo "${list_pipx[@]}" "$@"
+	else
+		command "${list_pipx[@]}" "$@"
+	fi
 
 }

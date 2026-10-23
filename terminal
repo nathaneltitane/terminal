@@ -790,15 +790,37 @@ then
 		deno
 		trimesh
 		yt-dlp
-		yt-dlp-ejs
+	)
+
+	# libraries added to an app
+
+	list_inject_pip=(
+		yt-dlp:yt-dlp-ejs
+	)
+
+	# global locations for any pipx version
+
+	list_pipx=(
+		env
+		PIPX_HOME=/opt/pipx
+		PIPX_BIN_DIR=/usr/local/bin
+		PIPX_MAN_DIR=/usr/local/share/man
+		pipx
 	)
 
 	for item in "${list_install_pip[@]}"
 	do
-		pipx install --global "${item}"
+		"${list_pipx[@]}" install "${item}"
+	done
+
+	for item in "${list_inject_pip[@]}"
+	do
+		"${list_pipx[@]}" inject "${item%%:*}" "${item#*:}"
 	done
 
 	list_install_pip=()
+	list_inject_pip=()
+	list_pipx=()
 fi
 
 # storage - windows subsystem for linux
@@ -1043,6 +1065,10 @@ then
 
 	list+=("${frobulator_return[@]}")
 
+	# own copy for ownership fix
+
+	list_files_shell=("${list[@]}")
+
 	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
 
 	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-aliases       .bash_aliases
@@ -1065,19 +1091,19 @@ then
 	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-logout        .bash_logout
 	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-profile       .bash_profile
 
-	# user running the script
+	# files back to user
 
-	name_user="$(id -u -n)"
-
-	if [ "${name_user}" = "root" ]
+	if [ "${EUID}" -eq 0 ] && [ -n "${SUDO_USER}" ]
 	then
-		for item in ${list[@]}
+		for item in "${list_files_shell[@]}"
 		do
 			chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
 
 			chmod 777 "${HOME}"/.local/bin/"${item}"
 		done
 	fi
+
+	list_files_shell=()
 
 	list=()
 fi
