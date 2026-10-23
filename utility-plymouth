@@ -139,6 +139,8 @@ file_options="${directory_root}/boot/refind_linux.conf"
 file_modules="${directory_root}/etc/initramfs-tools/modules"
 file_refind="/boot/efi/EFI/refind/refind.conf"
 
+directory_quit="${directory_root}/etc/systemd/system/plymouth-quit.service.d"
+
 line_refind="use_graphics_for linux"
 line_modules="# plymouth early graphics"
 
@@ -375,6 +377,26 @@ intent_refind () {
 	printf '%s\n' "${list_keep[@]}" > "${file_refind}"
 }
 
+# use to keep logo until login screen
+
+intent_quit () {
+
+	local mode="${1}"
+
+	if [ "${mode}" = "install" ]
+	then
+		frobulator.directory "${directory_quit%/*}" "${directory_quit##*/}"
+
+		cat <<- 'FILE' > "${directory_quit}"/retain-splash.conf
+			[Service]
+			ExecStart=
+			ExecStart=-/usr/bin/plymouth quit --retain-splash
+		FILE
+	else
+		frobulator.delete "${directory_quit}" retain-splash.conf
+	fi
+}
+
 # use to write plymouth theme
 
 intent_theme () {
@@ -521,6 +543,8 @@ then
 	intent_options install
 
 	intent_refind install
+
+	intent_quit install
 fi
 
 if [ "${option}" = "uninstall" ]
@@ -534,6 +558,8 @@ then
 	intent_modules uninstall
 
 	intent_options uninstall
+
+	intent_quit uninstall
 
 	# shared refind setting kept for other systems
 
