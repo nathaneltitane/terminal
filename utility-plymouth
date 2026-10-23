@@ -141,6 +141,10 @@ file_refind="/boot/efi/EFI/refind/refind.conf"
 
 directory_systemd="${directory_root}/etc/systemd/system"
 
+# extra splash time before login screen
+
+seconds_splash="2"
+
 line_refind="use_graphics_for linux"
 line_modules="# plymouth early graphics"
 
@@ -377,7 +381,7 @@ intent_refind () {
 	printf '%s\n' "${list_keep[@]}" > "${file_refind}"
 }
 
-# use to show logo one second longer
+# use to show logo longer
 
 intent_quit () {
 
@@ -387,9 +391,9 @@ intent_quit () {
 	then
 		mkdir -p "${directory_systemd}"/plymouth-quit.service.d "${directory_systemd}"/display-manager.service.d
 
-		cat <<- 'FILE' > "${directory_systemd}"/plymouth-quit.service.d/delay.conf
+		cat <<- FILE > "${directory_systemd}"/plymouth-quit.service.d/delay.conf
 			[Service]
-			ExecStartPre=/bin/sleep 1
+			ExecStartPre=/bin/sleep ${seconds_splash}
 		FILE
 
 		# login screen after splash
