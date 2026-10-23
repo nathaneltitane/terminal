@@ -152,10 +152,11 @@ line_modules="# plymouth early graphics"
 
 list_parameters=(
 	splash
+	fbcon=font:VGA8x16
 	loglevel=3
 	udev.log_level=3
 	vt.global_cursor_default=0
-	systemd.show_status=auto
+	systemd.show_status=false
 )
 
 # defaults ─────────────────────────────────────────────────────────────────────
@@ -260,9 +261,11 @@ intent_options () {
 
 		list_keep=()
 
+		# managed options matched by name
+
 		for option_boot in "${list_option[@]}"
 		do
-			if [[ " ${list_parameters[*]} " != *" ${option_boot} "* ]]
+			if [[ " ${list_parameters[*]%%=*} " != *" ${option_boot%%=*} "* ]]
 			then
 				list_keep+=("${option_boot}")
 			fi
