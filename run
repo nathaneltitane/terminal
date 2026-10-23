@@ -11,11 +11,13 @@ if [ ! -t 0 ] || [ ! -t 1 ]
 then
 	command_terminal="$(command -v konsole)"
 
+	# window name for the closing prompt
+
 	if [ -n "${command_terminal}" ]
 	then
-		exec konsole -e bash "${BASH_SOURCE[0]}" "${@}"
+		exec konsole -e env name_window_run=konsole bash "${BASH_SOURCE[0]}" "${@}"
 	else
-		exec x-terminal-emulator -e bash "${BASH_SOURCE[0]}" "${@}"
+		exec x-terminal-emulator -e env name_window_run=terminal bash "${BASH_SOURCE[0]}" "${@}"
 	fi
 fi
 
@@ -54,7 +56,13 @@ shift
 
 "${name_function}" "${@}"
 
-# keep window open
+# keep own window open
 
-echo
-read -r -p "Press enter to close " _
+if [ -n "${name_window_run}" ]
+then
+	frobulator.separate
+
+	frobulator.rtn "Press to close" "[ ${name_window_run} // '${name_function}' ]"
+
+	frobulator.read -r -s _
+fi
