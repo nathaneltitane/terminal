@@ -192,8 +192,8 @@ list_urls_fedora=(
 if [ "${option}" != "image" ] && [ "${option}" != "selection" ]
 then
 	name_distribution="debian"
-	version_distribution="12"
-	codename_distribution="bookworm"
+	version_distribution="13"
+	codename_distribution="trixie"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -308,6 +308,12 @@ image_handle () {
 
 	# validate name and version against the supported list - codename from the list
 
+	local url_debian="http://deb.debian.org/debian"
+	local url_debian_archive="http://archive.debian.org/debian"
+	local url_ubuntu="http://archive.ubuntu.com/ubuntu"
+	local url_ubuntu_ports="http://ports.ubuntu.com/ubuntu-ports"
+	local version_debian_archive="11"
+
 	local index_version
 	local status_supported
 
@@ -337,17 +343,26 @@ image_handle () {
 		exit 1
 	fi
 
-	# ubuntu arm images on the ports mirror
+	# debian before bullseye on the archive mirror - ubuntu arm images on the ports mirror
 
 	unset url_distribution
 
-	if [ "${name_distribution}" = ubuntu ]
+	if [ "${name_distribution}" = debian ]
+	then
+		if [ "${version_distribution}" -lt "${version_debian_archive}" ]
+		then
+			url_distribution="${url_debian_archive}"
+		else
+			url_distribution="${url_debian}"
+		fi
+
+	elif [ "${name_distribution}" = ubuntu ]
 	then
 		if [ "${architecture_distribution}" = "amd64" ] || [ "${architecture_distribution}" = "i386" ]
 		then
-			url_distribution="http://archive.ubuntu.com/ubuntu"
+			url_distribution="${url_ubuntu}"
 		else
-			url_distribution="http://ports.ubuntu.com/ubuntu-ports"
+			url_distribution="${url_ubuntu_ports}"
 		fi
 	fi
 
@@ -484,6 +499,17 @@ image_fedora () {
 
 image_build () {
 
+	local file_keyring_removed="/usr/share/keyrings/debian-archive-removed-keys.gpg"
+	local file_script_debian="/usr/share/debootstrap/scripts/sid"
+	local file_script_ubuntu="/usr/share/debootstrap/scripts/gutsy"
+	local url_keyring_ubuntu="https://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg"
+	local version_debian_archive="11"
+
+	local status=0
+	local file_keyring
+	local file_script
+	local option_keyring
+
 	if [ "${name_distribution}" = fedora ]
 	then
 		image_fedora
@@ -491,9 +517,38 @@ image_build () {
 		return
 	fi
 
+	# release keys and suite script - shared scripts cover releases newer than debootstrap
+
+	if [ "${name_distribution}" = debian ]
+	then
+		file_script="${file_script_debian}"
+
+		# keys of archived releases are retired
+
+		if [ "${version_distribution}" -lt "${version_debian_archive}" ]
+		then
+			option_keyring="--keyring=${file_keyring_removed}"
+		fi
+
+	elif [ "${name_distribution}" = ubuntu ]
+	then
+		file_script="${file_script_ubuntu}"
+
+		# official ubuntu keyring over https - kept out of the image
+
+		file_keyring="${directory_build}.keyring"
+
+		curl -s -L -f -o "${file_keyring}" "${url_keyring_ubuntu}" > "${sink}" 2>&1 ||
+		wget -q -O "${file_keyring}" "${url_keyring_ubuntu}" > "${sink}" 2>&1
+
+		frobulator.track || return "${status}"
+
+		option_keyring="--keyring=${file_keyring}"
+	fi
+
 	variant="minbase"
 
-	parameters="${codename_distribution} ${directory_build} ${url_distribution}"
+	parameters="${codename_distribution} ${directory_build} ${url_distribution} ${file_script}"
 
 	unset command_image_build
 
@@ -502,11 +557,39 @@ image_build () {
 			--foreign								\
 			--arch="${architecture_distribution}"	\
 			--variant="${variant}"					\
+			${option_keyring}						\
 													"${parameters}"
 	"
 
 	frobulator.silence log ${command_image_build}
 
+	frobulator.track
+
+	# keyring only needed by the first stage
+
+	if [ -n "${file_keyring}" ]
+	then
+		rm -f "${file_keyring}"
+	fi
+
+	if [ "${status}" -ne 0 ]
+	then
+		return "${status}"
+	fi
+
+	# second stage inside the image - foreign architectures run through qemu binfmt
+
+	frobulator.silence log chroot "${directory_build}" /debootstrap/debootstrap --second-stage
+
+	frobulator.track || return "${status}"
+
+	# package cache left by the install
+
+	frobulator.silence log chroot "${directory_build}" apt-get clean
+
+	frobulator.track
+
+	return "${status}"
 }
 
 image_archive () {
