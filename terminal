@@ -607,7 +607,20 @@ then
 		bash-login
 		bash-logout
 		bash-profile
+		run
 	)
+
+	# function links to run
+
+	for path_link in "${HOME}"/.local/bin/*
+	do
+		# ahead of run itself
+
+		if [ -L "${path_link}" ] && [ "${path_link}" -ef "${HOME}"/.local/bin/run ]
+		then
+			list_files_shell=("${path_link##*/}" "${list_files_shell[@]}")
+		fi
+	done
 
 	for path_function in "${HOME}"/.local/bin/bash-function-*
 	do
@@ -1057,6 +1070,7 @@ then
 		bash-login
 		bash-logout
 		bash-profile
+		run
 	)
 
 	# one file per function - loaded by bash-functions: names listed from the repository
@@ -1102,6 +1116,36 @@ then
 			chmod 777 "${HOME}"/.local/bin/"${item}"
 		done
 	fi
+
+	# function names as links to run
+
+	for item in "${list_files_shell[@]}"
+	do
+		if [[ "${item}" != bash-function-* ]]
+		then
+			continue
+		fi
+
+		name_link="${item#bash-function-}"
+
+		path_command="$(type -P "${name_link}")"
+
+		# real commands keep their name
+
+		if [ -n "${path_command}" ] && [ "${path_command}" != "${HOME}/.local/bin/${name_link}" ]
+		then
+			continue
+		fi
+
+		ln -sfn run "${HOME}"/.local/bin/"${name_link}"
+
+		if [ "${EUID}" -eq 0 ] && [ -n "${SUDO_USER}" ]
+		then
+			chown -h "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${name_link}"
+		fi
+	done
+
+	unset name_link path_command
 
 	list_files_shell=()
 
