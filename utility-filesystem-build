@@ -135,6 +135,22 @@ done
 
 architecture_distribution="arm64"
 
+# archives saved next to the script
+
+directory_script="${BASH_SOURCE[0]}"
+
+if [[ "${directory_script}" != */* ]]
+then
+	directory_script="./${directory_script}"
+fi
+
+directory_script="${directory_script%/*}"
+
+if [[ "${directory_script}" != /* ]]
+then
+	directory_script="${PWD}/${directory_script}"
+fi
+
 # supported distribution versions - name version codename - fedora has none
 
 list_versions_debian=(
@@ -495,25 +511,37 @@ image_build () {
 
 image_archive () {
 
-	extension="tar.xz"
-	archive="${name_distribution}"-"${version_distribution}"."${extension}"
+	# archive next to the script under the served name - hidden entries kept
 
-	cd "${directory_build}"
+	local status=0
+	local file_archive="archive-${name_distribution}-${version_distribution}.tar.xz"
+	local item
 
-	unset command_image_archive
+	local list_items=()
 
-	command_image_archive="
-		tar --create								\
-			--file="${archive}"						\
-				--use-compress-program='xz -9'		\
-				--exclude='debootstrap' 			\
-													*
-	"
+	while IFS= read -r item
+	do
+		list_items+=("${item##*/}")
+	done < <(find "${directory_build}" -mindepth 1 -maxdepth 1 ! -name debootstrap ! -name "${file_archive}")
 
-	frobulator.silence log ${command_image_archive}
+	tar										\
+		--create							\
+		--file="${directory_build}/${file_archive}"	\
+		--use-compress-program='xz -9 -T0'	\
+		--directory="${directory_build}"	\
+			"${list_items[@]}"				> "${sink}" 2>&1
 
-	cp "${directory_build}"/"${archive}" "${HOME}"/"${archive}"
+	frobulator.track || return "${status}"
 
+	cp -f "${directory_build}/${file_archive}" "${directory_script}/${file_archive}"
+
+	frobulator.track || return "${status}"
+
+	chown "${USER}": "${directory_script}/${file_archive}"
+
+	frobulator.track
+
+	return "${status}"
 }
 
 # update ───────────────────────────────────────────────────────────────────────
@@ -556,8 +584,12 @@ directory_build=${frobulator_return[@]}
 
 frobulator.trap "${directory_build}"
 
-frobulator.background "build" -- image_build
+frobulator.background "build" "[ ${name_distribution} ${version_distribution} ]" -- image_build
 
-frobulator.background "archive" -- image_archive
+frobulator.complete halt "Image build failed" "[ ${name_distribution} ${version_distribution} ]"
 
-frobulator.scs "Done"
+frobulator.background "archive" "[ archive-${name_distribution}-${version_distribution}.tar.xz ]" -- image_archive
+
+frobulator.complete halt "Image archive failed" "[ ${directory_script} ]"
+
+frobulator.result "${script}"
