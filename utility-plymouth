@@ -140,6 +140,7 @@ file_modules="${directory_root}/etc/initramfs-tools/modules"
 file_refind="/boot/efi/EFI/refind/refind.conf"
 
 directory_systemd="${directory_root}/etc/systemd/system"
+directory_sbin="${directory_root}/usr/local/sbin"
 
 # extra splash time before login screen
 
@@ -426,17 +427,46 @@ intent_quit () {
 intent_wall () {
 
 	local mode="${1}"
+	local item
+	local list_power=(poweroff halt shutdown)
 
 	if [ "${mode}" = "install" ]
 	then
-		mkdir -p "${directory_systemd}"/systemd-logind.service.d
+		mkdir -p "${directory_systemd}"/systemd-logind.service.d "${directory_sbin}"
 
 		cat <<- 'FILE' > "${directory_systemd}"/systemd-logind.service.d/wall.conf
 			[Service]
 			ExecStartPost=-/usr/bin/busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager SetWallMessage sb "" false
 		FILE
+
+		# power commands ahead of systemctl links
+
+		cat <<- 'FILE' > "${directory_sbin}"/reboot
+			#!/bin/bash
+
+			# power commands without reboot broadcast
+
+			exec -a "${0##*/}" /usr/bin/systemctl --no-wall "${@}"
+		FILE
+
+		chmod 755 "${directory_sbin}"/reboot
+
+		for item in "${list_power[@]}"
+		do
+			ln -sf reboot "${directory_sbin}/${item}"
+		done
 	else
 		frobulator.delete "${directory_systemd}"/systemd-logind.service.d wall.conf
+
+		# own wrapper only
+
+		if [ -f "${directory_sbin}"/reboot ] && [[ "$(< "${directory_sbin}"/reboot)" == *"without reboot broadcast"* ]]
+		then
+			for item in reboot "${list_power[@]}"
+			do
+				frobulator.delete "${directory_sbin}" "${item}"
+			done
+		fi
 	fi
 }
 
