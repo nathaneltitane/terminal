@@ -36,6 +36,16 @@ Aliases also work after `sudo` (`sudo <alias>`). Functions need a root shell - `
 
 Passwordless sudo is set in its own file, `/etc/sudoers.d/<user>`, rewritten on each run so it never repeats. Lines appended to `/etc/sudoers` by earlier versions are removed once the result passes the sudoers check.
 
+### KRunner:
+
+KRunner only runs executables on the `PATH`. The shell setup links every function name in `~/.local/bin` to `run`, so a function is typed in KRunner like any command:
+
+```
+weather
+```
+
+`run` takes the function from the name it was called by, or from its first argument (`run weather`). Launched without a terminal, it reopens itself in Konsole (or the default terminal), loads the user's functions, runs the function and waits for enter before closing. In a terminal it runs in place. Names that are already real commands (`ssh`, `who` ...) get no link. Uninstall removes every link to `run`.
+
 ### Mounts:
 
 Drives labelled `internal` and `external` are mounted at boot through `/etc/fstab`, by UUID:
