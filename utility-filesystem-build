@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-10-23"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -135,27 +135,49 @@ done
 
 architecture_distribution="arm64"
 
-name_distribution="debian"
+# supported distribution versions - name version codename - fedora has none
 
-version_distribution="12"
+list_versions_debian=(
+	debian	10	buster
+	debian	11	bullseye
+	debian	12	bookworm
+	debian	13	trixie
+)
 
-codename_distribution="bookworm"
+list_versions_fedora=(
+	fedora	41	-
+	fedora	42	-
+	fedora	43	-
+	fedora	44	-
+)
+
+list_versions_ubuntu=(
+	ubuntu	18.04	bionic
+	ubuntu	20.04	focal
+	ubuntu	22.04	jammy
+	ubuntu	24.04	noble
+)
+
+list_versions=(
+	${list_versions_debian[@]}
+	${list_versions_fedora[@]}
+	${list_versions_ubuntu[@]}
+)
+
+# fedora official container images - current releases then archived ones
+
+list_urls_fedora=(
+	https://dl.fedoraproject.org/pub/fedora/linux/releases
+	https://archives.fedoraproject.org/pub/archive/fedora/linux/releases
+)
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
-if [ -z "${name_distribution}" ]
+if [ "${option}" != "image" ] && [ "${option}" != "selection" ]
 then
-	name_distribution="${name_distribution}"
-fi
-
-if [ -z "${version_distribution}" ]
-then
-	version_distribution="${version_distribution}"
-fi
-
-if [ -z "${codename_distribution}" ]
-then
-	codename_distribution="${codename_distribution}"
+	name_distribution="debian"
+	version_distribution="12"
+	codename_distribution="bookworm"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -169,31 +191,6 @@ image_select () {
 	   [ -z "${codename_distribution}" ]
 	then
 		frobulator.msg "Select distribution version to generate."
-
-		# list supported distribution versions
-
-		list_versions_debian=(
-			debian	10	buster
-			debian	11	bullseye
-			debian	12	bookworm
-			debian	13	trixie
-		)
-
-		list_versions_ubuntu=(
-			ubuntu	18.04	bionic
-			ubuntu	20.04	focal
-			ubuntu	22.04	jammy
-			ubuntu	24.04	noble
-		)
-
-		list_versions=(
-			${list_versions_debian[@]}
-			${list_versions_ubuntu[@]}
-		)
-
-		# set padding for uniform output
-
-		length_pad=10
 
 		# continue list using array selection of suppported values
 
@@ -212,7 +209,7 @@ image_select () {
 				indent+="${marker_tab}"
 			fi
 
-			if (( ${index_version} / 3 >= 0 && ${index_version} / 3 <= 9 ))
+			if [ "${number_entry}" -le 9 ]
 			then
 				# handle number spacing for entries 1-9
 
@@ -223,7 +220,12 @@ image_select () {
 				number_entry="${number_entry}"
 			fi
 
-			echo "${marker_nul}" "[ ${number_entry} ]" "${name_entry}" "${version_entry}" "${indent}" "[ ${codename_entry} ]"
+			if [ "${codename_entry}" = "-" ]
+			then
+				echo "${marker_nul}" "[ ${number_entry} ]" "${name_entry}" "${version_entry}"
+			else
+				echo "${marker_nul}" "[ ${number_entry} ]" "${name_entry}" "${version_entry}" "${indent}" "[ ${codename_entry} ]"
+			fi
 
 		done
 
@@ -248,12 +250,14 @@ image_select () {
 		# integer check:
 		# handle numerical selection
 
-		while [[ ! "${selection}" =~ ^[0-9]+$ ]]
+		count_entries=$(( ${#list_versions[@]} / 3 ))
+
+		while [[ ! "${selection}" =~ ^[0-9]+$ ]] || [ "${selection}" -lt 1 ] || [ "${selection}" -gt "${count_entries}" ]
 		do
 			echo
 			frobulator.err "Invalid selection:"
 
-			frobulator.wrn "Select image [ 1 - ${number_entry} ]"
+			frobulator.wrn "Select image [ 1 - ${count_entries} ]"
 
 			frobulator.ipt "Selection:"
 
@@ -273,195 +277,203 @@ image_select () {
 			version_distribution="${version_entry}"
 			codename_distribution="${codename_entry}"
 
-		# handle distribution code markup
-
-		if [ "${name_distribution}" = ubuntu ]
-		then
-			url_distribution="http://ports.ubuntu.com/ubuntu-ports"
-
-			# set IFS
-
-			IFS='.'
-
-			read year_release month_release revision_release <<< "${version_distribution}"
-
-			if [ -z "${revision_release}" ]
+			if [ "${codename_entry}" = "-" ]
 			then
-				release_distribution="${version_distribution}"
-			else
-				release_distribution="${version_distribution%.*}"
+				unset codename_entry
+				unset codename_distribution
 			fi
 
-			# reset IFS
-
-			IFS=''
-		fi
-
-		frobulator.inf "User selection" "[ ${selection} // ${name_entry} ${version_entry} - '${codename_entry}' ]"
+		frobulator.inf "User selection" "[ ${selection} // ${name_entry} ${version_entry}${codename_entry:+ - '${codename_entry}'} ]"
 
 	fi
 }
 
 image_handle () {
 
-	# handle manual input:
-	# validate input selections
-	# set container image name and version
+	# validate name and version against the supported list - codename from the list
 
-	case "${name_distribution}"
-	in
-		[dD][eE][bB][iI][aA][nN]| \
-		[fF][eE][dD][oO][rR][aA]| \
-		[uU][bB][uU][nN][tT][uU])
-			name_distribution="${name_distribution,,}"
+	local index_version
+	local status_supported
 
-			frobulator.scs "Supported distribution name."
-		;;
+	name_distribution="${name_distribution,,}"
 
-		"")
-			name_distribution="debian"
+	unset codename_distribution
 
-			frobulator.err "Empty distribution name."
+	for (( index_version = 0 ; index_version < ${#list_versions[@]} ; index_version += 3 ))
+	do
+		if [ "${list_versions[${index_version}]}" = "${name_distribution}" ] && [ "${list_versions[${index_version}+1]}" = "${version_distribution}" ]
+		then
+			status_supported="found"
+			codename_distribution="${list_versions[${index_version}+2]}"
+		fi
+	done
 
-			frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-		;;
+	if [ "${codename_distribution}" = "-" ]
+	then
+		unset codename_distribution
+	fi
 
-		*)
-			name_distribution="debian"
+	if [ -z "${status_supported}" ]
+	then
+		frobulator.err "Unsupported distribution version" "[ ${name_distribution} ${version_distribution} ]"
+		frobulator.nul "Type './${script} -s' to select a supported version."
 
-			frobulator.err "Unsupported distribution name."
+		exit 1
+	fi
 
-			frobulator.wrn "Defaulting" "[ ${name_distribution} ]"
-		;;
+	# ubuntu arm images on the ports mirror
 
-	esac
+	unset url_distribution
 
-	case "${name_distribution}" in
-	debian)
+	if [ "${name_distribution}" = ubuntu ]
+	then
+		if [ "${architecture_distribution}" = "amd64" ] || [ "${architecture_distribution}" = "i386" ]
+		then
+			url_distribution="http://archive.ubuntu.com/ubuntu"
+		else
+			url_distribution="http://ports.ubuntu.com/ubuntu-ports"
+		fi
+	fi
 
-		case "${version_distribution}"
-		in
-			10)
-				version_distribution=10
-			;;
+	frobulator.scs "Supported distribution version" "[ ${name_distribution} ${version_distribution}${codename_distribution:+ - '${codename_distribution}'} ]"
+}
 
-			11)
-				version_distribution=11
-			;;
+image_fedora () {
 
-			12)
-				version_distribution=12
-			 ;;
+	# official container image - single layer unpacked as the root filesystem
 
-			 "")
-				version_distribution=12
+	local status=0
+	local url_release
+	local url_images
+	local architecture_fedora
+	local directory_oci="${directory_build}/.oci"
+	local file_index="${directory_oci}/index.html"
+	local line_index
+	local name_link
+	local file_image
+	local file_checksum
+	local text_index
+	local digest_manifest
+	local digest_layer
 
-				frobulator.err "Distribution version not specified."
+	if [ "${architecture_distribution}" = "arm64" ]
+	then
+		architecture_fedora="aarch64"
 
-				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-			;;
+	elif [ "${architecture_distribution}" = "amd64" ]
+	then
+		architecture_fedora="x86_64"
+	else
+		frobulator.err "Unsupported fedora architecture" "[ ${architecture_distribution} ]"
 
-			 *)
-				version_distribution=12
+		return 1
+	fi
 
-				frobulator.err "Unsupported distribution version."
+	mkdir -p "${directory_oci}"
 
-				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-			;;
+	# first mirror listing the release
 
-		esac
-	;;
+	for url_release in "${list_urls_fedora[@]}"
+	do
+		url_images="${url_release}/${version_distribution}/Container/${architecture_fedora}/images"
 
-	fedora)
+		frobulator.download "${url_images}/" "${file_index}" > "${sink}" 2>&1
 
-		case "${version_distribution}"
-		in
-			33)
-				version_distribution=39
-			;;
+		if [ ! -f "${file_index}" ]
+		then
+			continue
+		fi
 
-			34)
-				version_distribution=40
-			;;
+		unset file_image
+		unset file_checksum
 
-			35)
-				version_distribution=41
-			 ;;
+		while IFS= read -r line_index || [ -n "${line_index}" ]
+		do
+			# every link on the line
 
-			 "")
-				version_distribution=41
+			while [[ "${line_index}" == *'href="'* ]]
+			do
+				line_index="${line_index#*href=\"}"
+				name_link="${line_index%%\"*}"
 
-				frobulator.err "Distribution version not specified."
+				if [[ "${name_link}" == Fedora-Container-Base-Generic-${version_distribution}-*.${architecture_fedora}.oci.tar.xz ]]
+				then
+					file_image="${name_link}"
 
-				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-			;;
+				elif [[ "${name_link}" == Fedora-Container-${version_distribution}-*-${architecture_fedora}-CHECKSUM ]]
+				then
+					file_checksum="${name_link}"
+				fi
+			done
+		done < "${file_index}"
 
-			 *)
-				version_distribution=35
+		if [ -n "${file_image}" ] && [ -n "${file_checksum}" ]
+		then
+			break
+		fi
+	done
 
-				frobulator.err "Unsupported distribution version."
+	if [ -z "${file_image}" ] || [ -z "${file_checksum}" ]
+	then
+		frobulator.err "Fedora image not found" "[ ${version_distribution} // ${architecture_fedora} ]"
 
-				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-			;;
+		return 1
+	fi
 
-		esac
-	;;
+	frobulator.download "${url_images}/${file_image}" "${directory_oci}/" > "${sink}" 2>&1
+	frobulator.download "${url_images}/${file_checksum}" "${directory_oci}/" > "${sink}" 2>&1
 
-	ubuntu)
+	# published checksum
 
-		case "${version_distribution}"
-		in
-			18*04|18*04*)
-				version_distribution="18.04"
+	(
+		cd "${directory_oci}" &&
+		sha256sum --check --ignore-missing --quiet "${file_checksum}"
+	) > "${sink}" 2>&1
 
-				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
-			;;
+	frobulator.track || return "${status}"
 
-			20*04|20*04*)
-				version_distribution="20.04"
+	tar --extract --file="${directory_oci}/${file_image}" --directory="${directory_oci}" > "${sink}" 2>&1
 
-				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
-			;;
+	frobulator.track || return "${status}"
 
-			22*04|22*04*)
-				version_distribution="22.04"
+	# index - manifest - first layer
 
-				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
-			;;
+	text_index="$(< "${directory_oci}"/index.json)"
+	digest_manifest="${text_index#*\"digest\":\"sha256:}"
+	digest_manifest="${digest_manifest%%\"*}"
 
-			24*04|24*04*)
-				version_distribution="24.04"
+	text_index="$(< "${directory_oci}"/blobs/sha256/"${digest_manifest}")"
+	text_index="${text_index#*\"layers\"}"
+	digest_layer="${text_index#*\"digest\":\"sha256:}"
+	digest_layer="${digest_layer%%\"*}"
 
-				frobulator.scs "Supported distribution version" "[ ${version_distribution} ]"
-			;;
+	tar										\
+		--extract							\
+		--gzip								\
+		--numeric-owner						\
+		--preserve-permissions				\
+			--file="${directory_oci}/blobs/sha256/${digest_layer}"	\
+				--directory="${directory_build}"	> "${sink}" 2>&1
 
-			"")
-				version_distribution="${version_distribution}"
+	frobulator.track || return "${status}"
 
-				frobulator.err "Distribution version not specified."
+	frobulator.delete "${directory_build}" .oci
 
-				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-			;;
+	[ -e "${directory_build}"/etc/os-release ]
 
-			 *)
-				version_distribution="${version_distribution}"
+	frobulator.track
 
-				frobulator.err "Unsupported distribution version."
-
-				frobulator.wrn "Defaulting" "[ ${version_distribution} ]"
-			;;
-
-		esac
-
-	;;
-
-	esac
-
-	frobulator.complete
-
+	return "${status}"
 }
 
 image_build () {
+
+	if [ "${name_distribution}" = fedora ]
+	then
+		image_fedora
+
+		return
+	fi
 
 	variant="minbase"
 
@@ -535,6 +547,8 @@ then
 
 	image_select
 fi
+
+image_handle
 
 frobulator.temporary directory_build
 
