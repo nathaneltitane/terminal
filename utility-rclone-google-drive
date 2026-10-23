@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="07-13-2026"
+version="2026-10-22"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -184,9 +184,11 @@ file_lock_synchronize="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
 # folders left out of the sync
 # Books - too large - LLM - live claude state and login token - RClone - this sync's own login token
 # Music - empty on both sides - music lives on the external drive - bisync refuses an empty history
+# Git - kept on github - live edits clash with the sync
 
 list_directories_excluded=(
 ${TAB}Books
+${TAB}Git
 ${TAB}LLM
 ${TAB}Music
 ${TAB}RClone
@@ -333,7 +335,18 @@ ${TAB}${TAB}then
 ${TAB}${TAB}${TAB}continue
 ${TAB}${TAB}fi
 
-${TAB}${TAB}rclone_transfer bisync "\${directory_server_cloud}/\${name_directory_server}" "\${directory_server_local}/\${name_directory_server}"
+${TAB}${TAB}# first sync builds folder history
+
+${TAB}${TAB}list_listings_folder=("\${HOME}"/.cache/rclone/bisync/*_"\${name_directory_server}".path1.lst)
+
+${TAB}${TAB}if [ -e "\${list_listings_folder[0]}" ]
+${TAB}${TAB}then
+${TAB}${TAB}${TAB}rclone_transfer bisync "\${directory_server_cloud}/\${name_directory_server}" "\${directory_server_local}/\${name_directory_server}"
+${TAB}${TAB}else
+${TAB}${TAB}${TAB}echo "Resync triggered - new folder: \${name_directory_server}"
+
+${TAB}${TAB}${TAB}rclone_transfer bisync "\${directory_server_cloud}/\${name_directory_server}" "\${directory_server_local}/\${name_directory_server}" --resync --resync-mode newer
+${TAB}${TAB}fi
 
 ${TAB}${TAB}sleep 1
 ${TAB}done
