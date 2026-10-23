@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-22"
+version="2026-10-23"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -85,6 +85,10 @@ do
 			option_follow="true"
 		;;
 
+		-r|--resume)
+			option_resume="true"
+		;;
+
 		-d|--directory)
 			option_directory="${2}"
 
@@ -93,7 +97,7 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -m | -p [-f] [-d Directory] | -h"
+			echo -e "Usage: ./${script} -m | -p [-f] [-r] [-d Directory] | -h"
 			echo
 			echo -e "Note:              Books follow the curated epub library conventions - style d covers."
 			echo
@@ -104,6 +108,8 @@ do
 			echo -e "-p, --process      Run [p]rocessing of downloaded books into the flat gutenberg library."
 			echo
 			echo -e "-f, --follow       [F]ollow the download - process in batches of 50 until it ends."
+			echo
+			echo -e "-r, --resume       Run as a [r]esume service - continues after reboot - removed once done."
 			echo
 			echo -e "-d, --directory    Specify books [d]irectory."
 			echo
@@ -126,7 +132,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -m | -p [-f] [-d Directory] | -h"
+			echo -e "Usage: ./${script} -m | -p [-f] [-r] [-d Directory] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."
@@ -178,6 +184,11 @@ directory_library="${directory_books}/epub"
 directory_output="${directory_books}/epub-gutenberg"
 
 file_log_mirror="${directory_books}/gutenberg-rsync.log"
+
+# resume service - removed once the run completes
+
+name_service="gutenberg-resume.service"
+file_service="/etc/systemd/system/${name_service}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -872,6 +883,115 @@ gutenberg_process () {
 	return "${status}"
 }
 
+gutenberg_resume () {
+
+	# service runs the same operations as root for the user - no password prompt at boot
+
+	local status=0
+	local file_script="${BASH_SOURCE[0]}"
+	local directory_script
+	local command_systemctl
+	local command_remove
+	local text_arguments
+	local item
+	local state_service
+
+	local list_arguments=()
+
+	if [ ! -d /run/systemd/system ]
+	then
+		frobulator.err "Resume requires systemd."
+
+		return 1
+	fi
+
+	if [[ "${file_script}" != /* ]]
+	then
+		file_script="${PWD}/${file_script}"
+	fi
+
+	directory_script="${file_script%/*}"
+
+	command_systemctl="$(command -v systemctl)"
+	command_remove="$(command -v rm)"
+
+	state_service="$(systemctl is-active "${name_service}" 2> /dev/null)"
+
+	if [ "${state_service}" = "active" ] || [ "${state_service}" = "activating" ]
+	then
+		frobulator.err "Resume service already running." "[ ${name_service} ]"
+
+		return 1
+	fi
+
+	if [ "${option_mirror}" = "true" ]
+	then
+		list_arguments+=(-m)
+	fi
+
+	if [ "${option_process}" = "true" ]
+	then
+		list_arguments+=(-p)
+	fi
+
+	if [ "${option_follow}" = "true" ]
+	then
+		list_arguments+=(-f)
+	fi
+
+	list_arguments+=(-d "${directory_books}")
+
+	# systemd quoting - percent signs doubled
+
+	for item in "${file_script}" "${list_arguments[@]}"
+	do
+		item="${item//%/%%}"
+
+		text_arguments+=" \"${item//\"/\\\"}\""
+	done
+
+	cat <<- FILE > "${file_service}"
+		[Unit]
+		Description=Resume gutenberg mirror and processing
+		Wants=network-online.target
+		After=network-online.target
+		RequiresMountsFor="${directory_books//%/%%}" "${directory_script//%/%%}"
+
+		[Service]
+		Type=oneshot
+		Environment=SUDO_USER=${USER}
+		TimeoutStartSec=infinity
+
+		# stop before drive unmount
+		KillMode=control-group
+		TimeoutStopSec=20
+
+		ExecStart=/bin/bash${text_arguments}
+
+		# done - service removed
+		ExecStart=${command_systemctl} disable ${name_service}
+		ExecStart=${command_remove} -f ${file_service}
+		ExecStart=${command_systemctl} daemon-reload
+
+		[Install]
+		WantedBy=multi-user.target
+	FILE
+
+	frobulator.track || return "${status}"
+
+	systemctl daemon-reload
+
+	systemctl enable "${name_service}" > "${sink}" 2>&1
+
+	frobulator.track || return "${status}"
+
+	systemctl start --no-block "${name_service}"
+
+	frobulator.track
+
+	return "${status}"
+}
+
 # update ───────────────────────────────────────────────────────────────────────
 
 # frobulator.update
@@ -892,6 +1012,23 @@ frobulator.require ${list[@]}
 list=()
 
 # configuration ────────────────────────────────────────────────────────────────
+
+# resume - operations handed to the service
+
+if [ "${option_resume}" = "true" ]
+then
+	frobulator.inf "Starting resume service" "[ ${name_service} ]"
+
+	gutenberg_resume
+
+	frobulator.complete
+
+	frobulator.inf "Progress" "[ journalctl -f -u ${name_service} ]"
+
+	frobulator.result "${script}"
+
+	exit
+fi
 
 if [ "${option_process}" = "true" ]
 then
