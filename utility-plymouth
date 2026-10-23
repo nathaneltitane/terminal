@@ -146,7 +146,6 @@ line_modules="# plymouth early graphics"
 
 list_parameters=(
 	splash
-	video=efifb:off
 	loglevel=3
 	udev.log_level=3
 	vt.global_cursor_default=0
