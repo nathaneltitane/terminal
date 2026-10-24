@@ -125,8 +125,7 @@ Kept: home directories, themes, the boot theme, drive mounts and every package.
 
 ---
 
-[![Donate](https://img.shields.io/badge/Paypal-2f343f.svg?style=for-the-badge&logo=paypal&label=Donate)](https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ)<br>
-Show your appreciation with a PayPal donation!
+[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-22 ]
 
 ---
 
@@ -135,4 +134,5 @@ Useful? Star the repository - it helps others find it.
 
 ---
 
-[[ Terminal // Project Page ]](https://github.com/nathaneltitane/terminal) [ Version // 2026-10-22 ]
+[![Donate](https://img.shields.io/badge/Paypal-2f343f.svg?style=for-the-badge&logo=paypal&label=Donate)](https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ)<br>
+Show your appreciation with a PayPal donation!
