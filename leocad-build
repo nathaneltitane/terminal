@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-06"
+version="2026-10-24"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -134,6 +134,10 @@ directory_install="/usr/local/bin"
 
 count_processors="$(nproc)"
 
+# kde desktop shell - enables the embedded konsole terminal
+
+command_plasma="plasmashell"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${url_source}" ]
@@ -165,6 +169,16 @@ list=(
 	qttools5-dev
 	qttools5-dev-tools
 )
+
+# kde desktop - konsole part and kparts headers for the terminal panel
+
+if [ -n "$(command -v "${command_plasma}")" ]
+then
+	list+=(
+		konsole-kpart
+		libkf5parts-dev
+	)
+fi
 
 frobulator.require ${list[@]}
 
