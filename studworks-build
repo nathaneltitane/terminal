@@ -1,0 +1,251 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-28"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-s|--source)
+			url_source="${2}"
+
+			shift
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -s [Source] | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-s, --source    Specify [s]ource URL to build from."
+			echo
+			echo -e "                [ ${marker_hts}github.com/nathaneltitane/studworks.git ] [ Default ]"
+			echo
+			echo -e "-h, --help      Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'     [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -s [Source] | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+application="studworks"
+
+# binary install directory - outside package manager paths
+
+directory_install="/usr/local/bin"
+
+# processing units available - parallel build jobs
+
+count_processors="$(nproc)"
+
+# kde desktop shell - enables the embedded konsole terminal
+
+command_plasma="plasmashell"
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+if [ -z "${url_source}" ]
+then
+	url_source="${marker_hts}github.com/nathaneltitane/studworks.git"
+fi
+
+# functions ────────────────────────────────────────────────────────────────────
+
+# update ───────────────────────────────────────────────────────────────────────
+
+# frobulator.update
+
+# frobulator.upgrade
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list=(
+	git
+	g++
+	make
+	zlib1g-dev
+	libqt5concurrent5
+	libqt5opengl5
+	libqt5opengl5-dev
+	libqt5printsupport5
+	libqt5xml5
+	qtbase5-dev
+	qttools5-dev
+	qttools5-dev-tools
+)
+
+# kde desktop - konsole part and kparts headers for the terminal panel
+
+if [ -n "$(command -v "${command_plasma}")" ]
+then
+	list+=(
+		konsole-kpart
+		libkf5parts-dev
+	)
+fi
+
+frobulator.require ${list[@]}
+
+frobulator.complete continue "Requirements failure" "[ ${application} ]"
+
+list=()
+
+# configuration ────────────────────────────────────────────────────────────────
+
+frobulator.temporary directory_build
+
+frobulator.complete halt "Temporary directory failure" "[ ${application} ]"
+
+frobulator.trap "${directory_build}"
+
+frobulator.complete continue "Cleanup trap failure" "[ ${directory_build} ]"
+
+# get source code
+
+command_clone="git clone --quiet"
+
+frobulator.background "clone" -- frobulator.silence "${command_clone} '${url_source}' '${directory_build}'"
+
+frobulator.complete halt "Clone failure" "[ ${url_source} ]"
+
+cd "${directory_build}"
+
+frobulator.complete halt "Directory not found" "[ ${directory_build} ]"
+
+# configure project
+
+frobulator.silence "qmake ${application}.pro"
+
+frobulator.complete halt "Unable to configure project" "[ ${application} ]"
+
+# compile binary
+
+command_build="make -j${count_processors}"
+
+frobulator.background "build" -- frobulator.silence log "${command_build}"
+
+frobulator.complete halt "Build failure" "[ ${application} ]"
+
+# install binary
+
+frobulator.copy "${directory_build}"/build/release "${directory_install}" "${application}"
+
+frobulator.complete continue "Install failure" "[ ${directory_install}/${application} ]"
+
+# generate launcher
+
+content_launcher=$(cat <<- 'LAUNCHER'
+[Desktop Entry]
+Name=StudWorks
+Comment=Create virtual LEGO® models
+Exec=studworks %f
+Terminal=false
+Type=Application
+Icon=studworks
+MimeType=application/vnd.studworks;application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;application/x-ldlite;
+Categories=Graphics;3DGraphics;Education;
+Keywords=CAD;LEGO;LDraw;
+LAUNCHER
+)
+
+frobulator.write write "${content_launcher}" /usr/share/applications "${application}".desktop
+
+frobulator.complete continue "Launcher failure" "[ /usr/share/applications/${application}.desktop ]"
+
+frobulator.result "${script}"
