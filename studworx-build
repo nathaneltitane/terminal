@@ -87,7 +87,7 @@ do
 			echo
 			echo -e "-s, --source    Specify [s]ource URL to build from."
 			echo
-			echo -e "                [ ${marker_hts}github.com/nathaneltitane/studworks.git ] [ Default ]"
+			echo -e "                [ ${marker_hts}github.com/nathaneltitane/studworx.git ] [ Default ]"
 			echo
 			echo -e "-h, --help      Show [h]elp and usage information."
 			echo
@@ -124,7 +124,7 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-application="studworks"
+application="studworx"
 
 # binary install directory - outside package manager paths
 
@@ -142,7 +142,7 @@ command_plasma="plasmashell"
 
 if [ -z "${url_source}" ]
 then
-	url_source="${marker_hts}github.com/nathaneltitane/studworks.git"
+	url_source="${marker_hts}github.com/nathaneltitane/studworx.git"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -232,13 +232,13 @@ frobulator.complete continue "Install failure" "[ ${directory_install}/${applica
 
 content_launcher=$(cat <<- 'LAUNCHER'
 [Desktop Entry]
-Name=StudWorks
+Name=StudWorx
 Comment=Create virtual LEGO® models
-Exec=studworks %f
+Exec=studworx %f
 Terminal=false
 Type=Application
-Icon=studworks
-MimeType=application/vnd.studworks;application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;application/x-ldlite;
+Icon=studworx
+MimeType=application/vnd.studworx;application/x-ldraw;application/x-multi-part-ldraw;application/x-multipart-ldraw;application/x-ldlite;
 Categories=Graphics;3DGraphics;Education;
 Keywords=CAD;LEGO;LDraw;
 LAUNCHER
