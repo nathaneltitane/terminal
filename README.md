@@ -1,4 +1,6 @@
-![terminal](https://raw.githubusercontent.com/nathaneltitane/terminal/main/terminal.svg)
+<p align="center"><img src="https://raw.githubusercontent.com/nathaneltitane/terminal/main/terminal.svg" alt="terminal"><br><b>Shell scripts, templates, dotfiles and utilities</b><br>Make your Linux experience a breeze</p>
+
+---
 
 [![Donate](https://img.shields.io/badge/Paypal-2f343f.svg?style=for-the-badge&logo=paypal&label=Donate)](https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ)<br>
 Show your appreciation with a PayPal donation!
