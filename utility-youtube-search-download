@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version='05-21-2026'
+version="2026-10-31"
 
 # variables ────────────────────────────────────────────────────────────────────
 
@@ -92,7 +92,6 @@ do
 	case "${1}"
 	in
 		-d|--directory)
-			option="directory"
 			directory_download="${2}"
 
 			shift
@@ -114,17 +113,19 @@ do
 
 		-h|--help)
 			echo
-			echo -e "Usage: ./${script} -i ['Artist - Track'] | -f [File] | -h [OPTION]"
+			echo -e "Usage: ./${script} -i ['Artist - Track'] | -f [File] [-d Directory] | -h"
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --input    Search and download s[i]ngle track."
+			echo -e "-i, --input       Search and download s[i]ngle track."
 			echo
-			echo -e "-f, --file     Search and download tracks from list in [f]ile."
+			echo -e "-f, --file        Search and download tracks from list in [f]ile."
 			echo
-			echo -e "-h, --help     Show [h]elp and usage information."
+			echo -e "-d, --directory   Specify download [d]irectory - default ~/tracks."
 			echo
-			echo -e "'${script}'    [ Version // ${version} ]"
+			echo -e "-h, --help        Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'       [ Version // ${version} ]"
 			echo
 
 			exit
@@ -139,7 +140,7 @@ do
 
 		*)
 			echo
-			echo -e "Usage: ./${script} -i ['Artist - Track'] | -f [File] | -h [OPTION]"
+			echo -e "Usage: ./${script} -i ['Artist - Track'] | -f [File] [-d Directory] | -h"
 			echo
 			echo -e "Unknown option: '${script} ${1}':"
 			echo -e "Type './${script} -h' for help and usage information."

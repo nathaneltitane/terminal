@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-22"
+version="2026-10-31"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -170,7 +170,7 @@ do
 			echo
 			echo -e "-l, --applications    Set up app[l]ications."
 			echo
-			echo -e "-k, --kde             Set up [k]de runner shortcut."
+			echo -e "-k, --kde-runner      Set up [k]de runner shortcut."
 			echo
 			echo -e "-e, --efi             Set up r[e]find and efi boot theme."
 			echo

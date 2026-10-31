@@ -10,7 +10,7 @@ temperature_battery=$(cat /sys/class/power_supply/battery/uevent | grep -i 'temp
 date=$(date +"%F")
 time=$(date +"%r")
 
-[ "$HOSTNAME" = "localhost" ] && HOSTANME="Android"
+[ "$HOSTNAME" = "localhost" ] && HOSTNAME="Android"
 [ -z "${USER}" ] && USER="termux"
 
 unset PS1
