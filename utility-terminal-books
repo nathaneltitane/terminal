@@ -1,0 +1,737 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-04"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-u|--uninstall)
+			option="uninstall"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -u | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-u, --uninstall    Run [u]ninstallation of ${script} - installed copies removed."
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'        [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -u | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# uninstall ────────────────────────────────────────────────────────────────────
+
+# remove installed copies
+
+if [ "${option}" = "uninstall" ]
+then
+	count_removed=0
+
+	# installed copies
+
+	mapfile -t list_paths_installed < <(type -a -P "${script}")
+
+	for path_installed in "${list_paths_installed[@]}"
+	do
+		directory_installed="${path_installed%/*}"
+
+		if [ -w "${directory_installed}" ]
+		then
+			frobulator.delete "${directory_installed}" "${script}"
+
+			count_removed=$(( count_removed + 1 ))
+		else
+			frobulator.wrn "Superuser needed to remove" "[ sudo rm ${path_installed} ]"
+		fi
+	done
+
+	if [ "${count_removed}" -eq 0 ]
+	then
+		frobulator.inf "No installed copy found" "[ ${script} ]"
+	else
+		frobulator.scs "Uninstalled" "[ ${script} ]"
+	fi
+
+	exit
+fi
+
+# prompt ───────────────────────────────────────────────────────────────────────
+
+frobulator.script "Welcome to the Gutendex teminal library!"
+
+# variables ────────────────────────────────────────────────────────────────────
+
+url_api="${marker_hts}gutendex.com/books"
+
+# api responses - temporary - removed on exit
+
+frobulator.temporary directory_temporary
+
+frobulator.trap "${directory_temporary}"
+
+file_json_search="${directory_temporary}/search.json"
+file_json_book="${directory_temporary}/book.json"
+
+# functions ────────────────────────────────────────────────────────────────────
+
+languages_list () {
+
+	echo
+
+	frobulator.fwd "Listing known languages${marker_elp}"
+
+	frobulator.timeout
+
+	IFS=$'\n'
+
+	# get all language names as an indexed array
+
+	list_names_language=("${!list_languages[@]}")
+	count_languages=${#list_names_language[@]}
+
+	# find longest langauge string
+
+	length_language_longest=0
+
+	for name_language in "${list_names_language[@]}"
+	do
+		if [[ ${#name_language} -gt ${length_language_longest} ]]
+		then
+			length_language_longest=${#name_language}
+		fi
+	done
+
+	# calculate half of the array length and round up
+
+	count_rows=$(( ( count_languages + 1 ) / 2 ))
+
+	for (( i = 0 ; i < count_rows ; i ++ ))
+	do
+		name_language_left="${list_names_language[i]}"
+
+		# avoid out-of-bounds error
+
+		name_language_right="${list_names_language[i+count_rows]:-}"
+
+		printf "%-*s %-4s    |    %-*s %-4s\n"																	\
+		"$(( length_language_longest + 4 ))" "$name_language_left" "${list_languages[$name_language_left]}"		\
+		"$(( length_language_longest + 4 ))" "$name_language_right" "${list_languages[$name_language_right]}"
+	done
+
+	echo
+
+	IFS=''
+
+	unset code_language
+	}
+
+selections () {
+
+	frobulator.sep
+
+	frobulator.inf "Selections"
+
+	echo "    [ 1 ] [S]earch for a book           [ author | title | subject ]"
+	echo "    [ 2 ] [G]et book details            [ id ]"
+	echo "    [ 3 ] [D]ownload book(s) (epub)     [ id | all ]"
+	echo
+	echo "    [ 4 ] [E]xit"
+	echo
+
+	frobulator.sep
+
+	frobulator.ipt "Selection:"
+
+	frobulator.read selection
+
+	echo
+}
+
+string_sanitize () {
+
+	string="${1}"
+
+	echo "${string}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+}
+
+book_query () {
+
+	frobulator.ipt "Enter search query [ author / title / subject ]:"
+
+	frobulator.read query
+
+	while [[ ! "${query}" =~ ^[A-Za-z0-9]+$ ]]
+	do
+		echo
+		frobulator.err "Invalid input type:"
+
+		frobulator.wrn "Alphanumeric characters only"
+
+		frobulator.ipt "Enter search query [ author / title / subject ]:"
+
+		frobulator.read query
+
+	done
+
+	echo
+
+	# url encode space characters
+
+	query=$(echo "${query}" | sed 's/ /%20/g')
+
+	declare -A list_languages=(
+		["Abkhazian"]="ab"
+		["Afar"]="aa"
+		["Afrikaans"]="af"
+		["Akan"]="ak"
+		["Albanian"]="sq"
+		["Amharic"]="am"
+		["Arabic"]="ar"
+		["Aragonese"]="an"
+		["Armenian"]="hy"
+		["Assamese"]="as"
+		["Avaric"]="av"
+		["Avestan"]="ae"
+		["Aymara"]="ay"
+		["Azerbaijani"]="az"
+		["Bambara"]="bm"
+		["Bashkir"]="ba"
+		["Basque"]="eu"
+		["Belarusian"]="be"
+		["Bengali"]="bn"
+		["Bislama"]="bi"
+		["Bosnian"]="bs"
+		["Breton"]="br"
+		["Bulgarian"]="bg"
+		["Burmese"]="my"
+		["Catalan"]="ca"
+		["Chamorro"]="ch"
+		["Chechen"]="ce"
+		["Chichewa"]="ny"
+		["Chinese"]="zh"
+		["Church Slavonic"]="cu"
+		["Chuvash"]="cv"
+		["Cornish"]="kw"
+		["Corsican"]="co"
+		["Cree"]="cr"
+		["Croatian"]="hr"
+		["Czech"]="cs"
+		["Danish"]="da"
+		["Divehi"]="dv"
+		["Dutch"]="nl"
+		["Dzongkha"]="dz"
+		["English"]="en"
+		["Esperanto"]="eo"
+		["Estonian"]="et"
+		["Ewe"]="ee"
+		["Faroese"]="fo"
+		["Fijian"]="fj"
+		["Finnish"]="fi"
+		["French"]="fr"
+		["Fulah"]="ff"
+		["Gaelic, Scottish"]="gd"
+		["Galician"]="gl"
+		["Ganda"]="lg"
+		["Georgian"]="ka"
+		["German"]="de"
+		["Greek"]="el"
+		["Greenlandic"]="kl"
+		["Guarani"]="gn"
+		["Gujarati"]="gu"
+		["Haitian Creole"]="ht"
+		["Hausa"]="ha"
+		["Hebrew"]="he"
+		["Herero"]="hz"
+		["Hindi"]="hi"
+		["Hiri Motu"]="ho"
+		["Hungarian"]="hu"
+		["Icelandic"]="is"
+		["Ido"]="io"
+		["Igbo"]="ig"
+		["Indonesian"]="id"
+		["Interlingua"]="ia"
+		["Interlingue"]="ie"
+		["Inuktitut"]="iu"
+		["Inupiaq"]="ik"
+		["Irish"]="ga"
+		["Italian"]="it"
+		["Japanese"]="ja"
+		["Javanese"]="jv"
+		["Kannada"]="kn"
+		["Kanuri"]="kr"
+		["Kashmiri"]="ks"
+		["Kazakh"]="kk"
+		["Khmer"]="km"
+		["Kikuyu"]="ki"
+		["Kinyarwanda"]="rw"
+		["Komi"]="kv"
+		["Kongo"]="kg"
+		["Korean"]="ko"
+		["Kurdish"]="ku"
+		["Kwanyama"]="kj"
+		["Kyrgyz"]="ky"
+		["Lao"]="lo"
+		["Latin"]="la"
+		["Latvian"]="lv"
+		["Limburgish"]="li"
+		["Lingala"]="ln"
+		["Lithuanian"]="lt"
+		["Luba-Katanga"]="lu"
+		["Luxembourgish"]="lb"
+		["Macedonian"]="mk"
+		["Malagasy"]="mg"
+		["Malay"]="ms"
+		["Malayalam"]="ml"
+		["Maltese"]="mt"
+		["Manx"]="gv"
+		["Maori"]="mi"
+		["Marathi"]="mr"
+		["Marshallese"]="mh"
+		["Mongolian"]="mn"
+		["Nauru"]="na"
+		["Navajo"]="nv"
+		["Ndonga"]="ng"
+		["Nepali"]="ne"
+		["North Ndebele"]="nd"
+		["Northern Sami"]="se"
+		["Norwegian Bokmål"]="nb"
+		["Norwegian Nynorsk"]="nn"
+		["Norwegian"]="no"
+		["Occitan"]="oc"
+		["Ojibwa"]="oj"
+		["Oriya"]="or"
+		["Oromo"]="om"
+		["Ossetian"]="os"
+		["Pali"]="pi"
+		["Pashto"]="ps"
+		["Persian"]="fa"
+		["Polish"]="pl"
+		["Portuguese"]="pt"
+		["Punjabi"]="pa"
+		["Quechua"]="qu"
+		["Romanian"]="ro"
+		["Romansh"]="rm"
+		["Rundi"]="rn"
+		["Russian"]="ru"
+		["Samoan"]="sm"
+		["Sango"]="sg"
+		["Sanskrit"]="sa"
+		["Sardinian"]="sc"
+		["Serbian"]="sr"
+		["Shona"]="sn"
+		["Sindhi"]="sd"
+		["Sinhala"]="si"
+		["Slovak"]="sk"
+		["Slovenian"]="sl"
+		["Somali"]="so"
+		["South Ndebele"]="nr"
+		["Southern Sotho"]="st"
+		["Spanish"]="es"
+		["Sundanese"]="su"
+		["Swahili"]="sw"
+		["Swati"]="ss"
+		["Swedish"]="sv"
+		["Tagalog"]="tl"
+		["Tahitian"]="ty"
+		["Tajik"]="tg"
+		["Tamil"]="ta"
+		["Tatar"]="tt"
+		["Telugu"]="te"
+		["Thai"]="th"
+		["Tibetan"]="bo"
+		["Tigrinya"]="ti"
+		["Tonga"]="to"
+		["Tsonga"]="ts"
+		["Tswana"]="tn"
+		["Turkish"]="tr"
+		["Turkmen"]="tk"
+		["Twi"]="tw"
+		["Uighur"]="ug"
+		["Ukrainian"]="uk"
+		["Urdu"]="ur"
+		["Uzbek"]="uz"
+		["Venda"]="ve"
+		["Vietnamese"]="vi"
+		["Volapük"]="vo"
+		["Walloon"]="wa"
+		["Welsh"]="cy"
+		["Western Frisian"]="fy"
+		["Wolof"]="wo"
+		["Xhosa"]="xh"
+		["Yi"]="ii"
+		["Yiddish"]="yi"
+		["Yoruba"]="yo"
+		["Zhuang"]="za"
+		["Zulu"]="zu"
+	)
+
+	frobulator.ipt "Enter language - [ ↵ ] to skip [ en / fr / es / .. ]:"
+
+	frobulator.read code_language
+
+	while true
+	do
+		if [[ -z "${code_language}" ]]
+		then
+			break
+		fi
+
+		if [[ "${code_language}" =~ ^[A-Za-z]+$ ]]
+		then
+			break
+		fi
+
+		if [[ "${code_language}" =~ ^[0-90-9]+$ ]]
+		then
+		    frobulator.err "Invalid input type:"
+
+			frobulator.wrn "Alphabetical characters only"
+		fi
+
+		languages_list
+
+		frobulator.ipt "Enter language - [ ↵ ] to skip [ en / fr / es / .. ]:"
+
+		frobulator.read code_language
+
+	done
+
+	echo
+
+	if [ -n "${code_language}" ]
+	then
+		url_search="${url_api}/?search=${query}&languages=${code_language}"
+	else
+		url_search="${url_api}/?search=${query}"
+	fi
+
+	# response written to file - a background assignment never reaches the script
+
+	frobulator.background process "Querying" -- curl -s -o "${file_json_search}" "${url_search}"
+
+	json_search="$(< "${file_json_search}")"
+
+	if [ -n "${code_language}" ]
+	then
+		list_ids_search_last=(
+			$(echo "${json_search}" | jq -r '
+									.results[] |
+									select(.languages[] |
+									contains("'"${code_language}"'")) |
+									.id
+								'
+			)
+		)
+
+	else
+		list_ids_search_last=(
+			$(echo "${json_search}" | jq -r '
+									.results[].id
+								'
+			)
+		)
+
+	fi
+
+	count_matches=$(curl -s "${url_search}" | jq -r '.count')
+
+	if [ "${count_matches}" -eq 0 ]
+	then
+		frobulator.err "Matches" "[ ${count_matches} ]"
+	else
+		frobulator.scs "Matches" "[ ${count_matches} ]"
+
+		frobulator.sep
+
+		curl -s "${url_search}" | jq -r '
+									.results[] |
+									select(.languages[] |
+									contains("'"${code_language}"'")) |
+									"Identifier:"
+									+ " "
+									+ (.id|tostring)
+									+ "\n"
+									+ "\n"
+									+ "    "
+									+ "Title:"
+									+ "   "
+									+ "    "
+									+ .title
+									+ "\n"
+									+ "    "
+									+ "Author:"
+									+ "  "
+									+ "    "
+									+ (.authors[].name // "N/A")
+									+ "\n"
+									+ "    "
+									+ "Language:"
+									+ "    "
+									+ (.languages | join(", "))
+									+ "\n"
+									+ "    "
+									+ "Download:"
+									+ "    "
+									+ (.formats."application/epub+zip" // "N/A")
+									+ "\n"
+								'
+	fi
+}
+
+book_details () {
+
+	frobulator.ipt "Enter book identifier:"
+
+	frobulator.read id_book
+
+	while [[ ! "${id_book}" =~ ^[0-9]+$ ]]
+	do
+		echo
+		frobulator.err "Invalid input type:"
+
+		frobulator.wrn "Numeric characters only"
+
+		frobulator.ipt "Enter book identifier:"
+
+		frobulator.read id_book
+
+	done
+
+	echo
+
+	frobulator.sep
+
+	text_formats=$(curl -s "${url_api}/${id_book}/" | jq -r '
+															.formats | to_entries[] |
+															"    - "
+															+ (.key | sub("^application/"; ""))
+															+ ":"
+															+ "\n"
+															+ "      [ " + .value + " ]"
+															+ "\n"
+														'
+			)
+
+	# details fetched in the background to a file - shown once they arrive
+
+	frobulator.background process "Fetching details" -- curl -s -o "${file_json_book}" "${url_api}/${id_book}/"
+
+	jq -r '
+													"\n"
+													+ "\n"
+													+ "Title:"
+													+ "\n"
+													+ "\n"
+													+ .title
+													+ "\n"
+													+ "\n"
+													+ "Author:"
+													+ "\n"
+													+ "\n"
+													+ (.authors[].name // "Unknown")
+													+ "\n"
+													+ "\n"
+													+ "Subjects:"
+													+ "\n"
+													+ "\n"
+													+ "    - "
+													+ (.subjects | join("\n    - "))
+													+ "\n"
+													+ "\n"
+													+ "Formats:"
+													+ "\n"
+												' "${file_json_book}" | fold -s -w 80
+
+	echo "${text_formats}"
+
+	echo
+
+}
+
+book_download () {
+
+	frobulator.ipt "Enter Book identifier(s) separated by spaces - Type 'all' to download last query results:"
+	echo
+
+	frobulator.read -a list_ids_book
+
+	if [ "${list_ids_book[0]}" = "all" ]
+	then
+		if [ ${#list_ids_search_last[@]} -eq 0 ]
+		then
+			frobulator.err "No previous search results stored or found."
+
+			return
+		fi
+
+		list_ids_book=("${list_ids_search_last[@]}")
+	fi
+
+	for id_book in "${list_ids_book[@]}"
+	do
+		frobulator.inf "Fetching book information" " [ ${id_book} ]"
+
+		frobulator.background process "Fetching book information" " [ ${id_book} ]" -- curl -s -o "${file_json_book}" "${url_api}/${id_book}/"
+
+		json_book="$(< "${file_json_book}")"
+		echo
+
+		url_epub=$(echo "${json_book}" | jq -r '.formats."application/epub+zip"')
+
+		title=$(echo "${json_book}" | jq -r '.title')
+		author=$(echo "${json_book}" | jq -r '.authors[0].name')
+
+		if [ "${url_epub}" = "null" ]
+		then
+			frobulator.err "No EPUB version available for book" "[ ${id_book} ]"
+
+			continue
+		fi
+
+		author=$(string_sanitize "${author}")
+		title=$(string_sanitize  "${title}")
+
+		extension="epub"
+
+		file_book="${author} - ${title}.${extension}"
+
+		frobulator.background "Downloading" "[ ${file_book} ]" -- curl -s -L -o "${file_book}" "${url_epub}"
+		echo
+
+		frobulator.inf "Download complete" "[ ${file_book} ]"
+	done
+}
+
+while true
+do
+	selections
+
+	case "${selection}"
+	in
+		1 | s | S )
+
+			book_query
+
+		;;
+
+		2 | g | G )
+
+			book_details
+		;;
+
+		3 | d | D )
+
+			book_download
+		;;
+
+		4 | e | E )
+
+			exit
+		;;
+
+		*)
+			frobulator.wrn "Invalid selection. Use selection numbers or [b]racketed pointers to access features."
+		;;
+
+	esac
+done
+
