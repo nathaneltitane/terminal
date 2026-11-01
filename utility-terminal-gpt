@@ -1,0 +1,945 @@
+#!/bin/bash
+
+# output ───────────────────────────────────────────────────────────────────────
+
+# answers on the standard output - interface messages on the error output
+# pipes and redirections receive the answers only
+
+exec 3>&1 1>&2
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-17"
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+model_chat_default="gpt-6-luna"
+model_image_default="gpt-image-2.5-flare"
+size_image_default="1024x1024"
+count_tokens_maximum_default="4096"
+count_tokens_context_default="32000"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-p|--prompt)
+			text_prompt="${2}"
+
+			shift
+		;;
+
+		-f|--file)
+			file_prompt="${2}"
+
+			shift
+		;;
+
+		-s|--system)
+			text_system="${2}"
+
+			shift
+		;;
+
+		-m|--model)
+			model_chat="${2}"
+
+			shift
+		;;
+
+		-r|--reasoning)
+			effort_reasoning="${2}"
+
+			shift
+		;;
+
+		-t|--temperature)
+			value_temperature="${2}"
+
+			shift
+		;;
+
+		-x|--max-tokens)
+			count_tokens_maximum="${2}"
+
+			shift
+		;;
+
+		-c|--context)
+			count_tokens_context="${2}"
+
+			shift
+		;;
+
+		-i|--image-model)
+			model_image="${2}"
+
+			shift
+		;;
+
+		-z|--size)
+			size_image="${2}"
+
+			shift
+		;;
+
+		-b|--big)
+			option_multiline="true"
+		;;
+
+		-l|--list)
+			option_list="true"
+		;;
+
+		-k|--key)
+			option_key="true"
+
+			# optional key file - installed instead of typing the key
+
+			if [ -n "${2}" ] && [[ "${2}" != -* ]]
+			then
+				file_key_source="${2}"
+
+				shift
+			fi
+		;;
+
+		-u|--uninstall)
+			option="uninstall"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} [-p Prompt | -f File] [-s System] [-m Model] [-r Effort] [-t Temperature] [-x Tokens] [-c Tokens] [-i Model] [-z Size] [-b] | -l | -k [File] | -u | -h"
+			echo
+			echo -e "Note:                Chat with OpenAI models from the terminal - interactive chat without a prompt."
+			echo -e "                     Prompt given or piped in: one answer on the standard output - nothing else."
+			echo -e "                     API key read from OPENAI_API_KEY or saved once with '${script} -k'."
+			echo
+			echo -e "                     Chat commands:"
+			echo
+			echo -e "                     image: [description]    Generate an image - saved in ~/Pictures/chatty."
+			echo -e "                     command: [task]         Suggest a shell command - run only once confirmed."
+			echo -e "                     model: [id]             Show the details of a model."
+			echo -e "                     models                  List the available models."
+			echo -e "                     history                 Show the saved conversations."
+			echo -e "                     clear                   Start a new conversation - context emptied."
+			echo -e "                     exit | q                Quit."
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-p, --prompt         Ask a single [p]rompt and print the answer."
+			echo
+			echo -e "-f, --file           Read the prompt from a [f]ile."
+			echo
+			echo -e "-s, --system         Set the [s]ystem prompt - instructions kept for the whole conversation - text or file."
+			echo
+			echo -e "-m, --model          Set the chat [m]odel."
+			echo
+			echo -e "                     [ ${model_chat_default} ] [ Default ]"
+			echo
+			echo -e "-r, --reasoning      Set the [r]easoning effort - reasoning models only."
+			echo
+			echo -e "                     [ none | low | medium | high ]"
+			echo
+			echo -e "-t, --temperature    Set the sampling [t]emperature - models that accept it only."
+			echo
+			echo -e "                     [ 0 - 2 ]"
+			echo
+			echo -e "-x, --max-tokens     Set the ma[x]imum tokens per answer - reasoning included."
+			echo
+			echo -e "                     [ ${count_tokens_maximum_default} ] [ Default ]"
+			echo
+			echo -e "-c, --context        Set the conversation [c]ontext kept - estimated tokens - oldest messages dropped first."
+			echo
+			echo -e "                     [ ${count_tokens_context_default} ] [ Default ]"
+			echo
+			echo -e "-i, --image-model    Set the [i]mage model."
+			echo
+			echo -e "                     [ ${model_image_default} ] [ Default ]"
+			echo
+			echo -e "-z, --size           Set the image si[z]e - width x height."
+			echo
+			echo -e "                     [ ${size_image_default} ] [ Default ]"
+			echo
+			echo -e "-b, --big            Write [b]ig prompts - multiple lines - [ ↵ ] then [ ctrl + d ] to send."
+			echo
+			echo -e "-l, --list           Show the [l]ist of models available to the API key."
+			echo
+			echo -e "-k, --key            Save the API [k]ey - typed masked or installed from a file - kept private in ~/.config/chatty."
+			echo
+			echo -e "                     [ file ] [ Optional ]"
+			echo
+			echo -e "-u, --uninstall      Run [u]ninstallation of ${script} - installed copies removed - key and history once confirmed."
+			echo
+			echo -e "-h, --help           Show [h]elp and usage information."
+			echo
+			echo -e "'${script}'          [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} [-p Prompt | -f File] [-s System] [-m Model] [-r Effort] [-t Temperature] [-x Tokens] [-c Tokens] [-i Model] [-z Size] [-b] | -l | -k [File] | -u | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# variables ────────────────────────────────────────────────────────────────────
+
+url_api="https://api.openai.com/v1"
+
+directory_configuration="${HOME}/.config/chatty"
+directory_data="${HOME}/.local/share/chatty"
+directory_images="${HOME}/Pictures/chatty"
+
+file_key="${directory_configuration}/key"
+file_history="${directory_data}/history"
+
+prompt_command="You are a command line expert. Answer with one working shell command for a Linux terminal and nothing else: no explanation, no code block, no quotes. Chain commands on one line when several are needed. The command must do the following:"
+
+# risky command fragments - a warning is shown before running a suggested command
+
+list_patterns_risky=(
+	"rm "
+	"rmdir"
+	"mv "
+	"dd "
+	"mkfs"
+	"chmod"
+	"chown"
+	"sudo"
+	"shred"
+	"truncate"
+	">"
+	"curl"
+	"wget"
+	":(){"
+)
+
+# settings - options first - environment - defaults last
+
+model_chat="${model_chat:-${CHATTY_MODEL:-${model_chat_default}}}"
+model_image="${model_image:-${model_image_default}}"
+size_image="${size_image:-${size_image_default}}"
+count_tokens_maximum="${count_tokens_maximum:-${count_tokens_maximum_default}}"
+count_tokens_context="${count_tokens_context:-${count_tokens_context_default}}"
+option_multiline="${option_multiline:-false}"
+
+# conversation - json array of role and content messages - system prompt added per request
+
+json_messages="[]"
+
+# uninstall ────────────────────────────────────────────────────────────────────
+
+# remove installed copies
+
+if [ "${option}" = "uninstall" ]
+then
+	count_removed=0
+
+	# installed copies
+
+	mapfile -t list_paths_installed < <(type -a -P "${script}")
+
+	for path_installed in "${list_paths_installed[@]}"
+	do
+		directory_installed="${path_installed%/*}"
+
+		if [ -w "${directory_installed}" ]
+		then
+			frobulator.delete "${directory_installed}" "${script}"
+
+			count_removed=$(( count_removed + 1 ))
+		else
+			frobulator.wrn "Superuser needed to remove" "[ sudo rm ${path_installed} ]"
+		fi
+	done
+
+	# remove api key and history
+
+	if [ -d "${directory_configuration}" ] || [ -d "${directory_data}" ]
+	then
+		frobulator.qst "Remove the saved API key and history? [ y / N ]"
+
+		frobulator.read -r answer_remove
+
+		if [[ "${answer_remove}" =~ ^[yY] ]]
+		then
+			for directory_remove in "${directory_configuration}" "${directory_data}"
+			do
+				if [ -d "${directory_remove}" ]
+				then
+					frobulator.delete "${directory_remove%/*}" "${directory_remove##*/}"
+
+					count_removed=$(( count_removed + 1 ))
+				fi
+			done
+		fi
+	fi
+
+	if [ "${count_removed}" -eq 0 ]
+	then
+		frobulator.inf "No installed copy found" "[ ${script} ]"
+	else
+		frobulator.scs "Uninstalled" "[ ${script} ]"
+	fi
+
+	exit
+fi
+
+# functions ────────────────────────────────────────────────────────────────────
+
+chatty_key_load () {
+
+	# api key - environment first - saved key file after
+
+	key_api="${OPENAI_API_KEY:-${OPENAI_KEY}}"
+
+	if [ -z "${key_api}" ] && [ -s "${file_key}" ]
+	then
+		key_api="$(< "${file_key}")"
+	fi
+}
+
+chatty_key_save () {
+
+	# api key installed from a file or typed masked - stored readable by the user only
+	# first line of the file - spaces and line endings removed
+
+	local text_key
+
+	if [ -n "${file_key_source}" ]
+	then
+		if [ ! -r "${file_key_source}" ]
+		then
+			frobulator.err "Key file not found or not readable" "[ ${file_key_source} ]"
+
+			return 1
+		fi
+
+		IFS= read -r text_key < "${file_key_source}"
+	else
+		frobulator.ipt "OpenAI API key:"
+
+		frobulator.password
+
+		text_key="${password}"
+
+		unset password
+	fi
+
+	text_key="${text_key//[[:space:]]/}"
+
+	if [ -z "${text_key}" ]
+	then
+		frobulator.err "No key found" "[ ${file_key_source:-input} ]"
+
+		return 1
+	fi
+
+	mkdir -p "${directory_configuration}"
+
+	( umask 077 ; printf '%s\n' "${text_key}" > "${file_key}" )
+
+	chmod 600 "${file_key}"
+
+	frobulator.scs "API key saved" "[ ${file_key/#${HOME}/\~} ]"
+}
+
+chatty_request () {
+
+	# api call - method - endpoint - request body file or empty - response written to file_response
+	# ticker shown on an interactive terminal - silent in pipes
+
+	local method_request="${1}"
+	local endpoint_request="${2}"
+	local file_body="${3}"
+
+	# previous answer cleared - a failed transfer never reads a stale one
+
+	: > "${file_response}"
+
+	local -a command_request=(
+		curl
+		--silent
+		--show-error
+		--request "${method_request}"
+		--header "Authorization: Bearer ${key_api}"
+		--output "${file_response}"
+		"${url_api}/${endpoint_request}"
+	)
+
+	if [ -n "${file_body}" ]
+	then
+		command_request+=(--header "Content-Type: application/json" --data-binary "@${file_body}")
+	fi
+
+	if [ -t 2 ]
+	then
+		frobulator.background quiet process "Thinking" -- "${command_request[@]}"
+	else
+		"${command_request[@]}" 2> "${sink}"
+	fi
+
+	chatty_error
+}
+
+chatty_error () {
+
+	# failed request - api error type and message shown - status 1
+
+	local type_error
+	local message_error
+
+	if [ ! -s "${file_response}" ]
+	then
+		frobulator.err "No answer from the API" "[ ${url_api} ]"
+
+		return 1
+	fi
+
+	type_error="$(jq -r '.error.type // .error.code // empty' "${file_response}" 2> "${sink}")"
+	message_error="$(jq -r '.error.message // empty' "${file_response}" 2> "${sink}")"
+
+	if [ -n "${type_error}" ] || [ -n "${message_error}" ]
+	then
+		frobulator.err "Request failed" "[ ${type_error:-error} ]"
+
+		frobulator.msg "${message_error}"
+
+		return 1
+	fi
+
+	return 0
+}
+
+chatty_message_add () {
+
+	# message appended to the conversation - role and content
+
+	local role_message="${1}"
+	local text_message="${2}"
+
+	json_messages="$(jq -c --arg role "${role_message}" --arg content "${text_message}" '. + [ { role: $role, content: $content } ]' <<< "${json_messages}")"
+}
+
+chatty_context_trim () {
+
+	# oldest messages dropped while the conversation exceeds the context budget - about four characters per token
+
+	local count_characters
+	local count_messages
+
+	while true
+	do
+		count_characters="${#json_messages}"
+		count_messages="$(jq 'length' <<< "${json_messages}")"
+
+		if [ $(( count_characters / 4 )) -le "${count_tokens_context}" ] || [ "${count_messages}" -le 1 ]
+		then
+			break
+		fi
+
+		json_messages="$(jq -c '.[1:]' <<< "${json_messages}")"
+	done
+}
+
+chatty_body_chat () {
+
+	# chat request body - system prompt first - optional settings only when given
+
+	jq -n \
+		--arg model "${model_chat}" \
+		--arg system "${text_system}" \
+		--argjson messages "${json_messages}" \
+		--argjson tokens "${count_tokens_maximum}" \
+		--arg effort "${effort_reasoning}" \
+		--arg temperature "${value_temperature}" \
+		'{
+			model: $model,
+			messages: ((if $system != "" then [ { role: "system", content: $system } ] else [] end) + $messages),
+			max_completion_tokens: $tokens
+		}
+		+ (if $effort != "" then { reasoning_effort: $effort } else {} end)
+		+ (if $temperature != "" then { temperature: ($temperature | tonumber) } else {} end)' > "${file_body}"
+}
+
+chatty_ask () {
+
+	# prompt sent with the conversation - answer kept in the conversation - text in text_answer
+
+	local text_question="${1}"
+
+	chatty_message_add user "${text_question}"
+
+	chatty_context_trim
+
+	chatty_body_chat
+
+	chatty_request POST chat/completions "${file_body}"
+
+	if [ "${?}" -ne 0 ]
+	then
+		# failed question left out of the conversation
+
+		json_messages="$(jq -c '.[:-1]' <<< "${json_messages}")"
+
+		return 1
+	fi
+
+	text_answer="$(jq -r '.choices[0].message.content // empty' "${file_response}")"
+
+	if [ -z "${text_answer}" ]
+	then
+		frobulator.wrn "Empty answer - token limit reached before the answer" "[ -x ${count_tokens_maximum} ]"
+
+		json_messages="$(jq -c '.[:-1]' <<< "${json_messages}")"
+
+		return 1
+	fi
+
+	chatty_message_add assistant "${text_answer}"
+
+	chatty_history_write "${text_question}" "${text_answer}"
+}
+
+chatty_print () {
+
+	# answer on the standard output - markdown rendered by glow on a terminal - wrapped to the terminal width otherwise
+
+	local text_print="${1}"
+
+	local path_glow
+	local count_columns
+
+	if [ ! -t 3 ]
+	then
+		printf '%s\n' "${text_print}" >&3
+
+		return
+	fi
+
+	path_glow="$(command -v glow)"
+
+	if [ -n "${path_glow}" ]
+	then
+		printf '%s\n' "${text_print}" | "${path_glow}" - >&3
+	else
+		count_columns="$(tput cols 2> "${sink}")"
+
+		printf '%s\n' "${text_print}" | fold -s -w "${count_columns:-80}" >&3
+	fi
+}
+
+chatty_history_write () {
+
+	# question and answer appended with a time stamp - readable by the user only
+
+	local text_question="${1}"
+	local text_answer="${2}"
+
+	local stamp_history
+
+	stamp_history="$(date +"%Y-%m-%d %H:%M")"
+
+	mkdir -p "${directory_data}"
+
+	( umask 077 ; printf '%s\n%s\n%s\n\n' "[ ${stamp_history} // ${model_chat} ]" "> ${text_question}" "${text_answer}" >> "${file_history}" )
+}
+
+chatty_models () {
+
+	# models available to the api key - one identifier per line - details of one model when given
+
+	local id_model="${1}"
+
+	chatty_request GET models "" || return 1
+
+	if [ -n "${id_model}" ]
+	then
+		jq --arg id "${id_model}" '.data[] | select(.id == $id)' "${file_response}" >&3
+	else
+		jq -r '.data[].id' "${file_response}" | sort >&3
+	fi
+}
+
+chatty_image () {
+
+	# image generated from a description - saved as png - shown in kitty or opened on request
+
+	local text_description="${1}"
+
+	local data_image
+	local url_image
+	local stamp_image
+	local file_image
+	local path_kitty
+	local path_open
+	local answer_open
+
+	jq -n \
+		--arg model "${model_image}" \
+		--arg prompt "${text_description}" \
+		--arg size "${size_image}" \
+		'{ model: $model, prompt: $prompt, size: $size, n: 1 }' > "${file_body}"
+
+	chatty_request POST images/generations "${file_body}" || return 1
+
+	mkdir -p "${directory_images}"
+
+	stamp_image="$(date +"%Y%m%d-%H%M%S")"
+
+	file_image="${directory_images}/chatty-${stamp_image}.png"
+
+	# image models answer with base64 data - older ones with a link
+
+	data_image="$(jq -r '.data[0].b64_json // empty' "${file_response}")"
+	url_image="$(jq -r '.data[0].url // empty' "${file_response}")"
+
+	if [ -n "${data_image}" ]
+	then
+		printf '%s' "${data_image}" | base64 --decode > "${file_image}"
+
+	elif [ -n "${url_image}" ]
+	then
+		curl --silent --show-error --output "${file_image}" "${url_image}"
+	else
+		frobulator.err "No image in the answer"
+
+		return 1
+	fi
+
+	frobulator.scs "Image saved" "[ ${file_image/#${HOME}/\~} ]"
+
+	printf '%s\n' "${file_image}" >&3
+
+	path_kitty="$(command -v kitten)"
+
+	if [ "${TERM}" = "xterm-kitty" ] && [ -n "${path_kitty}" ]
+	then
+		"${path_kitty}" icat "${file_image}"
+
+		return
+	fi
+
+	path_open="$(command -v xdg-open)"
+
+	if [ -t 0 ] && [ -n "${path_open}" ]
+	then
+		frobulator.qst "Open the image? [ y / N ]"
+
+		frobulator.read -r answer_open
+
+		if [[ "${answer_open}" =~ ^[yY] ]]
+		then
+			frobulator.background -- "${path_open}" "${file_image}"
+		fi
+	fi
+}
+
+chatty_command () {
+
+	# shell command suggested for a task - shown - risky fragments flagged - run only once confirmed
+
+	local text_task="${1}"
+
+	local text_command
+	local pattern_risky
+	local answer_run
+
+	chatty_ask "${prompt_command} ${text_task}" || return 1
+
+	text_command="${text_answer}"
+
+	frobulator.inf "Suggested command"
+
+	printf '%s\n' "${text_command}" >&3
+
+	for pattern_risky in "${list_patterns_risky[@]}"
+	do
+		if [[ "${text_command}" == *"${pattern_risky}"* ]]
+		then
+			frobulator.wrn "This command can change files or download data - run it only if you understand it" "[ '${pattern_risky% }' ]"
+
+			break
+		fi
+	done
+
+	frobulator.qst "Run it? [ y / N ]"
+
+	frobulator.read -r answer_run
+
+	if [[ "${answer_run}" =~ ^[yY] ]]
+	then
+		frobulator.fwd "Running" "[ ${text_command} ]"
+
+		bash -c "${text_command}" >&3
+	fi
+}
+
+chatty_input () {
+
+	# next prompt from the terminal - one line - or several lines until ctrl + d in big prompt mode
+
+	text_input=""
+
+	frobulator.separate
+
+	if [ "${option_multiline}" = "true" ]
+	then
+		frobulator.ipt "Prompt - [ ↵ ] then [ ctrl + d ] to send:"
+
+		echo
+
+		text_input="$(cat)"
+	else
+		frobulator.ipt "Prompt:"
+
+		read -e -r text_input || text_input="exit"
+	fi
+}
+
+# requirements ─────────────────────────────────────────────────────────────────
+
+list+=(
+	curl
+	jq
+)
+
+frobulator.assess ${list[@]}
+
+list=()
+
+# numeric settings checked before any request
+
+if [[ ! "${count_tokens_maximum}" =~ ^[0-9]+$ ]] || [[ ! "${count_tokens_context}" =~ ^[0-9]+$ ]]
+then
+	frobulator.err "Token counts must be whole numbers" "[ -x ${count_tokens_maximum} // -c ${count_tokens_context} ]"
+
+	exit 1
+fi
+
+if [ -n "${value_temperature}" ] && [[ ! "${value_temperature}" =~ ^[0-9]+([.][0-9]+)?$ ]]
+then
+	frobulator.err "Temperature must be a number" "[ -t ${value_temperature} ]"
+
+	exit 1
+fi
+
+# temporary files - request body and response - removed on exit
+
+file_body="$(mktemp)"
+file_response="$(mktemp)"
+
+trap 'rm -f "${file_body}" "${file_response}"' EXIT
+
+# key ──────────────────────────────────────────────────────────────────────────
+
+if [ "${option_key}" = "true" ]
+then
+	chatty_key_save
+
+	exit
+fi
+
+chatty_key_load
+
+if [ -z "${key_api}" ]
+then
+	frobulator.err "No API key found"
+
+	frobulator.msg "Save it once with '${script} -k' or export OPENAI_API_KEY."
+
+	exit 1
+fi
+
+# system prompt - file content when a file is given
+
+if [ -n "${text_system}" ] && [ -f "${text_system}" ]
+then
+	text_system="$(< "${text_system}")"
+fi
+
+# single requests ──────────────────────────────────────────────────────────────
+
+if [ "${option_list}" = "true" ]
+then
+	chatty_models
+
+	exit
+fi
+
+# prompt from option, file or pipe - one answer - no chat
+
+if [ -n "${file_prompt}" ]
+then
+	if [ ! -f "${file_prompt}" ]
+	then
+		frobulator.err "Prompt file not found" "[ ${file_prompt} ]"
+
+		exit 1
+	fi
+
+	text_prompt="$(< "${file_prompt}")"
+
+elif [ -z "${text_prompt}" ] && [ ! -t 0 ]
+then
+	text_prompt="$(cat)"
+fi
+
+if [ -n "${text_prompt}" ]
+then
+	chatty_ask "${text_prompt}" || exit 1
+
+	chatty_print "${text_answer}"
+
+	exit
+fi
+
+# chat ─────────────────────────────────────────────────────────────────────────
+
+frobulator.inf "Chat model" "[ ${model_chat} ]"
+
+frobulator.msg "Type 'exit' or 'q' to quit - '${script} -h' lists the chat commands."
+
+while true
+do
+	chatty_input
+
+	case "${text_input}"
+	in
+		"")
+			continue
+		;;
+
+		exit|q)
+			break
+		;;
+
+		clear)
+			json_messages="[]"
+
+			frobulator.inf "Conversation cleared"
+		;;
+
+		history)
+			if [ -s "${file_history}" ]
+			then
+				cat "${file_history}" >&3
+			else
+				frobulator.inf "No saved conversations yet"
+			fi
+		;;
+
+		models)
+			chatty_models
+		;;
+
+		model:*)
+			id_model="${text_input#model:}"
+			id_model="${id_model//[[:space:]]/}"
+
+			chatty_models "${id_model}"
+		;;
+
+		image:*)
+			chatty_image "${text_input#image:}"
+		;;
+
+		command:*)
+			chatty_command "${text_input#command:}"
+		;;
+
+		*)
+			chatty_ask "${text_input}" && chatty_print "${text_answer}"
+		;;
+	esac
+done
+
+frobulator.scs "Done" "[ Chat ]"

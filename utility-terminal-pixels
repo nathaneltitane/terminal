@@ -1,0 +1,511 @@
+#!/bin/bash
+
+# dependencies ─────────────────────────────────────────────────────────────────
+
+script="$(basename -- "${BASH_SOURCE[0]}")"
+
+# script arguments for escalation
+
+self_arguments=("${@}")
+
+if [ "${frobulator_loaded}" != "true" ]
+then
+	echo
+	echo "[  >  ] Checking..."
+	echo
+
+	# root through sudo keeps using the user's frobulator
+
+	if [ -n "${SUDO_USER}" ]
+	then
+		USER="${SUDO_USER}"
+		HOME="$(getent passwd "${SUDO_USER}" | cut -d ':' -f 6)"
+	fi
+
+	frobulator="${HOME}/.local/bin/frobulator"
+	frobulator_download="$(mktemp)"
+
+	mkdir -p "${HOME}/.local/bin"
+
+	# latest release - curl or wget - local copy replaced only by a newer one
+
+	curl -s -L -o "${frobulator_download}" get.frbltr.app 2> /dev/null ||
+	wget -q -O "${frobulator_download}" get.frbltr.app 2> /dev/null
+
+	version_online="$(grep -m 1 '^update=' "${frobulator_download}")"
+	version_local="$(grep -m 1 '^update=' "${frobulator}" 2> /dev/null)"
+
+	if [[ "${version_online}" > "${version_local}" ]]
+	then
+		mv -f "${frobulator_download}" "${frobulator}"
+
+		chmod +x "${frobulator}"
+	fi
+
+	rm -f "${frobulator_download}"
+
+	if [ ! -f "${frobulator}" ]
+	then
+		echo "[  !  ] Unable to fetch frobulator ── [ get.frbltr.app ]"
+		echo
+
+		exit 1
+	fi
+
+	source "${frobulator}"
+fi
+
+# superuser ────────────────────────────────────────────────────────────────────
+
+frobulator.escalate
+
+# script ───────────────────────────────────────────────────────────────────────
+
+frobulator.script
+
+# version ──────────────────────────────────────────────────────────────────────
+
+version="2026-10-04"
+
+# usage ────────────────────────────────────────────────────────────────────────
+
+while (( $# ))
+do
+	case "${1}"
+	in
+		-f|--file)
+			source_image="${2}"
+
+			shift
+		;;
+
+		-d|--download)
+			state_inline="0"
+		;;
+
+		-n|--name)
+			state_name="1"
+		;;
+
+		-x|--width)
+			width_image="${2}"
+
+			shift
+		;;
+
+		-y|--height)
+			height_image="${2}"
+
+			shift
+		;;
+
+		-s|--stretch)
+			state_ratio="0"
+		;;
+
+		-t|--type)
+			hint_type="${2}"
+
+			shift
+		;;
+
+		-b|--block)
+			state_block="1"
+		;;
+
+		-u|--uninstall)
+			option="uninstall"
+		;;
+
+		-h|--help)
+			echo
+			echo -e "Usage: ./${script} -f [File] -d | -n | -x [Width] -y [Height] | -s | -t [Type] | -b | -u | -h"
+			echo
+			echo -e "Options:"
+			echo
+			echo -e "-f, --file         Specify image [f]ile to display."
+			echo
+			echo -e "-d, --download     Send image as a file [d]ownload instead."
+			echo
+			echo -e "-n, --name         Display file [n]ame after the image."
+			echo
+			echo -e "-x, --width        Specify image width in cells or pi[x]els."
+			echo
+			echo -e "                   [ n ]    [ character cells           ]"
+			echo -e "                   [ npx ]  [ pixels                    ]"
+			echo -e "                   [ n% ]   [ percent of session width  ]"
+			echo -e "                   [ auto ] [ Default - from image size ]"
+			echo
+			echo -e "-y, --height       Specify displa[y] height of the image."
+			echo
+			echo -e "                   [ n ]    [ character cells           ]"
+			echo -e "                   [ npx ]  [ pixels                    ]"
+			echo -e "                   [ n% ]   [ percent of session height ]"
+			echo -e "                   [ auto ] [ Default - from image size ]"
+			echo
+			echo -e "-s, --stretch      Set image [s]tretch to the given width and height."
+			echo
+			echo -e "-t, --type         Specify file [t]ype hint for parsing."
+			echo
+			echo -e "                   [ mime type ]      [ text/markdown ]"
+			echo -e "                   [ language name ]  [ java          ]"
+			echo -e "                   [ file extension ] [ .sh           ]"
+			echo
+			echo -e "-b, --block        Send image as a single [b]lock sequence."
+			echo
+			echo -e "                   [ multipart ] [ Default - inside tmux or screen ]"
+			echo
+			echo -e "-u, --uninstall    Run [u]ninstallation of ${script} - installed copies removed."
+			echo
+			echo -e "-h, --help         Show [h]elp and usage information."
+			echo
+			echo -e "Examples:"
+			echo
+			echo -e "./${script} -f image.png -x 250px -y 250px -s"
+			echo
+			echo -e "cat image.png | ./${script} -x 75%"
+			echo
+			echo -e "'${script}'        [ Version // ${version} ]"
+			echo
+
+			exit
+		;;
+
+		"")
+			# handle empty argument:
+			# use default values specified in script
+
+			:
+		;;
+
+		*)
+			echo
+			echo -e "Usage: ./${script} -f [File] -d | -n | -x [Width] -y [Height] | -s | -t [Type] | -b | -u | -h"
+			echo
+			echo -e "Unknown option: '${script} ${1}':"
+			echo -e "Type './${script} -h' for help and usage information."
+			echo
+
+			exit 1
+
+		;;
+
+		esac
+
+	shift
+
+done
+
+# uninstall ────────────────────────────────────────────────────────────────────
+
+# remove installed copies
+
+if [ "${option}" = "uninstall" ]
+then
+	count_removed=0
+
+	# installed copies
+
+	mapfile -t list_paths_installed < <(type -a -P "${script}")
+
+	for path_installed in "${list_paths_installed[@]}"
+	do
+		directory_installed="${path_installed%/*}"
+
+		if [ -w "${directory_installed}" ]
+		then
+			frobulator.delete "${directory_installed}" "${script}"
+
+			count_removed=$(( count_removed + 1 ))
+		else
+			frobulator.wrn "Superuser needed to remove" "[ sudo rm ${path_installed} ]"
+		fi
+	done
+
+	if [ "${count_removed}" -eq 0 ]
+	then
+		frobulator.inf "No installed copy found" "[ ${script} ]"
+	else
+		frobulator.scs "Uninstalled" "[ ${script} ]"
+	fi
+
+	exit
+fi
+
+# functions ────────────────────────────────────────────────────────────────────
+
+image_osc () {
+
+	# osc - opening sequence characters
+	# verify terminal multiplexer instance and type
+
+	if [[ "${TERM}" == screen* ]] ||
+		[[ "${TERM}" == tmux* ]]
+	then
+		printf "\033Ptmux;\033\033]"
+	else
+		printf "\033]"
+	fi
+}
+
+image_tsc () {
+
+	# tsc - termination secquence characters
+	# verify terminal multiplexer instance and type
+
+	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
+	then
+		printf "\a\033\\"
+	else
+		printf "\a"
+	fi
+}
+
+image_unit () {
+
+	size_requested="${1}"
+
+	# verify image sizing unit format:
+	# [n] / [n]px / [n]% / auto
+
+	if [[ ! "$1" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
+	then
+		frobulator.err "Invalid image size unit" "[ '${size_requested}' ]"
+
+		exit 1
+	fi
+}
+
+image_parse () {
+
+	# image_parse image inline encoding name width height ratio type block
+
+	# ${1} image:       image filename
+
+	# ${2} inline:      0 - download image
+	#                   1 - display inline
+
+	# ${3} encoding:    base64-encoded image contents
+
+	# ${4} name:        0 - no filename display after image processing
+	#                   1 - display filename after image processing
+
+	# ${5} width:       set image output width - numeric digits only
+	#                   n    - character cells
+	#                   npx  - pixels
+	#                   n%   - percentage (width only or height only)
+	#                   auto - automatic calculation to terminal output
+
+	# ${6} height:      set image output height - numeric digits only
+	#                   n    - character cells
+	#                   npx  - pixels
+	#                   n%   - percentage (width only or height only)
+	#                   auto - automatic calculation to terminal output
+
+	# ${7} ratio:       0 - fill specified height or width value to maximum terminal output
+	#                   1 - fill specified height or width value to maximum terminal output without deformation
+
+	# ${8} type:        file type hint
+	#                   "" - empty value [Default]
+	#                   mimetype  - ex.: application/json
+	#					name      - ex.: Python
+	#					extension - ex.: .sh
+
+	# ${9} block:       1 - parse and send as one monolithic block/control sequence
+	#                   0 - parse and send as multiple 512-byte block/control sequences
+
+	source_image="${1}"
+	state_inline="${2}"
+	content_base64="${3}"
+	state_name="${4}"
+	width_image="${5}"
+	height_image="${6}"
+	state_ratio="${7}"
+	hint_type="${8}"
+	state_block="${9}"
+
+	echo
+
+	# open sequence - begin transfer
+
+	image_osc
+
+	printf "1337;"
+
+	if [[ "${state_block}" -eq 1 ]]
+	then
+		printf "File"
+	else
+		printf "MultipartFile"
+	fi
+
+	printf "=inline=%s" "${state_inline}"
+
+	printf ";size=%d" $(printf "%s" "${content_base64}" | base64 -d -i | wc -c)
+
+	if [ -n "${source_image}" ]
+	then
+		printf ";name=%s" "$(printf "%s" "${source_image}" | base64 -w 0)"
+	fi
+
+	if [ -n "${width_image}" ]
+	then
+		printf ";width=%s" "${width_image}"
+	fi
+
+	if [ -n "${height_image}" ]
+	then
+		printf ";height=%s" "${height_image}"
+	fi
+
+	if [ -n "${state_ratio}" ]
+	then
+		printf ";preserveAspectRatio=%s" "${state_ratio}"
+	fi
+
+	[ -n "${hint_type}" ] && printf ";type=%s" "${hint_type}"
+
+	if [[ "${state_block}" -eq 1 ]]
+	then
+		printf ":%s" "${content_base64}"
+
+		image_tsc
+	else
+		image_tsc
+
+		# split into 512-byte parts:
+		# optimizes parsing through terminal multiplexer
+
+		count_bytes_part=512
+
+		mapfile -t list_parts < <(printf "%s" "${content_base64}" | fold -w "${count_bytes_part}")
+
+		# load byte stream
+
+		for part in "${list_parts[@]}"
+		do
+			image_osc
+
+			printf '1337;FilePart=%s' "${part}"
+
+			image_tsc
+		done
+
+		# terminate sequence
+
+		image_osc
+
+		printf '1337;FileEnd'
+
+		image_tsc
+	fi
+
+	echo
+
+	if [ "${state_name}" = "1" ]
+	then
+		echo "Image: ${source_image}"
+		echo
+	fi
+}
+
+image_print () {
+
+	# stdin only without a file
+
+	if [ "${source_input}" = "stdin" ] && [ -z "${source_image}" ]
+	then
+		content_base64=$(cat | base64 -w 0)
+	fi
+
+	image_parse "${source_image}" "${state_inline}" "${content_base64}" "${state_name}" "${width_image}" "${height_image}" "${state_ratio}" "${hint_type}" "${state_block}"
+
+}
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+state_inline="${state_inline:-1}"
+
+state_name="${state_name:-0}"
+
+state_ratio="${state_ratio:-1}"
+
+# multipart inside tmux or screen, single block otherwise
+
+if [ -z "${state_block}" ]
+then
+	if [[ "${TERM}" == screen* ]] || [[ "${TERM}" == tmux* ]]
+	then
+		state_block="0"
+	else
+		state_block="1"
+	fi
+fi
+
+hint_type="${hint_type:-}"
+
+# validate arguments
+
+for value_argument in "${source_image}" "${width_image}" "${height_image}" "${hint_type}"
+do
+	if [[ "${value_argument}" = -* ]]
+	then
+		frobulator.err "Missing option argument" "[ ${value_argument} ]"
+
+		exit 1
+	fi
+done
+
+# options ──────────────────────────────────────────────────────────────────────
+
+if [ -t 0 ]
+then
+	# 'stdin' is a tty
+
+	source_input="tty"
+else
+	source_input="stdin"
+fi
+
+# variables ────────────────────────────────────────────────────────────────────
+
+if [ -z "${source_image}" ] && [ "${source_input}" = "tty" ]
+then
+	frobulator.err "Missing image file."
+
+	exit 1
+fi
+
+if [ -z "${source_image}" ]
+then
+	:
+
+elif [ -r "${source_image}" ]
+then
+	content_base64=$(cat "${source_image}" | base64 -w 0)
+
+elif [[ "${source_image}" =~ ^https?://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,})?(:[0-9]{1,5})?(/.*)?$ ]]
+then
+	# curl status, not base64
+
+	content_base64=$(curl -f -s -L "${source_image}" | base64 -w 0; exit "${PIPESTATUS[0]}")
+
+	frobulator.complete halt "Could not retrieve image" "[ ${source_image} ]"
+
+else
+	frobulator.err "File not found" "[ ${source_image} ]"
+
+	exit 2
+fi
+
+if [ -n "${height_image}" ]
+then
+	image_unit "${height_image}"
+fi
+
+if [ -n "${width_image}" ]
+then
+	image_unit "${width_image}"
+fi
+
+image_print

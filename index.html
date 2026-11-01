@@ -1053,7 +1053,7 @@ Options:
 		<svg class="icon big" style="color:#ffa8a8" aria-hidden="true"><use href="#i-terminal"/></svg>
 		<h2>COMMANDS // EVERY UTILITY AND OPTION</h2>
 	</header>
-	<p class="lead">The help of all 58 Terminal scripts, read from the scripts themselves: 203 options with their values. The marked letter is the short option. Search them, or pick a group.</p>
+	<p class="lead">The help of all 60 Terminal scripts, read from the scripts themselves: 228 options with their values. The marked letter is the short option. Search them, or pick a group.</p>
 	<div class="command-tools">
 		<input id="command-search" type="search" placeholder="Search commands and options" aria-label="Search commands and options">
 		<div id="command-groups" class="chips"></div>
@@ -1780,6 +1780,57 @@ Options:
 				<p>Show <span class="marker">h</span>elp and usage information.</p>
 			</div>
 		</article>
+		<article class="command" id="command-utility-terminal-pixels" data-group="Files">
+			<div class="command-body">
+				<div class="command-head"><h3>utility-terminal-pixels</h3><span class="command-meta">Files // 2026-10-04</span></div>
+				<p>Shows images in the terminal, local, remote or piped, through the inline image protocol.</p>
+				<pre><code>utility-terminal-pixels -f [File] -d | -n | -x [Width] -y [Height] | -s | -t [Type] | -b | -u | -h</code></pre>
+			</div>
+			<div class="option">
+				<code>-f, --file <span class="argument">[File] -d</span></code>
+				<p>Specify image <span class="marker">f</span>ile to display.</p>
+			</div>
+			<div class="option">
+				<code>-d, --download</code>
+				<p>Send image as a file <span class="marker">d</span>ownload instead.</p>
+			</div>
+			<div class="option">
+				<code>-n, --name</code>
+				<p>Display file <span class="marker">n</span>ame after the image.</p>
+			</div>
+			<div class="option">
+				<code>-x, --width <span class="argument">[Width] -y [Height]</span></code>
+				<p>Specify image width in cells or pi<span class="marker">x</span>els.</p>
+				<div class="values"><span class="value">n</span><span class="value">character cells</span><span class="value">npx</span><span class="value">pixels</span><span class="value">n%</span><span class="value">percent of session width</span><span class="value">auto <i>// Default - from image size</i></span></div>
+			</div>
+			<div class="option">
+				<code>-y, --height</code>
+				<p>Specify displa<span class="marker">y</span> height of the image.</p>
+				<div class="values"><span class="value">n</span><span class="value">character cells</span><span class="value">npx</span><span class="value">pixels</span><span class="value">n%</span><span class="value">percent of session height</span><span class="value">auto <i>// Default - from image size</i></span></div>
+			</div>
+			<div class="option">
+				<code>-s, --stretch</code>
+				<p>Set image <span class="marker">s</span>tretch to the given width and height.</p>
+			</div>
+			<div class="option">
+				<code>-t, --type <span class="argument">[Type]</span></code>
+				<p>Specify file <span class="marker">t</span>ype hint for parsing.</p>
+				<div class="values"><span class="value">mime type</span><span class="value">text/markdown</span><span class="value">language name</span><span class="value">java</span><span class="value">file extension</span><span class="value">.sh</span></div>
+			</div>
+			<div class="option">
+				<code>-b, --block</code>
+				<p>Send image as a single <span class="marker">b</span>lock sequence.</p>
+				<div class="values"><span class="value">multipart <i>// Default - inside tmux or screen</i></span></div>
+			</div>
+			<div class="option">
+				<code>-u, --uninstall</code>
+				<p>Run <span class="marker">u</span>ninstallation of utility-terminal-pixels - installed copies removed.</p>
+			</div>
+			<div class="option">
+				<code>-h, --help</code>
+				<p>Show <span class="marker">h</span>elp and usage information.</p>
+			</div>
+		</article>
 		<article class="command" id="command-utility-ssh" data-group="Network">
 			<div class="command-body">
 				<div class="command-head"><h3>utility-ssh</h3><span class="command-meta">Network // 2026-10-09</span></div>
@@ -1923,6 +1974,81 @@ Options:
 				<code>-k, --key</code>
 				<p>Specify this computer's private <span class="marker">k</span>ey file.</p>
 				<div class="values"><span class="value">/media/internal/.kde-connect-key <i>// Default</i></span><span class="value">private - never a public repository</span></div>
+			</div>
+			<div class="option">
+				<code>-h, --help</code>
+				<p>Show <span class="marker">h</span>elp and usage information.</p>
+			</div>
+		</article>
+		<article class="command" id="command-utility-terminal-gpt" data-group="Network">
+			<div class="command-body">
+				<div class="command-head"><h3>utility-terminal-gpt</h3><span class="command-meta">Network // 2026-10-17</span></div>
+				<p>Talks to ChatGPT from the terminal: one question, a conversation or a generated image, with the API key kept private.</p>
+				<pre><code>utility-terminal-gpt [-p Prompt | -f File] [-s System] [-m Model] [-r Effort] [-t Temperature] [-x Tokens] [-c Tokens] [-i Model] [-z Size] [-b] | -l | -k [File] | -u | -h</code></pre>
+			</div>
+			<div class="option">
+				<code>-p, --prompt</code>
+				<p>Ask a single <span class="marker">p</span>rompt and print the answer.</p>
+			</div>
+			<div class="option">
+				<code>-f, --file <span class="argument">File] [-s System] [-m Model] [-r Effort] [-t Temperature] [-x Tokens] [-c Tokens] [-i Model] [-z Size] [-b]</span></code>
+				<p>Read the prompt from a <span class="marker">f</span>ile.</p>
+			</div>
+			<div class="option">
+				<code>-s, --system</code>
+				<p>Set the <span class="marker">s</span>ystem prompt - instructions kept for the whole conversation - text or file.</p>
+			</div>
+			<div class="option">
+				<code>-m, --model</code>
+				<p>Set the chat <span class="marker">m</span>odel.</p>
+				<div class="values"><span class="value">${model_chat_default} <i>// Default</i></span></div>
+			</div>
+			<div class="option">
+				<code>-r, --reasoning</code>
+				<p>Set the <span class="marker">r</span>easoning effort - reasoning models only.</p>
+				<div class="values"><span class="value">none | low | medium | high</span></div>
+			</div>
+			<div class="option">
+				<code>-t, --temperature</code>
+				<p>Set the sampling <span class="marker">t</span>emperature - models that accept it only.</p>
+				<div class="values"><span class="value">0 - 2</span></div>
+			</div>
+			<div class="option">
+				<code>-x, --max-tokens</code>
+				<p>Set the ma<span class="marker">x</span>imum tokens per answer - reasoning included.</p>
+				<div class="values"><span class="value">${count_tokens_maximum_default} <i>// Default</i></span></div>
+			</div>
+			<div class="option">
+				<code>-c, --context</code>
+				<p>Set the conversation <span class="marker">c</span>ontext kept - estimated tokens - oldest messages dropped first.</p>
+				<div class="values"><span class="value">${count_tokens_context_default} <i>// Default</i></span></div>
+			</div>
+			<div class="option">
+				<code>-i, --image-model</code>
+				<p>Set the <span class="marker">i</span>mage model.</p>
+				<div class="values"><span class="value">${model_image_default} <i>// Default</i></span></div>
+			</div>
+			<div class="option">
+				<code>-z, --size</code>
+				<p>Set the image si<span class="marker">z</span>e - width x height.</p>
+				<div class="values"><span class="value">${size_image_default} <i>// Default</i></span></div>
+			</div>
+			<div class="option">
+				<code>-b, --big</code>
+				<p>Write <span class="marker">b</span>ig prompts - multiple lines - [ ↵ ] then [ ctrl + d ] to send.</p>
+			</div>
+			<div class="option">
+				<code>-l, --list</code>
+				<p>Show the <span class="marker">l</span>ist of models available to the API key.</p>
+			</div>
+			<div class="option">
+				<code>-k, --key <span class="argument">[File]</span></code>
+				<p>Save the API <span class="marker">k</span>ey - typed masked or installed from a file - kept private in ~/.config/chatty.</p>
+				<div class="values"><span class="value">file <i>// Optional</i></span></div>
+			</div>
+			<div class="option">
+				<code>-u, --uninstall</code>
+				<p>Run <span class="marker">u</span>ninstallation of utility-terminal-gpt - installed copies removed - key and history once confirmed.</p>
 			</div>
 			<div class="option">
 				<code>-h, --help</code>
