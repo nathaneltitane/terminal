@@ -693,6 +693,7 @@ frobulator.upgrade
 
 list=(
 	docker.io
+	gh
 	git
 	htop
 	hub
@@ -714,6 +715,7 @@ list_display=(
 
 list_kde=(
 	ark
+	baloo
 	breeze
 	breeze-cursor-theme
 	breeze-gtk-theme

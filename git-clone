@@ -161,15 +161,14 @@ list=()
 # configuration ────────────────────────────────────────────────────────────────
 
 list_projects=(
-	chatty
 	dextop
 	frobulator
-	gutengrab
 	l2cu
 	mechablocks
 	nathaneltitane
 	pewpewprints
 	terminal
+	studworx
 )
 
 if [ -n "${name_project}" ]
@@ -188,10 +187,11 @@ do
 		frobulator.delete "${name_project}"
 	fi
 
-	frobulator.background "clone" "[ ${name_project} ]" -- git clone				\
-		--quiet				\
-		--depth "${depth_clone}"	\
-							"${url_github}"/"${name_user}"/"${name_project}"
+	frobulator.background "clone" "[ ${name_project} ]" 						\
+		-- git clone															\
+			--quiet																\
+			--depth "${depth_clone}"											\
+										"${url_github}"/"${name_user}"/"${name_project}"
 
 done
 
