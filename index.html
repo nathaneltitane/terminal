@@ -166,7 +166,6 @@
 				justify-content: center;
 				overflow: hidden;
 				opacity: 0;
-				filter: blur(1px);
 				animation: reveal-backdrop 2s ease forwards;
 			}
 
@@ -179,6 +178,7 @@
 				color: #383c4a;
 				font-size: clamp(5px, min(1.6vh, 2.4vw), 14px);
 				line-height: 1;
+				zoom: 2;
 			}
 
 			@keyframes reveal-backdrop {
@@ -369,6 +369,9 @@
 				height: 40px;
 				display: block;
 				margin: 0 auto;
+				background-position: center;
+				background-repeat: no-repeat;
+				background-size: contain;
 			}
 
 			.icon.big {
@@ -376,6 +379,68 @@
 				height: 56px;
 				margin: 0;
 				flex: none;
+			}
+
+			/* buttons */
+
+			.logo-button-red {
+				background-image: url(logo/logo-button-red.svg);
+			}
+
+			.logo-button-orange {
+				background-image: url(logo/logo-button-orange.svg);
+			}
+
+			.logo-button-amber {
+				background-image: url(logo/logo-button-amber.svg);
+			}
+
+			.logo-button-yellow {
+				background-image: url(logo/logo-button-yellow.svg);
+			}
+
+			.logo-button-green {
+				background-image: url(logo/logo-button-green.svg);
+			}
+
+			.logo-button-emerald {
+				background-image: url(logo/logo-button-emerald.svg);
+			}
+
+			.logo-button-teal {
+				background-image: url(logo/logo-button-teal.svg);
+			}
+
+			.logo-button-cyan {
+				background-image: url(logo/logo-button-cyan.svg);
+			}
+
+			.logo-button-sky {
+				background-image: url(logo/logo-button-sky.svg);
+			}
+
+			.logo-button-blue {
+				background-image: url(logo/logo-button-blue.svg);
+			}
+
+			.logo-button-indigo {
+				background-image: url(logo/logo-button-indigo.svg);
+			}
+
+			.logo-button-violet {
+				background-image: url(logo/logo-button-violet.svg);
+			}
+
+			.logo-button-fuchsia {
+				background-image: url(logo/logo-button-fuchsia.svg);
+			}
+
+			.logo-button-pink {
+				background-image: url(logo/logo-button-pink.svg);
+			}
+
+			.logo-button-rose {
+				background-image: url(logo/logo-button-rose.svg);
 			}
 
 			/* figures */
@@ -957,7 +1022,7 @@
 
 		<section id="overview" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#8fd18f" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-orange" aria-hidden="true"></span>
 				<h2>OVERVIEW // SHELL SCRIPTS, TEMPLATES, DOTFILES AND UTILITIES</h2>
 			</header>
 
@@ -978,7 +1043,7 @@
 
 		<section id="install" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#f2d479" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-amber" aria-hidden="true"></span>
 				<h2>INSTALL // ONE COMMAND, EVERY MODULE</h2>
 			</header>
 
@@ -1016,7 +1081,7 @@
 
 		<section id="shell" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#7fb2f0" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-yellow" aria-hidden="true"></span>
 				<h2>SHELL // DOTFILES, SUPERUSER AND KRUNNER</h2>
 			</header>
 
@@ -1047,7 +1112,7 @@
 
 		<section id="mounts" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#d29be0" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-green" aria-hidden="true"></span>
 				<h2>MOUNTS // LABELLED DRIVES AT BOOT</h2>
 			</header>
 
@@ -1078,7 +1143,7 @@
 
 		<section id="images" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#6fd0e0" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-emerald" aria-hidden="true"></span>
 				<h2>IMAGES // 12 CONTAINER IMAGES FOR DEXTOP</h2>
 			</header>
 
@@ -1119,7 +1184,7 @@
 
 		<section id="gutenberg" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#e6e9ef" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-teal" aria-hidden="true"></span>
 				<h2>GUTENBERG // THE WHOLE LIBRARY, ON YOUR DRIVE</h2>
 			</header>
 
@@ -1145,7 +1210,7 @@
 
 		<section id="uninstall" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#9aa3ad" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-cyan" aria-hidden="true"></span>
 				<h2>UNINSTALL // EVERYTHING THE SETUP LINKED</h2>
 			</header>
 
@@ -1173,7 +1238,7 @@
 
 		<section id="commands" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#ffa8a8" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-sky" aria-hidden="true"></span>
 				<h2>COMMANDS // EVERY UTILITY AND OPTION</h2>
 			</header>
 
@@ -2883,7 +2948,7 @@
 
 		<section id="functions" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#b8f0a0" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-blue" aria-hidden="true"></span>
 				<h2>FUNCTIONS // 47 SHELL FUNCTIONS</h2>
 			</header>
 
@@ -2902,7 +2967,7 @@
 
 		<section id="uses" class="section reveal">
 			<header class="head-section">
-				<svg class="icon big" style="color:#fff2a0" aria-hidden="true"><use href="#icon-terminal"/></svg>
+				<span class="icon big logo-button-indigo" aria-hidden="true"></span>
 				<h2>USES // A SERVICE REPOSITORY FOR OTHER PROJECTS</h2>
 			</header>
 
@@ -2950,21 +3015,21 @@
 			<div class="footer">
 				<div class="inner-footer">
 					<span class="start-footer" aria-hidden="true"></span>
-					<a class="button-navigation" href="#top"><svg class="icon" style="color:#f28b82" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Home</span></a>
-					<a class="button-navigation" href="#overview"><svg class="icon" style="color:#8fd18f" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Overview</span></a>
-					<a class="button-navigation" href="#install"><svg class="icon" style="color:#f2d479" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Install</span></a>
-					<a class="button-navigation" href="#shell"><svg class="icon" style="color:#7fb2f0" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Shell</span></a>
-					<a class="button-navigation" href="#mounts"><svg class="icon" style="color:#d29be0" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Mounts</span></a>
-					<a class="button-navigation" href="#images"><svg class="icon" style="color:#6fd0e0" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Images</span></a>
-					<a class="button-navigation" href="#gutenberg"><svg class="icon" style="color:#e6e9ef" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Gutenberg</span></a>
-					<a class="button-navigation" href="#uninstall"><svg class="icon" style="color:#9aa3ad" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Uninstall</span></a>
-					<a class="button-navigation" href="#commands"><svg class="icon" style="color:#ffa8a8" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Commands</span></a>
-					<a class="button-navigation" href="#functions"><svg class="icon" style="color:#b8f0a0" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Functions</span></a>
-					<a class="button-navigation" href="#uses"><svg class="icon" style="color:#fff2a0" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Uses</span></a>
-					<a class="button-navigation" href="https://github.com/nathaneltitane/terminal"><svg class="icon" style="color:#a8c8ff" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">GitHub</span></a>
-					<a class="button-navigation" href="https://dextop.app"><svg class="icon" style="color:#f0b0ff" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Dextop</span></a>
-					<a class="button-navigation" href="https://frobulator.app"><svg class="icon" style="color:#a0f0f0" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Frobulator</span></a>
-					<a class="button-navigation" href="https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ"><svg class="icon" style="color:#ffffff" aria-hidden="true"><use href="#icon-terminal"/></svg><span class="label">Donate</span></a>
+					<a class="button-navigation" href="#top"><span class="icon logo-button-red" aria-hidden="true"></span><span class="label">Home</span></a>
+					<a class="button-navigation" href="#overview"><span class="icon logo-button-orange" aria-hidden="true"></span><span class="label">Overview</span></a>
+					<a class="button-navigation" href="#install"><span class="icon logo-button-amber" aria-hidden="true"></span><span class="label">Install</span></a>
+					<a class="button-navigation" href="#shell"><span class="icon logo-button-yellow" aria-hidden="true"></span><span class="label">Shell</span></a>
+					<a class="button-navigation" href="#mounts"><span class="icon logo-button-green" aria-hidden="true"></span><span class="label">Mounts</span></a>
+					<a class="button-navigation" href="#images"><span class="icon logo-button-emerald" aria-hidden="true"></span><span class="label">Images</span></a>
+					<a class="button-navigation" href="#gutenberg"><span class="icon logo-button-teal" aria-hidden="true"></span><span class="label">Gutenberg</span></a>
+					<a class="button-navigation" href="#uninstall"><span class="icon logo-button-cyan" aria-hidden="true"></span><span class="label">Uninstall</span></a>
+					<a class="button-navigation" href="#commands"><span class="icon logo-button-sky" aria-hidden="true"></span><span class="label">Commands</span></a>
+					<a class="button-navigation" href="#functions"><span class="icon logo-button-blue" aria-hidden="true"></span><span class="label">Functions</span></a>
+					<a class="button-navigation" href="#uses"><span class="icon logo-button-indigo" aria-hidden="true"></span><span class="label">Uses</span></a>
+					<a class="button-navigation" href="https://github.com/nathaneltitane/terminal"><span class="icon logo-button-violet" aria-hidden="true"></span><span class="label">GitHub</span></a>
+					<a class="button-navigation" href="https://dextop.app"><span class="icon logo-button-fuchsia" aria-hidden="true"></span><span class="label">Dextop</span></a>
+					<a class="button-navigation" href="https://frobulator.app"><span class="icon logo-button-pink" aria-hidden="true"></span><span class="label">Frobulator</span></a>
+					<a class="button-navigation" href="https://www.paypal.com/donate?hosted_button_id=ZW3CDCANHJCWJ"><span class="icon logo-button-rose" aria-hidden="true"></span><span class="label">Donate</span></a>
 					<span class="end-footer" aria-hidden="true"></span>
 				</div>
 			</div>
