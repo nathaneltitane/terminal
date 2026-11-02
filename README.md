@@ -14,7 +14,7 @@ Useful? Star the repository - it helps others find it.
 
 ### Welcome to [Terminal](https://terminal.me)
 
-The Terminal repository is a  collection of shell scripts, templates, dotfiles and utilities to make your Linux-based system experience a breeze!
+The Terminal repository is a  collection of shell scripts, templates, dotfiles and utilities to make your Linux based system experience a breeze!
 
 ### Note:
 
