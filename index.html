@@ -177,8 +177,8 @@
 				border-radius: 0;
 				overflow: visible;
 				color: #5294e2;
-				font-size: clamp(6px, 1vw, 12px);
-				line-height: 1.3;
+				font-size: clamp(5px, min(1.6vh, 2.4vw), 14px);
+				line-height: 1;
 			}
 
 			@keyframes reveal-backdrop {
@@ -881,48 +881,54 @@
 		</svg>
 
 		<div class="landing" id="top">
-			<div class="backdrop" aria-hidden="true"><pre>Usage: ./terminal -p | -x | -r [Type] | -m | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h
-
-Options:
-
--p, --python          Set up [p]ython.
-
--x, --pipx            Set up pi[x] packages.
-
--r, --storage         Set up sto[r]age under windows subsystem for linux, chromeos, chromeos android, or removable media.
-
-                      [ wsl ]
-                      [ chromeos ]
-                      [ android ]
-                      [ removable ]
-
--m, --mounts          Set up drive [m]ounts at boot.
-
--f, --files           Link known [f]iles from storage.
-
--o, --home            Set up h[o]me directory structure.
-
--g, --git             Set up [g]it configuration and credentials.
-
--s, --shell           Set up [s]hell dotfiles.
-
--u, --superuser       Set up passwordless s[u]do.
-
--t, --themes          Set up [t]hemes.
-
--l, --applications    Set up app[l]ications.
-
--k, --kde-runner      Set up [k]de runner shortcut.
-
--e, --efi             Set up r[e]find and efi boot theme.
-
--a, --all             Run [a]ll modules explicitly.
-
--n, --uninstall       Run u[n]installation of the terminal setup - shell files, links and passwordless sudo.
-
--h, --help            Show [h]elp and usage information.
-
-'terminal'           [ Version // 2026-10-31 ]</pre></div>
+			<div class="backdrop" aria-hidden="true"><pre>                              ▄▄▄▄
+                       ▗▄▟████████████▙▄▖
+                    ▗▄████████████████████▄▖
+                   ▗████████████████████████▖
+                  ▟██████████████████████████▙
+                 ▗████████████████████████████▖
+                 ▟████████████████████████████▙
+                 ██████████████████████████████
+                ▗████████████▀▀▀▀▀▀████████████▖
+                ▐██████████▛▘ ▄▄▄▄ ▝▜██████████▌
+                ▐█████████▛ ▗▟████▙▖ ▜█████████▌
+                ██████████▘▗████████▖▝██████████
+                ██████████ ▟████████▙ ██████████
+               ▗████████▀  ▝████████▘  ▀████████▖
+               ▟███████▘     ▜████▛     ▝███████▙
+              ▗███████▛       ▝▀▀▘       ▜███████▖
+              ▟███████▌                  ▐███████▙
+             ▟████████                    ████████▙
+            ▟████████▛                    ▜████████▙
+           ▟████████▛                      ▜████████▙
+         ▗▟████████▛                        ▜████████▙▖
+        ▗█████████▛▘                        ▝▜█████████▖
+       ▗█████████▛                            ▜█████████▖
+      ▟█████████▀                              ▀█████████▙
+     ▟████████▛▘                                ▝▜████████▙
+   ▗▟████████▛                                    ▜████████▙▖
+   █████████▛                                      ▜█████████
+  ▟████████▛                                        ▜████████▙
+ ▐████████▛                                          ▜████████▌
+ █████████▘                                          ▝█████████
+▐█████████                                            █████████▌
+▐█████████                                            █████████▌
+▐████████▘                                            ▝████████▌
+▐██████▛     ▄▄▄    ▄▄▄                  ▄▄▄    ▄▄▄     ▜██████▌
+▝█████▛   ▗▟█████▙▄▟████▙▖            ▗▟████▙▄▟█████▙▖   ▜█████▘
+ ▜██▛▀    ▟███████████████▙          ▟███████████████▙    ▀▜██▛
+  ▀     ▄▄█████████████████▌        ▐█████████████████▄▄     ▀
+     ▗██████████████████████        ██████████████████████▖
+     ▟██████████████████████▌      ▐██████████████████████▙
+     ▐███████████████████████      ███████████████████████▌
+      ▜██████████████████████      ██████████████████████▛
+       ▜█████████████████████      █████████████████████▛
+        ▀████████████████████      ████████████████████▀
+          ▜█████████████████▛      ▜█████████████████▛
+           ▝▜███████████████▘  ▟▙  ▝███████████████▛▘
+             ▝▀████████████▌  ▄██▄  ▐████████████▀▘
+                ▝▀███████▛▘  ▗████▖  ▝▜███████▀▘
+                    ▀▀▀▀      ▀▀▀▀      ▀▀▀▀</pre></div>
 
 			<div class="head-landing">
 				<h1>Terminal</h1>
