@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/nathaneltitane/terminal/main/terminal.svg" alt="terminal"><br><b>Shell scripts, templates, dotfiles and utilities</b><br>LINUX, MADE A BREEZE.</p>
+<p align="center"><img src="https://raw.githubusercontent.com/nathaneltitane/terminal/main/resources/logo/logo-terminal.svg" alt="terminal"><br><b>Shell scripts, templates, dotfiles and utilities</b><br>LINUX, MADE A BREEZE.</p>
 
 ---
 
