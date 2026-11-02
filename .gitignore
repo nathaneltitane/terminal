@@ -1,4 +1,5 @@
-/tools/terminal-site-update
-/tools/terminal-social-update
-/site/
+/tools/terminal-site
+/tools/terminal-social
+/resources/site/
+/index-social.html
 AGENTS.md
