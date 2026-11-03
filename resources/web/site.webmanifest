@@ -9,7 +9,7 @@
 		{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
 	],
 	"start_url": "../../",
-	"theme_color": "#2f343f",
-	"background_color": "#2f343f",
+	"theme_color": "#1b2420",
+	"background_color": "#1b2420",
 	"display": "standalone"
 }
