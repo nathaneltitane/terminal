@@ -219,7 +219,7 @@ then
 	alias 'gc'="git clone --depth 1"
 	alias 'gi'='git init'
 	alias 'gp'='git pull'
-	alias 'ga'='git add *'
+	alias 'ga'='git add -A'
 	alias 'gm'="git commit -a -m ${1}"
 	alias 'gs'='git push'
 	alias 'gu'='ga && gm "Code & Features Update" && gs'
