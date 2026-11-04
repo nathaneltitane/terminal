@@ -319,9 +319,8 @@
 				padding: 0;
 				margin: 25px 0;
 				display: grid;
-				align-items: start;
 				grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-				gap: 10px 30px;
+				gap: 10px 20px;
 			}
 
 			.points li {
@@ -554,7 +553,9 @@
 			}
 
 			.gallery.cube .shot {
+				display: block;
 				width: auto;
+				margin: 0 auto;
 				background: transparent;
 			}
 
@@ -1297,10 +1298,10 @@
 
 			<ul class="points">
 				<li><b>One setup.</b> <code>bash terminal</code> runs every module in order: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, KRunner and the boot theme. Each module also runs alone with its own option.</li>
+				<li><b>Service repository.</b> Other projects download their files from Terminal: Dextop takes its container images, Termux packages, shell and interface files from here.</li>
+				<li><b>Utilities.</b> Scripts for Android devices, backups, ssh, drives, desktops, rendering and more, each answering <code>-h</code> with its usage and options.</li>
 				<li><b><a href="#shell">Shell</a> everywhere.</b> Dotfiles, aliases and functions are linked into <code>~/.local/bin</code>, for the user and for a root shell alike.</li>
 				<li><b><a href="#functions">Functions</a> as commands.</b> Every shell function is linked to <code>run</code>, so it starts from KRunner or any launcher like a real command.</li>
-				<li><b>Utilities.</b> Scripts for Android devices, backups, ssh, drives, desktops, rendering and more, each answering <code>-h</code> with its usage and options.</li>
-				<li><b>Service repository.</b> Other projects download their files from Terminal: Dextop takes its container images, Termux packages, shell and interface files from here.</li>
 				<li><b>Built on Frobulator.</b> Every script reports its steps the same way and fetches the latest Frobulator on start.</li>
 				<li><b>Reversible.</b> <code>bash terminal -n</code> removes the shell files, links and passwordless sudo again.</li>
 			</ul>
@@ -1358,10 +1359,10 @@
 			<pre><code>sudo -i</code></pre>
 
 			<ul class="points">
-				<li><b>Aliases.</b> Aliases also work after sudo: <code>sudo &lt;alias&gt;</code>.</li>
-				<li><b><a href="#functions">Functions</a>.</b> Functions need a root shell: sudo only runs programs.</li>
-				<li><b>Passwordless sudo.</b> Set in its own file, <code>/etc/sudoers.d/&lt;user&gt;</code>, rewritten on each run so it never repeats.</li>
 				<li><b>Older versions.</b> Lines appended to <code>/etc/sudoers</code> by earlier versions are removed once the result passes the sudoers check.</li>
+				<li><b>Passwordless sudo.</b> Set in its own file, <code>/etc/sudoers.d/&lt;user&gt;</code>, rewritten on each run so it never repeats.</li>
+				<li><b><a href="#functions">Functions</a>.</b> Functions need a root shell: sudo only runs programs.</li>
+				<li><b>Aliases.</b> Aliases also work after sudo: <code>sudo &lt;alias&gt;</code>.</li>
 			</ul>
 
 			<h3>KRunner</h3>
@@ -1369,11 +1370,11 @@
 			<pre><code>weather</code></pre>
 
 			<ul class="points">
-				<li><b>Name or argument.</b> <code>run</code> takes the function from the name it was called by, or from its first argument: <code>run weather</code>.</li>
 				<li><b>Without a terminal.</b> Launched from KRunner, it reopens itself in Konsole or the default terminal, loads the functions of the user, runs the function and waits for enter before closing.</li>
-				<li><b>In a terminal.</b> It runs in place.</li>
+				<li><b>Name or argument.</b> <code>run</code> takes the function from the name it was called by, or from its first argument: <code>run weather</code>.</li>
 				<li><b>Real commands.</b> Names that are already real commands (<code>ssh</code>, <code>who</code> ...) get no link.</li>
 				<li><b><a href="#uninstall">Uninstall</a>.</b> Removes every link to <code>run</code>.</li>
+				<li><b>In a terminal.</b> It runs in place.</li>
 			</ul>
 		</section>
 
@@ -1400,11 +1401,11 @@
 			</div>
 
 			<ul class="points">
-				<li><b>By UUID.</b> Entries name each drive by UUID, and the previous entry for each drive is replaced.</li>
-				<li><b>Mount points.</b> Missing mount points are created.</li>
-				<li><b>Safe boot.</b> Every entry is <code>users</code> and <code>nofail</code>, so drives stay user unmountable and a missing drive never blocks the boot.</li>
-				<li><b>Windows filesystems.</b> exFAT, FAT and NTFS drives are owned by the user.</li>
 				<li><b>Checked.</b> The new file must pass <code>findmnt --verify</code> first, columns are aligned to the longest entry and the old file is kept as <code>/etc/fstab.backup</code>.</li>
+				<li><b>Safe boot.</b> Every entry is <code>users</code> and <code>nofail</code>, so drives stay user unmountable and a missing drive never blocks the boot.</li>
+				<li><b>By UUID.</b> Entries name each drive by UUID, and the previous entry for each drive is replaced.</li>
+				<li><b>Windows filesystems.</b> exFAT, FAT and NTFS drives are owned by the user.</li>
+				<li><b>Mount points.</b> Missing mount points are created.</li>
 			</ul>
 		</section>
 
@@ -1440,10 +1441,10 @@
 			</div>
 
 			<ul class="points">
-				<li><b>Debian and Ubuntu.</b> Bootstrapped with debootstrap, both stages, so every package is installed and configured. Images of another architecture (the default is arm64) need <code>qemu-user-static</code> for the second stage.</li>
-				<li><b>Archived releases.</b> Archived Debian releases come from archive.debian.org with their retired release keys.</li>
 				<li><b>Verified.</b> Ubuntu is verified against the official Ubuntu keyring, fetched over https. Fedora is taken from the official Base-Generic container image, checked against its published checksum, and needs no codename.</li>
+				<li><b>Debian and Ubuntu.</b> Bootstrapped with debootstrap, both stages, so every package is installed and configured. Images of another architecture (the default is arm64) need <code>qemu-user-static</code> for the second stage.</li>
 				<li><b>Next to the script.</b> The finished <code>archive-&lt;name&gt;-&lt;version&gt;.tar.xz</code> is copied next to the script, so a build run from the repository lands in the repository, where Dextop downloads it.</li>
+				<li><b>Archived releases.</b> Archived Debian releases come from archive.debian.org with their retired release keys.</li>
 			</ul>
 
 			<p><code>./utility-filesystem-build -s</code> lists every image to pick by number.</p>
@@ -3260,8 +3261,8 @@
 			</div>
 
 			<ul class="points">
-				<li><b>One address.</b> Files are fetched from <code>get.trmnl.me</code>, which points to this repository, so every project always gets the latest version.</li>
 				<li><b>Unchanged sources.</b> The Termux packages are uploaded unchanged from the official Termux releases, and the images are built from official sources checked against their keys and checksums.</li>
+				<li><b>One address.</b> Files are fetched from <code>get.trmnl.me</code>, which points to this repository, so every project always gets the latest version.</li>
 				<li><b>Built on Frobulator.</b> Every Terminal script is built on the Frobulator shell parser and scripting function library.</li>
 			</ul>
 		</section>
