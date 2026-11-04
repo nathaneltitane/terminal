@@ -135,7 +135,7 @@ then
 	exit 1
 fi
 
-url_github="https://github.com/"
+url_github="https://github.com"
 name_user="nathaneltitane"
 
 depth_clone=1
