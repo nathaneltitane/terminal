@@ -117,6 +117,22 @@ Kept: home directories, themes, the boot theme, drive mounts and every package.
 
 ---
 
+### Credits:
+
+Terminal's scripts are written for [GNU Bash](https://www.gnu.org/software/bash/).
+
+Terminal is related to [Frobulator](https://github.com/nathaneltitane/frobulator), the shell scripting function library behind every Terminal script, and [Dextop](https://github.com/nathaneltitane/dextop), a Linux based workstation for Android that downloads its container images from Terminal.
+
+---
+
+### License:
+
+Terminal is free software released under the GNU General Public License version 3 - see 'LICENSE.md'.
+
+Linux is a registered trademark of Linus Torvalds. Android is a trademark of Google LLC. Neither sponsors, authorizes or endorses this project.
+
+---
+
 ### Reports:
 
 [Submit bug report or feature request](https://github.com/nathaneltitane/terminal/issues)
