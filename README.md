@@ -109,14 +109,6 @@ Kept: home directories, themes, the boot theme, drive mounts and every package.
 
 ---
 
-### Repositories:
-
-[Frobulator](https://github.com/nathaneltitane/frobulator) to streamline the scripts and make redundant code a thing of the past.
-
-[GNU/Bash](https://github.com/gitGNU/gnu_bash) as the shell environment on top of which the scripts function.
-
----
-
 ### Credits:
 
 Terminal's scripts are written for [GNU Bash](https://www.gnu.org/software/bash/).
