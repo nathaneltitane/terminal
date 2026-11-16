@@ -1,0 +1,185 @@
+/* command cards in columns */
+
+.command-list {
+	columns: 2 480px;
+	column-gap: 25px;
+}
+
+/* command card */
+
+.command {
+	break-inside: avoid;
+	background: #222d28;
+	border-radius: 15px 15px 15px 15px;
+	padding: 15px 15px 15px 15px;
+	margin: 0px 0px 20px 0px;
+}
+
+/* command card heading */
+
+.command-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0px 10px;
+}
+
+/* command name */
+
+.command-head h3 {
+	margin: 0px 0px 0px 0px;
+	font-size: 15px;
+}
+
+/* command details */
+
+.command-meta {
+	font-size: 10px;
+	color: #7d9488;
+}
+
+/* command description */
+
+.command p {
+	margin: 5px 0px 0px 0px;
+}
+
+/* command example */
+
+.command pre {
+	margin: 10px 0px 10px 0px;
+	padding: 10px 15px 10px 15px;
+	border-radius: 10px 10px 10px 10px;
+	background: #1b2420;
+	font-size: 10px;
+	white-space: pre-wrap;
+}
+
+/* command option */
+
+.option {
+	border-top: 1px solid #2a3731;
+	padding: 10px 0px 0px 0px;
+	margin: 10px 0px 0px 0px;
+}
+
+/* option name */
+
+.option code {
+	color: #f2f7f4;
+	font-weight: bold;
+}
+
+/* option argument */
+
+.option .argument {
+	color: #7d9488;
+	font-weight: normal;
+}
+
+/* option description */
+
+.option p {
+	margin: 5px 0px 0px 0px;
+}
+
+/* highlighted marker */
+
+.marker {
+	color: #3fbf7f;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+/* option values grid */
+
+.values {
+	display: grid;
+	align-items: start;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 10px;
+	margin: 10px 0px 0px 0px;
+}
+
+/* one option value */
+
+.values li {
+	background: #1b2420;
+	border-radius: 10px 10px 10px 10px;
+	padding: 5px 10px 5px 10px;
+	margin: 0px 0px 5px 0px;
+	font-size: 10px;
+}
+
+/* value tag */
+
+.tag {
+	display: inline-block;
+	background: #2a3731;
+	color: #f2f7f4;
+	border-radius: 20px 20px 20px 20px;
+	padding: 5px 10px 5px 10px;
+	margin: 5px 0px 5px 0px;
+	font-size: 10px;
+	white-space: nowrap;
+}
+
+/* default value tag */
+
+.tag.default {
+	background: #36463e;
+	color: #1b2420;
+}
+
+/* value pill */
+
+.value {
+	text-align: center;
+	background: #1b2420;
+	border-radius: 20px 20px 20px 20px;
+	padding: 5px 10px 5px 10px;
+	font-size: 10px;
+	color: #f2f7f4;
+}
+
+/* value note */
+
+.value i {
+	color: #7d9488;
+	font-style: normal;
+}
+
+/* no matching command */
+
+.command-empty {
+	padding: 20px 0px 20px 0px;
+}
+
+/* filtered out by search */
+
+.command.hidden,
+.option.hidden {
+	display: none;
+}
+
+/* command list */
+
+.command ul {
+	margin: 5px 0px 0px 0px;
+	padding: 0px 0px 0px 20px;
+}
+
+/* command table */
+
+.command .table {
+	margin: 10px 0px 10px 0px;
+}
+
+/* command table cells */
+
+.command th,
+.command td {
+	padding: 5px 10px 5px 10px;
+	font-size: 10px;
+}
