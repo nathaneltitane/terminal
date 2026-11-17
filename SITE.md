@@ -1,10 +1,10 @@
 # Site
 
-Every section of [terminal.me](https://terminal.me). `tools/terminal-site` builds the page from this file. Each `##` section starts with a comment that sets its page id, icon and heading, and its first paragraph is the lead. `- **Title.** text` lines become points and `1. **Title.** text` lines steps, a `<!-- table class -->` comment sets the class of the table below it, and a `<!-- gallery class -->` comment turns the images and video links below it into one gallery, the title of a single image setting its figure class. A `<!-- video -->` comment turns the link below it into a looping video. A `<!-- include name -->` comment places content read from the scripts, a paragraph made of links ending in › becomes a more link, and `@NAME@` placeholders are filled with counts read from the scripts.
+Every section of [terminal.me](https://terminal.me). `tools/terminal-site` builds the page from this file. Each `##` section starts with a comment that sets its page id, icon and heading, and its first paragraph is the lead. `- **Title.** text` lines become points and `1. **Title.** text` lines steps, a `[//]: # (table class)` comment sets the class of the table below it, and a `[//]: # (gallery class)` comment turns the images and video links below it into one gallery, the title of a single image setting its figure class. A `[//]: # (video)` comment turns the link below it into a looping video. A `[//]: # (include name)` comment places content read from the scripts, a paragraph made of links ending in › becomes a more link, and `@NAME@` placeholders are filled with counts read from the scripts.
 
 ## Overview
 
-<!-- overview | orange | OVERVIEW // SHELL SCRIPTS, TEMPLATES, DOTFILES AND UTILITIES -->
+[//]: # (overview | orange | OVERVIEW // SHELL SCRIPTS, TEMPLATES, DOTFILES AND UTILITIES)
 
 Terminal is a collection of shell scripts, templates, dotfiles and utilities to make your Linux based system experience a breeze.
 
@@ -20,7 +20,7 @@ The Termux packages are uploaded unchanged from the official Termux GitHub repos
 
 ## Install
 
-<!-- install | amber | INSTALL // ONE COMMAND, EVERY MODULE -->
+[//]: # (install | amber | INSTALL // ONE COMMAND, EVERY MODULE)
 
 `terminal` sets up a Debian, Ubuntu or Fedora based system: Linux based systems, Windows Subsystem for Linux, Chrome OS and Android storage alike.
 
@@ -32,11 +32,11 @@ curl -s -L get.trmnl.me/terminal > terminal && bash terminal
 
 Without an option every module runs. Pick one module with its option instead, for example `bash terminal -m` for the drive mounts or `bash terminal -s` for the shell files.
 
-<!-- include modules -->
+[//]: # (include modules)
 
 ## Shell
 
-<!-- shell | yellow | SHELL // DOTFILES, SUPERUSER AND KRUNNER -->
+[//]: # (shell | yellow | SHELL // DOTFILES, SUPERUSER AND KRUNNER)
 
 `bash terminal -s` links the dotfiles, aliases and functions into `~/.local/bin` and the home directory, for the user and the superuser.
 
@@ -69,7 +69,7 @@ weather
 
 ## Mounts
 
-<!-- mounts | green | MOUNTS // LABELLED DRIVES AT BOOT -->
+[//]: # (mounts | green | MOUNTS // LABELLED DRIVES AT BOOT)
 
 Drives labelled `internal` and `external` are mounted at boot through `/etc/fstab`.
 
@@ -90,11 +90,11 @@ bash terminal -m
 
 ## Images
 
-<!-- images | emerald | IMAGES // @IMAGES@ CONTAINER IMAGES FOR DEXTOP -->
+[//]: # (images | emerald | IMAGES // @IMAGES@ CONTAINER IMAGES FOR DEXTOP)
 
 Dextop container images are built with `utility-filesystem-build`: Debian, Ubuntu and Fedora, with Debian @DEFAULT@ as the default.
 
-<!-- include images -->
+[//]: # (include images)
 
 - **Debian and Ubuntu.** Bootstrapped with debootstrap, both stages, so every package is installed and configured. Images of another architecture (the default is arm64) need `qemu-user-static` for the second stage.
 - **Archived releases.** Archived Debian releases come from archive.debian.org with their retired release keys.
@@ -105,7 +105,7 @@ Dextop container images are built with `utility-filesystem-build`: Debian, Ubunt
 
 ## Gutenberg
 
-<!-- gutenberg | teal | GUTENBERG // THE WHOLE LIBRARY, ON YOUR DRIVE -->
+[//]: # (gutenberg | teal | GUTENBERG // THE WHOLE LIBRARY, ON YOUR DRIVE)
 
 `utility-gutenberg` mirrors the Project Gutenberg collection and processes it into a flat library. With `-r` the download runs as a resume service: it continues after a reboot and removes itself once done. Nothing carries over to later runs.
 
@@ -113,11 +113,11 @@ Dextop container images are built with `utility-filesystem-build`: Debian, Ubunt
 ./utility-gutenberg -m -p -r -d <directory>
 ```
 
-<!-- include gutenberg -->
+[//]: # (include gutenberg)
 
 ## Uninstall
 
-<!-- uninstall | cyan | UNINSTALL // EVERYTHING THE SETUP LINKED -->
+[//]: # (uninstall | cyan | UNINSTALL // EVERYTHING THE SETUP LINKED)
 
 After a confirmation, `bash terminal -n` removes what the terminal setup installed.
 
@@ -137,19 +137,19 @@ A default `.bashrc` is put back in place of the removed link.
 
 ## Commands
 
-<!-- commands | sky | COMMANDS // EVERY UTILITY AND OPTION -->
+[//]: # (commands | sky | COMMANDS // EVERY UTILITY AND OPTION)
 
 The help of all @SCRIPTS@ Terminal scripts, read from the scripts themselves: @OPTIONS@ options with their values. The marked letter is the short option. Search them, or pick a group.
 
-<!-- include commands -->
+[//]: # (include commands)
 
 ## Functions
 
-<!-- functions | blue | FUNCTIONS // @FUNCTIONS@ SHELL FUNCTIONS -->
+[//]: # (functions | blue | FUNCTIONS // @FUNCTIONS@ SHELL FUNCTIONS)
 
 The shell setup installs every function of the repository, read from its files.
 
-<!-- include functions -->
+[//]: # (include functions)
 
 - **One file each.** Each function lives in its own `bash-function-<name>` file, loaded by `bash-functions` from `~/.local/bin`.
 - **From anywhere.** Type a name in a terminal, or in KRunner through its link to `run`.
@@ -157,11 +157,11 @@ The shell setup installs every function of the repository, read from its files.
 
 ## Uses
 
-<!-- uses | indigo | USES // A SERVICE REPOSITORY FOR OTHER PROJECTS -->
+[//]: # (uses | indigo | USES // A SERVICE REPOSITORY FOR OTHER PROJECTS)
 
 Terminal is also a service repository: other projects download their images, packages and shell files from it.
 
-<!-- include uses -->
+[//]: # (include uses)
 
 - **One address.** Files are fetched from `get.trmnl.me`, which points to this repository, so every project always gets the latest version.
 - **Unchanged sources.** The Termux packages are uploaded unchanged from the official Termux releases, and the images are built from official sources checked against their keys and checksums.
