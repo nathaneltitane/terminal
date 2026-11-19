@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-11-18"
+version="2026-11-19"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -937,7 +937,7 @@ then
 	then
 		list_mounts=(
 			internal /media/internal
-			external /media/"${SUDO_USER:-${USER}}"/external
+			external /media/external
 		)
 
 		# mount points first for fstab check
