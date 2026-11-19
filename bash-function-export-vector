@@ -2,9 +2,9 @@
 
 # loaded by "${HOME}"/.local/bin/bash-functions
 
-# vector-export ────────────────────────────────────────────────────────────────
+# export-vector ────────────────────────────────────────────────────────────────
 
-vector-export () {
+export-vector () {
 
 	local type_export
 	local file
