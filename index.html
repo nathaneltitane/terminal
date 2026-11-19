@@ -241,7 +241,7 @@
 						<tr><td><code>bash terminal -f</code></td><td>Link known <span class="marker">f</span>iles from storage.</td></tr>
 						<tr><td><code>bash terminal -o</code></td><td>Set up h<span class="marker">o</span>me directory structure.</td></tr>
 						<tr><td><code>bash terminal -g</code></td><td>Set up <span class="marker">g</span>it configuration and credentials.</td></tr>
-						<tr><td><code>bash terminal -s</code></td><td>Set up <span class="marker">s</span>hell dotfiles.</td></tr>
+						<tr><td><code>bash terminal -s</code></td><td>Set up <span class="marker">s</span>hell dotfiles - [ alt + ↵ ] fixes typos on the line.</td></tr>
 						<tr><td><code>bash terminal -u</code></td><td>Set up passwordless s<span class="marker">u</span>do.</td></tr>
 						<tr><td><code>bash terminal -t</code></td><td>Set up <span class="marker">t</span>hemes.</td></tr>
 						<tr><td><code>bash terminal -l</code></td><td>Set up app<span class="marker">l</span>ications.</td></tr>
@@ -258,7 +258,7 @@
 		<section id="shell" class="section reveal">
 			<header class="section-head">
 				<span class="icon big logo-button-yellow" aria-hidden="true"></span>
-				<h2>SHELL // DOTFILES, SUPERUSER AND KRUNNER</h2>
+				<h2>SHELL // DOTFILES, SUPERUSER, KRUNNER AND TYPOS</h2>
 			</header>
 
 			<p class="lead"><code>bash terminal -s</code> links the dotfiles, aliases and functions into <code>~/.local/bin</code> and the home directory, for the user and the superuser.</p>
@@ -283,6 +283,18 @@
 				<li><b>Real commands.</b> Names that are already real commands (<code>ssh</code>, <code>who</code> ...) get no link.</li>
 				<li><b><a href="#uninstall">Uninstall</a>.</b> Removes every link to <code>run</code>.</li>
 				<li><b>In a terminal.</b> It runs in place.</li>
+			</ul>
+
+			<h3>Typos</h3>
+			<p>[ alt + ↵ ] checks the line before it runs. A misspelled command, option or name is fixed on the line - swapped letters, a missing or extra letter, or caps lock left on:</p>
+			<pre><code>gti stauts | gerp main</code></pre>
+
+			<ul class="points">
+				<li><b>As typed.</b> Undo the fix with [ ctrl + _ ] and press [ ↵ ]. [ ↵ ] alone always runs the line as typed.</li>
+				<li><b>Folders.</b> Folder names in <code>cd</code> and tab completion also ignore small typos and upper or lower case.</li>
+				<li><b>Fixed.</b> It becomes <code>git status | grep main</code>, with the fixed words in yellow. [ ↵ ] runs it.</li>
+				<li><b>Root.</b> Works in user and root shells.</li>
+				<li><b>Nothing to fix.</b> The line runs right away.</li>
 			</ul>
 		</section>
 
@@ -471,7 +483,7 @@
 
 					<div class="option">
 						<code>-s, --shell</code>
-						<p>Set up <span class="marker">s</span>hell dotfiles.</p>
+						<p>Set up <span class="marker">s</span>hell dotfiles - [ alt + ↵ ] fixes typos on the line.</p>
 					</div>
 
 					<div class="option">

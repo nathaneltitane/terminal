@@ -36,7 +36,7 @@ Without an option every module runs. Pick one module with its option instead, fo
 
 ## Shell
 
-[//]: # (shell | yellow | SHELL // DOTFILES, SUPERUSER AND KRUNNER)
+[//]: # (shell | yellow | SHELL // DOTFILES, SUPERUSER, KRUNNER AND TYPOS)
 
 `bash terminal -s` links the dotfiles, aliases and functions into `~/.local/bin` and the home directory, for the user and the superuser.
 
@@ -66,6 +66,20 @@ weather
 - **In a terminal.** It runs in place.
 - **Real commands.** Names that are already real commands (`ssh`, `who` ...) get no link.
 - **Uninstall.** Removes every link to `run`.
+
+### Typos
+
+[ alt + ↵ ] checks the line before it runs. A misspelled command, option or name is fixed on the line - swapped letters, a missing or extra letter, or caps lock left on:
+
+```
+gti stauts | gerp main
+```
+
+- **Fixed.** It becomes `git status | grep main`, with the fixed words in yellow. [ ↵ ] runs it.
+- **As typed.** Undo the fix with [ ctrl + _ ] and press [ ↵ ]. [ ↵ ] alone always runs the line as typed.
+- **Nothing to fix.** The line runs right away.
+- **Folders.** Folder names in `cd` and tab completion also ignore small typos and upper or lower case.
+- **Root.** Works in user and root shells.
 
 ## Mounts
 

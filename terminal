@@ -166,7 +166,7 @@ do
 			echo
 			echo -e "-g, --git             Set up [g]it configuration and credentials."
 			echo
-			echo -e "-s, --shell           Set up [s]hell dotfiles."
+			echo -e "-s, --shell           Set up [s]hell dotfiles - [ alt + ↵ ] fixes typos on the line."
 			echo
 			echo -e "-u, --superuser       Set up passwordless s[u]do."
 			echo
