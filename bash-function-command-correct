@@ -1,0 +1,455 @@
+#!/bin/bash
+
+# loaded by "${HOME}"/.local/bin/bash-functions
+
+# command correct ──────────────────────────────────────────────────────────────
+
+command_correct_distance () {
+
+	# letter changes between two words - upper and lower case alike - two swapped letters count once
+	# result in count_distance - limit plus one once over the limit
+
+	local word_first="${1,,}"
+	local word_second="${2,,}"
+	local count_limit="${3}"
+
+	local length_first="${#word_first}"
+	local length_second="${#word_second}"
+	local count_gap
+	local index_first
+	local index_second
+	local count_best
+	local count_cost
+	local count_row_best
+	local character_first
+	local character_second
+
+	local -a list_row_before=()
+	local -a list_row_last=()
+	local -a list_row_current=()
+
+	count_distance=$(( count_limit + 1 ))
+
+	# length gap alone too large
+
+	count_gap=$(( length_first - length_second ))
+
+	if [ "${count_gap#-}" -gt "${count_limit}" ]
+	then
+		return
+	fi
+
+	for (( index_second = 0; index_second <= length_second; index_second++ ))
+	do
+		list_row_last[index_second]="${index_second}"
+	done
+
+	for (( index_first = 1; index_first <= length_first; index_first++ ))
+	do
+		list_row_current=("${index_first}")
+
+		count_row_best="${index_first}"
+
+		character_first="${word_first:index_first-1:1}"
+
+		for (( index_second = 1; index_second <= length_second; index_second++ ))
+		do
+			character_second="${word_second:index_second-1:1}"
+
+			count_cost=1
+
+			if [[ "${character_first}" == "${character_second}" ]]
+			then
+				count_cost=0
+			fi
+
+			# removed added or changed letter
+
+			count_best=$(( list_row_last[index_second] + 1 ))
+
+			if (( list_row_current[index_second-1] + 1 < count_best ))
+			then
+				count_best=$(( list_row_current[index_second-1] + 1 ))
+			fi
+
+			if (( list_row_last[index_second-1] + count_cost < count_best ))
+			then
+				count_best=$(( list_row_last[index_second-1] + count_cost ))
+			fi
+
+			# two swapped letters
+
+			if (( index_first > 1 && index_second > 1 )) && [[ "${character_first}" == "${word_second:index_second-2:1}" && "${word_first:index_first-2:1}" == "${character_second}" ]]
+			then
+				if (( list_row_before[index_second-2] + 1 < count_best ))
+				then
+					count_best=$(( list_row_before[index_second-2] + 1 ))
+				fi
+			fi
+
+			list_row_current[index_second]="${count_best}"
+
+			if (( count_best < count_row_best ))
+			then
+				count_row_best="${count_best}"
+			fi
+		done
+
+		# whole row over the limit
+
+		if (( count_row_best > count_limit ))
+		then
+			return
+		fi
+
+		list_row_before=("${list_row_last[@]}")
+		list_row_last=("${list_row_current[@]}")
+	done
+
+	count_distance="${list_row_last[length_second]}"
+}
+
+command_correct_match () {
+
+	# closest candidate to a word - one change allowed up to four letters, two above
+	# result in word_match - empty when the word is valid or nothing is close
+
+	local word="${1}"
+
+	shift
+
+	local -a list_candidates=("${@}")
+
+	local item
+	local count_limit=1
+	local count_best
+	local count_gap
+	local character_first="${word:0:1}"
+	local character_second="${word:1:1}"
+	local status_filter
+
+	word_match=""
+
+	if [ "${#word}" -ge 5 ]
+	then
+		count_limit=2
+	fi
+
+	count_best=$(( count_limit + 1 ))
+
+	# long lists - first letters kept close
+
+	if [ "${#list_candidates[@]}" -gt 5000 ]
+	then
+		status_filter="true"
+	fi
+
+	for item in "${list_candidates[@]}"
+	do
+		if [ "${item}" = "${word}" ]
+		then
+			word_match=""
+
+			return
+		fi
+
+		count_gap=$(( ${#item} - ${#word} ))
+
+		if [ "${count_gap#-}" -gt "${count_limit}" ]
+		then
+			continue
+		fi
+
+		if [ -n "${status_filter}" ] && [[ "${item:0:1}" != "${character_first}" && "${item:0:1}" != "${character_second}" ]]
+		then
+			continue
+		fi
+
+		command_correct_distance "${word}" "${item}" "${count_limit}"
+
+		# closer wins - same length breaks a tie
+
+		if (( count_distance < count_best )) || { (( count_distance == count_best )) && [ "${#item}" -eq "${#word}" ] && [ "${#word_match}" -ne "${#word}" ]; }
+		then
+			count_best="${count_distance}"
+
+			word_match="${item}"
+		fi
+	done
+
+	if (( count_best > count_limit ))
+	then
+		word_match=""
+	fi
+}
+
+command_correct_candidates () {
+
+	# words the completion offers at one position of a command - starting with the given text
+	# result in list_completion
+
+	local text_current="${1}"
+	local index_word="${2}"
+
+	shift 2
+
+	local -a list_segment=("${@}")
+
+	local name_command="${list_segment[0]}"
+	local text_specification
+	local name_completion
+
+	local -a COMP_WORDS=()
+	local COMP_CWORD
+	local COMP_LINE
+	local COMP_POINT
+	local -a COMPREPLY=()
+
+	list_completion=()
+
+	# completion missing in login shells
+
+	if ! declare -F _completion_loader > /dev/null
+	then
+		if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
+		then
+			. "${PREFIX}"/share/bash-completion/bash_completion
+		elif [ -f /usr/share/bash-completion/bash_completion ]
+		then
+			. /usr/share/bash-completion/bash_completion
+		fi
+	fi
+
+	text_specification="$(complete -p -- "${name_command}" 2> /dev/null)"
+
+	# completion loaded on first use
+
+	if [ -z "${text_specification}" ] && declare -F _completion_loader > /dev/null
+	then
+		_completion_loader "${name_command}" > /dev/null 2>&1
+
+		text_specification="$(complete -p -- "${name_command}" 2> /dev/null)"
+	fi
+
+	if [ -z "${text_specification}" ]
+	then
+		return
+	fi
+
+	if [[ "${text_specification}" =~ \ -F\ ([^ ]+) ]]
+	then
+		name_completion="${BASH_REMATCH[1]}"
+
+		COMP_WORDS=("${list_segment[@]:0:index_word}" "${text_current}")
+		COMP_CWORD="${index_word}"
+		COMP_LINE="${COMP_WORDS[*]}"
+		COMP_POINT="${#COMP_LINE}"
+
+		"${name_completion}" "${name_command}" "${text_current}" "${COMP_WORDS[index_word-1]}" > /dev/null 2>&1
+
+		list_completion=("${COMPREPLY[@]}")
+	elif [[ "${text_specification}" != *\ -C\ * ]]
+	then
+		# same options as the completion
+
+		text_specification="${text_specification#complete }"
+		text_specification="${text_specification% *}"
+
+		mapfile -t list_completion < <(eval "compgen ${text_specification} -- \"\${text_current}\"" 2> /dev/null)
+	fi
+
+	# trailing spaces and equal signs
+
+	list_completion=("${list_completion[@]% }")
+	list_completion=("${list_completion[@]%=}")
+}
+
+command-correct () {
+
+	# bound to enter: misspelled commands and words fixed on the line - enter again runs it
+	# runs as typed: unchanged line, second enter on a line put back as typed, or ctrl j
+
+	local text_line="${READLINE_LINE}"
+	local text_rest
+	local text_corrected=""
+	local word
+	local word_lower
+	local status_command="true"
+	local status_skip
+	local status_skip_next
+	local status_capitals
+	local index_word
+
+	local -a list_spaces=()
+	local -a list_words=()
+	local -a list_segment=()
+	local -a list_commands=()
+
+	# runs unless a fix is shown
+
+	bind '"\C-x\C-a": accept-line'
+
+	if [ -z "${text_line//[[:space:]]/}" ] || [ "${text_line}" = "${line_command_typed}" ]
+	then
+		line_command_typed=""
+
+		return
+	fi
+
+	# spaces and words in order
+
+	text_rest="${text_line}"
+
+	while [[ "${text_rest}" =~ ^([[:space:]]*)([^[:space:]]+)(.*)$ ]]
+	do
+		list_spaces+=("${BASH_REMATCH[1]}")
+		list_words+=("${BASH_REMATCH[2]}")
+
+		text_rest="${BASH_REMATCH[3]}"
+	done
+
+	# caps lock: capital command with a lowercase match
+
+	word="${list_words[0]}"
+
+	if [[ "${word}" == "${word^^}" && "${word}" != "${word,,}" ]] && [ -z "$(type -t -- "${word}")" ] && [ -n "$(type -t -- "${word,,}")" ]
+	then
+		status_capitals="true"
+	fi
+
+	for index_word in "${!list_words[@]}"
+	do
+		word="${list_words[index_word]}"
+
+		if [ -n "${status_capitals}" ] && [[ "${word}" == "${word^^}" && "${word}" != "${word,,}" ]]
+		then
+			word="${word,,}"
+		fi
+
+		status_skip="${status_skip_next}"
+
+		status_skip_next=""
+
+		# control operators start a new command
+
+		if [[ "${word}" =~ ^(\||\|\||\&\&|\;|\&|\|\&)$ ]]
+		then
+			status_command="true"
+
+			list_segment=()
+
+		# redirections - next word is a file
+
+		elif [[ "${word}" =~ ^[0-9]*[\<\>] ]]
+		then
+			status_skip_next="true"
+
+		# quotes variables paths and short options left as typed
+
+		elif [ -z "${status_skip}" ] && [ "${#word}" -ge 2 ] && [[ "${word}" =~ ^[[:alnum:]._+-]+$ ]] && [[ ! "${word}" =~ ^-[^-] ]] && [[ ! "${word}" =~ ^[0-9.]+$ ]] && [ ! -e "${word}" ]
+		then
+			if [ -n "${status_command}" ]
+			then
+				if [ -z "$(type -t -- "${word}")" ]
+				then
+					if [ "${#list_commands[@]}" -eq 0 ]
+					then
+						mapfile -t list_commands < <(compgen -c | sort -u)
+					fi
+
+					command_correct_match "${word}" "${list_commands[@]}"
+
+					if [ -n "${word_match}" ]
+					then
+						word="${word_match}"
+					fi
+				fi
+			elif [ "${#list_segment[@]}" -gt 0 ]
+			then
+				# word offered or started - full list otherwise
+
+				command_correct_candidates "${word}" "${#list_segment[@]}" "${list_segment[@]}"
+
+				if [ "${#list_completion[@]}" -gt 0 ]
+				then
+					list_completion=()
+				elif [[ "${word}" == --* ]]
+				then
+					command_correct_candidates "--" "${#list_segment[@]}" "${list_segment[@]}"
+				else
+					command_correct_candidates "" "${#list_segment[@]}" "${list_segment[@]}"
+				fi
+
+				if [ "${#list_completion[@]}" -gt 0 ]
+				then
+					command_correct_match "${word}" "${list_completion[@]}"
+
+					if [ -n "${word_match}" ]
+					then
+						word="${word_match}"
+					fi
+				fi
+			fi
+		fi
+
+		# command position after wrappers and keywords
+
+		if [ -n "${status_command}" ]
+		then
+			case "${word}"
+			in
+				'|'|'||'|'&&'|';'|'&'|'|&')
+				;;
+				sudo|env|time|nohup|nice|command|builtin|exec|xargs|watch|then|do|else|elif|if|while|until|'!'|'{'|'(')
+				;;
+				-*|*=*)
+				;;
+				for|case|select|function)
+					status_command=""
+
+					list_segment=()
+				;;
+				*)
+					status_command=""
+
+					list_segment=("${word}")
+				;;
+			esac
+		elif [ "${#list_segment[@]}" -gt 0 ]
+		then
+			list_segment+=("${word}")
+		fi
+
+		# operators at the end of a word
+
+		if [[ "${word}" =~ (\;|\||\&)$ ]] && [ "${#word}" -gt 1 ]
+		then
+			status_command="true"
+
+			list_segment=()
+		fi
+
+		list_words[index_word]="${word}"
+	done
+
+	for index_word in "${!list_words[@]}"
+	do
+		text_corrected+="${list_spaces[index_word]}${list_words[index_word]}"
+	done
+
+	text_corrected+="${text_rest}"
+
+	# fix shown - enter again runs it
+
+	if [ "${text_corrected}" != "${text_line}" ]
+	then
+		line_command_typed="${text_line}"
+
+		READLINE_LINE="${text_corrected}"
+		READLINE_POINT="${#READLINE_LINE}"
+
+		bind '"\C-x\C-a": redraw-current-line'
+	else
+		line_command_typed=""
+	fi
+}

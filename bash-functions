@@ -21,7 +21,7 @@ source "${frobulator}"
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-21"
+version="2026-11-19"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -165,3 +165,14 @@ do
 done
 
 unset file_function
+
+# correction ───────────────────────────────────────────────────────────────────
+
+# enter checks the line first - ctrl j runs it as typed
+
+if [[ "${-}" == *i* ]] && declare -F command-correct > /dev/null
+then
+	bind -x '"\C-x\C-c": command-correct'
+	bind '"\C-x\C-a": accept-line'
+	bind '"\C-m": "\C-x\C-c\C-x\C-a"'
+fi

@@ -60,6 +60,18 @@ weather
 
 ---
 
+### Typos:
+
+Enter checks the line before it runs. A misspelled command, option or name is fixed on the line - swapped letters, a missing or extra letter, or caps lock left on:
+
+```
+gti stauts | gerp main
+```
+
+becomes `git status | grep main`. Press enter again to run it. To run what was typed instead, undo the fix with ctrl _ and press enter, or press ctrl j. Folder names in `cd` and tab completion also ignore small typos and upper or lower case. Works in user and root shells.
+
+---
+
 ### Mounts:
 
 Drives labelled `internal` and `external` are mounted at boot through `/etc/fstab`, by UUID:

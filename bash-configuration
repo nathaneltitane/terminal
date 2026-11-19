@@ -21,7 +21,7 @@ source "${frobulator}"
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-21"
+version="2026-11-19"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -140,7 +140,9 @@ fi
 
 # options ──────────────────────────────────────────────────────────────────────
 
+shopt -s cdspell
 shopt -s checkwinsize
+shopt -s dirspell
 shopt -s histappend
 shopt -s histverify
 
@@ -173,6 +175,10 @@ then
 fi
 
 unset status_shell_posix
+
+# upper and lower case alike
+
+bind 'set completion-ignore-case on'
 
 # user  ────────────────────────────────────────────────────────────────────────
 
