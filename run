@@ -5,6 +5,13 @@
 # usage:      run [function] [arguments]
 #             [function] [arguments]      [ link to run ]
 
+# variables ────────────────────────────────────────────────────────────────────
+
+# cursor control sequences
+
+sequence_cursor_hide='\e[?25l'
+sequence_cursor_show='\e[?25h'
+
 # functions ────────────────────────────────────────────────────────────────────
 
 # use to read a key from an ini style file
@@ -279,5 +286,11 @@ then
 
 	frobulator.rtn "Press to close" "[ ${name_window_run} // '${name_function}' ]"
 
+	# hide cursor while waiting
+
+	printf "${sequence_cursor_hide}"
+
 	frobulator.read -r -s _
+
+	printf "${sequence_cursor_show}"
 fi
