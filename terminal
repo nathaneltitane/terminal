@@ -1136,6 +1136,10 @@ then
 
 	# function names as links to run
 
+	list_functions_shell=(
+		command-correct
+	)
+
 	for item in "${list_files_shell[@]}"
 	do
 		if [[ "${item}" != bash-function-* ]]
@@ -1144,6 +1148,13 @@ then
 		fi
 
 		name_link="${item#bash-function-}"
+
+		# shell only functions get no link
+
+		if [[ " ${list_functions_shell[*]} " == *" ${name_link} "* ]]
+		then
+			continue
+		fi
 
 		path_command="$(type -P "${name_link}")"
 
@@ -1162,7 +1173,7 @@ then
 		fi
 	done
 
-	unset name_link path_command
+	unset name_link path_command list_functions_shell
 
 	list_files_shell=()
 
