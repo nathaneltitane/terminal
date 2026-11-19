@@ -75,6 +75,8 @@ weather
 gti stauts | gerp main
 ```
 
+[//]: # (points written)
+
 - **Fixed.** It becomes `git status | grep main`, with the fixed words in yellow. [ ↵ ] runs it.
 - **As typed.** Undo the fix with [ ctrl + _ ] and press [ ↵ ]. [ ↵ ] alone always runs the line as typed.
 - **Nothing to fix.** The line runs right away.
