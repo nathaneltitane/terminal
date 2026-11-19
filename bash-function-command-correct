@@ -266,8 +266,8 @@ command_correct_candidates () {
 
 command-correct () {
 
-	# bound to enter: misspelled commands and words fixed on the line - enter again runs it
-	# runs as typed: unchanged line, second enter on a line put back as typed, or ctrl j
+	# bound to alt enter: misspelled commands and words fixed on the line - enter runs it
+	# runs as typed: unchanged line, or second alt enter on a line put back as typed
 
 	local text_line="${READLINE_LINE}"
 	local text_rest
@@ -458,7 +458,7 @@ command-correct () {
 
 	text_corrected+="${text_rest}"
 
-	# fix shown and colored - enter again runs it
+	# fix shown and colored - enter runs it
 
 	if [ "${text_corrected}" != "${text_line}" ]
 	then
