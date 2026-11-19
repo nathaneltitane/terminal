@@ -31,7 +31,7 @@
 					"description": "Terminal is a collection of shell scripts, templates, dotfiles and utilities for Linux based systems: one setup command for your shell, mounts, themes and applications, plus 58 scripts, 47 shell functions and the images and packages other projects download.",
 					"applicationCategory": "UtilitiesApplication",
 					"operatingSystem": "Linux",
-					"softwareVersion": "2026-10-31",
+					"softwareVersion": "2026-11-18",
 					"license": "https://www.gnu.org/licenses/gpl-3.0.html",
 					"downloadUrl": "https://github.com/nathaneltitane/terminal",
 					"image": "https://terminal.me/resources/social/social.png",
@@ -204,7 +204,7 @@
 			<p class="lead">Terminal is a collection of shell scripts, templates, dotfiles and utilities to make your Linux based system experience a breeze.</p>
 
 			<ul class="points">
-				<li><b>One setup.</b> <code>bash terminal</code> runs every module in order: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, KRunner and the boot theme. Each module also runs alone with its own option.</li>
+				<li><b>One setup.</b> <code>bash terminal</code> runs every module in order: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, media, KRunner and the boot theme. Each module also runs alone with its own option.</li>
 				<li><b>Service repository.</b> Other projects download their files from Terminal: Dextop takes its container images, Termux packages, shell and interface files from here.</li>
 				<li><b>Utilities.</b> Scripts for Android devices, backups, ssh, drives, desktops, rendering and more, each answering <code>-h</code> with its usage and options.</li>
 				<li><b><a href="#shell">Shell</a> everywhere.</b> Dotfiles, aliases and functions are linked into <code>~/.local/bin</code>, for the user and for a root shell alike.</li>
@@ -245,6 +245,7 @@
 						<tr><td><code>bash terminal -u</code></td><td>Set up passwordless s<span class="marker">u</span>do.</td></tr>
 						<tr><td><code>bash terminal -t</code></td><td>Set up <span class="marker">t</span>hemes.</td></tr>
 						<tr><td><code>bash terminal -l</code></td><td>Set up app<span class="marker">l</span>ications.</td></tr>
+						<tr><td><code>bash terminal -d</code></td><td>Set up me<span class="marker">d</span>ia packages.</td></tr>
 						<tr><td><code>bash terminal -k</code></td><td>Set up <span class="marker">k</span>de runner shortcut.</td></tr>
 						<tr><td><code>bash terminal -e</code></td><td>Set up r<span class="marker">e</span>find and efi boot theme.</td></tr>
 						<tr><td><code>bash terminal -a</code></td><td>Run <span class="marker">a</span>ll modules explicitly.</td></tr>
@@ -417,7 +418,7 @@
 				<h2>COMMANDS // EVERY UTILITY AND OPTION</h2>
 			</header>
 
-			<p class="lead">The help of all 61 Terminal scripts, read from the scripts themselves: 230 options with their values. The marked letter is the short option. Search them, or pick a group.</p>
+			<p class="lead">The help of all 61 Terminal scripts, read from the scripts themselves: 231 options with their values. The marked letter is the short option. Search them, or pick a group.</p>
 
 			<div class="search-tools">
 				<input id="search" type="search" placeholder="Search commands and options" aria-label="Search commands and options">
@@ -427,9 +428,9 @@
 			<div id="command-list" class="command-list">
 				<article class="command" id="command-terminal" data-group="Setup">
 					<div class="command-body">
-						<div class="command-head"><h3>terminal</h3><span class="command-meta">Setup // 2026-10-31</span></div>
-						<p>The setup script: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, KRunner and the boot theme, one module or all of them, and the <a href="#uninstall">uninstall</a>.</p>
-						<pre><code>terminal -p | -x | -r [Type] | -m | -f | -o | -g | -s | -u | -t | -l | -k | -e | -a | -n | -h</code></pre>
+						<div class="command-head"><h3>terminal</h3><span class="command-meta">Setup // 2026-11-18</span></div>
+						<p>The setup script: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, media, KRunner and the boot theme, one module or all of them, and the <a href="#uninstall">uninstall</a>.</p>
+						<pre><code>terminal -p | -x | -r [Type] | -m | -f | -o | -g | -s | -u | -t | -l | -d | -k | -e | -a | -n | -h</code></pre>
 					</div>
 
 					<div class="option">
@@ -486,6 +487,11 @@
 					<div class="option">
 						<code>-l, --applications</code>
 						<p>Set up app<span class="marker">l</span>ications.</p>
+					</div>
+
+					<div class="option">
+						<code>-d, --media</code>
+						<p>Set up me<span class="marker">d</span>ia packages.</p>
 					</div>
 
 					<div class="option">
@@ -2181,7 +2187,7 @@
 			<p>Linux is a registered trademark of Linus Torvalds. Android is a trademark of Google LLC. Neither sponsors, authorizes or endorses this project.</p>
 			<div class="authorship">
 				<a class="avatar" href="https://nathaneltitane.com" aria-label="N Λ T H Λ N E L"><img src="resources/avatar/avatar-bird.png" alt="" width="64" height="64"></a>
-				<p>Version // 2026-10-31<br>2026 - <a href="https://github.com/nathaneltitane">N Λ T H Λ N E L</a> - <a href="https://github.com/nathaneltitane/terminal/issues">Submit bug reports or feature requests</a></p>
+				<p>Version // 2026-11-18<br>2026 - <a href="https://github.com/nathaneltitane">N Λ T H Λ N E L</a> - <a href="https://github.com/nathaneltitane/terminal/issues">Submit bug reports or feature requests</a></p>
 			</div>
 		</div>
 

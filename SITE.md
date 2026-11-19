@@ -8,7 +8,7 @@ Every section of [terminal.me](https://terminal.me). `tools/terminal-site` build
 
 Terminal is a collection of shell scripts, templates, dotfiles and utilities to make your Linux based system experience a breeze.
 
-- **One setup.** `bash terminal` runs every module in order: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, KRunner and the boot theme. Each module also runs alone with its own option.
+- **One setup.** `bash terminal` runs every module in order: python, pipx, storage, mounts, files, home, git, shell, superuser, themes, applications, media, KRunner and the boot theme. Each module also runs alone with its own option.
 - **Shell everywhere.** Dotfiles, aliases and functions are linked into `~/.local/bin`, for the user and for a root shell alike.
 - **Functions as commands.** Every shell function is linked to `run`, so it starts from KRunner or any launcher like a real command.
 - **Utilities.** Scripts for Android devices, backups, ssh, drives, desktops, rendering and more, each answering `-h` with its usage and options.
