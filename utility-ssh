@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-09"
+version="2026-11-19"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -469,7 +469,7 @@ ssh_restore_server () {
 
 		ssh_frame "subsystems"
 
-		printf 'Subsystem sftp internal-sftp\n'
+		printf 'Subsystem sftp internal-sftp -d /\n'
 	} > "${file_sshd_check}"
 
 	sshd -t -f "${file_sshd_check}"
