@@ -174,5 +174,11 @@ if [[ "${-}" == *i* ]] && declare -F command-correct > /dev/null
 then
 	bind -x '"\C-x\C-c": command-correct'
 	bind '"\C-x\C-a": accept-line'
+	bind '"\C-x\C-x": exchange-point-and-mark'
 	bind '"\C-m": "\C-x\C-c\C-x\C-a"'
+
+	# corrected words in bold yellow
+
+	bind 'set active-region-start-color "\e[1;33m"'
+	bind 'set active-region-end-color "\e[0m"'
 fi

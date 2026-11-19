@@ -279,9 +279,12 @@ command-correct () {
 	local status_skip_next
 	local status_capitals
 	local index_word
+	local index_start=""
+	local index_end=""
 
 	local -a list_spaces=()
 	local -a list_words=()
+	local -a list_words_typed=()
 	local -a list_segment=()
 	local -a list_commands=()
 
@@ -307,6 +310,8 @@ command-correct () {
 
 		text_rest="${BASH_REMATCH[3]}"
 	done
+
+	list_words_typed=("${list_words[@]}")
 
 	# caps lock: capital command with a lowercase match
 
@@ -432,23 +437,40 @@ command-correct () {
 		list_words[index_word]="${word}"
 	done
 
+	# corrected span from the first to the last changed word
+
 	for index_word in "${!list_words[@]}"
 	do
-		text_corrected+="${list_spaces[index_word]}${list_words[index_word]}"
+		text_corrected+="${list_spaces[index_word]}"
+
+		if [ "${list_words[index_word]}" != "${list_words_typed[index_word]}" ]
+		then
+			if [ -z "${index_start}" ]
+			then
+				index_start="${#text_corrected}"
+			fi
+
+			index_end=$(( ${#text_corrected} + ${#list_words[index_word]} ))
+		fi
+
+		text_corrected+="${list_words[index_word]}"
 	done
 
 	text_corrected+="${text_rest}"
 
-	# fix shown - enter again runs it
+	# fix shown and colored - enter again runs it
 
 	if [ "${text_corrected}" != "${text_line}" ]
 	then
 		line_command_typed="${text_line}"
 
 		READLINE_LINE="${text_corrected}"
-		READLINE_POINT="${#READLINE_LINE}"
+		READLINE_MARK="${index_start}"
+		READLINE_POINT="${index_end}"
 
-		bind '"\C-x\C-a": redraw-current-line'
+		# swapping point and mark twice lights up the span
+
+		bind '"\C-x\C-a": "\C-x\C-x\C-x\C-x"'
 	else
 		line_command_typed=""
 	fi
