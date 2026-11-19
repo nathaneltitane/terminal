@@ -14,45 +14,45 @@ sequence_cursor_show='\e[?25h'
 
 # functions ────────────────────────────────────────────────────────────────────
 
-# use to read a key from an ini style file
+# use to read a key from an initialization file
 
-intent_value_ini () {
+intent_value_initialization () {
 
-	local file_ini="${1}"
-	local section_ini="${2}"
-	local key_ini="${3}"
+	local file_initialization="${1}"
+	local section_initialization="${2}"
+	local key_initialization="${3}"
 
-	local line_ini
+	local line_initialization
 	local section_current
 
-	if [ ! -f "${file_ini}" ]
+	if [ ! -f "${file_initialization}" ]
 	then
 		return
 	fi
 
-	while IFS= read -r line_ini || [ -n "${line_ini}" ]
+	while IFS= read -r line_initialization || [ -n "${line_initialization}" ]
 	do
-		if [[ "${line_ini}" =~ ^\[(.*)\]$ ]]
+		if [[ "${line_initialization}" =~ ^\[(.*)\]$ ]]
 		then
 			section_current="${BASH_REMATCH[1]}"
 
 			continue
 		fi
 
-		if [ "${section_current}" = "${section_ini}" ] && [[ "${line_ini}" == "${key_ini}="* ]]
+		if [ "${section_current}" = "${section_initialization}" ] && [[ "${line_initialization}" == "${key_initialization}="* ]]
 		then
-			echo "${line_ini#*=}"
+			echo "${line_initialization#*=}"
 
 			return
 		fi
-	done < "${file_ini}"
+	done < "${file_initialization}"
 }
 
 # use to find a terminal emulator command
 
 intent_terminal_find () {
 
-	local directory_config="${XDG_CONFIG_HOME:-${HOME}/.config}"
+	local directory_configuration="${XDG_CONFIG_HOME:-${HOME}/.config}"
 	local directory_data
 	local file_desktop
 	local line_desktop
@@ -94,12 +94,12 @@ intent_terminal_find () {
 
 	if [[ "${name_desktop}" == *:KDE:* ]]
 	then
-		list_candidates+=("$(intent_value_ini "${directory_config}"/kdeglobals General TerminalApplication)")
+		list_candidates+=("$(intent_value_initialization "${directory_configuration}"/kdeglobals General TerminalApplication)")
 		list_candidates+=(konsole)
 
 	elif [[ "${name_desktop}" == *:XFCE:* ]]
 	then
-		list_candidates+=("$(intent_value_ini "${directory_config}"/xfce4/helpers.rc "" TerminalEmulator)")
+		list_candidates+=("$(intent_value_initialization "${directory_configuration}"/xfce4/helpers.rc "" TerminalEmulator)")
 		list_candidates+=(xfce4-terminal)
 
 	elif [[ "${name_desktop}" == *:GNOME:* ]]
