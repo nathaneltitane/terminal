@@ -251,7 +251,7 @@ source "${HOME}"/.local/bin/bash-functions
 
 name_called="${0##*/}"
 
-if [ "${name_called}" != "run" ]
+if [ "${name_called}" != "run" ] && [ "${name_called}" != "utility-command-run" ]
 then
 	set -- "${name_called}" "${@}"
 fi

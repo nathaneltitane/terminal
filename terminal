@@ -614,6 +614,7 @@ then
 		bash-logout
 		bash-profile
 		run
+		utility-command-run
 	)
 
 	# function links to run
@@ -622,7 +623,7 @@ then
 	do
 		# ahead of run itself
 
-		if [ -L "${path_link}" ] && [ "${path_link}" -ef "${HOME}"/.local/bin/run ]
+		if [ -L "${path_link}" ] && [ "${path_link##*/}" != "run" ] && [ "${path_link}" -ef "${HOME}"/.local/bin/run ]
 		then
 			list_files_shell=("${path_link##*/}" "${list_files_shell[@]}")
 		fi
@@ -1082,7 +1083,7 @@ then
 		bash-login
 		bash-logout
 		bash-profile
-		run
+		utility-command-run
 	)
 
 	# one file per function - loaded by bash-functions: names listed from the repository
@@ -1096,6 +1097,10 @@ then
 	list_files_shell=("${list[@]}")
 
 	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
+
+	# run command name
+
+	frobulator.link "${HOME}"/.local/bin "${HOME}"/.local/bin utility-command-run run
 
 	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-aliases       .bash_aliases
 	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-configuration .bashrc
