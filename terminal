@@ -449,7 +449,7 @@ intent_fstab_entry () {
 		esac
 	done
 
-	options_mount="users,nofail,x-mount.mkdir,x-systemd.device-timeout=5s"
+	options_mount="users,exec,nofail,x-mount.mkdir,x-systemd.device-timeout=5s"
 
 	# ownership for windows filesystems
 
@@ -464,7 +464,7 @@ intent_fstab_entry () {
 				fi
 			done < /etc/passwd
 
-			options_mount+=",exec,uid=${id_user},gid=${id_group},fmask=0022,dmask=0022,iocharset=utf8"
+			options_mount+=",uid=${id_user},gid=${id_group},fmask=0022,dmask=0022,iocharset=utf8"
 		;;
 	esac
 
