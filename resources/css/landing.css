@@ -20,9 +20,17 @@
 	animation: reveal-backdrop 2s ease forwards;
 }
 
+/* block characters - bundled since windows monospace has none */
+
+@font-face {
+	font-family: 'blocks';
+	src: url('../fonts/font-blocks.woff2') format('woff2');
+}
+
 /* backdrop text block */
 
 .backdrop pre {
+	font-family: 'blocks', monospace;
 	margin: 0px 0px 0px 0px;
 	padding: 0px 0px 0px 0px;
 	background: none;
