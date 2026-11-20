@@ -201,7 +201,11 @@ intent_terminal_open () {
 
 	name_base="${name_terminal##*/}"
 
-	if [ "${name_base}" = "gnome-terminal" ] || [ "${name_base}" = "kgx" ]
+	if [ "${name_base}" = "konsole" ]
+	then
+		exec "${name_terminal}" -p TerminalColumns=120 -p TerminalRows=30 -e "${list_command[@]}"
+
+	elif [ "${name_base}" = "gnome-terminal" ] || [ "${name_base}" = "kgx" ]
 	then
 		exec "${name_terminal}" -- "${list_command[@]}"
 
