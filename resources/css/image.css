@@ -315,7 +315,7 @@ figcaption {
 }
 
 .gallery-start::before {
-	transform: translate(-85%, -50%) rotate(-45deg);
+	transform: translate(-70%, -50%) rotate(-45deg);
 }
 
 /* right gallery arrow */
@@ -325,7 +325,7 @@ figcaption {
 }
 
 .gallery-end::before {
-	transform: translate(-15%, -50%) rotate(135deg);
+	transform: translate(-30%, -50%) rotate(135deg);
 }
 
 /* arrows shown at each strip end */
