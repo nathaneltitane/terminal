@@ -77,6 +77,7 @@ ada () {
 	local row_panel
 	local row_gap_panel
 	local row_rule
+	local row_gap_rule
 	local row_chat
 	local height_panel
 	local column_first
@@ -144,7 +145,8 @@ ada () {
 	row_gap="2"
 	row_panel="3"
 	height_panel="7"
-	row_rule=$(( row_panel + height_panel ))
+	row_gap_rule=$(( row_panel + height_panel ))
+	row_rule=$(( row_gap_rule + 1 ))
 	row_gap_panel=$(( row_rule + 1 ))
 	row_chat=$(( row_gap_panel + 1 ))
 	column_first="1"
@@ -572,11 +574,13 @@ ada_status_draw () {
 
 	text_rule="${text_rule// /${character_rule}}"
 
-	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}%s%s%s${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
+	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}%s%s%s${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
 		"${row_status}" \
 		"${column_first}" \
 		"${text_line}" \
 		"${row_gap}" \
+		"${column_first}" \
+		"${row_gap_rule}" \
 		"${column_first}" \
 		"${row_rule}" \
 		"${column_first}" \
