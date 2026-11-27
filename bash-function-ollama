@@ -6,16 +6,19 @@
 
 ollama () {
 
-	# readable names for the short commands
+	# readable names for the short commands and flags
 
 	local -A list_names=(
 		[copy]="cp"
 		[details]="show"
 		[download]="pull"
 		[loaded]="ps"
+		[nowordwrap]="--nowordwrap"
 		[remove]="rm"
 		[unload]="stop"
 		[upload]="push"
+		[verbose]="--verbose"
+		[version]="--version"
 	)
 
 	local list_arguments=("${@}")
@@ -60,6 +63,7 @@ ollama_complete () {
 		launch
 		list
 		loaded
+		nowordwrap
 		remove
 		run
 		serve
@@ -67,6 +71,8 @@ ollama_complete () {
 		signout
 		unload
 		upload
+		verbose
+		version
 	)
 
 	local list_commands_model=(
