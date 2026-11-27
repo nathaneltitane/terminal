@@ -18,7 +18,6 @@ ada () {
 	local directory_models
 	local file_settings
 	local text_details
-	local count_rows
 	local text_monitor
 	local pid_status
 	local count_threads_model
@@ -217,11 +216,11 @@ ada () {
 
 	kill "${pid_status}" 2> "${sink}"
 
-	# whole screen scrolls again
+	# whole screen scrolls again - cleared so the prompt starts on the top row
 
-	count_rows="$(tput lines)"
+	printf '\e[r'
 
-	printf '\e[r\e[%s;1H\n' "${count_rows}"
+	clear
 
 }
 
