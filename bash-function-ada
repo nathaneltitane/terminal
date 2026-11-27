@@ -18,11 +18,9 @@ ada () {
 	local directory_models
 	local file_settings
 	local text_details
-	local text_stats
 	local count_rows
-	local text_line_details
 	local text_monitor
-	local pid_frame
+	local pid_status
 	local count_threads_model
 	local text_rest
 
@@ -190,39 +188,36 @@ ada () {
 
 	curl -s "http://${OLLAMA_HOST:-127.0.0.1:11434}/api/generate" -d "{\"model\":\"${name_model}\"}" > "${sink}" 2>&1
 
-	# size, processor split and context from the loaded list - threads from the model settings
+	# threads from the model settings - fixed for the whole chat
 
-	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" { print $3 " " $4 " // " $5 " " $6 " // " $7 " context" }')"
 	count_threads_model="$(awk '$1 == "num_thread" { print $2 }' <<< "${text_details}")"
 
-	# model line on top - details on the bottom row - an empty row inside each - chat scrolls between them
-
-	text_line_details="[ ${text_stats:-not loaded} // ${count_threads_model:-default} threads ]"
+	# one status line on the top row - an empty row under it - chat scrolls below
 
 	clear
 
-	ada_frame_draw "${name_model}" "${text_line_details}"
+	ada_status_draw "${path_command}" "${name_model}" "${count_threads_model:-default}"
 
 	printf '\e[3;1H'
 
-	# frame follows terminal resizes - job notices off while it runs
+	# status line kept current - redrawn only when its values or the terminal size change - job notices off while it runs
 
 	text_monitor="${-}"
 
 	set +m
 
-	ada_frame_follow "${name_model}" "${text_line_details}" &
-	pid_frame="${!}"
+	ada_status_follow "${path_command}" "${name_model}" "${count_threads_model:-default}" &
+	pid_status="${!}"
 
-	disown "${pid_frame}"
+	disown "${pid_status}"
 
 	[[ "${text_monitor}" == *m* ]] && set -m
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
 
-	kill "${pid_frame}" 2> "${sink}"
+	kill "${pid_status}" 2> "${sink}"
 
-	# whole screen scrolls again - details line left above the prompt
+	# whole screen scrolls again
 
 	count_rows="$(tput lines)"
 
@@ -230,51 +225,59 @@ ada () {
 
 }
 
-# frame ────────────────────────────────────────────────────────────────────────
+# status line ──────────────────────────────────────────────────────────────────
 
-ada_frame_draw () {
+ada_status_text () {
 
-	# top and bottom rows drawn at the current size - cursor kept where the chat left it
+	# memory, processor / graphics split and context from the loaded list - threads given
 
-	local name_model="${1}"
-	local text_details="${2}"
+	local path_command="${1}"
+	local name_model="${2}"
+	local count_threads="${3}"
+	local text_stats
+
+	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" { print $3 " " $4 " // " $5 " " $6 " // " $7 " context" }')"
+
+	echo "[ ${name_model} // ${text_stats:-not loaded} // ${count_threads} threads ]"
+
+}
+
+ada_status_draw () {
+
+	# top row only - scroll area set below the empty second row - cursor kept where the chat left it
+
 	local count_rows
-	local text_line_top
-	local text_line_bottom
+	local text_line
 
 	frobulator.columns
 
 	count_rows="$(tput lines)"
-	text_line_top="$(frobulator.inf "Chatting with model" "[ ${name_model} ]")"
-	text_line_bottom="$(frobulator.inf "Model details" "${text_details}")"
+	text_line="$(frobulator.inf "Chatting with model" "$(ada_status_text "${@}")")"
 
-	# bottom row written without a newline - a newline there would scroll the screen
-
-	printf '\e7\e[1;1H\e[2K%s\e[2;1H\e[2K\e[%s;1H\e[2K\e[%s;1H\e[2K%s\e[3;%sr\e8' \
-		"${text_line_top}" "$(( count_rows - 1 ))" "${count_rows}" "${text_line_bottom}" "$(( count_rows - 2 ))"
+	printf '\e7\e[1;1H\e[2K%s\e[2;1H\e[2K\e[3;%sr\e8' "${text_line}" "${count_rows}"
 
 }
 
-ada_frame_follow () {
+ada_status_follow () {
 
-	# redraw on every size change - stopped by ada when the chat ends
+	# checked every 2 seconds - stopped by ada when the chat ends
 
-	local size_last
-	local size_current
+	local state_last
+	local state_current
 
-	size_last="$(tput lines) $(tput cols)"
+	state_last="$(tput lines) $(tput cols) $(ada_status_text "${@}")"
 
 	while true
 	do
-		sleep 0.5
+		sleep 2
 
-		size_current="$(tput lines) $(tput cols)"
+		state_current="$(tput lines) $(tput cols) $(ada_status_text "${@}")"
 
-		if [ "${size_current}" != "${size_last}" ]
+		if [ "${state_current}" != "${state_last}" ]
 		then
-			ada_frame_draw "${@}"
+			ada_status_draw "${@}"
 
-			size_last="${size_current}"
+			state_last="${state_current}"
 		fi
 	done
 
