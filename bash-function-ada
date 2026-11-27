@@ -187,6 +187,10 @@ ada () {
 
 	curl -s "http://${OLLAMA_HOST:-127.0.0.1:11434}/api/generate" -d "{\"model\":\"${name_model}\"}" > "${sink}" 2>&1
 
+	# loading line left readable before the screen is cleared
+
+	sleep 1
+
 	# threads from the model settings - fixed for the whole chat
 
 	count_threads_model="$(awk '$1 == "num_thread" { print $2 }' <<< "${text_details}")"
