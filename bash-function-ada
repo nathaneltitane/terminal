@@ -903,8 +903,82 @@ ada_panel_draw () {
 	local line_panel
 	local text_part
 	local text_output
+	local count_ticks_view="40"
+	local count_views="2"
+	local width_gap_sheet="1"
+	local padding_command="2"
+	local width_command="0"
+	local width_description="0"
+	local width_sheet
+	local column_sheet
+	local column_sheet_text
+	local column_sheet_right
+	local index_view
+	local text_command
+	local text_description
+	local line_sheet
 
 	local list_critter=()
+	local list_sheet=()
+	local list_commands_first=()
+	local list_commands_second=()
+	local list_descriptions_first=()
+	local list_descriptions_second=()
+	local list_commands_view=()
+	local list_descriptions_view=()
+
+	# cheatsheet - each row alternates between its own two commands, descriptions right aligned
+
+	if [ "${mode_run}" = "${mode_code}" ]
+	then
+		list_commands_first=("/help" "/cd" "/stats" "/reset" "/save" "/model" "/exit")
+		list_descriptions_first=("all commands" "switch directory" "statistics" "fresh session" "save session" "show or set model" "exit session")
+		list_commands_second=("/help" "/cd" "/context" "/resume" "/sessions" "/config" "/exit")
+		list_descriptions_second=("all commands" "switch directory" "context occupancy" "resume session" "list sessions" "configuration" "exit session")
+	else
+		list_commands_first=("/help" "/show info" "/set parameter" "/set think" "/clear" "/save" "/bye")
+		list_descriptions_first=("all commands" "model details" "set a parameter" "enable thinking" "clear context" "save session" "exit session")
+		list_commands_second=("/help" "/set verbose" "/set system" '"""' "/clear" "/load" "/bye")
+		list_descriptions_second=("all commands" "show statistics" "system message" "multiline input" "clear context" "load session" "exit session")
+	fi
+
+	# fixed width across both views
+
+	for text_command in "${list_commands_first[@]}" "${list_commands_second[@]}"
+	do
+		if [ "${#text_command}" -gt "${width_command}" ]
+		then
+			width_command="${#text_command}"
+		fi
+	done
+
+	for text_description in "${list_descriptions_first[@]}" "${list_descriptions_second[@]}"
+	do
+		if [ "${#text_description}" -gt "${width_description}" ]
+		then
+			width_description="${#text_description}"
+		fi
+	done
+
+	width_command=$(( width_command + padding_command ))
+	width_sheet=$(( width_command + width_description ))
+	index_view=$(( count_ticks / count_ticks_view % count_views ))
+
+	if [ "${index_view}" -eq 0 ]
+	then
+		list_commands_view=("${list_commands_first[@]}")
+		list_descriptions_view=("${list_descriptions_first[@]}")
+	else
+		list_commands_view=("${list_commands_second[@]}")
+		list_descriptions_view=("${list_descriptions_second[@]}")
+	fi
+
+	for index_line in "${!list_commands_view[@]}"
+	do
+		printf -v line_sheet "%-*s%*s" "${width_command}" "${list_commands_view[index_line]}" "${width_description}" "${list_descriptions_view[index_line]}"
+
+		list_sheet+=("${line_sheet}")
+	done
 
 	local list_mouth=(
 		' ██████████████'
@@ -958,6 +1032,12 @@ ada_panel_draw () {
 	column_text=$(( column_frame + 2 ))
 	width_text=$(( count_columns - column_frame - width_frame_inner ))
 
+	# cheatsheet left of the panel, only when both fit
+
+	column_sheet_right=$(( column_frame - width_gap_sheet - 1 ))
+	column_sheet=$(( column_sheet_right - width_sheet - width_frame_inner ))
+	column_sheet_text=$(( column_sheet + 2 ))
+
 	printf -v text_output "${sequence_cursor_save}"
 
 	for (( index_line = 0 ; index_line <= index_last ; index_line ++ ))
@@ -991,6 +1071,16 @@ ada_panel_draw () {
 		fi
 
 		line_panel="${list_panel[index_line]}"
+
+		if [ "${column_sheet}" -ge "${column_frame_minimum}" ]
+		then
+			printf -v text_part "${format_cursor_position}%s%s%s${format_cursor_position}%s${format_cursor_position}%s%s%s" \
+				"${row_current}" "${column_sheet}" "${lavender}" "${frame_left}" "${reset}" \
+				"${row_current}" "${column_sheet_text}" "${list_sheet[index_line]}" \
+				"${row_current}" "${column_sheet_right}" "${lavender}" "${frame_right}" "${reset}"
+
+			text_output="${text_output}${text_part}"
+		fi
 
 		printf -v text_part "${format_cursor_position}%s%s%s${format_cursor_position}%s${format_cursor_position}%s%s%s" \
 			"${row_current}" "${column_frame}" "${lavender}" "${frame_left}" "${reset}" \
