@@ -475,7 +475,7 @@ ada_panel_update () {
 	local file_memory="/proc/meminfo"
 	local format_tenths="%d.%d"
 	local format_elapsed="%02d:%02d:%02d"
-	local format_label="%-*s%s"
+	local format_label="%-*s%*s%s"
 	local divisor_degrees="1000"
 	local divisor_memory="1048576"
 	local factor_tenths="10"
@@ -528,6 +528,7 @@ ada_panel_update () {
 	local text_elapsed
 	local label
 	local index_label
+	local text_value
 
 	local list_models=()
 	local list_memory=()
@@ -676,11 +677,25 @@ ada_panel_update () {
 
 	width_label=$(( width_label + padding_label ))
 
+	# values right aligned to the widest so far
+
+	for text_value in "${list_values[@]}"
+	do
+		if [ "${#text_value}" -gt "${width_value_widest}" ]
+		then
+			width_value_widest="${#text_value}"
+		fi
+	done
+
 	list_panel=()
 
 	for index_label in "${!list_labels[@]}"
 	do
-		printf -v line_model "${format_label}" "${width_label}" "${list_labels[index_label]}" "${list_values[index_label]}"
+		# padding by characters - printf counts bytes
+
+		text_value="${list_values[index_label]}"
+
+		printf -v line_model "${format_label}" "${width_label}" "${list_labels[index_label]}" "$(( width_value_widest - ${#text_value} ))" "" "${text_value}"
 
 		list_panel+=("${line_model}")
 	done
@@ -927,6 +942,7 @@ ada_status_follow () {
 	local stat_total_last
 	local stat_idle_last
 	local width_panel_widest="0"
+	local width_value_widest="0"
 	local sequence_screen_clear='\e[2J'
 
 	local list_panel=()
