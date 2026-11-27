@@ -30,3 +30,89 @@ ollama () {
 	command ollama "${list_arguments[@]}"
 
 }
+
+# tab completion ───────────────────────────────────────────────────────────────
+
+ollama_complete () {
+
+	# line up to the cursor - model names hold colons that split bash words
+
+	local text_line="${COMP_LINE:0:COMP_POINT}"
+	local word_current="${text_line##* }"
+	local prefix_colon="${word_current%"${word_current##*:}"}"
+	local index_word
+	local name_model
+	local text_rest
+
+	local list_words=()
+	local list_models=()
+
+	local list_commands=(
+		copy
+		create
+		details
+		download
+		help
+		launch
+		list
+		loaded
+		remove
+		run
+		serve
+		signin
+		signout
+		unload
+		upload
+	)
+
+	local list_commands_model=(
+		copy
+		details
+		download
+		remove
+		run
+		unload
+		upload
+		cp
+		pull
+		push
+		rm
+		show
+		stop
+	)
+
+	read -r -a list_words <<< "${text_line}"
+
+	index_word=$(( ${#list_words[@]} - 1 ))
+
+	# a trailing space starts a new word
+
+	if [ "${text_line: -1}" = " " ]
+	then
+		index_word=$(( index_word + 1 ))
+	fi
+
+	COMPREPLY=()
+
+	# commands first - local model names after a model command
+
+	if [ "${index_word}" -eq 1 ]
+	then
+		mapfile -t COMPREPLY < <(compgen -W "${list_commands[*]}" -- "${word_current}")
+	elif [ "${index_word}" -eq 2 ] && [[ " ${list_commands_model[*]} " == *" ${list_words[1]} "* ]]
+	then
+		while read -r name_model text_rest
+		do
+			list_models+=("${name_model}")
+		done < <(command ollama list 2> /dev/null | tail -n +2)
+
+		mapfile -t COMPREPLY < <(compgen -W "${list_models[*]}" -- "${word_current}")
+
+		# bash completes only the part after the last colon
+
+		COMPREPLY=("${COMPREPLY[@]#"${prefix_colon}"}")
+	fi
+
+}
+
+complete -F ollama_complete ollama
