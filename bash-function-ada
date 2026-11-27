@@ -264,33 +264,110 @@ ada_status_draw () {
 	frobulator.columns
 
 	count_rows="$(tput lines)"
-	text_line="$(frobulator.inf "Chatting with model" "$(ada_status_text "${@}")")"
+	text_line="$(frobulator.llm "Chatting with model" "$(ada_status_text "${@}")")"
 
 	printf '\e7\e[1;1H\e[2K%s\e[2;1H\e[2K\e[3;%sr\e8' "${text_line}" "${count_rows}"
 
 }
 
+ada_server_time () {
+
+	# processor time of the ollama server and its model runners - grows only while a model works
+
+	local pid_server="${1}"
+	local pid_process
+	local file_children
+	local text_stat
+	local count_time=0
+
+	local list_fields=()
+	local list_processes=("${pid_server}")
+
+	# runners started by any server thread - the list has no closing newline so read reports failure
+
+	for file_children in /proc/"${pid_server}"/task/*/children
+	do
+		read -r -a list_fields < "${file_children}" 2> "${sink}"
+
+		list_processes+=("${list_fields[@]}")
+	done
+
+	for pid_process in "${list_processes[@]}"
+	do
+		read -r text_stat < /proc/"${pid_process}"/stat 2> "${sink}" || continue
+
+		# fields after the command name - user and system time at 12 and 13
+
+		read -r -a list_fields <<< "${text_stat##*) }"
+
+		count_time=$(( count_time + list_fields[11] + list_fields[12] ))
+	done
+
+	echo "${count_time}"
+
+}
+
 ada_status_follow () {
 
-	# checked every 2 seconds - stopped by ada when the chat ends
+	# marker animated every quarter second - wave while the model works - sliding bar while it waits
+	# terminal size checked every half second - status values every 2 seconds - whole line redrawn when they change
 
-	local state_last
-	local state_current
+	local pid_server
+	local count_ticks=0
+	local index_frame=0
+	local time_last
+	local time_current
+	local size_last
+	local size_current
+	local text_last
+	local text_current
 
-	state_last="$(tput lines) $(tput cols) $(ada_status_text "${@}")"
+	local list_frames=("${list_ticker_llm_wait[@]}")
+
+	pid_server="$(systemctl show "${1##*/}" --property=MainPID --value 2> "${sink}")"
+
+	time_last="$(ada_server_time "${pid_server}")"
+	size_last="$(tput lines) $(tput cols)"
+	text_last="$(ada_status_text "${@}")"
 
 	while true
 	do
-		sleep 2
+		sleep 0.25
 
-		state_current="$(tput lines) $(tput cols) $(ada_status_text "${@}")"
+		(( count_ticks ++ ))
 
-		if [ "${state_current}" != "${state_last}" ]
+		# more than a tenth of a processor in a quarter second - the model is working
+
+		time_current="$(ada_server_time "${pid_server}")"
+
+		if (( time_current - time_last > 2 ))
 		then
-			ada_status_draw "${@}"
-
-			state_last="${state_current}"
+			list_frames=("${list_ticker_llm_work[@]}")
+		else
+			list_frames=("${list_ticker_llm_wait[@]}")
 		fi
+
+		time_last="${time_current}"
+
+		if (( count_ticks % 2 == 0 ))
+		then
+			size_current="$(tput lines) $(tput cols)"
+
+			if (( count_ticks % 8 == 0 ))
+			then
+				text_current="$(ada_status_text "${@}")"
+			fi
+
+			if [ "${size_current}" != "${size_last}" ] || [ "${text_current:-${text_last}}" != "${text_last}" ]
+			then
+				ada_status_draw "${@}"
+
+				size_last="${size_current}"
+				text_last="${text_current:-${text_last}}"
+			fi
+		fi
+
+		printf '\e7\e[1;1H%s%s%s%s%s\e8' "${lavender}" "${marker_brl}${marker_spc}" "${list_frames[index_frame ++ % ${#list_frames[@]}]}" "${marker_spc}${marker_brr}" "${reset}"
 	done
 
 }
