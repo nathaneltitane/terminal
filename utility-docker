@@ -139,10 +139,39 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+# setup names and docker settings - shared by the setups
+
+name_setup_update="auto-update"
+prefix_function_setup="setup_"
+prefix_option="-"
+separator_values=" // "
+separator_dash="-"
+separator_underscore="_"
+separator_password=": "
+property_timezone="Timezone"
+zone_default="UTC"
+protocol_web="http"
+protocol_web_secure="https"
+protocol_port="tcp"
+protocol_port_udp="udp"
+policy_restart="unless-stopped"
+network_host="host"
+name_environment_timezone="TZ"
+name_file_run="run"
+mode_run="700"
+mode_update="755"
+count_timeout_log="30"
+count_lines_first="1"
+delay_poll="1"
+format_run_header='#!/bin/bash\n\n'
+format_run_command='docker run'
+format_run_argument=' \\\n\t%q'
+format_run_end='\n'
+
 # setups - one setup_<name> function each - dashes become underscores
 
 list_setups=(
-	auto-update
+	"${name_setup_update}"
 	home-assistant
 	nextcloud
 	pi-hole
@@ -156,11 +185,13 @@ directory_docker=/var/docker
 
 # timezone of this computer - handed to the containers
 
-zone_time="$(timedatectl show --property Timezone --value 2> "${sink}")"
+zone_time="$(timedatectl show --property "${property_timezone}" --value 2> "${sink}")"
 
 # lan address of this computer - web interface links
 
-address_lan="$(hostname -I | cut -d ' ' -f 1)"
+text_addresses="$(hostname -I)"
+
+address_lan="${text_addresses%% *}"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -171,7 +202,7 @@ then
 
 	exit 1
 
-elif [[ "${option_setup}" = -* ]]
+elif [[ "${option_setup}" = "${prefix_option}"* ]]
 then
 	frobulator.err "Missing argument for '--setup'."
 
@@ -183,7 +214,7 @@ then
 
 	exit 1
 
-elif [[ "${option_name}" = -* ]]
+elif [[ "${option_name}" = "${prefix_option}"* ]]
 then
 	frobulator.err "Missing argument for '--name'."
 
@@ -194,7 +225,9 @@ name_container="${option_name:-${option_setup}}"
 
 directory_container="${directory_docker}/${name_container}"
 
-zone_time="${zone_time:-UTC}"
+zone_time="${zone_time:-${zone_default}}"
+
+hint_logs="docker logs ${name_container}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -203,8 +236,12 @@ container_prepare () {
 	# previous container removed - data directory kept - created when missing
 
 	local status=0
+	local filter_container="name=^${name_container}$"
+	local id_container_existing
 
-	if [ -n "$(docker container ls --all --quiet --filter "name=^${name_container}$")" ]
+	id_container_existing="$(docker container ls --all --quiet --filter "${filter_container}")"
+
+	if [ -n "${id_container_existing}" ]
 	then
 		frobulator.silence log "docker stop ${name_container}"
 
@@ -231,16 +268,16 @@ container_log_line () {
 
 	local text_search="${1}"
 	local seconds=0
-	local timeout=30
+	local timeout="${count_timeout_log}"
 	local line_log
 
 	while [ -z "${line_log}" ] && [ "${seconds}" -lt "${timeout}" ]
 	do
-		line_log="$(docker logs "${name_container}" 2>&1 | grep -m 1 -F "${text_search}")"
+		line_log="$(docker logs "${name_container}" 2>&1 | grep --max-count "${count_lines_first}" --fixed-strings "${text_search}")"
 
 		if [ -z "${line_log}" ]
 		then
-			sleep 1
+			sleep "${delay_poll}"
 
 			seconds=$(( seconds + 1 ))
 		fi
@@ -254,24 +291,24 @@ container_run () {
 	# run file kept beside the data - reused by the automatic updates
 
 	local status=0
-	local file_run="${directory_container}/run"
+	local file_run="${directory_container}/${name_file_run}"
 	local argument_run
 
 	{
-		printf '#!/bin/bash\n\n'
-		printf 'docker run'
+		printf "${format_run_header}"
+		printf "${format_run_command}"
 
 		for argument_run in "${@}"
 		do
-			printf ' \\\n\t%q' "${argument_run}"
+			printf "${format_run_argument}" "${argument_run}"
 		done
 
-		printf '\n'
+		printf "${format_run_end}"
 	} > "${file_run}"
 
 	frobulator.track || return "${status}"
 
-	chmod 700 "${file_run}"
+	chmod "${mode_run}" "${file_run}"
 
 	bash "${file_run}" > "${sink}" 2>&1
 
@@ -285,8 +322,13 @@ setup_auto_update () {
 	# daily image updates - containers with a newer image recreated from their run file - data kept
 
 	local status=0
+	local file_update_script="/usr/local/bin/docker-auto-update"
+	local file_update_service="/etc/systemd/system/docker-auto-update.service"
+	local file_update_timer="/etc/systemd/system/docker-auto-update.timer"
+	local name_update_timer="docker-auto-update.timer"
+	local time_update="04:00"
 
-	cat << 'UPDATE' > /usr/local/bin/docker-auto-update
+	cat << 'UPDATE' > "${file_update_script}"
 #!/bin/bash
 
 # docker auto update - images pulled - containers with a newer image recreated from their run file
@@ -330,9 +372,9 @@ UPDATE
 
 	frobulator.track || return "${status}"
 
-	chmod 755 /usr/local/bin/docker-auto-update
+	chmod "${mode_update}" "${file_update_script}"
 
-	cat << 'SERVICE' > /etc/systemd/system/docker-auto-update.service
+	cat << 'SERVICE' > "${file_update_service}"
 [Unit]
 Description=Docker auto update - newer images pulled - containers recreated
 After=docker.service
@@ -345,7 +387,7 @@ SERVICE
 
 	frobulator.track
 
-	cat << 'TIMER' > /etc/systemd/system/docker-auto-update.timer
+	cat << 'TIMER' > "${file_update_timer}"
 [Unit]
 Description=Docker auto update - daily
 
@@ -362,11 +404,11 @@ TIMER
 
 	systemctl daemon-reload
 
-	systemctl enable --now docker-auto-update.timer > "${sink}" 2>&1
+	systemctl enable --now "${name_update_timer}" > "${sink}" 2>&1
 
 	frobulator.track
 
-	frobulator.inf "Daily updates" "[ docker-auto-update.timer // 04:00 ]"
+	frobulator.inf "Daily updates" "[ ${name_update_timer}${separator_values}${time_update} ]"
 
 	return "${status}"
 }
@@ -376,20 +418,26 @@ setup_home_assistant () {
 	# home automation - host network for device discovery - dbus read only for bluetooth
 
 	local status=0
+	local port_web="8123"
+	local path_dbus="/run/dbus"
+	local path_config="/config"
+	local name_directory_config="config"
+	local mode_read_only="ro"
+	local image_container="ghcr.io/home-assistant/home-assistant:stable"
 
-	container_run										\
-		--detach										\
-		--name "${name_container}"						\
-		--restart=unless-stopped						\
-		--network=host									\
-		-v "${directory_container}/config:/config"		\
-		-v /run/dbus:/run/dbus:ro						\
-		-e TZ="${zone_time}"							\
-														ghcr.io/home-assistant/home-assistant:stable
+	container_run																			\
+		--detach																			\
+		--name "${name_container}"															\
+		--restart="${policy_restart}"														\
+		--network="${network_host}"															\
+		-v "${directory_container}/${name_directory_config}:${path_config}"					\
+		-v "${path_dbus}:${path_dbus}:${mode_read_only}"									\
+		-e "${name_environment_timezone}=${zone_time}"										\
+																							"${image_container}"
 
 	frobulator.track || return "${status}"
 
-	frobulator.inf "Web interface" "[ http://${address_lan}:8123 ]"
+	frobulator.inf "Web interface" "[ ${protocol_web}://${address_lan}:${port_web} ]"
 
 	return "${status}"
 }
@@ -399,19 +447,24 @@ setup_nextcloud () {
 	# file hosting - port 8080 - port 80 kept for pi-hole - admin created in the web interface
 
 	local status=0
+	local port_web="8080"
+	local port_container="80"
+	local path_html="/var/www/html"
+	local name_directory_html="html"
+	local image_container="nextcloud:latest"
 
-	container_run											\
-		--detach											\
-		--name "${name_container}"							\
-		--restart=unless-stopped							\
-		-p 8080:80/tcp										\
-		-v "${directory_container}/html:/var/www/html"		\
-		-e TZ="${zone_time}"								\
-															nextcloud:latest
+	container_run																			\
+		--detach																			\
+		--name "${name_container}"															\
+		--restart="${policy_restart}"														\
+		-p "${port_web}:${port_container}/${protocol_port}"									\
+		-v "${directory_container}/${name_directory_html}:${path_html}"						\
+		-e "${name_environment_timezone}=${zone_time}"										\
+																							"${image_container}"
 
 	frobulator.track || return "${status}"
 
-	frobulator.inf "Web interface" "[ http://${address_lan}:8080 ]"
+	frobulator.inf "Web interface" "[ ${protocol_web}://${address_lan}:${port_web} ]"
 
 	return "${status}"
 }
@@ -421,42 +474,54 @@ setup_pi_hole () {
 	# network wide ad blocking - random admin password read from the logs
 
 	local status=0
+	local port_dns="53"
+	local port_web="80"
+	local address_dns_local="127.0.0.1"
+	local address_dns_upstream="1.1.1.1"
+	local path_config="/etc/pihole"
+	local name_directory_config="etc-pihole"
+	local name_environment_listening="FTLCONF_dns_listeningMode"
+	local value_listening="ALL"
+	local text_search_password="password:"
+	local name_file_password="password"
+	local path_admin="/admin"
+	local image_container="pihole/pihole:latest"
 	local line_password
 	local password_admin
 
-	container_run												\
-		--detach												\
-		--name "${name_container}"								\
-		--hostname "${name_container}"							\
-		--dns=127.0.0.1											\
-		--dns=1.1.1.1											\
-		--restart=unless-stopped								\
-		-p 53:53/tcp											\
-		-p 53:53/udp											\
-		-p 80:80/tcp											\
-		-v "${directory_container}/etc-pihole:/etc/pihole"		\
-		-e TZ="${zone_time}"									\
-		-e FTLCONF_dns_listeningMode=ALL						\
-																pihole/pihole:latest
+	container_run																			\
+		--detach																			\
+		--name "${name_container}"															\
+		--hostname "${name_container}"														\
+		--dns="${address_dns_local}"														\
+		--dns="${address_dns_upstream}"														\
+		--restart="${policy_restart}"														\
+		-p "${port_dns}:${port_dns}/${protocol_port}"										\
+		-p "${port_dns}:${port_dns}/${protocol_port_udp}"									\
+		-p "${port_web}:${port_web}/${protocol_port}"										\
+		-v "${directory_container}/${name_directory_config}:${path_config}"					\
+		-e "${name_environment_timezone}=${zone_time}"										\
+		-e "${name_environment_listening}=${value_listening}"								\
+																							"${image_container}"
 
 	frobulator.track || return "${status}"
 
-	line_password="$(container_log_line "password:")"
+	line_password="$(container_log_line "${text_search_password}")"
 
-	password_admin="${line_password##*: }"
+	password_admin="${line_password##*"${separator_password}"}"
 
 	if [ -n "${line_password}" ] && [ -n "${password_admin}" ]
 	then
-		frobulator.write append "${password_admin}" "${directory_container}" password
+		frobulator.write append "${password_admin}" "${directory_container}" "${name_file_password}"
 
 		frobulator.track
 
 		frobulator.inf "Password" "[ ${password_admin} ]"
 	else
-		frobulator.wrn "Password not found in the logs" "[ docker logs ${name_container} ]"
+		frobulator.wrn "Password not found in the logs" "[ ${hint_logs} ]"
 	fi
 
-	frobulator.inf "Web interface" "[ http://${address_lan}/admin ]"
+	frobulator.inf "Web interface" "[ ${protocol_web}://${address_lan}${path_admin} ]"
 
 	return "${status}"
 }
@@ -466,20 +531,26 @@ setup_portainer () {
 	# container management - docker socket - admin created in the web interface within minutes of the first start
 
 	local status=0
+	local port_edge="8000"
+	local port_web="9443"
+	local path_socket="/var/run/docker.sock"
+	local path_data="/data"
+	local name_directory_data="data"
+	local image_container="portainer/portainer-ce:latest"
 
-	container_run										\
-		--detach										\
-		--name "${name_container}"						\
-		--restart=unless-stopped						\
-		-p 8000:8000/tcp								\
-		-p 9443:9443/tcp								\
-		-v /var/run/docker.sock:/var/run/docker.sock	\
-		-v "${directory_container}/data:/data"			\
-														portainer/portainer-ce:latest
+	container_run																			\
+		--detach																			\
+		--name "${name_container}"															\
+		--restart="${policy_restart}"														\
+		-p "${port_edge}:${port_edge}/${protocol_port}"										\
+		-p "${port_web}:${port_web}/${protocol_port}"										\
+		-v "${path_socket}:${path_socket}"													\
+		-v "${directory_container}/${name_directory_data}:${path_data}"						\
+																							"${image_container}"
 
 	frobulator.track || return "${status}"
 
-	frobulator.inf "Web interface" "[ https://${address_lan}:9443 ]"
+	frobulator.inf "Web interface" "[ ${protocol_web_secure}://${address_lan}:${port_web} ]"
 	frobulator.nul "Create the admin account within a few minutes of the first start."
 
 	return "${status}"
@@ -490,28 +561,41 @@ setup_tailscale () {
 	# private network access - host network - tun device - login link read from the logs
 
 	local status=0
+	local path_state="/var/lib/tailscale"
+	local path_device_tun="/dev/net/tun"
+	local name_directory_state="state"
+	local capability_admin="NET_ADMIN"
+	local capability_raw="NET_RAW"
+	local name_environment_state="TS_STATE_DIR"
+	local name_environment_userspace="TS_USERSPACE"
+	local value_userspace="false"
+	local url_login_base="${protocol_web_secure}://login.tailscale.com/"
+	local image_container="tailscale/tailscale:latest"
+	local name_host
 	local line_login
 	local url_login
 
-	container_run												\
-		--detach												\
-		--name "${name_container}"								\
-		--hostname "$(hostname)"								\
-		--restart=unless-stopped								\
-		--network=host											\
-		--cap-add=NET_ADMIN										\
-		--cap-add=NET_RAW										\
-		--device /dev/net/tun:/dev/net/tun						\
-		-v "${directory_container}/state:/var/lib/tailscale"	\
-		-e TS_STATE_DIR=/var/lib/tailscale						\
-		-e TS_USERSPACE=false									\
-																tailscale/tailscale:latest
+	name_host="$(hostname)"
+
+	container_run																			\
+		--detach																			\
+		--name "${name_container}"															\
+		--hostname "${name_host}"															\
+		--restart="${policy_restart}"														\
+		--network="${network_host}"															\
+		--cap-add="${capability_admin}"														\
+		--cap-add="${capability_raw}"														\
+		--device "${path_device_tun}:${path_device_tun}"									\
+		-v "${directory_container}/${name_directory_state}:${path_state}"					\
+		-e "${name_environment_state}=${path_state}"										\
+		-e "${name_environment_userspace}=${value_userspace}"								\
+																							"${image_container}"
 
 	frobulator.track || return "${status}"
 
-	line_login="$(container_log_line "https://login.tailscale.com/")"
+	line_login="$(container_log_line "${url_login_base}")"
 
-	url_login="https://login.tailscale.com/${line_login##*https://login.tailscale.com/}"
+	url_login="${url_login_base}${line_login##*"${url_login_base}"}"
 	url_login="${url_login%% *}"
 
 	if [ -n "${line_login}" ]
@@ -519,7 +603,7 @@ setup_tailscale () {
 		frobulator.inf "Login" "[ ${url_login} ]"
 		frobulator.nul "Open the link to add this computer to your tailnet."
 	else
-		frobulator.wrn "Login link not found in the logs" "[ docker logs ${name_container} ]"
+		frobulator.wrn "Login link not found in the logs" "[ ${hint_logs} ]"
 	fi
 
 	return "${status}"
@@ -547,22 +631,22 @@ list=()
 
 # container setups - data directory prepared - auto-update installs a timer only
 
-if [ "${option_setup}" != "auto-update" ]
+if [ "${option_setup}" != "${name_setup_update}" ]
 then
-	frobulator.inf "Preparing" "[ ${name_container} // ${directory_container} ]"
+	frobulator.inf "Preparing" "[ ${name_container}${separator_values}${directory_container} ]"
 
 	container_prepare
 
 	frobulator.complete
 fi
 
-frobulator.inf "Deploying" "[ ${option_setup} // ${name_container} ]"
+frobulator.inf "Deploying" "[ ${option_setup}${separator_values}${name_container} ]"
 
-"setup_${option_setup//-/_}"
+"${prefix_function_setup}${option_setup//${separator_dash}/${separator_underscore}}"
 
 frobulator.complete
 
-if [ "${option_setup}" != "auto-update" ]
+if [ "${option_setup}" != "${name_setup_update}" ]
 then
 	id_container="$(docker container ls --all --quiet --filter "name=${name_container}")"
 

@@ -95,28 +95,45 @@ shortcuts='
 
 '
 
+# variables
+
 separator=" // "
 name_font="Monospace"
 size_font=10
 font="${name_font}:size=${size_font}"
 
-lines=$(echo "${shortcuts}" | wc -l)
+color_background_normal='#000000'
+color_foreground_normal='#FFFFFF'
+color_background_selected='#666666'
+color_foreground_selected='#000000'
+
+lines="$(echo "${shortcuts}" | wc --lines)"
 prompt="SHORTCUTS${separator}"
 
 indent='                        '
+pattern_heading='^\['
+
+# functions
 
 shortcuts_parse () {
 
-    while read line
-    do
-        if [[ ! "${line}" =~ ^\[ ]]
-        then
-            line="${indent}${line}"
-        fi
+	# use to indent lines under a heading
 
-        echo "${line}"
+	local line
 
-    done <<< "${shortcuts}"
+	while read line
+	do
+		if [[ ! "${line}" =~ ${pattern_heading} ]]
+		then
+			line="${indent}${line}"
+		fi
+
+		echo "${line}"
+
+	done <<< "${shortcuts}"
+
 }
 
-shortcuts_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
+# main
+
+shortcuts_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background_normal}" -nf "${color_foreground_normal}" -sb "${color_background_selected}" -sf "${color_foreground_selected}"

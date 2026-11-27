@@ -17,10 +17,34 @@ clo () {
 	local kind_agent
 	local id_agent
 	local status_background
+	local name_projects
+	local pattern_session
+	local format_search
+	local extension_session
+	local pattern_kind
+	local pattern_session_id
+	local pattern_close
+	local prefix_value
+	local kind_interactive
+	local length_session_short
+	local state_found
+	local state_background_default
 
-	# set before the help text - it is named there
+	# set before the help text
 
 	name_command="claude"
+	name_projects="projects"
+	pattern_session="*.jsonl"
+	format_search='%T@ %p\n'
+	extension_session=".jsonl"
+	pattern_kind='*'"\"kind\":"'*'
+	pattern_session_id='*'"\"sessionId\":"'*'
+	pattern_close='*}*'
+	prefix_value=': "'
+	kind_interactive="interactive"
+	state_found="true"
+	state_background_default="false"
+	length_session_short="8"
 
 	case "${1}" in
 
@@ -54,7 +78,7 @@ clo () {
 		return 1
 	fi
 
-	directory_projects="${HOME}/.${name_command}/projects"
+	directory_projects="${HOME}/.${name_command}/${name_projects}"
 
 	if [ ! -d "${directory_projects}" ]
 	then
@@ -63,7 +87,7 @@ clo () {
 		return 1
 	fi
 
-	command_search_list=(find "${directory_projects}" -name '*.jsonl' -printf '%T@ %p\n')
+	command_search_list=(find "${directory_projects}" -name "${pattern_session}" -printf "${format_search}")
 
 	file_session=$("${command_search_list[@]}" 2>"${sink}" | sort --reverse --numeric-sort | head --lines=1 | cut --delimiter=' ' --fields=2-)
 
@@ -76,8 +100,8 @@ clo () {
 
 	echo
 
-	id_session="$(basename "${file_session}" .jsonl)"
-	id_session_short="${id_session:0:8}"
+	id_session="$(basename "${file_session}" "${extension_session}")"
+	id_session_short="${id_session:0:length_session_short}"
 
 	frobulator.scs "Session found."
 
@@ -85,25 +109,28 @@ clo () {
 
 	unset kind_agent
 	unset id_agent
-	unset status_background
+
+	status_background="${state_background_default}"
 
 	while IFS= read -r line_agent
 	do
-		if [[ "${line_agent}" == *'"kind":'* ]]
+		if [[ "${line_agent}" == ${pattern_kind} ]]
 		then
-			kind_agent="${line_agent#*: \"}"
+			kind_agent="${line_agent#*${prefix_value}}"
 			kind_agent="${kind_agent%%\"*}"
 
-		elif [[ "${line_agent}" == *'"sessionId":'* ]]
+		elif [[ "${line_agent}" == ${pattern_session_id} ]]
 		then
-			id_agent="${line_agent#*: \"}"
+			id_agent="${line_agent#*${prefix_value}}"
 			id_agent="${id_agent%%\"*}"
 
-		elif [[ "${line_agent}" == *'}'* ]]
+		elif [[ "${line_agent}" == ${pattern_close} ]]
 		then
-			if [ "${id_agent}" = "${id_session}" ] && [ -n "${kind_agent}" ] && [ "${kind_agent}" != "interactive" ]
+			if [ "${id_agent}" = "${id_session}" ] &&
+			   [ -n "${kind_agent}" ] &&
+			   [ "${kind_agent}" != "${kind_interactive}" ]
 			then
-				status_background="found"
+				status_background="${state_found}"
 			fi
 
 			unset kind_agent
@@ -111,7 +138,7 @@ clo () {
 		fi
 	done < <("${path_command}" agents --json 2>"${sink}")
 
-	if [ -n "${status_background}" ]
+	if [ "${status_background}" = "${state_found}" ]
 	then
 		frobulator.inf "Attaching to background session" "[ ${id_session} ]"
 

@@ -6,9 +6,14 @@
 
 audio () {
 
+	local format_output="mp3"
+	local extension_lossless="flac"
+	local bitrate_lossless="320k"
+	local version_id3="3"
+	local extension_output="${format_output}"
+	local state_found
 	local directory
 	local extension
-	local found
 	local file
 
 	# output starts one line below the command
@@ -20,59 +25,65 @@ audio () {
 	directory="${PWD}"
 	extension="${1}"
 
-	found=0
+	state_found="false"
 
 	# default conversion command
 
 	convert_command () {
 
-		ffmpeg					\
-			-y					\
-			-i "${file}"		\
-			-f mp3				\
-			-map_metadata 0		\
-			-id3v2_version 3	"${file%.*}.mp3"
+		ffmpeg								\
+			-y								\
+			-i "${file}"					\
+			-f "${format_output}"			\
+			-map_metadata 0					\
+			-id3v2_version "${version_id3}"	\
+											"${file%.*}.${extension_output}"
+
 	}
 
-	if [ "${extension}" = "flac" ]
+	if [ "${extension}" = "${extension_lossless}" ]
 	then
 		# override for flac files with bitrate
 
 		convert_command () {
 
-			ffmpeg					\
-				-y					\
-				-i "${file}"		\
-				-b:a 320k			\
-				-map_metadata 0		\
-				-id3v2_version 3	"${file%.*}.mp3"
+			ffmpeg								\
+				-y								\
+				-i "${file}"					\
+				-b:a "${bitrate_lossless}"		\
+				-map_metadata 0					\
+				-id3v2_version "${version_id3}"	\
+												"${file%.*}.${extension_output}"
+
 		}
+
 	fi
 
 	# loop over all files
 
 	for file in *
 	do
-		case "${file}" in
-			*."${extension}")
+		if [[ "${file}" == *."${extension}" ]]
+		then
+			state_found="true"
 
-				found=1
+			convert_command
 
-				convert_command
+			rm				\
+				--recursive	\
+				--force		\
+							"${file}"
 
-				rm					\
-					--recursive		\
-					--force			 "${file}"
-				;;
-		esac
+		fi
 	done
 
 	# handle case where no matching files were found
 
-	if [ "${found}" -eq 0 ]
+	if [ "${state_found}" = "false" ]
 	then
 		frobulator.err "No files to convert with specified extension" "[ '${extension}' ]"
 
 		return 1
 	fi
+
 }

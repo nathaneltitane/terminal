@@ -5,9 +5,9 @@ editor="i3-sensible-editor"
 
 directory_notes="${HOME}"/.notes
 
-if [[ ! -d "${directory_notes}" ]]
+if [ ! -d "${directory_notes}" ]
 then
-    mkdir -p "${directory_notes}"
+	mkdir --parents "${directory_notes}"
 fi
 
 separator=" // "
@@ -16,60 +16,84 @@ size_font=10
 font="${name_font}:size=${size_font}"
 
 lines=15
-prompt="NOTES${separator}"
+label_prompt="NOTES"
+prompt="${label_prompt}${separator}"
 
-list="$(find -L ${directory_notes} -maxdepth 1 -type f | sed 's|^"${directory_notes}/""||' | sort)"
+color_background="#000000"
+color_foreground="#FFFFFF"
+color_selected_background="#666666"
+color_selected_foreground="#000000"
 
-selection="$(echo -e "${list}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+extension="md"
+title_window="Notes"
+icon_notification="Notes"
+title_notification="New note"
+character_class_punctuation="[:punct:]"
+separator_slug="-"
+
+expression_space="s/ /${separator_slug}/g"
+expression_a="s/[áàãâ]/a/g"
+expression_e="s/[éê]/e/g"
+expression_i="s/[íÍ]/i/g"
+expression_o="s/[óõô]/o/g"
+expression_u="s/[úü]/u/g"
+expression_c="s/[ç]/c/g"
+
+expression_strip='s|^"${directory_notes}/""||'
+
+list="$(find -L ${directory_notes} -maxdepth 1 -type f | sed "${expression_strip}" | sort)"
+
+selection="$(echo -e "${list}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selected_background}" -sf "${color_selected_foreground}")"
 
 note_slugger () {
 
-echo ${@} | tr -d '[:punct:]'   \
-        | sed -e "s/ /-/g"      \
-              -e "s/[áàãâ]/a/g" \
-              -e "s/[éê]/e/g"   \
-              -e "s/[íÍ]/i/g"   \
-              -e "s/[óõô]/o/g"  \
-              -e "s/[úü]/u/g"   \
-              -e "s/[ç]/c/g"
+	echo ${@} | tr --delete "${character_class_punctuation}" \
+		| sed --expression "${expression_space}" \
+			--expression "${expression_a}" \
+			--expression "${expression_e}" \
+			--expression "${expression_i}" \
+			--expression "${expression_o}" \
+			--expression "${expression_u}" \
+			--expression "${expression_c}"
+
 }
 
 note_create () {
 
-    extension="md"
+	name_file_note="$(note_slugger "${1,,}")"
 
-    name_file_note="$(note_slugger "${1,,}")"
+	name_file_note="${name_file_note}.${extension}"
 
-    name_file_note="${name_file_note}.${extension}"
+	note="${directory_notes}/${name_file_note}"
 
-    note="${directory_notes}/${name_file_note}"
+	title="${1,,}"
 
-    title="${1,,}"
+	title=${title^^}
 
-    title=${title^^}
+	echo -e "# ${title}\n\n" > "${note}"
 
-    echo -e "# ${title}\n\n" > "${note}"
+	notify-send -i "${icon_notification}" "${title_notification}" "Note <b>$name_file_note.${extension}</b> was created under '${directory_notes}'"
 
-    notify-send -i "Notes" "New note" "Note <b>$name_file_note.md</b> was created under '${directory_notes}'"
 }
 
 note_open () {
 
-    file_note_selection="${directory_notes}/${selection}"
+	file_note_selection="${directory_notes}/${selection}"
 
-    if [[ ! -f "${file_note_selection}" ]]
-    then
-        note_create "${selection}"
-    else
-        note="${file_note_selection}"
-    fi
+	if [ ! -f "${file_note_selection}" ]
+	then
+		note_create "${selection}"
+	else
+		note="${file_note_selection}"
+	fi
 
-    count_lines_note="$(wc -l < "${note}")"
+	count_lines_note="$(wc --lines < "${note}")"
 
-    eval "$(${terminal} -T "Notes" -e "${editor} +${count_lines_note} ${note}")"
+	eval "$(${terminal} -T "${title_window}" -e "${editor} +${count_lines_note} ${note}")"
+
 }
 
-if [[ ! -z "${selection}" ]]
+if [ -n "${selection}" ]
 then
-    note_open
+	note_open
 fi

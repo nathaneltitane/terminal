@@ -114,7 +114,9 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="+%m-%d-%Y-%H-%M-%S"
+
+stamp=$(date "${format_stamp}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -147,13 +149,17 @@ gap_y="10"
 size_x="512"
 size_y="512"
 width="$size_x"
+directory_configuration="${HOME}/.config/conky-picture-frame"
+file_configuration="${directory_configuration}/conky-picture-framerc"
+file_launcher="/usr/share/applications/conky-picture-frame.desktop"
+mode_permissions="777"
 
-if [ ! -d "${HOME}"/.config/conky-picture-frame ]
+if [ ! -d "${directory_configuration}" ]
 then
-	mkdir -p "${HOME}"/.config/conky-picture-frame
+	mkdir --parents "${directory_configuration}"
 fi
 
-cat <<- FILE > "${HOME}"/.config/conky-picture-frame/conky-picture-framerc
+cat <<- FILE > "${file_configuration}"
 # conky picture frame #
 
 alignment $alignment
@@ -184,11 +190,11 @@ TEXT
 \${image .picture.png}
 FILE
 
-chmod -R 777 "${HOME}"/.config/conky-picture-frame
+chmod --recursive "${mode_permissions}" "${directory_configuration}"
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/conky-picture-frame.desktop
+cat <<- 'FILE' > "${file_launcher}"
 [Desktop Entry]
 Name=Conky Picture Frame
 Comment=Highly configurable system monitor

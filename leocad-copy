@@ -114,6 +114,12 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+directory_source=/media/[iI]nternal/[lL]ego/leocad
+directory_target="/usr/bin"
+name_binary="leocad"
+label_copy="binary-leocad"
+file_binary="${directory_source}/${name_binary}"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -136,11 +142,11 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -f /media/[iI]nternal/[lL]ego/leocad/leocad ]
+if [ -f ${file_binary} ]
 then
 	frobulator.inf "Copying binary"
 
-	frobulator.copy /media/[iI]nternal/[lL]ego/leocad /usr/bin binary-leocad leocad
+	frobulator.copy ${directory_source} "${directory_target}" "${label_copy}" "${name_binary}"
 fi
 
 frobulator.scs "Done"

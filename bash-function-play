@@ -16,6 +16,12 @@ play () {
 	local index_frame
 	local id_process_player
 	local frame_ticker
+	local label_action
+	local count_arguments_action
+	local delay_ticker
+	local directory_process
+	local sequence_carriage_return
+	local sequence_line_continue
 
 	# 'mpv' path - empty if not installed
 
@@ -33,11 +39,18 @@ play () {
 	bracket_open="[${marker_spc}"
 	bracket_close="${marker_spc}]"
 
-	action="Playing"
+	label_action="Playing"
+	count_arguments_action="2"
+	delay_ticker="0.25"
+	directory_process="/proc"
+	sequence_carriage_return='\r'
+	sequence_line_continue='\c'
+
+	action="${label_action}"
 
 	file_audio="${1}"
 
-	if [ $# -eq 2 ]
+	if [ $# -eq "${count_arguments_action}" ]
 	then
 		action="${1}"
 
@@ -45,7 +58,6 @@ play () {
 	fi
 
 	title_audio="${file_audio##*/}"
-
 
 	# frobulator.pmt "${@}"
 
@@ -77,12 +89,12 @@ play () {
 
 	id_process_player="${frobulator_return[0]}"
 
-	while [ -d /proc/"${id_process_player}" ]
+	while [ -d "${directory_process}"/"${id_process_player}" ]
 	do
-		frame_ticker="${list_frames_ticker[index_frame++%${#list_frames_ticker[@]}]}"
+		frame_ticker="${list_frames_ticker[index_frame ++ % ${#list_frames_ticker[@]}]}"
 
-		echo -n -e "\r${bracket_open}${frame_ticker}${bracket_close}${reset}${marker_spc}${prompt}\c"
+		echo -n -e "${sequence_carriage_return}${bracket_open}${frame_ticker}${bracket_close}${reset}${marker_spc}${prompt}${sequence_line_continue}"
 
-		sleep 0.25
+		sleep "${delay_ticker}"
 	done
 }

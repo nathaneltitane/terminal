@@ -116,26 +116,51 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-if [ ! -d /media/internal/ ]
+directory_media="/media/internal"
+directory_home="${HOME}"
+directory_etc="/etc"
+directory_unit="/usr/lib/systemd/system"
+directory_cache_parent="/var/cache"
+package_ddclient="ddclient"
+configuration=".dns-dynamic"
+extension_conf=".conf"
+extension_service=".service"
+extension_cache=".cache"
+expression_pidfile='s|\PIDFile|#PIDFile|g'
+pattern_running="active.*running"
+pattern_inactive="inactive.*"
+delay_service="1"
+index_line_use="0"
+index_line_protocol="1"
+index_line_server="2"
+index_line_login="3"
+index_line_password="4"
+web="www"
+
+process="${package_ddclient}"
+service="${process}${extension_service}"
+
+if [ ! -d "${directory_media}/" ]
 then
-	directory_configuration="${HOME}"
+	directory_configuration="${directory_home}"
 else
-	directory_configuration=/media/internal
+	directory_configuration="${directory_media}"
 fi
 
-configuration=.dns-dynamic
+file_configuration="${directory_configuration}/${configuration}"
+file_ddclient="${directory_etc}/${process}${extension_conf}"
+file_unit="${directory_unit}/${service}"
+directory_cache="${directory_cache_parent}/${process}"
+file_cache="${directory_cache}/${process}${extension_cache}"
 
-use=$(cat "${directory_configuration}"/"${configuration}" | sed -n 1p)
-protocol=$(cat "${directory_configuration}"/"${configuration}" | sed -n 2p)
-server=$(cat "${directory_configuration}"/"${configuration}" | sed -n 3p)
+mapfile -t list_configuration < "${file_configuration}"
 
-login=$(cat "${directory_configuration}"/"${configuration}" | sed -n 4p)
-password=$(cat "${directory_configuration}"/"${configuration}" | sed -n 5p)
+use="${list_configuration[index_line_use]}"
+protocol="${list_configuration[index_line_protocol]}"
+server="${list_configuration[index_line_server]}"
 
-process="ddclient"
-service="${process}.service"
-
-web="www"
+login="${list_configuration[index_line_login]}"
+password="${list_configuration[index_line_password]}"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -152,7 +177,7 @@ hostname="${HOSTNAME}"
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	ddclient
+	"${package_ddclient}"
 )
 
 frobulator.require ${list[@]}
@@ -161,7 +186,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ ! -e "${directory_configuration}"/"${configuration}" ]
+if [ ! -e "${file_configuration}" ]
 then
 	frobulator.err "Configuration file not found" "[ ${configuration} ]"
 
@@ -172,7 +197,7 @@ fi
 
 # write ddclient configuration
 
-cat <<- FILE > /etc/"${process}".conf
+cat <<- FILE > "${file_ddclient}"
 # ddclient #
 
 daemon=300                                  # check every 5 minutes
@@ -195,22 +220,23 @@ FILE
 
 # reconfigure prccess handlers
 
-sed -i -e 's|\PIDFile|#PIDFile|g' /usr/lib/systemd/system/"${process}".service
+sed --in-place --expression="${expression_pidfile}" "${file_unit}"
 
 # purge service cache file
 
-if [ -d /var/cache/"${process}" ]
+if [ -d "${directory_cache}" ]
 then
-	rm					\
-		--recursive		\
-		--force			 /var/cache/"${process}"/"${process}".cache
+	rm				\
+		--recursive	\
+		--force		\
+					"${file_cache}"
 fi
 
 # service activation
 
 # status line if the service is running - empty otherwise
 
-line_service_running="$(systemctl status "${service}" | grep -e "active.*running")"
+line_service_running="$(systemctl status "${service}" | grep --regexp="${pattern_running}")"
 
 if [ -n "${line_service_running}" ]
 then
@@ -227,15 +253,15 @@ list_actions_service+=(
 	start
 )
 
-for action_service in ${list_actions_service[@]}
+for action_service in "${list_actions_service[@]}"
 do
 	frobulator.background quiet process "Service ${action_service}" "[ ${service} ]" -- systemctl "${action_service}" "${service}"
 
-	sleep 1
+	sleep "${delay_service}"
 
 	frobulator.background quiet process "Reloading" -- systemctl daemon-reload
 
-	sleep 1
+	sleep "${delay_service}"
 done
 
 list_actions_service=()
@@ -244,8 +270,8 @@ list_actions_service=()
 
 # status lines if the service is running or inactive - empty otherwise
 
-line_service_running="$(systemctl status "${service}" | grep -e "active.*running")"
-line_service_inactive="$(systemctl status "${service}" | grep -e "inactive.*")"
+line_service_running="$(systemctl status "${service}" | grep --regexp="${pattern_running}")"
+line_service_inactive="$(systemctl status "${service}" | grep --regexp="${pattern_inactive}")"
 
 if [ -n "${line_service_running}" ]
 then

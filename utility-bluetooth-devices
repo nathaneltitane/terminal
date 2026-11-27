@@ -162,6 +162,28 @@ list_addresses_device=()
 list_names_device=()
 column_label_index=0
 
+# shared characters, names and patterns
+
+character_tab=$'\t'
+character_space=" "
+character_colon=":"
+character_underscore="_"
+prefix_card_bluez="bluez_card."
+prefix_option="-*"
+key_alias="Alias"
+key_name="Name"
+value_default="default"
+name_service_bluetooth="bluetooth"
+name_file_info="info"
+name_file_settings="settings"
+name_directory_archive="bluetooth"
+name_keys_archive="bluetooth-keys"
+name_device_index="bluetooth-devices-list"
+name_audio_settings="bluetooth-audio-settings"
+extension_archive="tar.gz"
+pattern_address="??:??:??:??:??:??"
+delay_restore="3"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${option}" ]
@@ -171,13 +193,13 @@ then
 
 	exit 1
 
-elif [[ "${directory}" = -* ]]
+elif [[ "${directory}" = ${prefix_option} ]]
 then
 	frobulator.err "Missing argument for '--directory'."
 
 	exit 1
 
-elif [[ "${file_bluetooth_keys}" = -* ]]
+elif [[ "${file_bluetooth_keys}" = ${prefix_option} ]]
 then
 	frobulator.err "Missing argument for '--key'."
 
@@ -195,8 +217,8 @@ fi
 
 directory="${directory%/}"
 
-file_device_index="${directory}/bluetooth-devices-list"
-file_audio_settings="${directory}/bluetooth-audio-settings"
+file_device_index="${directory}/${name_device_index}"
+file_audio_settings="${directory}/${name_audio_settings}"
 
 file_bluetooth_keys="${file_bluetooth_keys:-${file_bluetooth_keys_default}}"
 
@@ -206,23 +228,27 @@ adapter_address () {
 
 	# default bluetooth adapter address - or the only one already stored
 
+	local label_controller="Controller "
+	local pattern_controller='^Controller'
+	local count_matches="1"
+
 	local line_adapter
 	local directory_adapter
 
 	local -a list_directories_adapter=()
 
-	line_adapter="$(bluetoothctl list 2> "${sink}" | grep -m 1 '^Controller')"
+	line_adapter="$(bluetoothctl list 2> "${sink}" | grep --max-count="${count_matches}" "${pattern_controller}")"
 
 	if [ -n "${line_adapter}" ]
 	then
-		line_adapter="${line_adapter#Controller }"
+		line_adapter="${line_adapter#"${label_controller}"}"
 
-		echo "${line_adapter%% *}"
+		echo "${line_adapter%%"${character_space}"*}"
 
 		return 0
 	fi
 
-	for directory_adapter in "${directory_bluetooth}"/??:??:??:??:??:??
+	for directory_adapter in "${directory_bluetooth}"/${pattern_address}
 	do
 		if [ -d "${directory_adapter}" ]
 		then
@@ -244,17 +270,25 @@ device_label () {
 
 	# device name as label: lowercase - spaces as '-' - safe characters only
 
+	local character_dash="-"
+	local pattern_unsafe='[^a-z0-9_-]'
+	local name_device_default="device"
+
 	local name_device="${1,,}"
 
-	name_device="${name_device// /-}"
-	name_device="${name_device//[^a-z0-9_-]/}"
+	name_device="${name_device//"${character_space}"/"${character_dash}"}"
+	name_device="${name_device//${pattern_unsafe}/}"
 
-	echo "${name_device:-device}"
+	echo "${name_device:-${name_device_default}}"
 }
 
 info_value () {
 
 	# value of a key in the [General] section of a bluez info file
+
+	local pattern_section='^\[(.+)\]$'
+	local name_section_general="General"
+	local separator_key="="
 
 	local file_info="${1}"
 	local key_info="${2}"
@@ -264,13 +298,13 @@ info_value () {
 
 	while IFS= read -r line_info
 	do
-		if [[ "${line_info}" =~ ^\[(.+)\]$ ]]
+		if [[ "${line_info}" =~ ${pattern_section} ]]
 		then
 			section_info="${BASH_REMATCH[1]}"
 
-		elif [ "${section_info}" = "General" ] && [[ "${line_info}" = "${key_info}="* ]]
+		elif [ "${section_info}" = "${name_section_general}" ] && [[ "${line_info}" = "${key_info}${separator_key}"* ]]
 		then
-			echo "${line_info#*=}"
+			echo "${line_info#*"${separator_key}"}"
 
 			return 0
 		fi
@@ -283,11 +317,12 @@ index_tabs () {
 
 	local position_index="${1}"
 	local column_index="${2}"
-	local count_tabs_index=$(( ( column_index - position_index / 4 * 4 ) / 4 ))
+	local width_tab="4"
+	local count_tabs_index=$(( ( column_index - position_index / width_tab * width_tab ) / width_tab ))
 
 	while [ "${count_tabs_index}" -gt 0 ]
 	do
-		printf '\t'
+		printf "${character_tab}"
 
 		count_tabs_index=$(( count_tabs_index - 1 ))
 	done
@@ -295,6 +330,8 @@ index_tabs () {
 
 devices_backup () {
 
+	local width_tab="4"
+	local format_device_line='%s%s%s\t%s\n'
 	local status=0
 	local width_label_index=0
 
@@ -319,9 +356,9 @@ devices_backup () {
 
 	# device list: label / address / name
 
-	for directory_device in "${directory_bluetooth}/${adapter}"/??:??:??:??:??:??
+	for directory_device in "${directory_bluetooth}/${adapter}"/${pattern_address}
 	do
-		if [ ! -f "${directory_device}/info" ]
+		if [ ! -f "${directory_device}/${name_file_info}" ]
 		then
 			continue
 		fi
@@ -330,8 +367,8 @@ devices_backup () {
 
 		# alias set on this computer - otherwise the name the device reports
 
-		alias_device="$(info_value "${directory_device}/info" Alias)"
-		name_device_reported="$(info_value "${directory_device}/info" Name)"
+		alias_device="$(info_value "${directory_device}/${name_file_info}" "${key_alias}")"
+		name_device_reported="$(info_value "${directory_device}/${name_file_info}" "${key_name}")"
 
 		name_device="${alias_device:-${name_device_reported}}"
 
@@ -352,17 +389,17 @@ devices_backup () {
 
 	# columns aligned on tab stops (tab width 4): label column one tab wider than the longest label
 
-	column_label_index=$(( ( width_label_index / 4 + 2 ) * 4 ))
+	column_label_index=$(( ( width_label_index / width_tab + 2 ) * width_tab ))
 
 	: > "${file_device_index}"
 
 	for index_device in "${!list_labels_device[@]}"
 	do
-		printf '%s%s%s\t%s\n'																				\
-			"${list_labels_device[${index_device}]}"																\
-			"$(index_tabs "${#list_labels_device[${index_device}]}" "${column_label_index}")"					\
-			"${list_addresses_device[${index_device}]}"															\
-			"${list_names_device[${index_device}]}"	>> "${file_device_index}"
+		printf "${format_device_line}"															\
+			"${list_labels_device[${index_device}]}"											\
+			"$(index_tabs "${#list_labels_device[${index_device}]}" "${column_label_index}")"	\
+			"${list_addresses_device[${index_device}]}"											\
+			"${list_names_device[${index_device}]}"												>> "${file_device_index}"
 
 		frobulator.scs "Backup success - device" "[ '${list_labels_device[${index_device}]}'${marker_spc}${marker_hnt}${marker_spc}${list_addresses_device[${index_device}]} ]"
 	done
@@ -373,15 +410,15 @@ devices_backup () {
 
 	frobulator.trap "${directory_keys_temporary}"
 
-	file_keys_archive="${directory_keys_temporary}/bluetooth-keys"
+	file_keys_archive="${directory_keys_temporary}/${name_keys_archive}"
 
-	frobulator.archive "${file_keys_archive}" tar.gz "${directory_bluetooth}" > "${sink}"
+	frobulator.archive "${file_keys_archive}" "${extension_archive}" "${directory_bluetooth}" > "${sink}"
 
 	frobulator.track || return 1
 
 	frobulator.directory "$(dirname -- "${file_bluetooth_keys}")" > "${sink}"
 
-	mv -f "${file_keys_archive}.tar.gz" "${file_bluetooth_keys}"
+	mv --force "${file_keys_archive}.${extension_archive}" "${file_bluetooth_keys}"
 
 	frobulator.track || return 1
 
@@ -398,23 +435,32 @@ audio_user () {
 
 	# run a command as the desktop user - inside their session
 
+	local directory_runtime_user="/run/user"
+	local name_variable_runtime="XDG_RUNTIME_DIR"
+
 	local name_user_audio="${SUDO_USER:-${USER}}"
 
-	sudo -u "${name_user_audio}" XDG_RUNTIME_DIR="/run/user/$(id -u "${name_user_audio}")" "${@}"
+	local id_user_audio
+
+	id_user_audio="$(id -u "${name_user_audio}")"
+
+	sudo --user="${name_user_audio}" "${name_variable_runtime}=${directory_runtime_user}/${id_user_audio}" "${@}"
 }
 
 audio_sink_name () {
 
 	# bluetooth device pulseaudio sink - whatever its profile
 
-	local address_audio="${1//:/_}"
+	local prefix_sink_bluez="bluez_sink."
+
+	local address_audio="${1//"${character_colon}"/"${character_underscore}"}"
 
 	local index_sink_audio
 	local name_sink_entry
 
-	while IFS=$'\t' read -r index_sink_audio name_sink_entry _
+	while IFS="${character_tab}" read -r index_sink_audio name_sink_entry _
 	do
-		if [[ "${name_sink_entry}" = "bluez_sink.${address_audio}."* ]]
+		if [[ "${name_sink_entry}" = "${prefix_sink_bluez}${address_audio}."* ]]
 		then
 			echo "${name_sink_entry}"
 
@@ -429,23 +475,26 @@ audio_card_profile () {
 
 	# active profile of a bluetooth device's pulseaudio card
 
-	local card_audio="bluez_card.${1//:/_}"
-	local state_in_card=false
+	local pattern_card_name='^[[:space:]]*Name:[[:space:]]*(.+)$'
+	local pattern_card_profile='^[[:space:]]*Active\ Profile:[[:space:]]*(.+)$'
+
+	local card_audio="${prefix_card_bluez}${1//"${character_colon}"/"${character_underscore}"}"
+	local state_in_card="false"
 
 	local line_audio
 
 	while IFS= read -r line_audio
 	do
-		if [[ "${line_audio}" =~ ^[[:space:]]*Name:[[:space:]]*(.+)$ ]]
+		if [[ "${line_audio}" =~ ${pattern_card_name} ]]
 		then
 			if [ "${BASH_REMATCH[1]}" = "${card_audio}" ]
 			then
-				state_in_card=true
+				state_in_card="true"
 			else
-				state_in_card=false
+				state_in_card="false"
 			fi
 
-		elif [ "${state_in_card}" = true ] && [[ "${line_audio}" =~ ^[[:space:]]*Active\ Profile:[[:space:]]*(.+)$ ]]
+		elif [ "${state_in_card}" = "true" ] && [[ "${line_audio}" =~ ${pattern_card_profile} ]]
 		then
 			echo "${BASH_REMATCH[1]}"
 
@@ -459,6 +508,11 @@ audio_card_profile () {
 audio_backup () {
 
 	# profile / volume / mute / default output of each connected device - as plain text
+
+	local separator_volume="/ "
+	local character_percent="%"
+	local label_mute="Mute: "
+	local format_audio_line='%s%s%s\t%s\t%s\t%s%s\n'
 
 	local status=0
 	local count_lines_audio=0
@@ -483,7 +537,7 @@ audio_backup () {
 	then
 		while IFS= read -r line_saved_audio
 		do
-			IFS=$'\t' read -r _ address_saved_audio _ <<< "${line_saved_audio}"
+			IFS="${character_tab}" read -r _ address_saved_audio _ <<< "${line_saved_audio}"
 
 			list_lines_saved_audio["${address_saved_audio}"]="${line_saved_audio}"
 		done < "${file_audio_settings}"
@@ -516,28 +570,28 @@ audio_backup () {
 		profile_audio="$(audio_card_profile "${list_addresses_device[${index_audio}]}")"
 
 		volume_audio="$(audio_user pactl get-sink-volume "${name_sink}" 2> "${sink}")"
-		volume_audio="${volume_audio#*/ }"
-		volume_audio="${volume_audio%%%*}%"
-		volume_audio="${volume_audio// /}"
+		volume_audio="${volume_audio#*"${separator_volume}"}"
+		volume_audio="${volume_audio%%"${character_percent}"*}${character_percent}"
+		volume_audio="${volume_audio//"${character_space}"/}"
 
 		state_mute="$(audio_user pactl get-sink-mute "${name_sink}" 2> "${sink}")"
-		state_mute="${state_mute#Mute: }"
+		state_mute="${state_mute#"${label_mute}"}"
 
 		unset label_default
 
 		if [ "${name_sink}" = "${name_sink_default}" ]
 		then
-			label_default="default"
+			label_default="${value_default}"
 		fi
 
-		printf '%s%s%s\t%s\t%s\t%s%s\n'																	\
-			"${list_labels_device[${index_audio}]}"																\
-			"$(index_tabs "${#list_labels_device[${index_audio}]}" "${column_label_index}")"					\
-			"${list_addresses_device[${index_audio}]}"															\
-			"${profile_audio}"																				\
-			"${volume_audio}"																				\
-			"${state_mute}"																					\
-			"${label_default:+$'\t'${label_default}}"	>> "${file_audio_settings}"
+		printf "${format_audio_line}"															\
+			"${list_labels_device[${index_audio}]}"												\
+			"$(index_tabs "${#list_labels_device[${index_audio}]}" "${column_label_index}")"	\
+			"${list_addresses_device[${index_audio}]}"											\
+			"${profile_audio}"																	\
+			"${volume_audio}"																	\
+			"${state_mute}"																		\
+			"${label_default:+${character_tab}${label_default}}"								>> "${file_audio_settings}"
 
 		count_lines_audio=$(( count_lines_audio + 1 ))
 	done
@@ -583,41 +637,41 @@ devices_restore () {
 
 	frobulator.trap "${directory_keys_temporary}"
 
-	file_keys_archive="${directory_keys_temporary}/bluetooth-keys.tar.gz"
+	file_keys_archive="${directory_keys_temporary}/${name_keys_archive}.${extension_archive}"
 
-	cp -f "${file_bluetooth_keys}" "${file_keys_archive}"
+	cp --force "${file_bluetooth_keys}" "${file_keys_archive}"
 
 	frobulator.extract "${file_keys_archive}" "${directory_keys_temporary}" > "${sink}"
 
 	frobulator.track || return 1
 
-	frobulator.stp "Stopping" "[ bluetooth ]"
+	frobulator.stp "Stopping" "[ ${name_service_bluetooth} ]"
 
-	systemctl stop bluetooth
+	systemctl stop "${name_service_bluetooth}"
 
 	# devices go under the current adapter - even if it changed
 
-	mkdir -p "${directory_bluetooth}/${adapter}"
+	mkdir --parents "${directory_bluetooth}/${adapter}"
 
-	for directory_adapter_archived in "${directory_keys_temporary}"/bluetooth/??:??:??:??:??:??
+	for directory_adapter_archived in "${directory_keys_temporary}/${name_directory_archive}"/${pattern_address}
 	do
-		for directory_device in "${directory_adapter_archived}"/??:??:??:??:??:??
+		for directory_device in "${directory_adapter_archived}"/${pattern_address}
 		do
-			if [ ! -f "${directory_device}/info" ]
+			if [ ! -f "${directory_device}/${name_file_info}" ]
 			then
 				continue
 			fi
 
 			address_device="${directory_device##*/}"
 
-			cp -a "${directory_device}" "${directory_bluetooth}/${adapter}/"
+			cp --archive "${directory_device}" "${directory_bluetooth}/${adapter}/"
 
 			frobulator.track
 
 			# alias set on this computer - otherwise the name the device reports
 
-			alias_device="$(info_value "${directory_device}/info" Alias)"
-			name_device_reported="$(info_value "${directory_device}/info" Name)"
+			alias_device="$(info_value "${directory_device}/${name_file_info}" "${key_alias}")"
+			name_device_reported="$(info_value "${directory_device}/${name_file_info}" "${key_name}")"
 
 			name_device="${alias_device:-${name_device_reported}}"
 
@@ -628,17 +682,17 @@ devices_restore () {
 
 		# adapter settings (name / discoverable) only for the same adapter
 
-		if [ "${directory_adapter_archived##*/}" = "${adapter}" ] && [ -f "${directory_adapter_archived}/settings" ]
+		if [ "${directory_adapter_archived##*/}" = "${adapter}" ] && [ -f "${directory_adapter_archived}/${name_file_settings}" ]
 		then
-			cp -f "${directory_adapter_archived}/settings" "${directory_bluetooth}/${adapter}/settings"
+			cp --force "${directory_adapter_archived}/${name_file_settings}" "${directory_bluetooth}/${adapter}/${name_file_settings}"
 		fi
 	done
 
-	chmod -R go-rwx "${directory_bluetooth}"
+	chmod --recursive go-rwx "${directory_bluetooth}"
 
-	frobulator.fwd "Starting" "[ bluetooth ]"
+	frobulator.fwd "Starting" "[ ${name_service_bluetooth} ]"
 
-	systemctl start bluetooth
+	systemctl start "${name_service_bluetooth}"
 
 	frobulator.track
 
@@ -648,6 +702,13 @@ devices_restore () {
 audio_restore () {
 
 	# connect each device - then apply its saved profile / volume / mute / default output
+
+	local text_connected="Connected: yes"
+	local count_attempts_connect="6"
+	local count_attempts_sink="15"
+	local delay_connect="2"
+	local delay_profile="2"
+	local delay_sink_poll="1"
 
 	local status=0
 
@@ -669,29 +730,29 @@ audio_restore () {
 		return 0
 	fi
 
-	while IFS=$'\t' read -r label_audio address_audio profile_audio volume_audio state_mute label_default
+	while IFS="${character_tab}" read -r label_audio address_audio profile_audio volume_audio state_mute label_default
 	do
 		# speakers often answer only after a few page timeouts
 
-		for index_attempt_audio in {1..6}
+		for (( index_attempt_audio = 1 ; index_attempt_audio <= count_attempts_connect ; index_attempt_audio ++ ))
 		do
 			# bluez device details - including its 'Connected: yes / no' line
 
 			information_device_audio="$(bluetoothctl info "${address_audio}" 2> "${sink}")"
 
-			if [[ "${information_device_audio}" = *"Connected: yes"* ]]
+			if [[ "${information_device_audio}" = *"${text_connected}"* ]]
 			then
 				break
 			fi
 
 			bluetoothctl connect "${address_audio}" > "${sink}" 2>&1
 
-			sleep 2
+			sleep "${delay_connect}"
 		done
 
 		unset name_sink
 
-		for index_second_audio in {1..15}
+		for (( index_second_audio = 1 ; index_second_audio <= count_attempts_sink ; index_second_audio ++ ))
 		do
 			name_sink="$(audio_sink_name "${address_audio}")"
 
@@ -700,7 +761,7 @@ audio_restore () {
 				break
 			fi
 
-			sleep 1
+			sleep "${delay_sink_poll}"
 		done
 
 		if [ -z "${name_sink}" ]
@@ -714,13 +775,13 @@ audio_restore () {
 
 		if [ -n "${profile_audio}" ]
 		then
-			audio_user pactl set-card-profile "bluez_card.${address_audio//:/_}" "${profile_audio}" 2> "${sink}"
+			audio_user pactl set-card-profile "${prefix_card_bluez}${address_audio//"${character_colon}"/"${character_underscore}"}" "${profile_audio}" 2> "${sink}"
 
 			frobulator.track
 
 			# the sink name follows the profile
 
-			sleep 2
+			sleep "${delay_profile}"
 
 			name_sink="$(audio_sink_name "${address_audio}")"
 		fi
@@ -733,7 +794,7 @@ audio_restore () {
 
 		frobulator.track
 
-		if [ "${label_default}" = "default" ]
+		if [ "${label_default}" = "${value_default}" ]
 		then
 			audio_user pactl set-default-sink "${name_sink}"
 
@@ -806,7 +867,7 @@ then
 
 	frobulator.complete continue "Restore failure - audio settings"
 
-	sleep 3
+	sleep "${delay_restore}"
 
 	frobulator.inf "Paired devices"
 

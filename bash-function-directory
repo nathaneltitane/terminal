@@ -8,7 +8,7 @@ directory () {
 
 	frobulator.require mkdir
 
-	mkdir -p "${1}"
+	mkdir --parents "${1}"
 
 	cd "${1}"
 }

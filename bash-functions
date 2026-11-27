@@ -2,15 +2,18 @@
 
 # dependencies ─────────────────────────────────────────────────────────────────
 
-frobulator="${HOME}"/.local/bin/frobulator
+name_frobulator="frobulator"
+directory_binaries="${HOME}"/.local/bin
+frobulator="${directory_binaries}"/"${name_frobulator}"
 
 # frobulator next to linked files
 
-directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+file_shell="$(readlink -f -- "${BASH_SOURCE[0]}")"
+directory_shell="$(dirname -- "${file_shell}")"
 
-if [ -f "${directory_shell}"/frobulator ]
+if [ -f "${directory_shell}"/"${name_frobulator}" ]
 then
-	frobulator="${directory_shell}"/frobulator
+	frobulator="${directory_shell}"/"${name_frobulator}"
 fi
 
 source "${frobulator}"
@@ -27,6 +30,21 @@ version="2026-11-19"
 
 self="${BASH_SOURCE[0]}"
 
+# variables ────────────────────────────────────────────────────────────────────
+
+mode_install="install"
+prefix_function="bash-function-"
+pattern_function="${prefix_function}*"
+name_repository="nathaneltitane/terminal"
+host_download="get.trmnl.me"
+name_correction="command-correct"
+key_correct='\C-x\C-c'
+key_accept='\C-x\C-a'
+key_exchange='\C-x\C-x'
+key_alt_enter='\e\C-m'
+sequence_region_start='\e[1;33m'
+sequence_region_end='\e[0m'
+
 # usage ────────────────────────────────────────────────────────────────────────
 
 # executed directly: install only
@@ -35,14 +53,16 @@ if [[ "${self}" = "${0}" ]]
 then
 	script="$(basename -- "${self}")"
 
-	directory_install="${HOME}"/.local/bin
+	directory_install="${directory_binaries}"
+
+	file_installed="${directory_install}/${script}"
 
 	while (( $# ))
 	do
 		case "${1}"
 		in
 			-i|--install)
-				option="install"
+				option="${mode_install}"
 			;;
 
 			-h|--help)
@@ -90,12 +110,12 @@ then
 
 	if [ -z "${option}" ]
 	then
-		option="install"
+		option="${mode_install}"
 	fi
 
 	# install
 
-	if [ "${option}" = "install" ]
+	if [ "${option}" = "${mode_install}" ]
 	then
 		# blank line - output separated from the shell prompt
 
@@ -109,18 +129,18 @@ then
 
 		if [ "${directory_script}" -ef "${directory_install}" ]
 		then
-			frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
+			frobulator.inf "Already installed" "[ ${file_installed} ]"
 		else
 			frobulator.copy "${directory_script}" "${directory_install}" "${script}"
 
-			frobulator.permissions public execute "${directory_install}/${script}"
+			frobulator.permissions public execute "${file_installed}"
 		fi
 
 		# one file per function - copied from beside this script - downloaded from the repository otherwise
 
 		list_functions=()
 
-		for file_function in "${directory_script}"/bash-function-*
+		for file_function in "${directory_script}"/${pattern_function}
 		do
 			if [ -f "${file_function}" ]
 			then
@@ -137,16 +157,23 @@ then
 		else
 			# function names listed from the repository
 
-			frobulator.repository "nathaneltitane/terminal" "bash-function-" || exit 1
+			frobulator.repository "${name_repository}" "${prefix_function}"
+
+			status_repository="${?}"
+
+			if [ "${status_repository}" -ne 0 ]
+			then
+				exit 1
+			fi
 
 			list=("${frobulator_return[@]}")
 
-			frobulator.download get.trmnl.me "${directory_install}" ${list[@]}
+			frobulator.download "${host_download}" "${directory_install}" ${list[@]}
 
 			list=()
 		fi
 
-		frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
+		frobulator.scs "Installed" "[ ${file_installed} ]"
 	fi
 
 	exit
@@ -156,7 +183,7 @@ fi
 
 # each function file next to this one holds one function and its helpers
 
-for file_function in "${directory_shell}"/bash-function-*
+for file_function in "${directory_shell}"/${pattern_function}
 do
 	if [ -f "${file_function}" ]
 	then
@@ -170,15 +197,36 @@ unset file_function
 
 # alt enter checks the line first - enter runs it as typed
 
-if [[ "${-}" == *i* ]] && declare -F command-correct > /dev/null
+declare -F "${name_correction}" > "${sink}" 2>&1
+
+status_correction="${?}"
+
+if [[ "${-}" == *i* ]] && [ "${status_correction}" -eq 0 ]
 then
-	bind -x '"\C-x\C-c": command-correct'
-	bind '"\C-x\C-a": accept-line'
-	bind '"\C-x\C-x": exchange-point-and-mark'
-	bind '"\e\C-m": "\C-x\C-c\C-x\C-a"'
+	bind -x "\"${key_correct}\": ${name_correction}"
+	bind "\"${key_accept}\": accept-line"
+	bind "\"${key_exchange}\": exchange-point-and-mark"
+	bind "\"${key_alt_enter}\": \"${key_correct}${key_accept}\""
 
 	# corrected words in bold yellow
 
-	bind 'set active-region-start-color "\e[1;33m"'
-	bind 'set active-region-end-color "\e[0m"'
+	bind "set active-region-start-color \"${sequence_region_start}\""
+	bind "set active-region-end-color \"${sequence_region_end}\""
 fi
+
+unset status_correction
+unset name_frobulator
+unset directory_binaries
+unset file_shell
+unset mode_install
+unset prefix_function
+unset pattern_function
+unset name_repository
+unset host_download
+unset name_correction
+unset key_correct
+unset key_accept
+unset key_exchange
+unset key_alt_enter
+unset sequence_region_start
+unset sequence_region_end

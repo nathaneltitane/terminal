@@ -114,6 +114,14 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+directory_binaries="/usr/bin"
+file_bashrc="/etc/bash.bashrc"
+file_governors_available="/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors"
+file_cpuinfo="/proc/cpuinfo"
+file_switch="${directory_binaries}/cpu-switch"
+pattern_processor="processor"
+mode_executable="+x"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -136,28 +144,35 @@ frobulator.require ${list[@]}
 
 # set governor aliases
 
-list_governors=(
-	$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors)
-)
+list_governors=()
+
+read -r -a list_governors < "${file_governors_available}"
+
+# processor core count
+
+count_cpu="$(grep --count "${pattern_processor}" "${file_cpuinfo}")"
 
 for index_governor in "${!list_governors[@]}"
 do
-	cat <<- FILE >> /etc/bash.bashrc
+	name_governor="${list_governors[index_governor]}"
+	file_governor="${directory_binaries}/${name_governor}"
 
-	# governor - ${list_governors[index_governor]} #
+	cat <<- FILE >> "${file_bashrc}"
 
-	${list_governors[index_governor]}() {
-		for (( index_core = 0 ; index_core < $(grep -c processor /proc/cpuinfo) ; index_core ++ ))
+	# governor - ${name_governor} #
+
+	${name_governor}() {
+		for (( index_core = 0 ; index_core < ${count_cpu} ; index_core ++ ))
 		do
-			sudo cpufreq-set -c "\${index_core}" -g ${list_governors[index_governor]}
+			sudo cpufreq-set -c "\${index_core}" -g ${name_governor}
 		done
 	}
 	FILE
 
-	cat <<- FILE > /usr/bin/${list_governors[index_governor]}
+	cat <<- FILE > "${file_governor}"
 	#!/bin/bash
 
-	# cpu governor (${list_governors[index_governor]}) #
+	# cpu governor (${name_governor}) #
 
 	# processor core count
 
@@ -167,7 +182,7 @@ do
 	do
 		sudo cpufreq-set		\
 			-c "\${index_core}"	\
-			-g ${list_governors[index_governor]}
+			-g ${name_governor}
 	done
 
 	# 'notify-send' path - empty if not installed
@@ -178,16 +193,16 @@ do
 	then
 		notify-send						\
 			-i gnome-system-monitor		\
-			"CPU governor set to ${list_governors[index_governor]}"
+			"CPU governor set to ${name_governor}"
 	fi
 	FILE
 
-	sudo chmod +x /usr/bin/${list_governors[index_governor]}
+	sudo chmod "${mode_executable}" "${file_governor}"
 done
 
 # write switch
 
-cat <<- 'FILE' > /usr/bin/cpu-switch
+cat <<- 'FILE' > "${file_switch}"
 #!/bin/bash
 
 # cpu-switch #
@@ -240,4 +255,4 @@ FILE
 
 # set permissions
 
-sudo chmod +x /usr/bin/cpu-switch
+sudo chmod "${mode_executable}" "${file_switch}"

@@ -10,19 +10,35 @@ font="${name_font}:size=${size_font}"
 lines=15
 prompt="EXIT SESSION?"
 
-while [ "${selection}" != "CANCEL" -a "${selection}" != "LOGOUT" -a "${selection}" != "POWEROFF" -a "${selection}" != "REBOOT" ]
-do
-	selection=$(echo -e 'CANCEL\nLOGOUT' | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+label_cancel="CANCEL"
+label_logout="LOGOUT"
+label_poweroff="POWEROFF"
+label_reboot="REBOOT"
+format_menu="%s\n%s\n"
+color_background="#000000"
+color_foreground="#FFFFFF"
+color_selected_background="#666666"
+color_selected_foreground="#000000"
 
-	[ -z "${selection}" ] && exit
+while [ "${selection}" != "${label_cancel}" ] &&
+      [ "${selection}" != "${label_logout}" ] &&
+      [ "${selection}" != "${label_poweroff}" ] &&
+      [ "${selection}" != "${label_reboot}" ]
+do
+	selection=$(printf "${format_menu}" "${label_cancel}" "${label_logout}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selected_background}" -sf "${color_selected_foreground}")
+
+	if [ -z "${selection}" ]
+	then
+		exit 0
+	fi
 done
 
-if [ "${selection}" = "CANCEL" ]
+if [ "${selection}" = "${label_cancel}" ]
 then
-	exit
+	exit 0
 fi
 
-if [ "${selection}" = "LOGOUT" ]
+if [ "${selection}" = "${label_logout}" ]
 then
 	i3-msg exit
 fi

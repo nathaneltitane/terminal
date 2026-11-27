@@ -67,6 +67,11 @@ frobulator.script
 
 version="2026-11-19"
 
+# set before usage block
+
+name_operation_backup="backup"
+name_operation_restore="restore"
+
 # usage ────────────────────────────────────────────────────────────────────────
 
 while (( $# ))
@@ -74,11 +79,11 @@ do
 	case "${1}"
 	in
 		-b|--backup)
-			option="backup"
+			option="${name_operation_backup}"
 		;;
 
 		-r|--restore)
-			option="restore"
+			option="${name_operation_restore}"
 		;;
 
 		-d|--directory)
@@ -175,6 +180,33 @@ list_devices+=("${list_hosts_android[@]}")
 
 name_computer="$(hostname)"
 
+# names modes and patterns
+
+name_keys=".keys"
+name_known_hosts="known_hosts"
+name_authorized_keys="authorized_keys"
+name_config="config"
+name_rule_fail2ban="fail2ban-sshd.local"
+suffix_local=".local"
+directory_store_default="/media/internal/.ssh"
+mode_private="600"
+mode_public="644"
+mode_directory="700"
+owner_user="${USER}:${USER}"
+pattern_key_public="*.pub"
+pattern_host='^Host[[:space:]]'
+pattern_wildcard='*[*?]*'
+pattern_bookmark_end="</bookmark>"
+tag_close="</xbel>"
+protocol_sftp="sftp"
+path_storage_android="/storage/emulated/0/"
+format_timestamp="+%s"
+service_ssh="ssh"
+service_fail2ban="fail2ban"
+package_server="openssh-server"
+package_fail2ban="fail2ban"
+package_systemd="python3-systemd"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${option}" ]
@@ -193,7 +225,7 @@ fi
 
 # store - private - never a public repository - linked on restore when specified
 
-directory_store="${option_directory:-/media/internal/.ssh}"
+directory_store="${option_directory:-${directory_store_default}}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -202,11 +234,18 @@ ssh_frame () {
 	# section header - name and frame line - 80 columns as the script section headers
 
 	local name_section="${1}"
+	local width_frame="80"
+	local width_prefix="3"
+	local format_width='%*s'
+	local format_frame='# %s %s\n\n'
+	local character_space=" "
+	local character_line="─"
+
 	local line_frame
 
-	printf -v line_frame '%*s' $(( 80 - 3 - ${#name_section} )) ''
+	printf -v line_frame "${format_width}" $(( width_frame - width_prefix - ${#name_section} )) ""
 
-	printf '# %s %s\n\n' "${name_section}" "${line_frame// /─}"
+	printf "${format_frame}" "${name_section}" "${line_frame//${character_space}/${character_line}}"
 }
 
 ssh_backup () {
@@ -216,9 +255,9 @@ ssh_backup () {
 	local status=0
 	local file_ssh
 
-	frobulator.directory "${directory_store}" .keys
+	frobulator.directory "${directory_store}" "${name_keys}"
 
-	for file_ssh in known_hosts authorized_keys
+	for file_ssh in "${name_known_hosts}" "${name_authorized_keys}"
 	do
 		if [ -f "${directory_ssh}/${file_ssh}" ] && [ ! -L "${directory_ssh}/${file_ssh}" ]
 		then
@@ -228,23 +267,23 @@ ssh_backup () {
 		fi
 	done
 
-	if [ ! -L "${directory_ssh}"/.keys ]
+	if [ ! -L "${directory_ssh}/${name_keys}" ]
 	then
-		cp "${directory_ssh}"/.keys/* "${directory_store}"/.keys/ 2> "${sink}"
+		cp "${directory_ssh}/${name_keys}"/* "${directory_store}/${name_keys}/" 2> "${sink}"
 
 		frobulator.track
 	fi
 
 	if [ -f "${file_fail2ban_sshd}" ]
 	then
-		cp "${file_fail2ban_sshd}" "${directory_store}"/fail2ban-sshd.local
+		cp "${file_fail2ban_sshd}" "${directory_store}/${name_rule_fail2ban}"
 
 		frobulator.track
 	fi
 
 	# store owned by the user - not root after escalation
 
-	chown -R "${USER}:${USER}" "${directory_store}"
+	chown --recursive "${owner_user}" "${directory_store}"
 
 	frobulator.track
 
@@ -259,63 +298,69 @@ ssh_restore_user () {
 
 	local status=0
 
+	local directory_parent
+	local name_directory
+
 	if [ -L "${directory_ssh}" ]
 	then
 		rm --force "${directory_ssh}"
 	fi
 
-	frobulator.directory "$(dirname "${directory_ssh}")" "$(basename "${directory_ssh}")"
+	directory_parent="$(dirname "${directory_ssh}")"
+	name_directory="$(basename "${directory_ssh}")"
+
+	frobulator.directory "${directory_parent}" "${name_directory}"
 
 	# private keys readable by their owner only - also in the store when linked
 
-	find "${directory_store}"/.keys -type f ! -name "*.pub" -exec chmod 600 {} + 2> "${sink}"
-	find "${directory_store}"/.keys -type f -name "*.pub" -exec chmod 644 {} + 2> "${sink}"
+	find "${directory_store}/${name_keys}" -type f ! -name "${pattern_key_public}" -exec chmod "${mode_private}" {} + 2> "${sink}"
+	find "${directory_store}/${name_keys}" -type f -name "${pattern_key_public}" -exec chmod "${mode_public}" {} + 2> "${sink}"
 
-	rm --recursive --force "${directory_ssh}"/.keys "${directory_ssh}"/known_hosts
+	rm --recursive --force "${directory_ssh}/${name_keys}" "${directory_ssh}/${name_known_hosts}"
 
 	if [ -n "${option_directory}" ]
 	then
-		ln --symbolic "${directory_store}"/.keys "${directory_ssh}"/.keys
+		ln --symbolic "${directory_store}/${name_keys}" "${directory_ssh}/${name_keys}"
 
 		frobulator.track
 
-		touch "${directory_store}"/known_hosts
+		touch "${directory_store}/${name_known_hosts}"
 
-		ln --symbolic "${directory_store}"/known_hosts "${directory_ssh}"/known_hosts
+		ln --symbolic "${directory_store}/${name_known_hosts}" "${directory_ssh}/${name_known_hosts}"
 
 		frobulator.track
 	else
-		frobulator.directory "${directory_ssh}" .keys
+		frobulator.directory "${directory_ssh}" "${name_keys}"
 
-		cp "${directory_store}"/.keys/* "${directory_ssh}"/.keys/ 2> "${sink}"
+		cp "${directory_store}/${name_keys}"/* "${directory_ssh}/${name_keys}/" 2> "${sink}"
 
 		frobulator.track
 
-		if [ -f "${directory_store}"/known_hosts ]
+		if [ -f "${directory_store}/${name_known_hosts}" ]
 		then
-			cp "${directory_store}"/known_hosts "${directory_ssh}"/known_hosts
+			cp "${directory_store}/${name_known_hosts}" "${directory_ssh}/${name_known_hosts}"
 
 			frobulator.track
 		fi
 
-		chmod 700 "${directory_ssh}"/.keys
+		chmod "${mode_directory}" "${directory_ssh}/${name_keys}"
 	fi
 
 	# authorized keys - public keys of devices logging in - created empty when missing
 
-	if [ -f "${directory_store}"/authorized_keys ]
+	if [ -f "${directory_store}/${name_authorized_keys}" ]
 	then
-		cp "${directory_store}"/authorized_keys "${directory_ssh}"/authorized_keys
+		cp "${directory_store}/${name_authorized_keys}" "${directory_ssh}/${name_authorized_keys}"
 
 		frobulator.track
 	fi
 
-	touch "${directory_ssh}"/authorized_keys
+	touch "${directory_ssh}/${name_authorized_keys}"
 
-	chown --no-dereference -R "${USER}:${USER}" "${directory_ssh}"
+	chown --no-dereference --recursive "${owner_user}" "${directory_ssh}"
 
-	chmod 700 "${directory_ssh}"
-	chmod 600 "${directory_ssh}"/authorized_keys
+	chmod "${mode_directory}" "${directory_ssh}"
+	chmod "${mode_private}" "${directory_ssh}/${name_authorized_keys}"
 
 	return "${status}"
 }
@@ -325,7 +370,7 @@ ssh_restore_config () {
 	# user config generated - one framed host block per device - this computer skipped
 
 	local status=0
-	local file_config="${directory_ssh}/config"
+	local file_config="${directory_ssh}/${name_config}"
 	local name_device
 	local name_host
 
@@ -339,7 +384,7 @@ ssh_restore_config () {
 
 			# android devices - router name - others announce themselves as .local
 
-			name_host="${name_device}.local"
+			name_host="${name_device}${suffix_local}"
 
 			if [[ " ${list_hosts_android[*]} " == *" ${name_device} "* ]]
 			then
@@ -360,9 +405,9 @@ ssh_restore_config () {
 
 	frobulator.track
 
-	chown "${USER}:${USER}" "${file_config}"
+	chown "${owner_user}" "${file_config}"
 
-	chmod 600 "${file_config}"
+	chmod "${mode_private}" "${file_config}"
 
 	return "${status}"
 }
@@ -406,7 +451,7 @@ ssh_restore_client () {
 
 	frobulator.track
 
-	chmod 644 "${file_ssh_config}"
+	chmod "${mode_public}" "${file_ssh_config}"
 
 	return "${status}"
 }
@@ -417,6 +462,7 @@ ssh_restore_server () {
 
 	local status=0
 	local file_sshd_check
+	local status_check
 
 	file_sshd_check="$(mktemp)"
 
@@ -474,9 +520,17 @@ ssh_restore_server () {
 
 	sshd -t -f "${file_sshd_check}"
 
-	frobulator.track || { rm --force "${file_sshd_check}"; return "${status}"; }
+	frobulator.track
+	status_check="${?}"
 
-	install -m 644 "${file_sshd_check}" "${file_sshd_config}"
+	if [ "${status_check}" -ne 0 ]
+	then
+		rm --force "${file_sshd_check}"
+
+		return "${status}"
+	fi
+
+	install --mode="${mode_public}" "${file_sshd_check}" "${file_sshd_config}"
 
 	frobulator.track
 
@@ -484,11 +538,11 @@ ssh_restore_server () {
 
 	# service enabled at boot - cycled to apply the new configuration
 
-	systemctl enable ssh > "${sink}" 2>&1
+	systemctl enable "${service_ssh}" > "${sink}" 2>&1
 
 	frobulator.track
 
-	frobulator.service restart ssh
+	frobulator.service restart "${service_ssh}"
 
 	frobulator.track
 
@@ -501,9 +555,9 @@ ssh_restore_fail2ban () {
 
 	local status=0
 
-	if [ -f "${directory_store}"/fail2ban-sshd.local ]
+	if [ -f "${directory_store}/${name_rule_fail2ban}" ]
 	then
-		cp "${directory_store}"/fail2ban-sshd.local "${file_fail2ban_sshd}"
+		cp "${directory_store}/${name_rule_fail2ban}" "${file_fail2ban_sshd}"
 	else
 		cat <<- FILE > "${file_fail2ban_sshd}"
 		[sshd]
@@ -518,11 +572,11 @@ ssh_restore_fail2ban () {
 
 	frobulator.track
 
-	systemctl enable fail2ban > "${sink}" 2>&1
+	systemctl enable "${service_fail2ban}" > "${sink}" 2>&1
 
 	frobulator.track
 
-	frobulator.service restart fail2ban
+	frobulator.service restart "${service_fail2ban}"
 
 	frobulator.track
 
@@ -544,6 +598,8 @@ ssh_restore_places () {
 	local title_host
 	local href_host
 	local count_places_sftp
+	local text_bookmark
+	local format_places
 
 	local -a list_hosts=()
 
@@ -559,28 +615,30 @@ ssh_restore_places () {
 
 	while read -r _ name_host
 	do
-		if [[ "${name_host}" != *[*?]* ]] && [ "${name_host}" != "${name_computer}" ]
+		if [[ "${name_host}" != ${pattern_wildcard} ]] && [ "${name_host}" != "${name_computer}" ]
 		then
 			list_hosts+=("${name_host}")
 		fi
-	done < <(grep -E '^Host[[:space:]]' "${directory_ssh}"/config 2> "${sink}")
+	done < <(grep --extended-regexp "${pattern_host}" "${directory_ssh}/${name_config}" 2> "${sink}")
 
 	# earlier sftp places of android devices removed - they need a server app on the device
 
 	for name_host in "${list_hosts_android[@]}"
 	do
-		count_places_sftp="$(grep -c "<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">" "${file_places}")"
+		text_bookmark="<bookmark href=\"${protocol_sftp}://${name_host}${path_storage_android}\">"
+
+		count_places_sftp="$(grep --count "${text_bookmark}" "${file_places}")"
 
 		if [ "${count_places_sftp}" -gt 0 ]
 		then
-			sed -i "\|<bookmark href=\"sftp://${name_host}/storage/emulated/0/\">|,\|</bookmark>|d" "${file_places}"
+			sed --in-place "\|${text_bookmark}|,\|${pattern_bookmark_end}|d" "${file_places}"
 
 			frobulator.rem "Place removed - sftp" "[ ${name_host} ]"
 		fi
 	done
 
 	content_places="$(< "${file_places}")"
-	stamp_places="$(date +%s)"
+	stamp_places="$(date "${format_timestamp}")"
 
 	for name_host in "${list_hosts[@]}"
 	do
@@ -593,7 +651,7 @@ ssh_restore_places () {
 
 		# computers - sftp at the file system root
 
-		href_host="sftp://${name_host}/"
+		href_host="${protocol_sftp}://${name_host}/"
 
 		if [[ "${content_places}" = *"href=\"${href_host}"* ]]
 		then
@@ -632,14 +690,16 @@ ssh_restore_places () {
 
 	# new entries go right before the closing tag
 
-	if [[ "${content_places}" != *"</xbel>"* ]]
+	if [[ "${content_places}" != *"${tag_close}"* ]]
 	then
 		frobulator.err "Places failure - unexpected file format" "[ '${file_places##*/}'${marker_spc}${marker_hnt}${marker_spc}xbel ]"
 
 		return 1
 	fi
 
-	printf '%s%s</xbel>\n' "${content_places%</xbel>*}" "${list_entries_places}" > "${file_places}"
+	format_places="%s%s${tag_close}\n"
+
+	printf "${format_places}" "${content_places%${tag_close}*}" "${list_entries_places}" > "${file_places}"
 
 	frobulator.track
 
@@ -655,14 +715,14 @@ ssh_restore_places () {
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	openssh-server
+	"${package_server}"
 )
 
-if [ "${option}" = "restore" ]
+if [ "${option}" = "${name_operation_restore}" ]
 then
 	list+=(
-		fail2ban
-		python3-systemd
+		"${package_fail2ban}"
+		"${package_systemd}"
 	)
 fi
 
@@ -672,7 +732,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ "${option}" = "backup" ]
+if [ "${option}" = "${name_operation_backup}" ]
 then
 	frobulator.inf "Backing up ssh setup" "[ ${directory_store} ]"
 
@@ -680,7 +740,7 @@ then
 
 	frobulator.complete
 
-elif [ "${option}" = "restore" ]
+elif [ "${option}" = "${name_operation_restore}" ]
 then
 	if [ ! -d "${directory_store}" ]
 	then
@@ -695,7 +755,7 @@ then
 
 	frobulator.complete
 
-	frobulator.inf "Generating user config" "[ ${directory_ssh}/config ]"
+	frobulator.inf "Generating user config" "[ ${directory_ssh}/${name_config} ]"
 
 	ssh_restore_config
 

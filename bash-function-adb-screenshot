@@ -6,13 +6,17 @@
 
 adb_screenshot () {
 
+	local directory_device="/sdcard"
+	local directory_pull="screenshot"
+
 	adb_download
 
 	adb_set_environment
 
-	adb shell screencap -p /sdcard/"${screenshot}"
+	adb shell screencap -p "${directory_device}/${screenshot}"
 
-	adb pull /sdcard/"${screenshot}" screenshot/"${screenshot}"
+	adb pull "${directory_device}/${screenshot}" "${directory_pull}/${screenshot}"
 
-	adb shell rm /sdcard/"${screenshot}"
+	adb shell rm "${directory_device}/${screenshot}"
+
 }

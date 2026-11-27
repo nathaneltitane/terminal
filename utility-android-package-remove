@@ -69,14 +69,14 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
-state_dry_run=false
+state_dry_run="false"
 
 while (( $# ))
 do
 	case "${1}"
 	in
 		-d|--dry-run)
-			state_dry_run=true
+			state_dry_run="true"
 		;;
 
 		-h|--help)
@@ -125,8 +125,23 @@ done
 # variables ────────────────────────────────────────────────────────────────────
 
 directory_android="${HOME}/.local/lib/android"
-directory_platform_tools="${directory_android}/platform-tools"
 url_android_platform_tools="https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
+directory_binaries="${HOME}/.local/bin"
+name_platform_tools="platform-tools"
+directory_platform_tools="${directory_android}/${name_platform_tools}"
+name_archive="${name_platform_tools}.zip"
+name_adb="adb"
+name_fastboot="fastboot"
+label_platform_tools="Android Platform Tools"
+state_device_ready="device"
+state_device_unauthorized="unauthorized"
+state_device_authorizing="authorizing"
+state_device_none="none"
+name_user_root="root"
+prefix_package="package:"
+user_android="0"
+timeout_device="300"
+delay_device="2"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -137,6 +152,8 @@ android_platform_tools_update () {
 	local directory_temporary
 	local archive
 	local directory_extracted
+	local group_user
+	local version_adb
 
 	frobulator.temporary directory_temporary
 
@@ -149,10 +166,10 @@ android_platform_tools_update () {
 
 	frobulator.trap "${directory_temporary}"
 
-	archive="${directory_temporary}/platform-tools.zip"
-	directory_extracted="${directory_temporary}/platform-tools"
+	archive="${directory_temporary}/${name_archive}"
+	directory_extracted="${directory_temporary}/${name_platform_tools}"
 
-	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
+	frobulator.inf "Fetching latest" "[ ${label_platform_tools} ]"
 
 	curl						\
 		--silent				\
@@ -161,61 +178,64 @@ android_platform_tools_update () {
 		--output "${archive}"	\
 								"${url_android_platform_tools}"
 
-	frobulator.complete halt "Unable to fetch" "[ Android Platform Tools ]"
+	frobulator.complete halt "Unable to fetch" "[ ${label_platform_tools} ]"
 
 	unzip -q "${archive}" -d "${directory_temporary}"
 
-	frobulator.complete halt "Unable to extract" "[ Android Platform Tools ]"
+	frobulator.complete halt "Unable to extract" "[ ${label_platform_tools} ]"
 
-	if [ ! -x "${directory_extracted}/adb" ] || [ ! -x "${directory_extracted}/fastboot" ]
+	if [ ! -x "${directory_extracted}/${name_adb}" ] || [ ! -x "${directory_extracted}/${name_fastboot}" ]
 	then
-		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
+		frobulator.err "Invalid archive" "[ ${label_platform_tools} ]"
 
 		exit 1
 	fi
 
-	frobulator.terminate adb
+	frobulator.terminate "${name_adb}"
 
 	frobulator.directory "${directory_android}"
 
-	frobulator.directory "${HOME}/.local/bin"
+	frobulator.directory "${directory_binaries}"
 
 	frobulator.delete "${directory_platform_tools}"
 
 	mv "${directory_extracted}" "${directory_platform_tools}"
 
 	list=(
-		adb
-		fastboot
+		"${name_adb}"
+		"${name_fastboot}"
 	)
 
 	for item in "${list[@]}"
 	do
-		frobulator.link "${directory_platform_tools}" "${HOME}/.local/bin" "${item}"
+		frobulator.link "${directory_platform_tools}" "${directory_binaries}" "${item}"
 	done
 
 	list=()
 
-	if [ "${USER}" != "root" ]
+	if [ "${USER}" != "${name_user_root}" ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${directory_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
+		group_user="$(id -g "${USER}")"
+
+		chown --recursive "${USER}:${group_user}" "${directory_android}" "${directory_binaries}/${name_adb}" "${directory_binaries}/${name_fastboot}"
 	fi
 
-	export PATH="${HOME}/.local/bin:${directory_platform_tools}:${PATH}"
+	export PATH="${directory_binaries}:${directory_platform_tools}:${PATH}"
 
 	hash -r
 
-	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
+	version_adb="$(adb version | head --lines=1)"
 
-	frobulator.scs "Utilities deployment ready" "[ Android Platform Tools ]"
+	frobulator.fwd "Utilities version: ${version_adb}"
+
+	frobulator.scs "Utilities deployment ready" "[ ${label_platform_tools} ]"
 
 }
 
 android_device_wait () {
 
-	local state_last="none"
+	local state_last="${state_device_none}"
 	local seconds=0
-	local timeout=300
 
 	local state
 	local serial
@@ -243,7 +263,7 @@ android_device_wait () {
 			fi
 		done
 
-		if [ "${state}" = "device" ]
+		if [ "${state}" = "${state_device_ready}" ]
 		then
 			frobulator.scs "Device ready"
 
@@ -258,7 +278,7 @@ android_device_wait () {
 			then
 				frobulator.wrn "No device found" "[ connect and enable usb debugging ]"
 
-			elif [ "${state}" = "unauthorized" ] || [ "${state}" = "authorizing" ]
+			elif [ "${state}" = "${state_device_unauthorized}" ] || [ "${state}" = "${state_device_authorizing}" ]
 			then
 				frobulator.wrn "Device not authorized" "[ accept debugging prompt on device ]"
 			else
@@ -268,16 +288,16 @@ android_device_wait () {
 			state_last="${state}"
 		fi
 
-		if [ "${seconds}" -ge "${timeout}" ]
+		if [ "${seconds}" -ge "${timeout_device}" ]
 		then
-			frobulator.err "Device not ready" "[ ${timeout} seconds ]"
+			frobulator.err "Device not ready" "[ ${timeout_device} seconds ]"
 
 			exit 1
 		fi
 
-		sleep 2
+		sleep "${delay_device}"
 
-		seconds=$(( seconds + 2 ))
+		seconds=$(( seconds + delay_device ))
 	done
 }
 
@@ -932,7 +952,7 @@ android_device_wait
 
 frobulator.inf "Querying installed packages"
 
-list_packages_installed=$(android_debug_bridge list packages --user 0)
+list_packages_installed=$(android_debug_bridge list packages --user "${user_android}")
 
 if [ -z "${list_packages_installed}" ]
 then
@@ -950,13 +970,13 @@ for application in "${list_packages[@]}"
 do
 	# package listing line if it is on the device - empty otherwise
 
-	line_package_listed="$(echo "${list_packages_installed}" | grep -F -x "package:${application}")"
+	line_package_listed="$(echo "${list_packages_installed}" | grep --fixed-strings --line-regexp "${prefix_package}${application}")"
 
 	if [ -n "${line_package_listed}" ]
 	then
 		frobulator.inf "Package on device" "[ ${application} ]"
 
-		if [ "${state_dry_run}" = true ]
+		if [ "${state_dry_run}" = "true" ]
 		then
 			frobulator.wrn "Would be removed" "[ ${application} ]"
 
@@ -965,7 +985,7 @@ do
 
 		frobulator.wrn "Removing package" "[ ${application} ]"
 
-		android_debug_bridge uninstall -k --user 0 "${application}" > "${sink}" 2>&1
+		android_debug_bridge uninstall -k --user "${user_android}" "${application}" > "${sink}" 2>&1
 
 		if [ "${?}" -ne 0 ]
 		then
@@ -980,7 +1000,7 @@ do
 	fi
 done
 
-if [ "${state_dry_run}" = true ]
+if [ "${state_dry_run}" = "true" ]
 then
 	frobulator.scs "Dry run complete"
 else

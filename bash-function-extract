@@ -10,6 +10,14 @@ extract () {
 	local directory
 	local extension
 	local archive
+	local extension_tar_bzip
+	local extension_tar_bzip_short
+	local extension_tar_gzip
+	local extension_tar_gzip_short
+	local extension_tar
+	local extension_7zip
+	local extension_rar
+	local extension_zip
 
 	# output starts one line below the command
 
@@ -30,6 +38,15 @@ extract () {
 
 	list=()
 
+	extension_tar_bzip="tar.bz2"
+	extension_tar_bzip_short="tbz2"
+	extension_tar_gzip="tar.gz"
+	extension_tar_gzip_short="tgz"
+	extension_tar="tar"
+	extension_7zip="7z"
+	extension_rar="rar"
+	extension_zip="zip"
+
 	file="${1}"
 	directory="${2}"
 	extension="${3}"
@@ -48,69 +65,67 @@ extract () {
 
 	if [ ! -d "${directory}" ]
 	then
-		mkdir -p "${directory}"
+		mkdir --parents "${directory}"
 	fi
 
-	case "${extension}"
-	in
-		tar.bz2|tbz2)
-			tar								\
-				--extract					\
-				--bzip2						\
-				--file="${file}" 			\
-				--directory="${directory}"
+	if [ "${extension}" = "${extension_tar_bzip}" ] ||
+	   [ "${extension}" = "${extension_tar_bzip_short}" ]
+	then
+		tar								\
+			--extract					\
+			--bzip2						\
+			--file="${file}" 			\
+			--directory="${directory}"
 
-				frobulator.inf "Extracting" "[ ${archive} ]"
-		;;
+		frobulator.inf "Extracting" "[ ${archive} ]"
 
-		tar.gz|tgz)
-			tar								\
-				--extract					\
-				--gzip						\
-				--file="${file}" 			\
-				--directory="${directory}"
+	elif [ "${extension}" = "${extension_tar_gzip}" ] ||
+	     [ "${extension}" = "${extension_tar_gzip_short}" ]
+	then
+		tar								\
+			--extract					\
+			--gzip						\
+			--file="${file}" 			\
+			--directory="${directory}"
 
-				frobulator.inf "Extracting" "[ ${archive} ]"
-		;;
+		frobulator.inf "Extracting" "[ ${archive} ]"
 
-		tar)
-			tar								\
-				--extract					\
-				--file="${file}" 			\
-				--directory="${directory}"
+	elif [ "${extension}" = "${extension_tar}" ]
+	then
+		tar								\
+			--extract					\
+			--file="${file}" 			\
+			--directory="${directory}"
 
-				frobulator.inf "Extracting" "[ ${archive} ]"
+		frobulator.inf "Extracting" "[ ${archive} ]"
 
-		;;
+	elif [ "${extension}" = "${extension_7zip}" ]
+	then
+		7z								\
+			x "${file}" 				\
+			-o							"${directory}"
 
-		7z)
-			7z								\
-				x "${file}" 				\
-				-o							"${directory}"
+		frobulator.inf "Extracting" "[ ${archive} ]"
 
-				frobulator.inf "Extracting" "[ ${archive} ]"
-		;;
+	elif [ "${extension}" = "${extension_rar}" ]
+	then
+		unrar e "${file}" "${directory}"
 
-		rar)
-			unrar e "${file}" "${directory}"
+		frobulator.inf "Extracting" "[ ${archive} ]"
 
-				frobulator.inf "Extracting" "[ ${archive} ]"
-		;;
+	elif [ "${extension}" = "${extension_zip}" ]
+	then
+		unzip							\
+			-o							\
+			-qq "${file}"				\
+			-d							"${directory}"
 
-		zip)
-			unzip							\
-				-o							\
-				-qq "${file}"				\
-				-d							"${directory}"
+		frobulator.inf "Extracting" "[ ${archive} ]"
 
-				frobulator.inf "Extracting" "[ ${archive} ]"
-		;;
+	else
+		frobulator.err "Unsupported archive type" "[ '${archive}' ]"
 
-		*)
-			frobulator.err "Unsupported archive type" "[ '${archive}' ]"
+		return 1
 
-			return 1
-		;;
-
-	esac
+	fi
 }

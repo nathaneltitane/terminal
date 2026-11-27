@@ -69,16 +69,21 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+option_all="all"
+option_device="device"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-a|--all)
-			option="all"
+			option="${option_all}"
 		;;
 
 		-d|--device)
-			option="device"
+			option="${option_device}"
 
 			device="${2}"
 
@@ -133,11 +138,23 @@ done
 # variables ────────────────────────────────────────────────────────────────────
 
 type_key="ed25519"
+passphrase_key=""
+separator_comment="@"
+extension_private=".key"
+extension_public=".pub"
+mode_private="0600"
+mode_public="0644"
+owner_key="${USER}:${USER}"
+directory_media="/media/internal"
+name_ssh=".ssh"
+name_keys=".keys"
+package_openssh="openssh*"
+package_ssh="ssh*"
 
 # key store - copied to ~/.ssh by utility-ssh:
 # names match ~/.ssh/config identity files
 
-directory_key=/media/internal/.ssh/.keys
+directory_key="${directory_media}/${name_ssh}/${name_keys}"
 
 # computers and android devices - same as utility-ssh
 
@@ -164,7 +181,7 @@ fi
 
 # single device - must be one of the listed devices
 
-if [ "${option}" = "device" ]
+if [ "${option}" = "${option_device}" ]
 then
 	if [[ ! " ${list_devices[*]} " == *" ${device} "* ]]
 	then
@@ -189,8 +206,8 @@ fi
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	openssh*
-	ssh*
+	"${package_openssh}"
+	"${package_ssh}"
 )
 
 frobulator.require ${list[@]}
@@ -199,14 +216,17 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-frobulator.directory "$(dirname "${directory_key}")" "$(basename "${directory_key}")"
+directory_key_parent="$(dirname "${directory_key}")"
+name_key_directory="$(basename "${directory_key}")"
+
+frobulator.directory "${directory_key_parent}" "${name_key_directory}"
 
 for device in "${list_devices[@]}"
 do
 	# key files of this device
 
-	file_key_private="${directory_key}/${device}.key"
-	file_key_public="${file_key_private}.pub"
+	file_key_private="${directory_key}/${device}${extension_private}"
+	file_key_public="${file_key_private}${extension_public}"
 
 	# previous key pair replaced
 
@@ -214,23 +234,23 @@ do
 
 	# generate key - no passphrase
 
-	ssh-keygen								\
-		-q									\
-		-t "${type_key}"					\
-		-f "${file_key_private}"			\
-		-N ''								\
-		-C "${USER}@${device}"
+	ssh-keygen										\
+		-q											\
+		-t "${type_key}"							\
+		-f "${file_key_private}"					\
+		-N "${passphrase_key}"						\
+		-C "${USER}${separator_comment}${device}"
 
 	frobulator.complete
 
 	# ownership - the user running the script - not root after escalation
 
-	chown "${USER}:${USER}" "${file_key_private}" "${file_key_public}"
+	chown "${owner_key}" "${file_key_private}" "${file_key_public}"
 
 	# permissions - private key readable by its owner only
 
-	chmod 0600 "${file_key_private}"
-	chmod 0644 "${file_key_public}"
+	chmod "${mode_private}" "${file_key_private}"
+	chmod "${mode_public}" "${file_key_public}"
 
 	frobulator.scs "Key generated" "[ ${device} // ${file_key_private} ]"
 done

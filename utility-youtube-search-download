@@ -81,9 +81,68 @@ duration_sleep_maximum=5
 
 solver="deno"
 
-runtime_javascript="${solver}:$(command -v ${solver})"
+path_solver="$(command -v ${solver})"
+
+runtime_javascript="${solver}:${path_solver}"
 
 extension_track="mp3"
+
+mode_input="input"
+
+mode_file="file"
+
+directory_default="${HOME}/tracks"
+
+format_stamp="%m-%d-%Y-%H-%M-%S"
+
+suffix_desktop=".desktop"
+
+prefix_search="ytsearch"
+
+separator_search=":"
+
+separator_track=" - "
+
+prefix_comment="#"
+
+pattern_track="*.${extension_track}"
+
+pattern_metadata='^.*$'
+
+pattern_browser_firefox="firefox*"
+pattern_browser_librewolf="librewolf*"
+pattern_browser_waterfox="waterfox*"
+pattern_browser_chrome="chrome*"
+pattern_browser_google_chrome="google-chrome*"
+pattern_browser_chromium="chromium*"
+pattern_browser_brave="brave*"
+pattern_browser_vivaldi="vivaldi*"
+pattern_browser_opera="opera*"
+
+name_browser_firefox="firefox"
+name_browser_chrome="chrome"
+
+field_title="title"
+field_artist="artist"
+
+filter_duration=".duration"
+filter_url=".webpage_url"
+
+value_null="null"
+
+template_extension='%(ext)s'
+
+format_find='%f\n'
+
+characters_upper='[:upper:]'
+characters_lower='[:lower:]'
+characters_separator_from='/:'
+characters_separator_to='--'
+
+expression_strip='s/[^a-z0-9._ -]//g'
+expression_spaces='s/[[:space:]]\+/ /g'
+expression_leading='s/^ *//g'
+expression_trailing='s/ *$//g'
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -98,14 +157,14 @@ do
 		;;
 
 		-i|--input)
-			option="input"
+			option="${mode_input}"
 			input_user="${2}"
 
 			shift
 		;;
 
 		-f|--file)
-			option="file"
+			option="${mode_file}"
 			file_input="${2}"
 
 			shift
@@ -162,7 +221,7 @@ frobulator.clear
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+stamp="$(date +"${format_stamp}")"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -177,15 +236,15 @@ if [ -z "${directory_download}" ]
 then
 	frobulator.wrn "No download directory specified"
 
-	frobulator.inf "Defaulting" "[ ${HOME}/tracks ]"
+	frobulator.inf "Defaulting" "[ ${directory_default} ]"
 
-	directory_download="${HOME}"/tracks
+	directory_download="${directory_default}"
 
 else
 	directory_download="${directory_download}"
 fi
 
-if [ "${option}" = "input" ] &&
+if [ "${option}" = "${mode_input}" ] &&
    [ -z "${input_user}"    ]
 then
 	frobulator.err "Missing input track"
@@ -195,7 +254,7 @@ then
 	exit 1
 fi
 
-if [ "${option}" = "file" ] &&
+if [ "${option}" = "${mode_file}" ] &&
    [ -z "${file_input}"   ]
 then
 	frobulator.err 'No input file specified'
@@ -203,7 +262,7 @@ then
 	exit 1
 fi
 
-if [ "${option}" = 'file' ] &&
+if [ "${option}" = "${mode_file}" ] &&
    [ ! -f "${file_input}" ]
 then
 	frobulator.err "No input file found" "[ ${file_input} ]"
@@ -219,22 +278,22 @@ browser_identify () {
 		xdg-settings get default-web-browser 2>"${sink}"
 	)
 
-	browser=${browser%.desktop}
+	browser=${browser%"${suffix_desktop}"}
 
-	if [[ "${browser}" = firefox*         ]] ||
-	   [[ "${browser}" = librewolf*       ]] ||
-	   [[ "${browser}" = waterfox*        ]]
+	if [[ "${browser}" = ${pattern_browser_firefox} ]] ||
+	   [[ "${browser}" = ${pattern_browser_librewolf} ]] ||
+	   [[ "${browser}" = ${pattern_browser_waterfox} ]]
 	then
-		browser="firefox"
+		browser="${name_browser_firefox}"
 
-	elif [[ "${browser}" = chrome*        ]] ||
-	     [[ "${browser}" = google-chrome* ]] ||
-	     [[ "${browser}" = chromium*      ]] ||
-	     [[ "${browser}" = brave*         ]] ||
-	     [[ "${browser}" = vivaldi*       ]] ||
-	     [[ "${browser}" = opera*         ]]
+	elif [[ "${browser}" = ${pattern_browser_chrome} ]] ||
+	     [[ "${browser}" = ${pattern_browser_google_chrome} ]] ||
+	     [[ "${browser}" = ${pattern_browser_chromium} ]] ||
+	     [[ "${browser}" = ${pattern_browser_brave} ]] ||
+	     [[ "${browser}" = ${pattern_browser_vivaldi} ]] ||
+	     [[ "${browser}" = ${pattern_browser_opera} ]]
 	then
-		browser="chrome"
+		browser="${name_browser_chrome}"
 
 	else
 		frobulator.err "No compatible browser found on system"
@@ -245,17 +304,17 @@ browser_identify () {
 
 normalize () {
 
-	echo "${1}"						|
+	echo "${1}"															|
 
-		tr '[:upper:]' '[:lower:]'	|
+		tr "${characters_upper}" "${characters_lower}"					|
 
-		tr '/:' '--'				|
+		tr "${characters_separator_from}" "${characters_separator_to}"	|
 
-		sed								\
-			-e 's/[^a-z0-9._ -]//g'		\
-			-e 's/[[:space:]]\+/ /g'	\
-			-e 's/^ *//g'				\
-			-e 's/ *$//g'
+		sed											\
+			--expression="${expression_strip}"		\
+			--expression="${expression_spaces}"		\
+			--expression="${expression_leading}"	\
+			--expression="${expression_trailing}"
 }
 
 sleep_randomize () {
@@ -281,7 +340,7 @@ youtube_search () {
 		--sleep-requests "${duration_sleep}"	\
 		--flat-playlist							\
 		--dump-json								\
-												"ytsearch${count_search}:${track}" 2>"${sink}"
+												"${prefix_search}${count_search}${separator_search}${track}" 2>"${sink}"
 }
 
 youtube_download () {
@@ -290,10 +349,8 @@ youtube_download () {
 	local artist="${2}"
 	local title="${3}"
 	local filename="${4}"
-
-	quality_audio="0"
-
-	format_audio='bestaudio/best'
+	local quality_audio="0"
+	local format_audio='bestaudio/best'
 
 	sleep_randomize
 
@@ -310,9 +367,9 @@ youtube_download () {
 		--format "${format_audio}"								\
 		--embed-metadata										\
 		--no-playlist											\
-		--replace-in-metadata title '^.*$' "${title}"			\
-		--replace-in-metadata artist '^.*$' "${artist}"			\
-		--output "${directory_download}/${filename}.%(ext)s"	\
+		--replace-in-metadata "${field_title}" "${pattern_metadata}" "${title}"	\
+		--replace-in-metadata "${field_artist}" "${pattern_metadata}" "${artist}"		\
+		--output "${directory_download}/${filename}.${template_extension}"	\
 																"${url}"
 }
 
@@ -407,8 +464,8 @@ then
 	done < <(
 		find "${directory_download}"		\
 			-type f							\
-			-iname "*.${extension_track}"	\
-			-printf '%f\n'
+			-iname "${pattern_track}"	\
+			-printf "${format_find}"
 	)
 
 	unset IFS
@@ -419,7 +476,7 @@ then
 	do
 		track_existing=${track_existing%."${extension_track}"}
 
-		track_existing=$(normalize "${track_existing}")
+		track_existing="$(normalize "${track_existing}")"
 
 		list_tracks_existing+=("${track_existing}")
 
@@ -436,20 +493,20 @@ then
 
 		# skip comments
 
-		if [[ ${track} = \#* ]]
+		if [[ ${track} = "${prefix_comment}"* ]]
 		then
 			continue
 		fi
 
 		# normalize filename for comparisons
 
-		name_file_normalized=$(normalize "${track}")
+		name_file_normalized="$(normalize "${track}")"
 
 		# preserve original filename for output
 
-		filename=$(echo "${track}" | tr '/:' '--')
+		filename="$(echo "${track}" | tr "${characters_separator_from}" "${characters_separator_to}")"
 
-		found='false'
+		found="false"
 
 		# compare against existing downloads
 
@@ -457,7 +514,7 @@ then
 		do
 			if [ "${track_existing}" = "${name_file_normalized}" ]
 			then
-				found='true'
+				found="true"
 
 				break
 			fi
@@ -465,7 +522,7 @@ then
 
 		# append only missing tracks
 
-		if [ "${found}" = 'false' ]
+		if [ "${found}" = "false" ]
 		then
 			frobulator.ret "Adding ${track}"
 
@@ -487,7 +544,7 @@ if [ "${#list_tracks_pending[@]}" -gt 0 ]
 then
 	count=0
 
-	file_search=$(mktemp)
+	file_search="$(mktemp)"
 
 	for track in "${list_tracks_pending[@]}"
 	do
@@ -495,37 +552,37 @@ then
 
 		# parse artist
 
-		artist=${track%% - *}
+		artist=${track%%"${separator_track}"*}
 
 		# parse title
 
-		title=${track#* - }
+		title=${track#*"${separator_track}"}
 
 		# normalize filename for comparisons
 
-		name_file_normalized=$(normalize "${track}")
+		name_file_normalized="$(normalize "${track}")"
 
 		# preserve original filename for output
 
-		filename=$(echo "${track}" | tr '/:' '--')
+		filename="$(echo "${track}" | tr "${characters_separator_from}" "${characters_separator_to}")"
 
-		url=''
+		unset url
 
 		# retrieve candidates
 
 		youtube_search "${track}" > "${file_search}"
 
-		results=$(cat "${file_search}")
+		results="$(cat "${file_search}")"
 
 		# select first reasonable duration
 
 		while IFS= read -r result
 		do
-			duration_track=$(echo "${result}" | jq -r '.duration')
+			duration_track="$(echo "${result}" | jq --raw-output "${filter_duration}")"
 
 			# skip invalid duration
 
-			if [ "${duration_track}" = 'null' ]
+			if [ "${duration_track}" = "${value_null}" ]
 			then
 				frobulator.wrn "No valid duration match" "[ ${track} ]"
 
@@ -537,7 +594,7 @@ then
 			if [ "${duration_track}" -ge "${duration_minimum}" ] &&
 			   [ "${duration_track}" -le "${duration_maximum}" ]
 			then
-				url=$(echo "${result}" | jq -r '.webpage_url')
+				url="$(echo "${result}" | jq --raw-output "${filter_url}")"
 
 				break
 			fi

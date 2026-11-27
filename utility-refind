@@ -114,6 +114,28 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+host_download="get.trmnl.me"
+directory_boot="/boot"
+directory_efi="${directory_boot}/efi"
+directory_loaders="${directory_efi}/EFI"
+directory_refind="${directory_loaders}/refind"
+directory_themes="${directory_refind}/themes"
+directory_block="/sys/class/block"
+file_firmware="/sys/firmware/efi"
+file_release="/etc/os-release"
+file_loader="${directory_refind}/refind_x64.efi"
+file_configuration="refind.conf"
+file_theme="archive-refind-theme.tar.gz"
+file_partition="partition"
+name_download_configuration="refind-configuration"
+name_package_refind="refind"
+name_package_grub="grub"
+pattern_package_grub='grub*'
+pattern_package_shim='shim*'
+pattern_secure_boot_disabled="*disabled*"
+pattern_entry="^Boot([0-9A-Fa-f]{4})[*[:space:]][[:space:]](.*)$"
+separator_tab=$'\t'
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -136,13 +158,13 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -e /sys/firmware/efi ]
+if [ -e "${file_firmware}" ]
 then
 
 	# install
 
 	list=(
-		refind
+		"${name_package_refind}"
 	)
 
 	frobulator.install ${list[@]}
@@ -153,45 +175,45 @@ then
 
 	# purge
 
-	apt purge --yes 'grub*' > "${sink}" 2>&1
+	apt purge --yes "${pattern_package_grub}" > "${sink}" 2>&1
 
 	list=(
-		grub
+		"${name_package_grub}"
 	)
 
-	frobulator.delete /boot ${list[@]}
+	frobulator.delete "${directory_boot}" ${list[@]}
 
 	list=()
 
 	# remove
 
 	list=(
-		refind.conf
+		"${file_configuration}"
 	)
 
-	frobulator.delete /boot/efi/EFI/refind	${list[@]}
+	frobulator.delete "${directory_refind}" ${list[@]}
 
-	frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
+	frobulator.download "${host_download}" "${name_download_configuration}" "${directory_refind}" "${file_configuration}"
 
-	frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+	frobulator.download "${host_download}" "${directory_themes}" "${file_theme}"
 
-	frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
+	frobulator.extract "${directory_themes}/${file_theme}" "${directory_themes}"
 
-	frobulator.delete /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+	frobulator.delete "${directory_themes}" "${file_theme}"
 
 	# cleanup
 
 	# remove leftover efi loaders
 
-	name_distribution="$(source /etc/os-release && echo "${ID}")"
+	name_distribution="$(source "${file_release}"; echo "${ID}")"
 
-	if [ -f /boot/efi/EFI/refind/refind_x64.efi ] && [ -n "${name_distribution}" ]
+	if [ -f "${file_loader}" ] && [ -n "${name_distribution}" ]
 	then
 		list=(
 			"${name_distribution}"
 		)
 
-		frobulator.delete /boot/efi/EFI ${list[@]}
+		frobulator.delete "${directory_loaders}" ${list[@]}
 
 		list=()
 	fi
@@ -200,26 +222,28 @@ then
 
 	state_secure_boot="$(mokutil --sb-state 2> "${sink}")"
 
-	if [[ "${state_secure_boot}" = *disabled* ]]
+	if [[ "${state_secure_boot}" = ${pattern_secure_boot_disabled} ]]
 	then
-		apt purge --yes 'shim*' > "${sink}" 2>&1
+		apt purge --yes "${pattern_package_shim}" > "${sink}" 2>&1
 	fi
 
 	# remove stale firmware boot entries
 
-	partition_efi="$(findmnt --noheadings --output SOURCE /boot/efi)"
-	number_partition_efi="$(cat /sys/class/block/"${partition_efi##*/}"/partition 2> "${sink}")"
+	partition_efi="$(findmnt --noheadings --output SOURCE "${directory_efi}")"
+	number_partition_efi="$(cat "${directory_block}"/"${partition_efi##*/}"/"${file_partition}" 2> "${sink}")"
 	guid_partition_efi="$(lsblk --noheadings --output PARTUUID "${partition_efi}")"
+
+	pattern_path_entry="^hd\(([0-9]+),gpt,${guid_partition_efi,,}"
 
 	mapfile -t list_entries < <(efibootmgr --verbose 2> "${sink}")
 
 	for entry in "${list_entries[@]}"
 	do
-		if [[ "${entry}" =~ ^Boot([0-9A-Fa-f]{4})[*[:space:]][[:space:]](.*)$ ]]
+		if [[ "${entry}" =~ ${pattern_entry} ]]
 		then
 			number_entry="${BASH_REMATCH[1]}"
-			label_entry="${BASH_REMATCH[2]%%$'\t'*}"
-			path_entry="${BASH_REMATCH[2]#*$'\t'}"
+			label_entry="${BASH_REMATCH[2]%%"${separator_tab}"*}"
+			path_entry="${BASH_REMATCH[2]#*"${separator_tab}"}"
 
 			unset state_entry_remove
 
@@ -228,7 +252,7 @@ then
 				state_entry_remove="true"
 			fi
 
-			if [[ "${path_entry,,}" =~ ^hd\(([0-9]+),gpt,${guid_partition_efi,,} ]] &&
+			if [[ "${path_entry,,}" =~ ${pattern_path_entry} ]] &&
 			   [ "${BASH_REMATCH[1]}" != "${number_partition_efi}" ]
 			then
 				state_entry_remove="true"

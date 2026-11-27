@@ -8,8 +8,13 @@ countf () {
 
 	# output starts one line below the command
 
+	local directory_search="."
+	local count_files
+
+	count_files="$(find "${directory_search}" -type f | wc --lines)"
+
 	echo
 
-	echo "$(find . -type f | wc -l) files under ${PWD}"
+	echo "${count_files} files under ${PWD}"
 
 }

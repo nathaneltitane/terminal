@@ -123,6 +123,22 @@ name_service_cloud="google drive"
 directory_server_cloud="drive:"
 directory_server_local="/media/internal"
 
+file_script="${HOME}/.local/bin/${process}"
+mode_executable="+x"
+pattern_directory_rclone="/media/[iI]nternal/[rR][cC]lone"
+name_configuration="rclone.conf"
+directory_configuration=".config/rclone"
+property_watches="fs.inotify.max_user_watches"
+file_watches="/proc/sys/fs/inotify/max_user_watches"
+directory_sysctl="/etc/sysctl.d"
+name_sysctl="99-inotify.conf"
+directory_systemd="/etc/systemd"
+directory_unit="system"
+file_unit="${directory_systemd}/${directory_unit}/${service}"
+pattern_listings_bisync="${HOME}/.cache/rclone/bisync/*.lst"
+directory_cache="${HOME}/.cache"
+name_cache="rclone"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -156,15 +172,15 @@ frobulator.complete
 
 list=()
 
-if [ -d /media/[iI]nternal/[rR][cC]lone ]
+if [ -d ${pattern_directory_rclone} ]
 then
-	if [ -f /media/[iI]nternal/[rR][cC]lone/rclone.conf ]
+	if [ -f ${pattern_directory_rclone}/${name_configuration} ]
 	then
 		frobulator.inf "Linking configuration"
 
-		frobulator.directory "${HOME}" .config/rclone
+		frobulator.directory "${HOME}" "${directory_configuration}"
 
-		frobulator.link /media/[iI]nternal/[rR][cC]lone/ "${HOME}"/.config/rclone rclone.conf
+		frobulator.link ${pattern_directory_rclone}/ "${HOME}/${directory_configuration}" "${name_configuration}"
 
 		frobulator.complete
 	fi
@@ -172,11 +188,11 @@ fi
 
 # script
 
-cat <<- FILE > "${HOME}"/.local/bin/"${process}"
+cat <<- FILE > "${file_script}"
 #!/bin/bash
 
-directory_server_cloud="drive:"
-directory_server_local="/media/internal"
+directory_server_cloud="${directory_server_cloud}"
+directory_server_local="${directory_server_local}"
 
 file_count_runs="\${HOME}"/.local/bin/rclone-google-drive-run-count
 file_lock_synchronize="\${HOME}"/.local/bin/rclone-google-drive-sync-lock
@@ -412,7 +428,7 @@ frobulator.complete
 
 # permissions
 
-chmod +x "${HOME}"/.local/bin/"${process}"
+chmod "${mode_executable}" "${file_script}"
 
 frobulator.complete
 
@@ -420,28 +436,28 @@ frobulator.complete
 
 count_watches_required="524288"
 
-count_watches_current="$(cat /proc/sys/fs/inotify/max_user_watches)"
+count_watches_current="$(cat "${file_watches}")"
 
 if [ "${count_watches_current}" -lt "${count_watches_required}" ]
 then
 	frobulator.inf "Raising inotify watch limit" "[ ${count_watches_required} ]"
 
-	sysctl -w fs.inotify.max_user_watches="${count_watches_required}" > "${sink}"
+	sysctl -w "${property_watches}=${count_watches_required}" > "${sink}"
 
-	frobulator.write write "fs.inotify.max_user_watches=${count_watches_required}" /etc/sysctl.d 99-inotify.conf
+	frobulator.write write "${property_watches}=${count_watches_required}" "${directory_sysctl}" "${name_sysctl}"
 
 	frobulator.complete
 fi
 
 # service
 
-frobulator.directory /etc/systemd system
+frobulator.directory "${directory_systemd}" "${directory_unit}"
 
 frobulator.complete
 
 # service desciptor
 
-cat <<- FILE > /etc/systemd/system/"${service}"
+cat <<- FILE > "${file_unit}"
 [Unit]
 Description=Synchronize Google Drive using RClone
 After=network-online.target
@@ -466,15 +482,20 @@ frobulator.complete
 # prepare - first install only
 # earlier sync state kept - a fresh resync merges both sides and brings back every file deleted since
 
-list_listings_bisync=("${HOME}"/.cache/rclone/bisync/*.lst)
+list_listings_bisync=(${pattern_listings_bisync})
 
 if [ -e "${list_listings_bisync[0]}" ]
 then
 	frobulator.inf "Keeping sync state" "[ ${#list_listings_bisync[@]} listings // no resync ]"
 else
-	frobulator.delete "$(dirname "${file_count_runs}")" "$(basename "${file_count_runs}")"
+	# run count location
 
-	frobulator.delete "${HOME}"/.cache rclone
+	directory_count_runs="$(dirname "${file_count_runs}")"
+	name_count_runs="$(basename "${file_count_runs}")"
+
+	frobulator.delete "${directory_count_runs}" "${name_count_runs}"
+
+	frobulator.delete "${directory_cache}" "${name_cache}"
 
 	frobulator.complete
 fi

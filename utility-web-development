@@ -126,18 +126,33 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-directory_web_development=/var/www
+directory_web_development="/var/www"
+directory_logs="/var/log"
+directory_sites_available="/etc/apache2/sites-available"
+directory_hosts="/etc"
+name_hosts="hosts"
+file_hosts="${directory_hosts}/${name_hosts}"
+extension_configuration=".conf"
+suffix_domain=".local"
+address_loopback="127.0.0.1"
+name_site_default="mechablocks"
+name_package="apache2"
+pattern_enabled="enabled"
+pattern_error="error"
+mode_permissions="u+rwX,go+rX"
 
-process="apache2"
+separator_hosts="$(printf '\t\t')"
+
+process="${name_package}"
 service="${process}.service"
 
 web="www"
 hostname="${HOSTNAME}"
 
-ip=$(hostname -I)
+ip="$(hostname -I)"
 ip="${ip%% *}"
 
-list_sites=("${list_sites[@]:-mechablocks}")
+list_sites=("${list_sites[@]:-${name_site_default}}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -152,7 +167,7 @@ list_sites=("${list_sites[@]:-mechablocks}")
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	apache2
+	"${name_package}"
 )
 
 frobulator.require ${list[@]}
@@ -167,38 +182,41 @@ list=()
 
 for item in "${list_sites[@]}"
 do
+	directory_site="${directory_web_development}/${item}/"
+	domain_site="${item}${suffix_domain}"
+
 	frobulator.directory "${directory_web_development}" "${item}"
 
 	frobulator.complete
 
 	content_vhost=$(cat <<- FILE
 	<VirtualHost *:80>
-		ServerName ${item}.local
-		DocumentRoot /var/www/${item}/
+		ServerName ${domain_site}
+		DocumentRoot ${directory_site}
 
-		<Directory "/var/www/${item}/">
+		<Directory "${directory_site}">
 			Options None
 			AllowOverride None
 			Order allow,deny
 			Allow from all
 		</Directory>
 
-		ErrorLog /var/log/${item}-error.log
-		CustomLog /var/log/${item}-access.log combined
+		ErrorLog ${directory_logs}/${item}-error.log
+		CustomLog ${directory_logs}/${item}-access.log combined
 	</VirtualHost>
 	FILE
 	)
 
-	frobulator.write write "${content_vhost}" /etc/apache2/sites-available "${item}.conf"
+	frobulator.write write "${content_vhost}" "${directory_sites_available}" "${item}${extension_configuration}"
 
 	frobulator.complete
 
 	# site activation report: 'enabled' on success - 'error' on failure
 
-	output_site_activation="$(a2ensite "${item}".conf)"
+	output_site_activation="$(a2ensite "${item}${extension_configuration}")"
 
-	line_site_enabled="$(echo "${output_site_activation}" | grep -e "enabled")"
-	line_site_error="$(echo "${output_site_activation}" | grep -e "error")"
+	line_site_enabled="$(echo "${output_site_activation}" | grep --regexp="${pattern_enabled}")"
+	line_site_error="$(echo "${output_site_activation}" | grep --regexp="${pattern_error}")"
 
 	if [ -n "${line_site_enabled}" ]
 	then
@@ -212,11 +230,15 @@ do
 
 	# site hosts file entry - written once - comments ignored - whole name matched
 
-	count_hosts_entry="$(grep -c -E "^[^#]*[[:space:]]${item//./\\.}\\.local([[:space:]]|$)" /etc/hosts)"
+	pattern_item="${item//./\\.}"
+	pattern_domain="${suffix_domain//./\\.}"
+	pattern_hosts_entry="^[^#]*[[:space:]]${pattern_item}${pattern_domain}([[:space:]]|$)"
+
+	count_hosts_entry="$(grep --count --extended-regexp "${pattern_hosts_entry}" "${file_hosts}")"
 
 	if [ "${count_hosts_entry}" -eq 0 ]
 	then
-		frobulator.write append "127.0.0.1$(printf '\t\t')${item}.local" /etc hosts
+		frobulator.write append "${address_loopback}${separator_hosts}${domain_site}" "${directory_hosts}" "${name_hosts}"
 
 		frobulator.complete
 	fi
@@ -226,11 +248,11 @@ do
 	# readable by the web server - directories traversable - file modes otherwise kept
 	# site may be a link to a git repository - a blanket 755 marks every file executable
 
-	chmod -R u+rwX,go+rX "${directory_web_development}"/"${item}"/
+	chmod --recursive "${mode_permissions}" "${directory_site}"
 
 	frobulator.complete
 
-	chown -R "${USER}":"${USER}" "${directory_web_development}"/"${item}"/
+	chown --recursive "${USER}:${USER}" "${directory_site}"
 
 	frobulator.complete
 

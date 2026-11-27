@@ -114,6 +114,14 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+host_download="get.trmnl.me"
+directory_binaries="${HOME}/.local/bin"
+directory_i3="${HOME}/.config/i3"
+directory_i3status="${HOME}/.config/i3status"
+file_i3_configuration="i3-configuration"
+file_i3status_configuration="i3status-configuration"
+file_type_link="config"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -157,8 +165,8 @@ list_install=()
 # load interface files
 
 list_interface+=(
-	i3-configuration
- 	i3status-configuration
+	${file_i3_configuration}
+	${file_i3status_configuration}
 	i3-backgrounds
 	i3-confirm
 	i3-directory
@@ -171,17 +179,17 @@ list_interface+=(
 	i3-navigation
 	i3-notes
 	i3-processes
- 	i3-shortcuts
- 	i3-status
+	i3-shortcuts
+	i3-status
 	i3-template
 )
 
-frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list_interface[@]}
+frobulator.download "${host_download}" "${directory_binaries}" ${list_interface[@]}
 
 list_interface=()
 
 # link configuration files
 
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3          i3-configuration          config
-frobulator.link "${HOME}"/.local/bin "${HOME}"/.config/i3status    i3status-configuration    config
+frobulator.link "${directory_binaries}" "${directory_i3}" "${file_i3_configuration}" "${file_type_link}"
+frobulator.link "${directory_binaries}" "${directory_i3status}" "${file_i3status_configuration}" "${file_type_link}"
 

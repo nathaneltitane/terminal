@@ -216,6 +216,77 @@ address_temperature=0x1a2
 
 file_turbo=/sys/devices/system/cpu/intel_pstate/no_turbo
 
+directory_cpu="/dev/cpu"
+name_msr="msr"
+index_processor_first="0"
+prefix_hexadecimal="0x"
+format_register="0x%016x"
+format_offset="%s%d.%02d"
+format_seconds="%d.%03d"
+format_padding="%-3.3s"
+digits_padding="000"
+separator_values=" // "
+text_locked=" // locked"
+text_enabled="enabled"
+text_disabled="disabled"
+unit_voltage="mV"
+unit_watts="W"
+unit_seconds="s"
+unit_celsius="C"
+state_on="on"
+state_off="off"
+value_turbo_enabled="0"
+value_turbo_disabled="1"
+pattern_integer_signed='^-?[0-9]+$'
+pattern_integer='^[0-9]+$'
+pattern_seconds='^[0-9]+(\.[0-9]{1,3})?$'
+limit_millivolts_minimum="-500"
+limit_millivolts_maximum="500"
+limit_temperature_offset="63"
+limit_power_raw="0x7FFF"
+
+# register fields - bit positions, shifts and masks
+
+position_bit_request="63"
+position_bit_command_read="36"
+position_bit_command_write="32"
+position_bit_long_enable="15"
+position_bit_short_enable="47"
+position_bit_lock="63"
+shift_plane="40"
+shift_offset="21"
+shift_unit_time="16"
+shift_time_long="17"
+shift_power_short="32"
+shift_time_short="49"
+shift_fraction="5"
+shift_temperature_maximum="16"
+shift_temperature_offset="24"
+mask_steps=0xFFF
+mask_offset=0xFFE00000
+mask_word=0xFFFFFFFF
+mask_exponent=0x1F
+mask_fraction=0x3
+mask_unit=0xF
+mask_power_limit=0x7FFF
+mask_power_window=0xFFFFFF
+mask_time=0x7F
+mask_byte=0xFF
+mask_temperature_offset=0x7F
+
+# offset and time window math
+
+count_steps_half="1024"
+count_steps_full="2048"
+count_steps_scale="1024"
+count_rounding="500"
+count_thousand="1000"
+count_hundred="100"
+count_hundredths_scale="100000"
+count_fraction_base="4"
+count_exponent_maximum="31"
+count_fraction_maximum="3"
+
 # voltage plane indexes in the voltage mailbox
 
 declare -A index_plane=(
@@ -245,9 +316,9 @@ msr_read () {
 	local address_register="${1}"
 	local value_register
 
-	value_register="$(rdmsr --processor 0 --zero-pad "${address_register}" 2> "${sink}")"
+	value_register="$(rdmsr --processor "${index_processor_first}" --zero-pad "${address_register}" 2> "${sink}")"
 
-	echo "0x${value_register}"
+	echo "${prefix_hexadecimal}${value_register}"
 }
 
 msr_write () {
@@ -258,7 +329,7 @@ msr_write () {
 	local value_register="${2}"
 	local text_value
 
-	printf -v text_value '0x%016x' "${value_register}"
+	printf -v text_value "${format_register}" "${value_register}"
 
 	wrmsr --all "${address_register}" "${text_value}" 2> "${sink}"
 }
@@ -269,16 +340,16 @@ offset_encode () {
 
 	local millivolts="${1}"
 	local steps
-	local scaled=$(( millivolts * 1024 ))
+	local scaled=$(( millivolts * count_steps_scale ))
 
 	if [ "${scaled}" -ge 0 ]
 	then
-		steps=$(( (scaled + 500) / 1000 ))
+		steps=$(( (scaled + count_rounding) / count_thousand ))
 	else
-		steps=$(( - ((- scaled + 500) / 1000) ))
+		steps=$(( - ((- scaled + count_rounding) / count_thousand) ))
 	fi
 
-	echo $(( ((steps & 0xFFF) << 21) & 0xFFE00000 ))
+	echo $(( ((steps & mask_steps) << shift_offset) & mask_offset ))
 }
 
 offset_decode () {
@@ -286,24 +357,30 @@ offset_decode () {
 	# offset field to millivolts - two decimals
 
 	local value_offset="${1}"
-	local steps=$(( (value_offset & 0xFFFFFFFF) >> 21 ))
+	local steps=$(( (value_offset & mask_word) >> shift_offset ))
 	local hundredths
 	local sign=""
+	local sign_negative="-"
+	local whole
+	local fraction
 
-	if [ "${steps}" -gt 1024 ]
+	if [ "${steps}" -gt "${count_steps_half}" ]
 	then
-		steps=$(( - (2048 - steps) ))
+		steps=$(( - (count_steps_full - steps) ))
 	fi
 
-	hundredths=$(( steps * 100000 / 1024 ))
+	hundredths=$(( steps * count_hundredths_scale / count_steps_scale ))
 
 	if [ "${hundredths}" -lt 0 ]
 	then
-		sign="-"
+		sign="${sign_negative}"
 		hundredths=$(( - hundredths ))
 	fi
 
-	printf '%s%d.%02d' "${sign}" $(( hundredths / 100 )) $(( hundredths % 100 ))
+	whole=$(( hundredths / count_hundred ))
+	fraction=$(( hundredths % count_hundred ))
+
+	printf "${format_offset}" "${sign}" "${whole}" "${fraction}"
 }
 
 offset_read () {
@@ -311,7 +388,7 @@ offset_read () {
 	# read request written to the mailbox - answer read back
 
 	local name_plane="${1}"
-	local value_request=$(( (1 << 63) | (index_plane[${name_plane}] << 40) | (1 << 36) ))
+	local value_request=$(( (1 << position_bit_request) | (index_plane[${name_plane}] << shift_plane) | (1 << position_bit_command_read) ))
 	local value_answer
 
 	msr_write "${address_voltage}" "${value_request}"
@@ -333,7 +410,7 @@ offset_write () {
 	local millivolts_read
 
 	value_offset="$(offset_encode "${millivolts}")"
-	value_request=$(( (1 << 63) | (index_plane[${name_plane}] << 40) | (1 << 36) | (1 << 32) | value_offset ))
+	value_request=$(( (1 << position_bit_request) | (index_plane[${name_plane}] << shift_plane) | (1 << position_bit_command_read) | (1 << position_bit_command_write) | value_offset ))
 
 	msr_write "${address_voltage}" "${value_request}"
 
@@ -342,12 +419,12 @@ offset_write () {
 
 	if [ "${millivolts_wanted}" != "${millivolts_read}" ]
 	then
-		frobulator.err "Voltage offset refused - SGX enabled or interface locked" "[ ${name_plane} // set ${millivolts_wanted} mV // read ${millivolts_read} mV ]"
+		frobulator.err "Voltage offset refused - SGX enabled or interface locked" "[ ${name_plane}${separator_values}set ${millivolts_wanted} ${unit_voltage}${separator_values}read ${millivolts_read} ${unit_voltage} ]"
 
 		return 1
 	fi
 
-	frobulator.scs "Voltage offset applied" "[ ${name_plane} // ${millivolts_read} mV ]"
+	frobulator.scs "Voltage offset applied" "[ ${name_plane}${separator_values}${millivolts_read} ${unit_voltage} ]"
 }
 
 seconds_format () {
@@ -356,11 +433,16 @@ seconds_format () {
 
 	local field_time="${1}"
 	local unit_time="${2}"
-	local exponent=$(( field_time & 0x1F ))
-	local fraction=$(( (field_time >> 5) & 0x3 ))
-	local milliseconds=$(( (1 << exponent) * (4 + fraction) * 1000 / (4 * unit_time) ))
+	local exponent=$(( field_time & mask_exponent ))
+	local fraction=$(( (field_time >> shift_fraction) & mask_fraction ))
+	local milliseconds=$(( (1 << exponent) * (count_fraction_base + fraction) * count_thousand / (count_fraction_base * unit_time) ))
+	local whole
+	local remainder
 
-	printf '%d.%03d' $(( milliseconds / 1000 )) $(( milliseconds % 1000 ))
+	whole=$(( milliseconds / count_thousand ))
+	remainder=$(( milliseconds % count_thousand ))
+
+	printf "${format_seconds}" "${whole}" "${remainder}"
 }
 
 seconds_encode () {
@@ -375,6 +457,7 @@ seconds_encode () {
 	local fraction
 	local candidate
 	local error
+	local decimals
 	local error_best=-1
 	local field_best=0
 
@@ -382,27 +465,30 @@ seconds_encode () {
 
 	if [[ "${seconds}" = *.* ]]
 	then
-		milliseconds=$(( 10#${seconds%%.*} * 1000 + 10#$(printf '%-3.3s' "${seconds#*.}" | tr ' ' '0') ))
+		decimals="${seconds#*.}${digits_padding}"
+		decimals="${decimals:0:3}"
+
+		milliseconds=$(( 10#${seconds%%.*} * count_thousand + 10#${decimals} ))
 	else
-		milliseconds=$(( 10#${seconds} * 1000 ))
+		milliseconds=$(( 10#${seconds} * count_thousand ))
 	fi
 
 	# compared in quarters - 2^y * (4 + z)
 
-	target=$(( milliseconds * unit_time * 4 / 1000 ))
+	target=$(( milliseconds * unit_time * count_fraction_base / count_thousand ))
 
-	for (( exponent = 0 ; exponent <= 31 ; exponent ++ ))
+	for (( exponent = 0 ; exponent <= count_exponent_maximum ; exponent ++ ))
 	do
-		for (( fraction = 0 ; fraction <= 3 ; fraction ++ ))
+		for (( fraction = 0 ; fraction <= count_fraction_maximum ; fraction ++ ))
 		do
-			candidate=$(( (1 << exponent) * (4 + fraction) ))
+			candidate=$(( (1 << exponent) * (count_fraction_base + fraction) ))
 			error=$(( candidate - target ))
 			error=$(( error < 0 ? - error : error ))
 
 			if [ "${error_best}" -lt 0 ] || [ "${error}" -lt "${error_best}" ]
 			then
 				error_best="${error}"
-				field_best=$(( (fraction << 5) | exponent ))
+				field_best=$(( (fraction << shift_fraction) | exponent ))
 			fi
 		done
 	done
@@ -419,39 +505,53 @@ power_read () {
 	local unit_power
 	local unit_time
 	local text_lock=""
-	local text_long_state="disabled"
-	local text_short_state="disabled"
+	local text_long_state="${text_disabled}"
+	local text_short_state="${text_disabled}"
 	local bit_long
 	local bit_short
 	local bit_lock
+	local watts_long
+	local watts_short
+	local field_time_long
+	local field_time_short
+	local text_seconds_long
+	local text_seconds_short
 
 	value_units="$(msr_read "${address_units}")"
 	value_power="$(msr_read "${address_power}")"
 
-	unit_power=$(( 1 << (value_units & 0xF) ))
-	unit_time=$(( 1 << ((value_units >> 16) & 0xF) ))
+	unit_power=$(( 1 << (value_units & mask_unit) ))
+	unit_time=$(( 1 << ((value_units >> shift_unit_time) & mask_unit) ))
 
-	bit_long=$(( (value_power >> 15) & 1 ))
-	bit_short=$(( (value_power >> 47) & 1 ))
-	bit_lock=$(( (value_power >> 63) & 1 ))
+	bit_long=$(( (value_power >> position_bit_long_enable) & 1 ))
+	bit_short=$(( (value_power >> position_bit_short_enable) & 1 ))
+	bit_lock=$(( (value_power >> position_bit_lock) & 1 ))
 
 	if [ "${bit_long}" -eq 1 ]
 	then
-		text_long_state="enabled"
+		text_long_state="${text_enabled}"
 	fi
 
 	if [ "${bit_short}" -eq 1 ]
 	then
-		text_short_state="enabled"
+		text_short_state="${text_enabled}"
 	fi
 
 	if [ "${bit_lock}" -eq 1 ]
 	then
-		text_lock=" // locked"
+		text_lock="${text_locked}"
 	fi
 
-	frobulator.inf "Power limit - sustained" "[ $(( (value_power & 0x7FFF) / unit_power )) W // $(seconds_format $(( (value_power >> 17) & 0x7F )) "${unit_time}") s // ${text_long_state}${text_lock} ]"
-	frobulator.inf "Power limit - short term" "[ $(( ((value_power >> 32) & 0x7FFF) / unit_power )) W // $(seconds_format $(( (value_power >> 49) & 0x7F )) "${unit_time}") s // ${text_short_state}${text_lock} ]"
+	watts_long=$(( (value_power & mask_power_limit) / unit_power ))
+	field_time_long=$(( (value_power >> shift_time_long) & mask_time ))
+	text_seconds_long="$(seconds_format "${field_time_long}" "${unit_time}")"
+
+	watts_short=$(( ((value_power >> shift_power_short) & mask_power_limit) / unit_power ))
+	field_time_short=$(( (value_power >> shift_time_short) & mask_time ))
+	text_seconds_short="$(seconds_format "${field_time_short}" "${unit_time}")"
+
+	frobulator.inf "Power limit - sustained" "[ ${watts_long} ${unit_watts}${separator_values}${text_seconds_long} ${unit_seconds}${separator_values}${text_long_state}${text_lock} ]"
+	frobulator.inf "Power limit - short term" "[ ${watts_short} ${unit_watts}${separator_values}${text_seconds_short} ${unit_seconds}${separator_values}${text_short_state}${text_lock} ]"
 }
 
 power_write () {
@@ -471,7 +571,7 @@ power_write () {
 	value_units="$(msr_read "${address_units}")"
 	value_power="$(msr_read "${address_power}")"
 
-	bit_lock=$(( (value_power >> 63) & 1 ))
+	bit_lock=$(( (value_power >> position_bit_lock) & 1 ))
 
 	if [ "${bit_lock}" -eq 1 ]
 	then
@@ -480,8 +580,8 @@ power_write () {
 		return 1
 	fi
 
-	unit_power=$(( 1 << (value_units & 0xF) ))
-	unit_time=$(( 1 << ((value_units >> 16) & 0xF) ))
+	unit_power=$(( 1 << (value_units & mask_unit) ))
+	unit_time=$(( 1 << ((value_units >> shift_unit_time) & mask_unit) ))
 
 	value_written=$(( value_power ))
 
@@ -489,37 +589,37 @@ power_write () {
 	then
 		raw_power=$(( power_long * unit_power ))
 
-		if [ "${raw_power}" -le 0 ] || [ "${raw_power}" -gt 0x7FFF ]
+		if [ "${raw_power}" -le 0 ] || [ "${raw_power}" -gt "${limit_power_raw}" ]
 		then
-			frobulator.err "Sustained power limit out of range" "[ ${power_long} W ]"
+			frobulator.err "Sustained power limit out of range" "[ ${power_long} ${unit_watts} ]"
 
 			return 1
 		fi
 
 		field_time="$(seconds_encode "${seconds_long}" "${unit_time}")"
 
-		value_written=$(( (value_written & ~0xFFFFFF) | raw_power | (1 << 15) | (field_time << 17) ))
+		value_written=$(( (value_written & ~mask_power_window) | raw_power | (1 << position_bit_long_enable) | (field_time << shift_time_long) ))
 	fi
 
 	if [ -n "${power_short}" ]
 	then
 		raw_power=$(( power_short * unit_power ))
 
-		if [ "${raw_power}" -le 0 ] || [ "${raw_power}" -gt 0x7FFF ]
+		if [ "${raw_power}" -le 0 ] || [ "${raw_power}" -gt "${limit_power_raw}" ]
 		then
-			frobulator.err "Short term power limit out of range" "[ ${power_short} W ]"
+			frobulator.err "Short term power limit out of range" "[ ${power_short} ${unit_watts} ]"
 
 			return 1
 		fi
 
 		field_time="$(seconds_encode "${seconds_short}" "${unit_time}")"
 
-		value_written=$(( (value_written & ~(0xFFFFFF << 32)) | (raw_power << 32) | (1 << 47) | (field_time << 49) ))
+		value_written=$(( (value_written & ~(mask_power_window << shift_power_short)) | (raw_power << shift_power_short) | (1 << position_bit_short_enable) | (field_time << shift_time_short) ))
 	fi
 
 	if [ "${option_lock_power}" = "true" ]
 	then
-		value_written=$(( value_written | (1 << 63) ))
+		value_written=$(( value_written | (1 << position_bit_lock) ))
 	fi
 
 	msr_write "${address_power}" "${value_written}"
@@ -546,13 +646,15 @@ temperature_read () {
 	local value_temperature
 	local maximum
 	local offset
+	local target
 
 	value_temperature="$(msr_read "${address_temperature}")"
 
-	maximum=$(( (value_temperature >> 16) & 0xFF ))
-	offset=$(( (value_temperature >> 24) & 0x7F ))
+	maximum=$(( (value_temperature >> shift_temperature_maximum) & mask_byte ))
+	offset=$(( (value_temperature >> shift_temperature_offset) & mask_temperature_offset ))
+	target=$(( maximum - offset ))
 
-	frobulator.inf "Temperature target" "[ $(( maximum - offset )) C // maximum ${maximum} C ]"
+	frobulator.inf "Temperature target" "[ ${target} ${unit_celsius}${separator_values}maximum ${maximum} ${unit_celsius} ]"
 }
 
 temperature_write () {
@@ -565,22 +667,22 @@ temperature_write () {
 
 	value_temperature="$(msr_read "${address_temperature}")"
 
-	maximum=$(( (value_temperature >> 16) & 0xFF ))
+	maximum=$(( (value_temperature >> shift_temperature_maximum) & mask_byte ))
 	offset=$(( maximum - temperature_target ))
 
-	if [ "${offset}" -lt 0 ] || [ "${offset}" -gt 63 ]
+	if [ "${offset}" -lt 0 ] || [ "${offset}" -gt "${limit_temperature_offset}" ]
 	then
-		frobulator.err "Temperature target out of range" "[ ${temperature_target} C // maximum ${maximum} C ]"
+		frobulator.err "Temperature target out of range" "[ ${temperature_target} ${unit_celsius}${separator_values}maximum ${maximum} ${unit_celsius} ]"
 
 		return 1
 	fi
 
-	value_written=$(( (value_temperature & ~(0x7F << 24)) | (offset << 24) ))
+	value_written=$(( (value_temperature & ~(mask_temperature_offset << shift_temperature_offset)) | (offset << shift_temperature_offset) ))
 
 	msr_write "${address_temperature}" "${value_written}"
 
 	value_check="$(msr_read "${address_temperature}")"
-	value_check=$(( (value_check >> 24) & 0x7F ))
+	value_check=$(( (value_check >> shift_temperature_offset) & mask_temperature_offset ))
 
 	if [ "${value_check}" -ne "${offset}" ]
 	then
@@ -589,19 +691,19 @@ temperature_write () {
 		return 1
 	fi
 
-	frobulator.scs "Temperature target applied" "[ ${temperature_target} C ]"
+	frobulator.scs "Temperature target applied" "[ ${temperature_target} ${unit_celsius} ]"
 }
 
 turbo_read () {
 
-	local state_turbo_current="on"
+	local state_turbo_current="${state_on}"
 	local value_turbo
 
 	value_turbo="$(cat "${file_turbo}" 2> "${sink}")"
 
-	if [ "${value_turbo}" = "1" ]
+	if [ "${value_turbo}" = "${value_turbo_disabled}" ]
 	then
-		state_turbo_current="off"
+		state_turbo_current="${state_off}"
 	fi
 
 	frobulator.inf "Turbo boost" "[ ${state_turbo_current} ]"
@@ -649,23 +751,23 @@ for name_plane in "${list_planes_order[@]}"
 do
 	millivolts="${offsets_plane[${name_plane}]}"
 
-	if [[ ! "${millivolts}" =~ ^-?[0-9]+$ ]]
+	if [[ ! "${millivolts}" =~ ${pattern_integer_signed} ]]
 	then
-		frobulator.err "Offset in whole millivolts" "[ ${name_plane} // ${millivolts} ]"
+		frobulator.err "Offset in whole millivolts" "[ ${name_plane}${separator_values}${millivolts} ]"
 
 		exit 1
 	fi
 
 	if [ "${millivolts}" -gt 0 ] && [ "${option_force}" != "true" ]
 	then
-		frobulator.err "Positive offset needs --force" "[ ${name_plane} // ${millivolts} mV ]"
+		frobulator.err "Positive offset needs --force" "[ ${name_plane}${separator_values}${millivolts} ${unit_voltage} ]"
 
 		exit 1
 	fi
 
-	if [ "${millivolts}" -lt -500 ] || [ "${millivolts}" -gt 500 ]
+	if [ "${millivolts}" -lt "${limit_millivolts_minimum}" ] || [ "${millivolts}" -gt "${limit_millivolts_maximum}" ]
 	then
-		frobulator.err "Offset out of range - -500 to 500 mV" "[ ${name_plane} // ${millivolts} mV ]"
+		frobulator.err "Offset out of range - ${limit_millivolts_minimum} to ${limit_millivolts_maximum} ${unit_voltage}" "[ ${name_plane}${separator_values}${millivolts} ${unit_voltage} ]"
 
 		exit 1
 	fi
@@ -673,7 +775,7 @@ done
 
 for value_check in "${temperature_target}" "${power_long}" "${power_short}"
 do
-	if [ -n "${value_check}" ] && [[ ! "${value_check}" =~ ^[0-9]+$ ]]
+	if [ -n "${value_check}" ] && [[ ! "${value_check}" =~ ${pattern_integer} ]]
 	then
 		frobulator.err "Whole number expected" "[ ${value_check} ]"
 
@@ -683,7 +785,7 @@ done
 
 for value_check in "${seconds_long}" "${seconds_short}"
 do
-	if [ -n "${value_check}" ] && [[ ! "${value_check}" =~ ^[0-9]+(\.[0-9]{1,3})?$ ]]
+	if [ -n "${value_check}" ] && [[ ! "${value_check}" =~ ${pattern_seconds} ]]
 	then
 		frobulator.err "Time window in seconds - up to three decimals" "[ ${value_check} ]"
 
@@ -705,7 +807,7 @@ then
 	exit 1
 fi
 
-if [ -n "${state_turbo}" ] && [ "${state_turbo}" != "on" ] && [ "${state_turbo}" != "off" ]
+if [ -n "${state_turbo}" ] && [ "${state_turbo}" != "${state_on}" ] && [ "${state_turbo}" != "${state_off}" ]
 then
 	frobulator.err "Turbo state - on or off" "[ ${state_turbo} ]"
 
@@ -726,11 +828,11 @@ fi
 
 # register access through the msr kernel module
 
-list_msr=(/dev/cpu/*/msr)
+list_msr=("${directory_cpu}"/*/"${name_msr}")
 
 if [ ! -e "${list_msr[0]}" ]
 then
-	modprobe msr
+	modprobe "${name_msr}"
 
 	frobulator.complete
 fi
@@ -758,11 +860,11 @@ fi
 
 if [ -n "${state_turbo}" ]
 then
-	value_turbo=0
+	value_turbo="${value_turbo_enabled}"
 
-	if [ "${state_turbo}" = "off" ]
+	if [ "${state_turbo}" = "${state_off}" ]
 	then
-		value_turbo=1
+		value_turbo="${value_turbo_disabled}"
 	fi
 
 	echo "${value_turbo}" > "${file_turbo}"
@@ -780,7 +882,7 @@ then
 	do
 		millivolts_read="$(offset_read "${name_plane}")"
 
-		frobulator.inf "Voltage offset - ${name_plane}" "[ ${millivolts_read} mV ]"
+		frobulator.inf "Voltage offset - ${name_plane}" "[ ${millivolts_read} ${unit_voltage} ]"
 	done
 
 	power_read

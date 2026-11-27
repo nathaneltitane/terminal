@@ -125,17 +125,43 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+prefix_option="-"
+pattern_letters='[a-zA-Z]'
+pattern_prefix='^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})'
+separator_octet="."
+separator_result=":"
+format_address_display="%03d.%03d.%03d.%03d"
+format_prefix_display="%03d.%03d.%03d"
+port_ssh="22"
+delay_connect="5"
+delay_probe="0.125"
+count_host_maximum="255"
+count_octet_maximum="255"
+count_plural="2"
+value_yes="yes"
+value_no="no"
+label_port="port"
+label_ssh="ssh"
+label_sftp="sftp"
+label_scan="scan"
+label_address_single="Address"
+label_address_plural="Addresses"
+text_denied="permission denied"
+text_welcome="welcome"
+text_login="last login"
+text_prompt="sftp>"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # validate arguments
 
-if [[ "${lan}" = -* ]]
+if [[ "${lan}" = ${prefix_option}* ]]
 then
 	frobulator.err "Missing argument for '--prefix'."
 
 	exit 1
 
-elif [[ "${lan}" =~ [a-zA-Z] ]]
+elif [[ "${lan}" =~ ${pattern_letters} ]]
 then
 	frobulator.err "Invalid IP address format."
 
@@ -146,60 +172,60 @@ fi
 
 ssh_scan () {
 
-	seconds="5"
-	timeout="0.125"
 	lan="${1}"
 
 	# split ip into individual octets
 
-	IFS='.' read -r octet_01 octet_02 octet_03 <<< "${lan%?}"
+	IFS="${separator_octet}" read -r octet_01 octet_02 octet_03 <<< "${lan%?}"
 
-	for octet_host in {1..255}
+	for (( octet_host = 1 ; octet_host <= count_host_maximum ; octet_host ++ ))
 	do
 		# ip used for networking
 
-		address_host="${octet_01}.${octet_02}.${octet_03}.${octet_host}"
+		address_host="${octet_01}${separator_octet}${octet_02}${separator_octet}${octet_03}${separator_octet}${octet_host}"
 
 		# ip used for informational display
 
-		address_display=$(printf "%03d.%03d.%03d.%03d" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
+		address_display=$(printf "${format_address_display}" "${octet_01}" "${octet_02}" "${octet_03}" "${octet_host}")
 
-		timeout "${timeout}" "${SHELL}" -c "echo > /dev/tcp/${address_host}/22" 2> "${sink}"
+		timeout "${delay_probe}" "${SHELL}" -c "echo > /dev/tcp/${address_host}/${port_ssh}" 2> "${sink}"
 
-		if [ $? -eq 0 ]
+		status_probe="${?}"
+
+		if [ "${status_probe}" -eq 0 ]
 		then
-			echo "port:${address_display}" >> "${file_results}"
+			echo "${label_port}${separator_result}${address_display}" >> "${file_results}"
 
 			# secure shell
 
 			output_ssh=$(
-				ssh								\
-					-oBatchMode=yes				\
-					-oStrictHostKeyChecking=no	\
-					-oConnectTimeout="${seconds}"\
-					-oUserKnownHostsFile="${sink}"\
-													"${address_host}" exit 2>&1
+				ssh									\
+					-oBatchMode="${value_yes}"				\
+					-oStrictHostKeyChecking="${value_no}"	\
+					-oConnectTimeout="${delay_connect}"		\
+					-oUserKnownHostsFile="${sink}"			\
+														"${address_host}" exit 2>&1
 			)
 
-			if [[ "${output_ssh,,}" == *"permission denied"* || "${output_ssh,,}" == *"welcome"* || "${output_ssh,,}" == *"last login"* ]]
+			if [[ "${output_ssh,,}" == *"${text_denied}"* || "${output_ssh,,}" == *"${text_welcome}"* || "${output_ssh,,}" == *"${text_login}"* ]]
 			then
-				echo "ssh:${address_display}" >> "${file_results}"
+				echo "${label_ssh}${separator_result}${address_display}" >> "${file_results}"
 			fi
 
 			# secure file transfer
 
 			output_sftp=$(
 				sftp								\
-					-oBatchMode=yes					\
-					-oStrictHostKeyChecking=no		\
-					-oConnectTimeout="${seconds}"	\
-					-oUserKnownHostsFile="${sink}"	\
-													"${address_host}" 2>&1
+					-oBatchMode="${value_yes}"				\
+					-oStrictHostKeyChecking="${value_no}"	\
+					-oConnectTimeout="${delay_connect}"		\
+					-oUserKnownHostsFile="${sink}"			\
+														"${address_host}" 2>&1
 			)
 
-			if [[ "${output_sftp,,}" == *"sftp>"* || "${output_sftp,,}" == *"permission denied"* ]]
+			if [[ "${output_sftp,,}" == *"${text_prompt}"* || "${output_sftp,,}" == *"${text_denied}"* ]]
 			then
-				echo "sftp:${address_display}" >> "${file_results}"
+				echo "${label_sftp}${separator_result}${address_display}" >> "${file_results}"
 			fi
 
 		fi
@@ -220,11 +246,11 @@ ssh_results () {
 	then
 		if [ ${#list_port_open[@]} -eq 1 ]
 		then
-			message="Address"
+			message="${label_address_single}"
 
-		elif [ ${#list_port_open[@]} -ge 2 ]
+		elif [ ${#list_port_open[@]} -ge "${count_plural}" ]
 		then
-			message="Addresses"
+			message="${label_address_plural}"
 		fi
 
 		frobulator.inf "${message} with open port found at:"
@@ -244,11 +270,11 @@ ssh_results () {
 	then
 		if [ ${#list_ssh_open[@]} -eq 1 ]
 		then
-			message="Address"
+			message="${label_address_single}"
 
-		elif [ ${#list_ssh_open[@]} -ge 2 ]
+		elif [ ${#list_ssh_open[@]} -ge "${count_plural}" ]
 		then
-			message="Addresses"
+			message="${label_address_plural}"
 		fi
 
 		frobulator.inf "${message} with available ssh found at:"
@@ -268,11 +294,11 @@ ssh_results () {
 	then
 		if [ ${#list_sftp_open[@]} -eq 1 ]
 		then
-			message="Address"
+			message="${label_address_single}"
 
-		elif [ ${#list_sftp_open[@]} -ge 2 ]
+		elif [ ${#list_sftp_open[@]} -ge "${count_plural}" ]
 		then
-			message="Addresses"
+			message="${label_address_plural}"
 		fi
 
 		frobulator.inf "${message} with available sftp found at:"
@@ -312,31 +338,31 @@ then
 
 	lan="${lan%% *}"
 
-	lan="${lan%.*}"
+	lan="${lan%${separator_octet}*}"
 
-	IFS='.' read -r octet_auto_01 octet_auto_02 octet_auto_03 <<< "${lan}"
+	IFS="${separator_octet}" read -r octet_auto_01 octet_auto_02 octet_auto_03 <<< "${lan}"
 
-	lan=$(printf "%03d.%03d.%03d" "${octet_auto_01}" "${octet_auto_02}" "${octet_auto_03}")
+	lan=$(printf "${format_prefix_display}" "${octet_auto_01}" "${octet_auto_02}" "${octet_auto_03}")
 
 	frobulator.inf "No prefix - defaulting" "[ ${lan} ]"
 fi
 
 # extract and validate first 3 octets
 
-if [[ "${lan}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}) ]]
+if [[ "${lan}" =~ ${pattern_prefix} ]]
 then
 	octet_validate_01="${BASH_REMATCH[1]}"
 	octet_validate_02="${BASH_REMATCH[2]}"
 	octet_validate_03="${BASH_REMATCH[3]}"
 
-	if [ "${octet_validate_01}" -le 255 ] && [ "${octet_validate_02}" -le 255 ] && [ "${octet_validate_03}" -le 255 ]
+	if [ "${octet_validate_01}" -le "${count_octet_maximum}" ] && [ "${octet_validate_02}" -le "${count_octet_maximum}" ] && [ "${octet_validate_03}" -le "${count_octet_maximum}" ]
 	then
-		lan="${octet_validate_01}.${octet_validate_02}.${octet_validate_03}."
+		lan="${octet_validate_01}${separator_octet}${octet_validate_02}${separator_octet}${octet_validate_03}${separator_octet}"
 	else
-		lan=""
+		unset lan
 	fi
 else
-	lan=""
+	unset lan
 fi
 
 if [ -z "${lan}" ]
@@ -348,21 +374,21 @@ fi
 
 file_results="$(mktemp)"
 
-frobulator.background scan -- ssh_scan "${lan}"
+frobulator.background "${label_scan}" -- ssh_scan "${lan}"
 
-while IFS=':' read -r category address
+while IFS="${separator_result}" read -r category address
 do
-	if [ "${category}" = "port" ]
+	if [ "${category}" = "${label_port}" ]
 	then
 		list_port_open+=("${address}")
 	fi
 
-	if [ "${category}" = "ssh" ]
+	if [ "${category}" = "${label_ssh}" ]
 	then
 		list_ssh_open+=("${address}")
 	fi
 
-	if [ "${category}" = "sftp" ]
+	if [ "${category}" = "${label_sftp}" ]
 	then
 		list_sftp_open+=("${address}")
 	fi

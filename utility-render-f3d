@@ -230,7 +230,26 @@ done
 
 extension_render="png"
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="%m-%d-%Y-%H-%M-%S"
+
+stamp=$(date +"${format_stamp}")
+
+extension_all="all"
+extension_stl="stl"
+pattern_extension="^(${extension_all}|${extension_stl})$"
+pattern_reply_short="[yY]"
+pattern_reply_long="[yY][eE][sS]"
+pattern_preset_number="^[0-7]$"
+
+name_full="full"
+name_render="render"
+name_thumbnail="thumbnail"
+name_renders="renders"
+
+size_default="4096"
+size_thumbnail="1024"
+direction_up="+Z"
+position_front="1"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -241,7 +260,7 @@ then
 
 	read reply
 
-	if [[ "${reply}" = [yY] || "${reply}" = [yY][eE][sS] ]]
+	if [[ "${reply}" = ${pattern_reply_short} || "${reply}" = ${pattern_reply_long} ]]
 	then
 		# specify directory location or exit on 'cancel'
 
@@ -261,7 +280,7 @@ then
 
 	frobulator.read reply
 
-	if [[ "${reply}" = [yY] || "${reply}" = [yY][eE][sS] ]]
+	if [[ "${reply}" = ${pattern_reply_short} || "${reply}" = ${pattern_reply_long} ]]
 	then
 		# specify directory location or exit on 'cancel'
 
@@ -271,15 +290,16 @@ then
 		do
 			frobulator.read option_extension
 
-			if [ -z "${option_extension}" ] || [[ ! "${option_extension}" =~ ^(all|stl)$ ]]
+			if [ -z "${option_extension}" ] ||
+			   [[ ! "${option_extension}" =~ ${pattern_extension} ]]
 			then
 				frobulator.wrn "Unrecognized model file extension."
 				frobulator.wrn "Try again."
 			else
-				if [[ "${option_extension}" = "all" ]]
+				if [ "${option_extension}" = "${extension_all}" ]
 				then
 					list_extensions=(
-						stl
+						"${extension_stl}"
 					)
 				else
 					list_extensions=(
@@ -298,10 +318,10 @@ then
 
 		frobulator.fwd "Assuming defaults..."
 
-		option_extension="stl"
+		option_extension="${extension_stl}"
 
 		list_extensions=(
-			stl
+			"${extension_stl}"
 		)
 	fi
 fi
@@ -309,7 +329,7 @@ fi
 
 if [ -z "${option_render}" ]
 then
-	option_render="full"
+	option_render="${name_full}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -325,24 +345,24 @@ f3d_render () {
 	path_model="${1}"
 	coordinates="${2}"
 
-	up="+Z"
+	local up
+	local direction_camera
 
-	if [[  -z "${height}" ]]
+	up="${direction_up}"
+
+	if [ -z "${height}" ]
 	then
-		height="4096"
+		height="${size_default}"
 	fi
 
-	if [[ -z "${width}" ]]
+	if [ -z "${width}" ]
 	then
-		width="4096"
+		width="${size_default}"
 	fi
 
-	# camera direction - from the preset latitude and longitude - longitude 0 faces the model front
+	# camera direction - precomputed from the preset latitude and longitude
 
-	direction_camera="$(awk -v latitude="${latitude[$coordinates]}" -v longitude="${longitude[$coordinates]}" 'BEGIN {
-		radian = atan2(0, -1) / 180
-		printf "%.4f,%.4f,%.4f", -sin(longitude * radian) * cos(latitude * radian), cos(longitude * radian) * cos(latitude * radian), -sin(latitude * radian)
-	}')"
+	direction_camera="${direction_presets[coordinates]}"
 
 	# system configuration skipped [ --dry-run ] - no grid, axis or file name overlay
 
@@ -379,7 +399,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ "${option}" = "render" ]
+if [ "${option}" = "${name_render}" ]
 then
 	for extension in ${list_extensions[@]}
 	do
@@ -404,15 +424,28 @@ then
 
 			# use model directory as root
 
-			directory_render="${path_model%/*}"/renders
+			directory_render="${path_model%/*}/${name_renders}"
 
 			# use render directory as root
 
-			directory_full="${path_model%/*}"/renders/full
+			directory_full="${path_model%/*}/${name_renders}/${name_full}"
 
-			directory_thumbnail="${path_model%/*}"/renders/thumbnail
+			directory_thumbnail="${path_model%/*}/${name_renders}/${name_thumbnail}"
 
 			# define coordinate values and labels
+
+			# camera direction vectors
+
+			direction_presets=(
+				"-0.0000,0.8660,-0.5000"
+				"-0.6124,0.6124,-0.5000"
+				"-0.8660,0.0000,-0.5000"
+				"-0.6124,-0.6124,-0.5000"
+				"-0.0000,-0.8660,-0.5000"
+				"0.6124,-0.6124,-0.5000"
+				"0.8660,-0.0000,-0.5000"
+				"0.6124,0.6124,-0.5000"
+			)
 
 			# camera latitude
 
@@ -455,62 +488,36 @@ then
 
 			# define camera position presets
 
-			if [[ "${preset_render}" = "0" ]]
+			if [[ "${preset_render}" =~ ${pattern_preset_number} ]]
 			then
-				position=(0)
+				position=("${preset_render}")
 			fi
 
-			if [[ "${preset_render}" = "1" ]]
+			if [ "${preset_render}" = "${name_full}" ]
 			then
-				position=(1)
+				position=(
+					0
+					1
+					2
+					3
+					4
+					5
+					6
+					7
+				)
 			fi
 
-			if [[ "${preset_render}" = "2" ]]
+			if [ "${preset_render}" = "${name_render}" ]
 			then
-				position=(2)
+				position=("${position_front}")
 			fi
 
-			if [[ "${preset_render}" = "3" ]]
+			if [ "${preset_render}" = "${name_thumbnail}" ]
 			then
-				position=(3)
-			fi
+				height="${size_thumbnail}"
+				width="${size_thumbnail}"
 
-			if [[ "${preset_render}" = "4" ]]
-			then
-				position=(4)
-			fi
-
-			if [[ "${preset_render}" = "5" ]]
-			then
-				position=(5)
-			fi
-
-			if [[ "${preset_render}" = "6" ]]
-			then
-				position=(6)
-			fi
-
-			if [[ "${preset_render}" = "7" ]]
-			then
-				position=(7)
-			fi
-
-			if [[ "${preset_render}" = "full" ]]
-			then
-				position=(0 1 2 3 4 5 6 7)
-			fi
-
-			if [[ "${preset_render}" = "render" ]]
-			then
-				position=(1)
-			fi
-
-			if [[ "${preset_render}" = "thumbnail" ]]
-			then
-				height=1024
-				width=1024
-
-				position=(1)
+				position=("${position_front}")
 			fi
 
 			# render
@@ -518,30 +525,30 @@ then
 			# prepare base render directory:
 			# generate if does not exist
 
-			if [[ ! -d "${directory_render}" ]]
+			if [ ! -d "${directory_render}" ]
 			then
-				mkdir -p "${directory_render}"
+				mkdir --parents "${directory_render}"
 			fi
 
 			cd "${directory_render}"
 
-			if [[ "${preset_render}" = "thumbnail" ]]
+			if [ "${preset_render}" = "${name_thumbnail}" ]
 			then
-				if [[ -d "${directory_thumbnail}" ]]
+				if [ -d "${directory_thumbnail}" ]
 				then
 					rm					\
 						--recursive		\
 						--force			 "${directory_thumbnail}"
 				fi
 
-				mkdir -p "${directory_thumbnail}"
+				mkdir --parents "${directory_thumbnail}"
 
 				cd "${directory_thumbnail}"
 			fi
 
-			if [[ "${preset_render}" = "full" ]]
+			if [ "${preset_render}" = "${name_full}" ]
 			then
-				mkdir -p "${directory_full}"
+				mkdir --parents "${directory_full}"
 
 				cd "${directory_full}"
 			fi
@@ -555,22 +562,22 @@ then
 
 			# post rendering
 
-			if [[ "${option_render}" = "render" ]]
+			if [ "${option_render}" = "${name_render}" ]
 			then
 				# rename renders to designated splash images
 
 				mv												\
 					"${name_model}-${view[1]}.${extension_render}"		\
-					"${directory_render}"/render."${extension_render}"
+					"${directory_render}/${name_render}.${extension_render}"
 			fi
 
-			if [[ "${option_render}" = "thumbnail" ]]
+			if [ "${option_render}" = "${name_thumbnail}" ]
 			then
 				# rename renders to designated splash images
 
 				mv												\
 					"${name_model}-${view[1]}.${extension_render}"		\
-					"${directory_thumbnail}"/thumbnail."${extension_render}"
+					"${directory_thumbnail}/${name_thumbnail}.${extension_render}"
 			fi
 
 		done

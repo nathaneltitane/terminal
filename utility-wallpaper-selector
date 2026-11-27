@@ -116,6 +116,10 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+file_selector="/usr/bin/wallpaper-selector"
+file_launcher="/usr/share/applications/wallpaper-selector.desktop"
+mode_executable="+x"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -139,7 +143,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-cat <<- 'FILE' > /usr/bin/wallpaper-selector
+cat <<- 'FILE' > "${file_selector}"
 #!/bin/bash
 
 # wallpaper selector #
@@ -241,11 +245,11 @@ then
 fi
 FILE
 
-sudo chmod +x /usr/bin/wallpaper-selector
+sudo chmod "${mode_executable}" "${file_selector}"
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/wallpaper-selector.desktop
+cat <<- 'FILE' > "${file_launcher}"
 [Desktop Entry]
 Name=Wallpaper Selector
 Comment=Select and configure desktop and lock screen background wallpapers

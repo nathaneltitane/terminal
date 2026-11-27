@@ -14,30 +14,39 @@ audio_combine_connect () {
 	local index_attempt
 	local index_second_connect
 	local information_bluetooth
+	local count_attempts
+	local count_seconds_connect
+	local delay_connect
+	local pattern_connected
 
-	for index_attempt in {1..6}
+	count_attempts="6"
+	count_seconds_connect="10"
+	delay_connect="1"
+	pattern_connected="*Connected: yes*"
+
+	for (( index_attempt = 1 ; index_attempt <= count_attempts ; index_attempt ++ ))
 	do
 		# bluez device details - including its 'Connected: yes / no' line
 
 		information_bluetooth="$(bluetoothctl info "${address_bluetooth}" 2> "${sink}")"
 
-		if [[ "${information_bluetooth}" = *"Connected: yes"* ]]
+		if [[ "${information_bluetooth}" = ${pattern_connected} ]]
 		then
 			return 0
 		fi
 
 		bluetoothctl connect "${address_bluetooth}" > "${sink}" 2>&1
 
-		for index_second_connect in {1..10}
+		for (( index_second_connect = 1 ; index_second_connect <= count_seconds_connect ; index_second_connect ++ ))
 		do
 			information_bluetooth="$(bluetoothctl info "${address_bluetooth}" 2> "${sink}")"
 
-			if [[ "${information_bluetooth}" = *"Connected: yes"* ]]
+			if [[ "${information_bluetooth}" = ${pattern_connected} ]]
 			then
 				return 0
 			fi
 
-			sleep 1
+			sleep "${delay_connect}"
 		done
 	done
 
@@ -53,6 +62,11 @@ audio_combine_sink_wait () {
 
 	local index_second_wait
 	local list_sinks
+	local character_tab
+	local delay_wait
+
+	character_tab=$'\t'
+	delay_wait="1"
 
 	for (( index_second_wait = 0 ; index_second_wait < timeout_sink ; index_second_wait ++ ))
 	do
@@ -60,12 +74,12 @@ audio_combine_sink_wait () {
 
 		list_sinks="$(pactl list short sinks)"
 
-		if [[ "${list_sinks}" = *"	${name_sink}	"* ]]
+		if [[ "${list_sinks}" = *"${character_tab}${name_sink}${character_tab}"* ]]
 		then
 			return 0
 		fi
 
-		sleep 1
+		sleep "${delay_wait}"
 	done
 
 	return 1
@@ -78,10 +92,13 @@ audio_combine_outputs () {
 	local count_inputs_combined=0
 
 	local line_input_sink
+	local pattern_module_combine
+
+	pattern_module_combine="*module-combine-sink*"
 
 	while IFS= read -r line_input_sink
 	do
-		if [[ "${line_input_sink}" = *module-combine-sink* ]]
+		if [[ "${line_input_sink}" = ${pattern_module_combine} ]]
 		then
 			count_inputs_combined=$(( count_inputs_combined + 1 ))
 		fi
@@ -102,8 +119,26 @@ audio_combine_load () {
 	local client_input
 	local driver_input
 	local text_slaves_joined
+	local status_load
+	local name_module_combine
+	local pattern_module_combine
+	local parameter_sink_name
+	local parameter_slaves
+	local parameter_adjust
+	local separator_slaves
+	local volume_slave
+	local volume_combined
 
 	local -a list_sinks_slave=("${@:2}")
+
+	name_module_combine="module-combine-sink"
+	pattern_module_combine="${name_module_combine}*"
+	parameter_sink_name="sink_name"
+	parameter_slaves="slaves"
+	parameter_adjust="adjust_time=0"
+	separator_slaves=","
+	volume_slave="100%"
+	volume_combined="75%"
 
 	audio_combine_unload "${name_sink_combined}"
 
@@ -112,13 +147,20 @@ audio_combine_load () {
 	# adjust_time=0: no rate adjustment timer - pulseaudio 16.1 aborts in its callback
 	# ('u->time_event == e' in module-combine-sink time_callback) - dropping both speakers
 
-	pactl load-module module-combine-sink sink_name="${name_sink_combined}" slaves="${text_slaves_joined// /,}" adjust_time=0 > "${sink}" || return
+	pactl load-module "${name_module_combine}" "${parameter_sink_name}=${name_sink_combined}" "${parameter_slaves}=${text_slaves_joined// /${separator_slaves}}" "${parameter_adjust}" > "${sink}"
+
+	status_load="${?}"
+
+	if [ "${status_load}" -ne 0 ]
+	then
+		return "${status_load}"
+	fi
 
 	pactl set-default-sink "${name_sink_combined}"
 
 	while IFS=$'\t' read -r index_input name_sink_input client_input driver_input
 	do
-		if [[ "${driver_input}" != module-combine-sink* ]]
+		if [[ "${driver_input}" != ${pattern_module_combine} ]]
 		then
 			pactl move-sink-input "${index_input}" "${name_sink_combined}" 2> "${sink}"
 		fi
@@ -126,10 +168,10 @@ audio_combine_load () {
 
 	for name_sink_slave in "${list_sinks_slave[@]}"
 	do
-		pactl set-sink-volume "${name_sink_slave}" 100%
+		pactl set-sink-volume "${name_sink_slave}" "${volume_slave}"
 	done
 
-	pactl set-sink-volume "${name_sink_combined}" 75%
+	pactl set-sink-volume "${name_sink_combined}" "${volume_combined}"
 }
 
 audio_combine_watch_loop () {
@@ -137,28 +179,40 @@ audio_combine_watch_loop () {
 	# reconnect dropped speakers - rebuild the combined sink once they return
 	# runs from audio_combine_watch - uses its variables
 
+	local character_tab
+	local pattern_event_remove
+	local pattern_event_new
+	local delay_remove
+	local delay_new
+
+	character_tab=$'\t'
+	pattern_event_remove="*'remove' on sink*"
+	pattern_event_new="*'new' on sink*"
+	delay_remove="5"
+	delay_new="2"
+
 	pactl subscribe | while IFS= read -r line_event_audio
 	do
-		if [[ "${line_event_audio}" = *"'remove' on sink"* ]]
+		if [[ "${line_event_audio}" = ${pattern_event_remove} ]]
 		then
 			# bluetooth still reports the device connected while it drops
 
-			sleep 5
+			sleep "${delay_remove}"
 
 			for address_bluetooth in "${list_addresses_bluetooth[@]}"
 			do
 				audio_combine_connect "${address_bluetooth}" &
 			done
 
-		elif [[ "${line_event_audio}" = *"'new' on sink"* ]]
+		elif [[ "${line_event_audio}" = ${pattern_event_new} ]]
 		then
-			sleep 2
+			sleep "${delay_new}"
 
 			list_sinks="$(pactl list short sinks)"
 
 			for name_sink_slave in "${list_sinks_slave[@]}"
 			do
-				if [[ "${list_sinks}" != *"	${name_sink_slave}	"* ]]
+				if [[ "${list_sinks}" != *"${character_tab}${name_sink_slave}${character_tab}"* ]]
 				then
 					continue 2
 				fi
@@ -205,12 +259,16 @@ audio_combine_watch_stop () {
 
 	local file_pid_watch="${1}"
 
+	local id_process_watch
+
 	if [ -f "${file_pid_watch}" ]
 	then
-		pkill -P "$(< "${file_pid_watch}")" 2> "${sink}"
-		kill "$(< "${file_pid_watch}")" 2> "${sink}"
+		id_process_watch="$(< "${file_pid_watch}")"
 
-		rm -f "${file_pid_watch}"
+		pkill -P "${id_process_watch}" 2> "${sink}"
+		kill "${id_process_watch}" 2> "${sink}"
+
+		rm --force "${file_pid_watch}"
 	fi
 }
 
@@ -222,10 +280,15 @@ audio_combine_unload () {
 
 	local index_module
 	local line_module
+	local pattern_module_combine
+	local prefix_sink_name
+
+	pattern_module_combine="module-combine-sink*"
+	prefix_sink_name="sink_name="
 
 	while IFS=$'\t' read -r index_module line_module
 	do
-		if [[ "${line_module}" = module-combine-sink*"sink_name=${name_sink_combined}"* ]]
+		if [[ "${line_module}" = ${pattern_module_combine}"${prefix_sink_name}${name_sink_combined}"* ]]
 		then
 			pactl unload-module "${index_module}"
 		fi
@@ -247,9 +310,27 @@ audio-combine () {
 	local address_bluetooth
 	local -a list_sinks_slave=()
 	local name_sink_slave
-	local file_pid_watch="${XDG_RUNTIME_DIR:-/tmp}/audio-combine.pid"
+	local file_pid_watch
 	local status_connect
 	local status_wait
+	local status_load
+	local argument_stop
+	local directory_runtime_default
+	local name_pid_watch
+	local prefix_sink_slave
+	local suffix_sink_slave
+	local separator_address
+	local separator_sink
+
+	argument_stop="stop"
+	directory_runtime_default="/tmp"
+	name_pid_watch="audio-combine.pid"
+	prefix_sink_slave="bluez_sink."
+	suffix_sink_slave=".a2dp_sink"
+	separator_address=":"
+	separator_sink="_"
+
+	file_pid_watch="${XDG_RUNTIME_DIR:-${directory_runtime_default}}/${name_pid_watch}"
 
 	# output starts one line below the command
 
@@ -257,10 +338,10 @@ audio-combine () {
 
 	for address_bluetooth in "${list_addresses_bluetooth[@]}"
 	do
-		list_sinks_slave+=("bluez_sink.${address_bluetooth//:/_}.a2dp_sink")
+		list_sinks_slave+=("${prefix_sink_slave}${address_bluetooth//${separator_address}/${separator_sink}}${suffix_sink_slave}")
 	done
 
-	if [ "${1}" = "stop" ]
+	if [ "${1}" = "${argument_stop}" ]
 	then
 		audio_combine_watch_stop "${file_pid_watch}"
 		audio_combine_unload "${name_sink_combined}"
@@ -289,7 +370,7 @@ audio-combine () {
 
 	for name_sink_slave in "${list_sinks_slave[@]}"
 	do
-		audio_combine_sink_wait "${name_sink_slave}" 15
+		audio_combine_sink_wait "${name_sink_slave}"
 
 		status_wait="${?}"
 
@@ -302,7 +383,14 @@ audio-combine () {
 		fi
 	done
 
-	audio_combine_load "${name_sink_combined}" "${list_sinks_slave[@]}" || return
+	audio_combine_load "${name_sink_combined}" "${list_sinks_slave[@]}"
+
+	status_load="${?}"
+
+	if [ "${status_load}" -ne 0 ]
+	then
+		return "${status_load}"
+	fi
 
 	# one watcher at a time
 

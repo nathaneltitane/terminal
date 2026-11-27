@@ -69,19 +69,25 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+option_decode="decode"
+option_build="build"
+force="false"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-d|--decode)
-			option="decode"
+			option="${option_decode}"
 			input="${2}"
 
 			shift
 		;;
 
 		-b|--build)
-			option="build"
+			option="${option_build}"
 			input="${2}"
 
 			shift
@@ -94,7 +100,7 @@ do
 		;;
 
 		-f|--force)
-			force=true
+			force="true"
 		;;
 
 		-h|--help)
@@ -149,12 +155,40 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+name_apk_tool="apk-tool"
+name_keystore="debug.keystore"
+name_unsigned="unsigned.apk"
+name_aligned="aligned.apk"
+extension_jar=".jar"
+extension_version=".version"
+extension_part=".part"
+extension_idsig=".idsig"
+extension_apk=".apk"
+prefix_option="-"
+prefix_password="pass:"
+password_keystore="android"
+alias_key="androiddebugkey"
+algorithm_key="RSA"
+size_key="2048"
+validity_key="10000"
+dname_key="CN=Android Debug,O=Android,C=US"
+alignment_bytes="4"
+label_apk_tool="${name_apk_tool}"
+filter_tag='.tag_name // empty'
+filter_url='.assets[] | select(.name | endswith(".jar")) | .browser_download_url'
+package_apksigner="apksigner"
+package_curl="curl"
+package_jq="jq"
+package_zipalign="zipalign"
+
 directory_android="${HOME}/.local/lib/android"
+directory_keystore="${HOME}/.android"
 
-file_apk_tool="${directory_android}/apk-tool.jar"
-file_apk_tool_version="${directory_android}/apk-tool.version"
+file_apk_tool="${directory_android}/${name_apk_tool}${extension_jar}"
+file_apk_tool_part="${file_apk_tool}${extension_part}"
+file_apk_tool_version="${directory_android}/${name_apk_tool}${extension_version}"
 
-file_keystore="${HOME}/.android/debug.keystore"
+file_keystore="${directory_keystore}/${name_keystore}"
 
 url_apk_tool_release="https://api.github.com/repos/iBotPeaches/Apktool/releases/latest"
 
@@ -169,25 +203,25 @@ then
 
 	exit 1
 
-elif [ -z "${input}" ] || [[ "${input}" = -* ]]
+elif [ -z "${input}" ] || [[ "${input}" = "${prefix_option}"* ]]
 then
 	frobulator.err "Missing argument for '--${option}'."
 
 	exit 1
 
-elif [[ "${output}" = -* ]]
+elif [[ "${output}" = "${prefix_option}"* ]]
 then
 	frobulator.err "Missing argument for '--output'."
 
 	exit 1
 
-elif [ "${option}" = "decode" ] && [ ! -f "${input}" ]
+elif [ "${option}" = "${option_decode}" ] && [ ! -f "${input}" ]
 then
 	frobulator.err "Apk file not found" "[ ${input} ]"
 
 	exit 1
 
-elif [ "${option}" = "build" ] && [ ! -d "${input}" ]
+elif [ "${option}" = "${option_build}" ] && [ ! -d "${input}" ]
 then
 	frobulator.err "Directory not found" "[ ${input} ]"
 
@@ -200,15 +234,15 @@ input="${input%/}"
 
 if [ -z "${output}" ]
 then
-	if [ "${option}" = "decode" ]
+	if [ "${option}" = "${option_decode}" ]
 	then
-		output="${input%.apk}"
+		output="${input%"${extension_apk}"}"
 	else
-		output="${input}.apk"
+		output="${input}${extension_apk}"
 	fi
 fi
 
-if [ -e "${output}" ] && [ "${force}" != true ]
+if [ -e "${output}" ] && [ "${force}" != "true" ]
 then
 	frobulator.err "Output exists - use '--force' to overwrite" "[ ${output} ]"
 
@@ -223,12 +257,13 @@ apk_tool_update () {
 	local tag
 	local url
 	local version_installed
+	local status_download
 
-	release="$(curl -fsSL "${url_apk_tool_release}" 2> "${sink}")"
+	release="$(curl --fail --silent --show-error --location "${url_apk_tool_release}" 2> "${sink}")"
 
-	tag="$(jq -r '.tag_name // empty' <<< "${release}" 2> "${sink}")"
+	tag="$(jq --raw-output "${filter_tag}" <<< "${release}" 2> "${sink}")"
 
-	url="$(jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url' <<< "${release}" 2> "${sink}")"
+	url="$(jq --raw-output "${filter_url}" <<< "${release}" 2> "${sink}")"
 
 	if [ -f "${file_apk_tool_version}" ]
 	then
@@ -241,55 +276,58 @@ apk_tool_update () {
 	then
 		if [ -f "${file_apk_tool}" ]
 		then
-			frobulator.wrn "Release check unavailable - using installed" "[ apk-tool ${version_installed} ]"
+			frobulator.wrn "Release check unavailable - using installed" "[ ${label_apk_tool} ${version_installed} ]"
 
 			return 0
 		fi
 
-		frobulator.err "Unable to fetch" "[ apk-tool ]"
+		frobulator.err "Unable to fetch" "[ ${label_apk_tool} ]"
 
 		return 1
 	fi
 
 	if [ -f "${file_apk_tool}" ] && [ "${version_installed}" = "${tag}" ]
 	then
-		frobulator.inf "Latest version installed" "[ apk-tool ${tag} ]"
+		frobulator.inf "Latest version installed" "[ ${label_apk_tool} ${tag} ]"
 
 		return 0
 	fi
 
 	frobulator.directory "${directory_android}"
 
-	frobulator.dwl "Fetching" "[ apk-tool ${tag} ]"
+	frobulator.dwl "Fetching" "[ ${label_apk_tool} ${tag} ]"
 
 	curl									\
 		--silent							\
 		--fail								\
 		--location							\
-		--output "${file_apk_tool}.part"		\
+		--output "${file_apk_tool_part}"	\
 											"${url}"
 
-	if [ "${?}" -ne 0 ] || [ ! -s "${file_apk_tool}.part" ]
+	status_download="${?}"
+
+	if [ "${status_download}" -ne 0 ] || [ ! -s "${file_apk_tool_part}" ]
 	then
-		frobulator.err "Unable to fetch" "[ apk-tool ${tag} ]"
+		frobulator.err "Unable to fetch" "[ ${label_apk_tool} ${tag} ]"
 
 		return 1
 	fi
 
-	mv -- "${file_apk_tool}.part" "${file_apk_tool}"
+	mv -- "${file_apk_tool_part}" "${file_apk_tool}"
 
 	echo "${tag}" > "${file_apk_tool_version}"
 
 	frobulator.ownership "${directory_android}"
 
-	frobulator.scs "Installed" "[ apk-tool ${tag} ]"
+	frobulator.scs "Installed" "[ ${label_apk_tool} ${tag} ]"
+
 }
 
 apk_tool_decode () {
 
 	local -a arguments=()
 
-	if [ "${force}" = true ]
+	if [ "${force}" = "true" ]
 	then
 		arguments+=(-f)
 	fi
@@ -299,6 +337,7 @@ apk_tool_decode () {
 	java -jar "${file_apk_tool}" d "${input}" -o "${output}" "${arguments[@]}"
 
 	frobulator.fail "Decode failed" "[ ${input} ]" || return
+
 }
 
 keystore_create () {
@@ -310,28 +349,30 @@ keystore_create () {
 
 	frobulator.inf "Creating debug signing key" "[ ${file_keystore} ]"
 
-	frobulator.directory "$(dirname -- "${file_keystore}")"
+	frobulator.directory "${directory_keystore}"
 
-	keytool										\
-		-genkeypair								\
-		-keystore "${file_keystore}"			\
-		-storepass android						\
-		-alias androiddebugkey					\
-		-keypass android						\
-		-keyalg RSA								\
-		-keysize 2048							\
-		-validity 10000							\
-		-dname "CN=Android Debug,O=Android,C=US"	> "${sink}" 2>&1
+	keytool									\
+		-genkeypair							\
+		-keystore "${file_keystore}"		\
+		-storepass "${password_keystore}"	\
+		-alias "${alias_key}"				\
+		-keypass "${password_keystore}"		\
+		-keyalg "${algorithm_key}"			\
+		-keysize "${size_key}"				\
+		-validity "${validity_key}"			\
+		-dname "${dname_key}"				> "${sink}" 2>&1
 
 	frobulator.fail "Unable to create signing key." || return
 
-	frobulator.ownership "$(dirname -- "${file_keystore}")"
+	frobulator.ownership "${directory_keystore}"
+
 }
 
 apk_tool_build () {
 
-	local file_unsigned="${directory_temporary}/unsigned.apk"
-	local file_aligned="${directory_temporary}/aligned.apk"
+	local file_unsigned="${directory_temporary}/${name_unsigned}"
+	local file_aligned="${directory_temporary}/${name_aligned}"
+	local name_output="${output##*/}"
 
 	frobulator.fwd "Building" "[ ${input} ]"
 
@@ -341,38 +382,39 @@ apk_tool_build () {
 
 	# align before signing
 
-	frobulator.fwd "Aligning" "[ ${output##*/} ]"
+	frobulator.fwd "Aligning" "[ ${name_output} ]"
 
-	zipalign -p -f 4 "${file_unsigned}" "${file_aligned}"
+	zipalign -p -f "${alignment_bytes}" "${file_unsigned}" "${file_aligned}"
 
-	frobulator.fail "Align failed" "[ ${output##*/} ]" || return
+	frobulator.fail "Align failed" "[ ${name_output} ]" || return
 
 	keystore_create
 
 	frobulator.fail || return
 
-	frobulator.fwd "Signing" "[ ${output##*/} ]"
+	frobulator.fwd "Signing" "[ ${name_output} ]"
 
-	apksigner sign									\
-		--ks "${file_keystore}"						\
-		--ks-pass pass:android						\
-		--ks-key-alias androiddebugkey				\
-		--key-pass pass:android						\
-		--out "${output}"							\
-												"${file_aligned}"
+	apksigner sign											\
+		--ks "${file_keystore}"								\
+		--ks-pass "${prefix_password}${password_keystore}"	\
+		--ks-key-alias "${alias_key}"						\
+		--key-pass "${prefix_password}${password_keystore}"	\
+		--out "${output}"									\
+															"${file_aligned}"
 
-	frobulator.fail "Signing failed" "[ ${output##*/} ]" || return
+	frobulator.fail "Signing failed" "[ ${name_output} ]" || return
 
 	apksigner verify "${output}" > "${sink}" 2>&1
 
-	frobulator.fail "Signature verification failed" "[ ${output##*/} ]" || return
+	frobulator.fail "Signature verification failed" "[ ${name_output} ]" || return
 
 	# signature file written next to the apk
 
-	if [ -f "${output}.idsig" ]
+	if [ -f "${output}${extension_idsig}" ]
 	then
-		mv -- "${output}.idsig" "${directory_temporary}/"
+		mv -- "${output}${extension_idsig}" "${directory_temporary}/"
 	fi
+
 }
 
 # update ───────────────────────────────────────────────────────────────────────
@@ -384,10 +426,10 @@ apk_tool_build () {
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	apksigner
-	curl
-	jq
-	zipalign
+	"${package_apksigner}"
+	"${package_curl}"
+	"${package_jq}"
+	"${package_zipalign}"
 )
 
 frobulator.require ${list[@]}
@@ -404,13 +446,13 @@ apk_tool_update
 
 frobulator.complete halt
 
-if [ "${option}" = "decode" ]
+if [ "${option}" = "${option_decode}" ]
 then
 	apk_tool_decode
 
 	frobulator.complete halt
 
-elif [ "${option}" = "build" ]
+elif [ "${option}" = "${option_build}" ]
 then
 	apk_tool_build
 

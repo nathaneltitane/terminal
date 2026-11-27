@@ -7,10 +7,11 @@
 # '  ~/.termux/font.ttf '
 # '  ~/.termux/termux.properties'
 
-activity="com.termux.app.reload_style com.termux"
+action_reload="com.termux.app.reload_style com.termux"
+id_user="0"
 
 # reload settings
 
 am broadcast			\
-	--user 0			\
-	-a "${activity}"	> /dev/null 2>&1
+	--user "${id_user}"	\
+	-a "${action_reload}"	> /dev/null 2>&1

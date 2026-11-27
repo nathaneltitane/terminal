@@ -67,6 +67,11 @@ frobulator.script
 
 version="2026-10-04"
 
+# set before usage block
+
+name_option_activity="activity"
+name_option_handle="handle"
+
 # usage ────────────────────────────────────────────────────────────────────────
 
 while (( $# ))
@@ -74,14 +79,14 @@ do
 	case "${1}"
 	in
 		-a|--activity)
-			option="activity"
+			option="${name_option_activity}"
 			option_activity="${2}"
 
 			shift
 		;;
 
 		-n|--handle)
-			option="handle"
+			option="${name_option_handle}"
 			option_handle="${2}"
 
 			shift
@@ -149,6 +154,26 @@ activity_chrome_beta="com.chrome.beta/com.google.android.apps.chrome.Main"
 activity_gmail="com.google.android.gm/.GmailActivity"
 terminal="com.termux/com.termux.app.TermuxActivity"
 
+# intent action
+
+action_view="android.intent.action.VIEW"
+
+# accepted choices
+
+choice_chrome_full="google-chrome"
+choice_chrome_short="chrome"
+choice_mail_full="google-mail"
+choice_mail_short="gmail"
+choice_terminal="terminal"
+choice_email_full="email"
+choice_email_short="mail"
+choice_browser="browser"
+choice_link="link"
+choice_web="web"
+choice_message="message"
+choice_text="text"
+choice_sms="sms"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 email="mailto:"
@@ -159,38 +184,44 @@ message="sms:"
 
 activity_intent () {
 
+	local activity
+
 	activity="${1}"
 
-	am start							\
-		-n "${activity}"				> "${sink}" 2>&1
-	}
+	am start	\
+		-n "${activity}"	> "${sink}" 2>&1
+
+}
 
 handle_intent () {
 
+	local handle
+
 	handle="${1}"
 
-	am start							\
-		-a android.intent.action.VIEW	\
-		-d "${handle}"					> "${sink}" 2>&1
+	am start	\
+		-a "${action_view}"	\
+		-d "${handle}"	> "${sink}" 2>&1
+
 }
 
 # requirements ─────────────────────────────────────────────────────────────────
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [[ "${option}" = [aA][cC][tT][iI][vV][iI][tT][yY] ]]
+if [ "${option}" = "${name_option_activity}" ]
 then
-	if [[ "${option_activity}" = "google-chrome" ]] ||
-	   [[ "${option_activity}" = "chrome"        ]]
+	if [ "${option_activity}" = "${choice_chrome_full}" ] ||
+	   [ "${option_activity}" = "${choice_chrome_short}" ]
 	then
 		activity="${activity_chrome}"
 
-	elif [[ "${option_activity}" = "google-mail" ]] ||
-		[[ "${option_activity}" = "gmail"        ]]
+	elif [ "${option_activity}" = "${choice_mail_full}" ] ||
+	     [ "${option_activity}" = "${choice_mail_short}" ]
 	then
 		activity="${activity_gmail}"
 
-	elif [[ "${option_activity}" = "terminal"    ]]
+	elif [ "${option_activity}" = "${choice_terminal}" ]
 	then
 		activity="${terminal}"
 
@@ -202,22 +233,22 @@ then
 
 	activity_intent "${activity}"
 
-elif [[ "${option}" = [hH][aA][nN][dD][lL][eE] ]]
+elif [ "${option}" = "${name_option_handle}" ]
 then
-	if [[ "${option_handle}" = "email"     ]] ||
-	   [[ "${option_handle}" = "mail"      ]]
+	if [ "${option_handle}" = "${choice_email_full}" ] ||
+	   [ "${option_handle}" = "${choice_email_short}" ]
 	then
 		handle="${email}"
 
-	elif [[ "${option_handle}" = "browser" ]] ||
-		[[ "${option_handle}" = "link"     ]] ||
-		[[ "${option_handle}" = "web"      ]]
+	elif [ "${option_handle}" = "${choice_browser}" ] ||
+	     [ "${option_handle}" = "${choice_link}" ] ||
+	     [ "${option_handle}" = "${choice_web}" ]
 	then
 		handle="${link}"
 
-	elif [[ "${option_handle}" = "message" ]] ||
-	     [[ "${option_handle}" = "text"    ]] ||
-	     [[ "${option_handle}" = "sms"     ]]
+	elif [ "${option_handle}" = "${choice_message}" ] ||
+	     [ "${option_handle}" = "${choice_text}" ] ||
+	     [ "${option_handle}" = "${choice_sms}" ]
 	then
 		handle="${message}"
 

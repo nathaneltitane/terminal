@@ -154,13 +154,140 @@ do
 
 done
 
+# variables ────────────────────────────────────────────────────────────────────
+
+url_image_latest="https://downloads.raspberrypi.com/raspios_lite_arm64_latest"
+suffix_checksum=".sha256"
+separator_checksum=" "
+format_url_effective='%{url_effective}'
+
+directory_download="${HOME}/.cache/raspberry-pi"
+
+file_archive_image="${directory_download}/raspios_lite_arm64.img.xz"
+
+directory_mount_boot="/mnt/raspberry-pi-boot"
+
+directory_zoneinfo="/usr/share/zoneinfo"
+
+file_user_data="user-data"
+file_network_config="network-config"
+file_ssh_marker="ssh"
+file_boot_config="config.txt"
+file_boot_command="cmdline.txt"
+directory_power_supply="power-supply"
+file_monitor="ups-plus-monitor"
+file_monitor_service="${file_monitor}.service"
+file_monitor_timer="${file_monitor}.timer"
+
+model_ups="ep-0136"
+
+package_curl="curl"
+package_xz="xz-utils"
+package_parted="parted"
+package_util_linux="util-linux"
+package_e2fsprogs="e2fsprogs"
+package_dosfstools="dosfstools"
+package_openssl="openssl"
+package_xdg="xdg-user-dirs"
+package_i2c="i2c-tools"
+
+key_hostname="hostname"
+key_username="username"
+key_password_user="user_password"
+key_ssid_wifi="wifi_ssid"
+key_password_wifi="wifi_password"
+key_country_wifi="wifi_country"
+key_timezone="timezone"
+separator_entry="="
+name_user_forbidden="root"
+
+pattern_hostname='^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$'
+pattern_username='^[a-z][a-z0-9-]{0,31}$'
+pattern_country='^[A-Z]{2}$'
+pattern_timezone='^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$'
+length_password_minimum="8"
+length_password_maximum="63"
+
+columns_device_list="NAME,SIZE,MODEL,TRAN,TYPE"
+columns_device_detail="NAME,SIZE,MODEL,TRAN"
+pattern_header_device="NAME"
+pattern_type_device="disk"
+
+size_block="4M"
+flag_input="fullblock"
+conversion_write="fsync"
+status_write="progress"
+flag_output="direct"
+delay_settle="2"
+
+pattern_device_prefixed="(mmcblk|nvme)"
+letter_partition="p"
+number_partition_boot="1"
+number_partition_root="2"
+
+line_i2c="dtparam=i2c_arm=on"
+pattern_i2c_commented="^#${line_i2c}"
+pattern_i2c_enabled="^${line_i2c}"
+line_rtc="dtoverlay=i2c-rtc,ds1307"
+pattern_rtc="^${line_rtc}"
+line_dwc2="dtoverlay=dwc2"
+pattern_dwc2="^${line_dwc2}$"
+parameter_gadget_modules="modules-load=dwc2,g_ether"
+parameter_address_device="g_ether.dev_addr"
+parameter_address_host="g_ether.host_addr"
+format_address_mac='02:%02x:%02x:%02x:%02x:%02x'
+count_bytes_address="5"
+count_byte_values="256"
+
+pattern_boost="^arm_freq="
+section_boost="[pi4]"
+section_all="[all]"
+level_boost_one="1"
+level_boost_two="2"
+level_boost_three="3"
+level_boost_four="4"
+text_boost_levels=" ${level_boost_one} ${level_boost_two} ${level_boost_three} ${level_boost_four} "
+
+# boost table - processor MHz - over_voltage steps - graphics MHz
+
+list_boost_one=(
+	1900
+	2
+	500
+)
+
+list_boost_two=(
+	2000
+	6
+	600
+)
+
+list_boost_three=(
+	2100
+	8
+	700
+)
+
+list_boost_four=(
+	2200
+	8
+	750
+)
+
+# defaults ─────────────────────────────────────────────────────────────────────
+
+name_host_default="pi"
+name_user_default="${USER}"
+country_wifi_default="US"
+zone_time_default="America/Toronto"
+
 if [ -z "${device}" ]
 then
 	frobulator.err "No target device specified"
 
 	frobulator.inf "Available block devices"
 
-	lsblk --nodeps --output NAME,SIZE,MODEL,TRAN,TYPE | grep -e "disk" -e "NAME"
+	lsblk --nodeps --output "${columns_device_list}" | grep --regexp="${pattern_type_device}" --regexp="${pattern_header_device}"
 	echo
 
 	echo "Usage: ${script} -d [Device]"
@@ -184,7 +311,7 @@ then
 
 	exit 1
 
-elif [ -n "${option_power_supply}" ] && [ "${option_power_supply}" != "ep-0136" ]
+elif [ -n "${option_power_supply}" ] && [ "${option_power_supply}" != "${model_ups}" ]
 then
 	frobulator.err "Unknown power supply" "[ ${option_power_supply} ]"
 
@@ -199,7 +326,7 @@ then
 
 	exit 1
 
-elif [ -n "${option_boost}" ] && [[ ! " 1 2 3 4 " = *" ${option_boost} "* ]]
+elif [ -n "${option_boost}" ] && [[ ! "${text_boost_levels}" = *" ${option_boost} "* ]]
 then
 	frobulator.err "Unknown boost level - 1 to 4" "[ ${option_boost} ]"
 
@@ -213,33 +340,37 @@ then
 	frobulator.wrn "USB gadget mode with a ups" "[ keep the usb-c port unplugged while the ups is fitted ]"
 fi
 
-# variables ────────────────────────────────────────────────────────────────────
+# functions ────────────────────────────────────────────────────────────────────
 
-url_image_latest="https://downloads.raspberrypi.com/raspios_lite_arm64_latest"
+address_generate () {
 
-directory_download="${HOME}/.cache/raspberry-pi"
+	# random locally administered address
 
-file_archive_image="${directory_download}/raspios_lite_arm64.img.xz"
+	local index_byte
+	local value_byte
 
-directory_mount_boot="/mnt/raspberry-pi-boot"
+	local -a list_bytes=()
 
-# defaults ─────────────────────────────────────────────────────────────────────
+	for (( index_byte = 0 ; index_byte < count_bytes_address ; index_byte ++ ))
+	do
+		value_byte=$(( RANDOM % count_byte_values ))
 
-name_host_default="pi"
-name_user_default="${USER}"
-country_wifi_default="US"
-zone_time_default="America/Toronto"
+		list_bytes+=("${value_byte}")
+	done
+
+	printf "${format_address_mac}" "${list_bytes[@]}"
+}
 
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	curl
-	xz-utils
-	parted
-	util-linux
-	e2fsprogs
-	dosfstools
-	openssl
+	"${package_curl}"
+	"${package_xz}"
+	"${package_parted}"
+	"${package_util_linux}"
+	"${package_e2fsprogs}"
+	"${package_dosfstools}"
+	"${package_openssl}"
 )
 
 frobulator.require ${list[@]}
@@ -253,52 +384,52 @@ list=()
 frobulator.inf "Headless configuration"
 
 list_credentials=(
-	"hostname"
-	"username"
-	"user_password"
-	"wifi_ssid"
-	"wifi_password"
-	"wifi_country"
-	"timezone"
+	"${key_hostname}"
+	"${key_username}"
+	"${key_password_user}"
+	"${key_ssid_wifi}"
+	"${key_password_wifi}"
+	"${key_country_wifi}"
+	"${key_timezone}"
 )
 
 frobulator.input "${list_credentials[@]}"
 
 for entry in "${frobulator_return[@]}"
 do
-	IFS='=' read -r key_entry value_entry <<< "${entry}"
+	IFS="${separator_entry}" read -r key_entry value_entry <<< "${entry}"
 
-	if [ "${key_entry}" = "hostname" ]
+	if [ "${key_entry}" = "${key_hostname}" ]
 	then
 		name_host="${value_entry:-${name_host_default}}"
 	fi
 
-	if [ "${key_entry}" = "username" ]
+	if [ "${key_entry}" = "${key_username}" ]
 	then
 		name_user="${value_entry:-${name_user_default}}"
 	fi
 
-	if [ "${key_entry}" = "user_password" ]
+	if [ "${key_entry}" = "${key_password_user}" ]
 	then
 		password_user="${value_entry}"
 	fi
 
-	if [ "${key_entry}" = "wifi_ssid" ]
+	if [ "${key_entry}" = "${key_ssid_wifi}" ]
 	then
 		ssid_wifi="${value_entry}"
 	fi
 
-	if [ "${key_entry}" = "wifi_password" ]
+	if [ "${key_entry}" = "${key_password_wifi}" ]
 	then
 		password_wifi="${value_entry}"
 	fi
 
-	if [ "${key_entry}" = "wifi_country" ]
+	if [ "${key_entry}" = "${key_country_wifi}" ]
 	then
 		country_wifi="${value_entry:-${country_wifi_default}}"
 	fi
 
-	if [ "${key_entry}" = "timezone" ]
+	if [ "${key_entry}" = "${key_timezone}" ]
 	then
 		zone_time="${value_entry:-${zone_time_default}}"
 	fi
@@ -309,22 +440,22 @@ list_credentials_missing=()
 
 if [ -z "${name_user}" ]
 then
-	list_credentials_missing+=("username")
+	list_credentials_missing+=("${key_username}")
 fi
 
 if [ -z "${password_user}" ]
 then
-	list_credentials_missing+=("user_password")
+	list_credentials_missing+=("${key_password_user}")
 fi
 
 if [ -z "${ssid_wifi}" ]
 then
-	list_credentials_missing+=("wifi_ssid")
+	list_credentials_missing+=("${key_ssid_wifi}")
 fi
 
 if [ -z "${password_wifi}" ]
 then
-	list_credentials_missing+=("wifi_password")
+	list_credentials_missing+=("${key_password_wifi}")
 fi
 
 if [ "${#list_credentials_missing[@]}" -gt 0 ]
@@ -347,35 +478,35 @@ zone_time="${zone_time:-${zone_time_default}}"
 
 # values checked before anything is written - same rules as the first boot user setup
 
-if [[ ! "${name_host}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$ ]]
+if [[ ! "${name_host}" =~ ${pattern_hostname} ]]
 then
 	frobulator.err "Invalid hostname - letters, digits and hyphens" "[ ${name_host} ]"
 
 	exit 1
 fi
 
-if [[ ! "${name_user}" =~ ^[a-z][a-z0-9-]{0,31}$ ]] || [ "${name_user}" = "root" ]
+if [[ ! "${name_user}" =~ ${pattern_username} ]] || [ "${name_user}" = "${name_user_forbidden}" ]
 then
 	frobulator.err "Invalid username - lower-case letters, digits and hyphens - starting with a letter" "[ ${name_user} ]"
 
 	exit 1
 fi
 
-if [[ ! "${country_wifi}" =~ ^[A-Z]{2}$ ]]
+if [[ ! "${country_wifi}" =~ ${pattern_country} ]]
 then
 	frobulator.err "Invalid wifi country - two letter code" "[ ${country_wifi} ]"
 
 	exit 1
 fi
 
-if [[ ! "${zone_time}" =~ ^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$ ]] || [ ! -f /usr/share/zoneinfo/"${zone_time}" ]
+if [[ ! "${zone_time}" =~ ${pattern_timezone} ]] || [ ! -f "${directory_zoneinfo}/${zone_time}" ]
 then
 	frobulator.err "Invalid timezone - region/city" "[ ${zone_time} ]"
 
 	exit 1
 fi
 
-if [ "${#password_wifi}" -lt 8 ] || [ "${#password_wifi}" -gt 63 ]
+if [ "${#password_wifi}" -lt "${length_password_minimum}" ] || [ "${#password_wifi}" -gt "${length_password_maximum}" ]
 then
 	frobulator.err "Invalid wifi password - 8 to 63 characters" "[ ${#password_wifi} ]"
 
@@ -388,27 +519,27 @@ fi
 
 frobulator.directory "${directory_download}"
 
-url_install=$(curl -s -I -L -o "${sink}" -w '%{url_effective}' "${url_image_latest}")
+url_install=$(curl --silent --head --location --output "${sink}" --write-out "${format_url_effective}" "${url_image_latest}")
 
 frobulator.inf "Resolved image" "[ ${url_install} ]"
 
-checksum_expected=$(curl -s -L "${url_install}.sha256" | cut -d ' ' -f 1)
+checksum_expected=$(curl --silent --location "${url_install}${suffix_checksum}" | cut --delimiter="${separator_checksum}" --fields=1)
 
 # checksum of the image already downloaded - empty if there is none
 
-checksum_existing="$(sha256sum "${file_archive_image}" 2> "${sink}" | cut -d ' ' -f 1)"
+checksum_existing="$(sha256sum "${file_archive_image}" 2> "${sink}" | cut --delimiter="${separator_checksum}" --fields=1)"
 
 if [ ! -f "${file_archive_image}" ] || [ "${checksum_existing}" != "${checksum_expected}" ]
 then
-	frobulator.background download "[ ${url_install} ]" -- curl -L -o "${file_archive_image}" "${url_install}"
+	frobulator.background download "[ ${url_install} ]" -- curl --location --output "${file_archive_image}" "${url_install}"
 
-	checksum_actual=$(sha256sum "${file_archive_image}" | cut -d ' ' -f 1)
+	checksum_actual=$(sha256sum "${file_archive_image}" | cut --delimiter="${separator_checksum}" --fields=1)
 
 	if [ -n "${checksum_expected}" ] && [ "${checksum_actual}" != "${checksum_expected}" ]
 	then
 		frobulator.err "Checksum verification failed"
 
-		rm -f "${file_archive_image}"
+		rm --force "${file_archive_image}"
 
 		exit 1
 	fi
@@ -422,7 +553,7 @@ fi
 
 # require device path to be retyped before any destructive action
 
-details_device="$(lsblk --nodeps --output NAME,SIZE,MODEL,TRAN "${device}" | tail -n 1)"
+details_device="$(lsblk --nodeps --output "${columns_device_detail}" "${device}" | tail --lines=1)"
 
 frobulator.ntf err "Destructive operation" err "This will PERMANENTLY ERASE all data on '${device}'.${NLN}${NLN}${details_device}"
 
@@ -455,7 +586,7 @@ done
 
 frobulator.inf "Writing image" "[ ${device} ]"
 
-xz -dc "${file_archive_image}" | dd of="${device}" bs=4M iflag=fullblock conv=fsync status=progress oflag=direct
+xz --decompress --stdout "${file_archive_image}" | dd of="${device}" bs="${size_block}" iflag="${flag_input}" conv="${conversion_write}" status="${status_write}" oflag="${flag_output}"
 
 # exit status of both sides of the pipe - read before any other command
 
@@ -474,19 +605,19 @@ partprobe "${device}" 2> "${sink}"
 
 udevadm settle
 
-sleep 2
+sleep "${delay_settle}"
 
 # partition naming
 
 # resolve partition suffixes, which differ between /dev/sdX and mmcblk/nvme devices
 
-if [[ "${device}" =~ (mmcblk|nvme) ]]
+if [[ "${device}" =~ ${pattern_device_prefixed} ]]
 then
-	path_partition_boot="${device}p1"
-	path_partition_root="${device}p2"
+	path_partition_boot="${device}${letter_partition}${number_partition_boot}"
+	path_partition_root="${device}${letter_partition}${number_partition_root}"
 else
-	path_partition_boot="${device}1"
-	path_partition_root="${device}2"
+	path_partition_boot="${device}${number_partition_boot}"
+	path_partition_root="${device}${number_partition_root}"
 fi
 
 if [ ! -b "${path_partition_boot}" ] || [ ! -b "${path_partition_root}" ]
@@ -512,7 +643,7 @@ frobulator.complete
 
 hash_password_user=$(echo "${password_user}" | openssl passwd -6 -stdin)
 
-cat <<- FILE > "${directory_mount_boot}"/user-data
+cat <<- FILE > "${directory_mount_boot}/${file_user_data}"
 #cloud-config
 hostname: ${name_host}
 manage_etc_hosts: true
@@ -533,7 +664,7 @@ frobulator.complete
 # lite image has no desktop session to create them
 
 list_packages=(
-	"xdg-user-dirs"
+	"${package_xdg}"
 )
 
 list_commands=(
@@ -542,7 +673,7 @@ list_commands=(
 
 # ssh - also enabled by the boot partition marker file - independent of cloud-init
 
-touch "${directory_mount_boot}"/ssh
+touch "${directory_mount_boot}/${file_ssh_marker}"
 
 frobulator.complete
 
@@ -556,7 +687,7 @@ text_ssid_wifi="${text_ssid_wifi//\"/\\\"}"
 text_password_wifi="${password_wifi//\\/\\\\}"
 text_password_wifi="${text_password_wifi//\"/\\\"}"
 
-cat <<- FILE > "${directory_mount_boot}"/network-config
+cat <<- FILE > "${directory_mount_boot}/${file_network_config}"
 network:
   version: 2
   wifis:
@@ -597,41 +728,41 @@ frobulator.complete
 
 # never power the raspberry pi through its own usb-c port while the ups is fitted - it may damage the ups
 
-if [ "${option_power_supply}" = "ep-0136" ]
+if [ "${option_power_supply}" = "${model_ups}" ]
 then
-	frobulator.inf "Adding power supply support" "[ ep-0136 // ups plus ]"
+	frobulator.inf "Adding power supply support" "[ ${model_ups} // ups plus ]"
 
 	# i2c - the ups controller sits on bus 1 address 0x17
 
-	count_i2c_commented="$(grep -c '^#dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)"
-	count_i2c_enabled="$(grep -c '^dtparam=i2c_arm=on' "${directory_mount_boot}"/config.txt)"
+	count_i2c_commented="$(grep --count "${pattern_i2c_commented}" "${directory_mount_boot}/${file_boot_config}")"
+	count_i2c_enabled="$(grep --count "${pattern_i2c_enabled}" "${directory_mount_boot}/${file_boot_config}")"
 
 	if [ "${count_i2c_commented}" -gt 0 ]
 	then
-		sed -i 's/^#dtparam=i2c_arm=on/dtparam=i2c_arm=on/' "${directory_mount_boot}"/config.txt
+		sed --in-place "s/${pattern_i2c_commented}/${line_i2c}/" "${directory_mount_boot}/${file_boot_config}"
 
 	elif [ "${count_i2c_enabled}" -eq 0 ]
 	then
-		echo "dtparam=i2c_arm=on" >> "${directory_mount_boot}"/config.txt
+		echo "${line_i2c}" >> "${directory_mount_boot}/${file_boot_config}"
 	fi
 
 	# real time clock on the board - ds1307 - address 0x68
 
-	count_rtc="$(grep -c '^dtoverlay=i2c-rtc,ds1307' "${directory_mount_boot}"/config.txt)"
+	count_rtc="$(grep --count "${pattern_rtc}" "${directory_mount_boot}/${file_boot_config}")"
 
 	if [ "${count_rtc}" -eq 0 ]
 	then
-		echo "dtoverlay=i2c-rtc,ds1307" >> "${directory_mount_boot}"/config.txt
+		echo "${line_rtc}" >> "${directory_mount_boot}/${file_boot_config}"
 	fi
 
 	frobulator.complete
 
-	frobulator.directory "${directory_mount_boot}" power-supply
+	frobulator.directory "${directory_mount_boot}" "${directory_power_supply}"
 
 	# monitor - runs every 5 minutes - powers off cleanly before the ups cuts a low battery
 	# polled sparingly - frequent i2c polling is suspected to stall ups charging - geeekpi/upsplus issue 36
 
-	cat << 'MONITOR' > "${directory_mount_boot}"/power-supply/ups-plus-monitor
+	cat << 'MONITOR' > "${directory_mount_boot}/${directory_power_supply}/${file_monitor}"
 #!/bin/bash
 
 # geeekpi ups plus - ep-0136 - controller on i2c bus 1 address 0x17
@@ -796,7 +927,7 @@ MONITOR
 
 	frobulator.complete
 
-	cat << 'SERVICE' > "${directory_mount_boot}"/power-supply/ups-plus-monitor.service
+	cat << 'SERVICE' > "${directory_mount_boot}/${directory_power_supply}/${file_monitor_service}"
 [Unit]
 Description=UPS Plus battery monitor - safe shutdown on low battery
 
@@ -807,7 +938,7 @@ SERVICE
 
 	frobulator.complete
 
-	cat << 'TIMER' > "${directory_mount_boot}"/power-supply/ups-plus-monitor.timer
+	cat << 'TIMER' > "${directory_mount_boot}/${directory_power_supply}/${file_monitor_timer}"
 [Unit]
 Description=UPS Plus battery monitor - every 5 minutes
 
@@ -824,7 +955,7 @@ TIMER
 	# first boot - i2c tools and module - monitor installed and enabled
 
 	list_packages+=(
-		"i2c-tools"
+		"${package_i2c}"
 	)
 
 	list_commands+=(
@@ -846,33 +977,33 @@ then
 
 	# controller able to act as a usb device - global section - other models keep their own lines
 
-	count_dwc2="$(grep -c '^dtoverlay=dwc2$' "${directory_mount_boot}"/config.txt)"
+	count_dwc2="$(grep --count "${pattern_dwc2}" "${directory_mount_boot}/${file_boot_config}")"
 
 	if [ "${count_dwc2}" -eq 0 ]
 	then
-		echo "dtoverlay=dwc2" >> "${directory_mount_boot}"/config.txt
+		echo "${line_dwc2}" >> "${directory_mount_boot}/${file_boot_config}"
 	fi
 
 	# ethernet gadget loaded at boot - fixed addresses - the computer sees the same network card every time
 	# locally administered addresses - first byte 02
 
-	count_gadget="$(grep -c 'modules-load=dwc2,g_ether' "${directory_mount_boot}"/cmdline.txt)"
+	count_gadget="$(grep --count "${parameter_gadget_modules}" "${directory_mount_boot}/${file_boot_command}")"
 
 	if [ "${count_gadget}" -eq 0 ]
 	then
-		address_device="$(printf '02:%02x:%02x:%02x:%02x:%02x' $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )))"
-		address_host="$(printf '02:%02x:%02x:%02x:%02x:%02x' $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )) $(( RANDOM % 256 )))"
+		address_device="$(address_generate)"
+		address_host="$(address_generate)"
 
 		# kernel command line - one line - options appended to it
 
-		line_cmdline="$(< "${directory_mount_boot}"/cmdline.txt)"
+		line_cmdline="$(< "${directory_mount_boot}/${file_boot_command}")"
 
-		echo "${line_cmdline} modules-load=dwc2,g_ether g_ether.dev_addr=${address_device} g_ether.host_addr=${address_host}" > "${directory_mount_boot}"/cmdline.txt
+		echo "${line_cmdline} ${parameter_gadget_modules} ${parameter_address_device}=${address_device} ${parameter_address_host}=${address_host}" > "${directory_mount_boot}/${file_boot_command}"
 	fi
 
 	# usb0 - address from the computer when it shares its connection - link-local otherwise - pi.local reachable either way
 
-	cat <<- FILE >> "${directory_mount_boot}"/network-config
+	cat <<- FILE >> "${directory_mount_boot}/${file_network_config}"
   ethernets:
     usb0:
       dhcp4: true
@@ -891,23 +1022,32 @@ if [ -n "${option_boost}" ]
 then
 	# level - processor MHz - over_voltage steps - graphics MHz
 
-	case "${option_boost}"
-	in
-		1)	list_boost=( 1900 2 500 ) ;;
-		2)	list_boost=( 2000 6 600 ) ;;
-		3)	list_boost=( 2100 8 700 ) ;;
-		4)	list_boost=( 2200 8 750 ) ;;
-	esac
+	if [ "${option_boost}" = "${level_boost_one}" ]
+	then
+		list_boost=("${list_boost_one[@]}")
+
+	elif [ "${option_boost}" = "${level_boost_two}" ]
+	then
+		list_boost=("${list_boost_two[@]}")
+
+	elif [ "${option_boost}" = "${level_boost_three}" ]
+	then
+		list_boost=("${list_boost_three[@]}")
+
+	elif [ "${option_boost}" = "${level_boost_four}" ]
+	then
+		list_boost=("${list_boost_four[@]}")
+	fi
 
 	frobulator.inf "Adding processor boost" "[ level ${option_boost} // ${list_boost[0]} MHz ]"
 
 	# pi 4 section only - a pi 5 runs faster by default and would be slowed down - global section restored after
 
-	count_boost="$(grep -c '^arm_freq=' "${directory_mount_boot}"/config.txt)"
+	count_boost="$(grep --count "${pattern_boost}" "${directory_mount_boot}/${file_boot_config}")"
 
 	if [ "${count_boost}" -eq 0 ]
 	then
-		printf '%s\n' "[pi4]" "arm_freq=${list_boost[0]}" "over_voltage=${list_boost[1]}" "gpu_freq=${list_boost[2]}" "[all]" >> "${directory_mount_boot}"/config.txt
+		printf '%s\n' "${section_boost}" "arm_freq=${list_boost[0]}" "over_voltage=${list_boost[1]}" "gpu_freq=${list_boost[2]}" "${section_all}" >> "${directory_mount_boot}/${file_boot_config}"
 	fi
 
 	frobulator.complete
@@ -929,7 +1069,7 @@ fi
 	do
 		echo "  - ${command_boot}"
 	done
-} >> "${directory_mount_boot}"/user-data
+} >> "${directory_mount_boot}/${file_user_data}"
 
 frobulator.complete
 

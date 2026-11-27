@@ -31,7 +31,7 @@ preview () {
 
 		frobulator.separate
 
-		cat "${file}" | head -n "${count_lines}"
+		cat "${file}" | head --lines="${count_lines}"
 
 		echo
 

@@ -6,6 +6,13 @@
 
 ssh () {
 
+	local prefix_option="-"
+	local prefix_home="~"
+	local pattern_option_value="^-[BbcDEeFIiJLlmOoPpQRSWw]$"
+	local keyword_identity="identityfile"
+	local option_host_key="StrictHostKeyChecking=accept-new"
+	local color_index_destination="3"
+	local color_index_reset="0"
 	local host_destination
 	local argument_ssh
 	local argument_previous
@@ -15,13 +22,13 @@ ssh () {
 	local status_ssh
 	local name_option
 	local file_identity
-	local host_key
+	local state_key="false"
 
 	# destination - first argument that is neither an option nor an option value
 
 	for argument_ssh in "${@}"
 	do
-		if [[ "${argument_ssh}" != -* ]] && [[ ! "${argument_previous}" =~ ^-[BbcDEeFIiJLlmOoPpQRSWw]$ ]]
+		if [[ "${argument_ssh}" != "${prefix_option}"* ]] && [[ ! "${argument_previous}" =~ ${pattern_option_value} ]]
 		then
 			host_destination="${argument_ssh}"
 
@@ -46,17 +53,17 @@ ssh () {
 
 	while read -r name_option file_identity
 	do
-		file_identity="${file_identity/#\~/${HOME}}"
+		file_identity="${file_identity/#"${prefix_home}"/${HOME}}"
 
-		if [ "${name_option}" = "identityfile" ] && [ -f "${file_identity}" ]
+		if [ "${name_option}" = "${keyword_identity}" ] && [ -f "${file_identity}" ]
 		then
-			host_key="true"
+			state_key="true"
 
 			break
 		fi
 	done < <(command ssh -G "${@}" 2> "${sink}")
 
-	if [ "${host_key}" = "true" ]
+	if [ "${state_key}" = "true" ]
 	then
 		command ssh -X "${@}"
 
@@ -65,8 +72,8 @@ ssh () {
 
 	# password prompt colors: destination in yellow - then back to normal
 
-	color_destination="$(tput setaf 3)"
-	color_reset="$(tput sgr 0)"
+	color_destination="$(tput setaf "${color_index_destination}")"
+	color_reset="$(tput sgr "${color_index_reset}")"
 
 	echo -n -e "[  ${color_destination}${host_destination}${color_reset}  ] >_ ? "
 
@@ -86,11 +93,11 @@ ssh () {
 	# password passed through the environment - not shown in the process list
 	# new host keys accepted - changed host keys still refused
 
-	SSHPASS="${password_ssh}"							\
-		sshpass -e										\
-			ssh -X										\
-				-o StrictHostKeyChecking=accept-new		\
-														"${@}"
+	SSHPASS="${password_ssh}"			\
+		sshpass -e						\
+			ssh -X						\
+				-o "${option_host_key}"	\
+										"${@}"
 
 	status_ssh="${?}"
 

@@ -2,15 +2,19 @@
 
 # dependencies ─────────────────────────────────────────────────────────────────
 
-frobulator="${HOME}"/.local/bin/frobulator
+directory_binaries="${HOME}/.local/bin"
+name_frobulator="frobulator"
+
+frobulator="${directory_binaries}/${name_frobulator}"
 
 # frobulator next to linked files
 
-directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+file_profile="$(readlink --canonicalize -- "${BASH_SOURCE[0]}")"
+directory_shell="$(dirname -- "${file_profile}")"
 
-if [ -f "${directory_shell}"/frobulator ]
+if [ -f "${directory_shell}/${name_frobulator}" ]
 then
-	frobulator="${directory_shell}"/frobulator
+	frobulator="${directory_shell}/${name_frobulator}"
 fi
 
 source "${frobulator}"
@@ -22,6 +26,67 @@ source "${frobulator}"
 # version ──────────────────────────────────────────────────────────────────────
 
 version="2026-10-21"
+
+# variables ────────────────────────────────────────────────────────────────────
+
+option_install="install"
+directory_aliases="${HOME}/.bash-aliases"
+file_aliases="${HOME}/.bash_aliases"
+directory_functions="${HOME}/.bash-functions"
+file_functions="${HOME}/.bash_functions"
+directory_dextop="${HOME}/.dextop"
+file_ticker="${directory_dextop}/dextop-ticker"
+file_login="${directory_dextop}/dextop-login"
+value_login_enabled="login"
+separator_path=":"
+name_termux="termux"
+name_user_root="root"
+name_process_proot="proot"
+name_level_container="container"
+display_default=":0"
+delay_session="1"
+sequence_prompt_start="\001"
+sequence_prompt_end="\002"
+text_prompt_open="[ "
+text_prompt_close=" ]"
+text_prompt_symbol=">_"
+text_prompt_root="#"
+text_prompt_user="$"
+code_black="0"
+code_red="1"
+code_green="2"
+code_yellow="3"
+code_blue="4"
+code_magenta="5"
+code_cyan="6"
+code_white="7"
+code_reset="0"
+
+list_path_container=(
+	/usr/local/sbin
+	/usr/local/bin
+	/usr/sbin
+	/usr/bin
+	/sbin
+	/bin
+)
+
+list_path_termux=(
+	"${HOME}/.local/sbin"
+	"${directory_binaries}"
+	"${HOME}/.sbin"
+	"${HOME}/.bin"
+)
+
+list_directories_prefix=(
+	sbin
+	bin
+)
+
+list_path_android=(
+	/system/sbin
+	/system/bin
+)
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -35,14 +100,14 @@ if [[ "${self}" = "${0}" ]]
 then
 	script="$(basename -- "${self}")"
 
-	directory_install="${HOME}"/.local/bin
+	directory_install="${directory_binaries}"
 
 	while (( $# ))
 	do
 		case "${1}"
 		in
 			-i|--install)
-				option="install"
+				option="${option_install}"
 			;;
 
 			-h|--help)
@@ -90,12 +155,12 @@ then
 
 	if [ -z "${option}" ]
 	then
-		option="install"
+		option="${option_install}"
 	fi
 
 	# install
 
-	if [ "${option}" = "install" ]
+	if [ "${option}" = "${option_install}" ]
 	then
 		# blank line - output separated from the shell prompt
 
@@ -151,9 +216,9 @@ then
 
 	# aliases ──────────────────────────────────────────────────────────────────
 
-	if [ -d "${HOME}"/.bash-aliases ]
+	if [ -d "${directory_aliases}" ]
 	then
-		for alias in "${HOME}"/.bash-aliases/*
+		for alias in "${directory_aliases}"/*
 		do
 			if [ -x "${alias}" ]
 			then
@@ -162,16 +227,16 @@ then
 		done
 	fi
 
-	if [ -f "${HOME}"/.bash_aliases ]
+	if [ -f "${file_aliases}" ]
 	then
-		. "${HOME}"/.bash_aliases
+		. "${file_aliases}"
 	fi
 
 	# functions ────────────────────────────────────────────────────────────────
 
-	if [ -d "${HOME}"/.bash-functions ]
+	if [ -d "${directory_functions}" ]
 	then
-		for function in "${HOME}"/.bash-functions/*
+		for function in "${directory_functions}"/*
 		do
 			if [ -x "${function}" ]
 			then
@@ -180,9 +245,9 @@ then
 		done
 	fi
 
-	if [ -f "${HOME}"/.bash_functions ]
+	if [ -f "${file_functions}" ]
 	then
-		. "${HOME}"/.bash_functions
+		. "${file_functions}"
 	fi
 fi
 
@@ -192,33 +257,53 @@ PATH=""
 
 # container
 
-[ -d /usr/local/sbin ]       && PATH+="/usr/local/sbin:"
-[ -d /usr/local/bin ]        && PATH+="/usr/local/bin:"
-[ -d /usr/sbin ]             && PATH+="/usr/sbin:"
-[ -d /usr/bin ]              && PATH+="/usr/bin:"
-[ -d /sbin ]                 && PATH+="/sbin:"
-[ -d /bin ]                  && PATH+="/bin:"
+for directory_path in "${list_path_container[@]}"
+do
+	if [ -d "${directory_path}" ]
+	then
+		PATH+="${directory_path}${separator_path}"
+	fi
+done
 
 # termux
 
-[ -d "${HOME}"/.local/sbin ] && PATH+="${HOME}/.local/sbin:"
-[ -d "${HOME}"/.local/bin ]  && PATH+="${HOME}/.local/bin:"
-[ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
-[ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
+for directory_path in "${list_path_termux[@]}"
+do
+	if [ -d "${directory_path}" ]
+	then
+		PATH+="${directory_path}${separator_path}"
+	fi
+done
 
 # linked files directory for root shells
 
-[ "${directory_shell}" != "${HOME}/.local/bin" ] && PATH+="${directory_shell}:"
+if [ "${directory_shell}" != "${directory_binaries}" ]
+then
+	PATH+="${directory_shell}${separator_path}"
+fi
 
 # termux prefix
 
-[ -n "${PREFIX}" ] && [ -d "${PREFIX}"/sbin ] && PATH+="${PREFIX}/sbin:"
-[ -n "${PREFIX}" ] && [ -d "${PREFIX}"/bin ]  && PATH+="${PREFIX}/bin:"
+if [ -n "${PREFIX}" ]
+then
+	for name_directory_prefix in "${list_directories_prefix[@]}"
+	do
+		if [ -d "${PREFIX}/${name_directory_prefix}" ]
+		then
+			PATH+="${PREFIX}/${name_directory_prefix}${separator_path}"
+		fi
+	done
+fi
 
 # android
 
-[ -d /system/sbin ]          && PATH+="/system/sbin:"
-[ -d /system/bin ]           && PATH+="/system/bin:"
+for directory_path in "${list_path_android[@]}"
+do
+	if [ -d "${directory_path}" ]
+	then
+		PATH+="${directory_path}${separator_path}"
+	fi
+done
 
 PATH="${PATH}"
 
@@ -228,22 +313,22 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	if [ -z "${USER}" ]
 	then
-		USER="termux"
+		USER="${name_termux}"
 	fi
 fi
 
 # colors ───────────────────────────────────────────────────────────────────────
 
-black="\001$(tput setaf 0)\002"
-red="\001$(tput setaf 1)\002"
-green="\001$(tput setaf 2)\002"
-yellow="\001$(tput setaf 3)\002"
-blue="\001$(tput setaf 4)\002"
-magenta="\001$(tput setaf 5)\002"
-cyan="\001$(tput setaf 6)\002"
-white="\001$(tput setaf 7)\002"
+black="${sequence_prompt_start}$(tput setaf "${code_black}")${sequence_prompt_end}"
+red="${sequence_prompt_start}$(tput setaf "${code_red}")${sequence_prompt_end}"
+green="${sequence_prompt_start}$(tput setaf "${code_green}")${sequence_prompt_end}"
+yellow="${sequence_prompt_start}$(tput setaf "${code_yellow}")${sequence_prompt_end}"
+blue="${sequence_prompt_start}$(tput setaf "${code_blue}")${sequence_prompt_end}"
+magenta="${sequence_prompt_start}$(tput setaf "${code_magenta}")${sequence_prompt_end}"
+cyan="${sequence_prompt_start}$(tput setaf "${code_cyan}")${sequence_prompt_end}"
+white="${sequence_prompt_start}$(tput setaf "${code_white}")${sequence_prompt_end}"
 
-reset="\001$(tput sgr 0)\002"
+reset="${sequence_prompt_start}$(tput sgr "${code_reset}")${sequence_prompt_end}"
 
 # prompt ───────────────────────────────────────────────────────────────────────
 
@@ -251,10 +336,10 @@ unset PS1
 
 # logged in user name and running proot container process ids - empty outside one
 
-name_user="$(id -u -n)"
-id_process_proot="$(pidof proot)"
+name_user="$(id --user --name)"
+id_process_proot="$(pidof "${name_process_proot}")"
 
-if [ "${name_user}" = "root" ]
+if [ "${name_user}" = "${name_user_root}" ]
 then
 	color_prompt="${red}"
 
@@ -265,15 +350,15 @@ else
 	color_prompt="${green}"
 fi
 
-PS1+="${reset}[ "
+PS1+="${reset}${text_prompt_open}"
 PS1+="${color_prompt}${USER}"
-PS1+="${reset} ]"
+PS1+="${reset}${text_prompt_close}"
 
-if [ "${name_user}" = "root" ]
+if [ "${name_user}" = "${name_user_root}" ]
 then
-	PS1+="${white} >_ # ${reset}"
+	PS1+="${white} ${text_prompt_symbol} ${text_prompt_root} ${reset}"
 else
-	PS1+="${white} >_ $ ${reset}"
+	PS1+="${white} ${text_prompt_symbol} ${text_prompt_user} ${reset}"
 fi
 
 unset name_user
@@ -291,13 +376,13 @@ then
 
 	if [ -z "${DISPLAY}" ]
 	then
-		DISPLAY=":0"
+		DISPLAY="${display_default}"
 	fi
 
 	# running graphics accelerator and termux x11 application process ids - empty if stopped
 
-	id_process_accelerator="$(pgrep -f "${TERMUX_X11_ACCELERATOR}")"
-	id_process_x11_application="$(pgrep -f "${TERMUX_X11_APPLICATION}")"
+	id_process_accelerator="$(pgrep --full "${TERMUX_X11_ACCELERATOR}")"
+	id_process_x11_application="$(pgrep --full "${TERMUX_X11_APPLICATION}")"
 
 	if [ -n "${id_process_accelerator}" ]
 	then
@@ -331,15 +416,15 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	# get session login count
 
-	ticker=$(cat "${HOME}"/.dextop/dextop-ticker)
+	ticker="$(cat "${file_ticker}")"
 
-	title_session="termux"
+	title_session="${name_termux}"
 
 	# load welcome message
 
 	# proot container processes matching by command line - empty outside a container
 
-	id_process_proot="$(pgrep -f proot)"
+	id_process_proot="$(pgrep --full "${name_process_proot}")"
 
 	if [ -n "${id_process_proot}" ]
 	then
@@ -363,27 +448,27 @@ then
 
 	# increment session login count
 
-	ticker=$(( ${ticker} + 1 ))
+	ticker=$(( ticker + 1 ))
 
-	echo ${ticker} > "${HOME}"/.dextop/dextop-ticker
+	echo "${ticker}" > "${file_ticker}"
 
-	sleep 1
+	sleep "${delay_session}"
 
 	# automatic session start
 
 	# automatic session start selection: 'login' when enabled
 
-	content_login_dextop="$(cat "${HOME}"/.dextop/dextop-login)"
+	content_login_dextop="$(cat "${file_login}")"
 
-	if [ "${content_login_dextop}" = "login" ]
+	if [ "${content_login_dextop}" = "${value_login_enabled}" ]
 	then
 		frobulator.wrn "Automatic session start enabled"
 
-		level_session="termux"
+		level_session="${name_termux}"
 
 		if [ -n "${id_process_proot}" ]
 		then
-			level_session="container"
+			level_session="${name_level_container}"
 		fi
 
 		# load session interface

@@ -12,12 +12,43 @@
 sequence_cursor_hide='\e[?25l'
 sequence_cursor_show='\e[?25h'
 
+# terminal emulator names
+
+name_terminal_konsole="konsole"
+name_terminal_gnome="gnome-terminal"
+name_terminal_kgx="kgx"
+name_terminal_xfce="xfce4-terminal"
+name_terminal_mate="mate-terminal"
+name_terminal_qterminal="qterminal"
+name_terminal_lxterminal="lxterminal"
+name_terminal_tilix="tilix"
+name_terminal_terminator="terminator"
+name_terminal_kitty="kitty"
+name_terminal_alacritty="alacritty"
+name_terminal_foot="foot"
+name_terminal_wezterm="wezterm"
+name_terminal_st="st"
+name_terminal_urxvt="urxvt"
+name_terminal_xterm="xterm"
+name_terminal_zutty="zutty"
+name_terminal_system="x-terminal-emulator"
+
+# function and link names
+
+name_link_run="run"
+name_file_run="utility-command-run"
+file_functions="${HOME}/.local/bin/bash-functions"
+separator_dash="-"
+separator_underscore="_"
+
 # functions ────────────────────────────────────────────────────────────────────
 
 # use to read a key from an initialization file
 
 intent_value_initialization () {
 
+	local pattern_section='^\[(.*)\]$'
+	local separator_pair="="
 	local file_initialization="${1}"
 	local section_initialization="${2}"
 	local key_initialization="${3}"
@@ -32,20 +63,21 @@ intent_value_initialization () {
 
 	while IFS= read -r line_initialization || [ -n "${line_initialization}" ]
 	do
-		if [[ "${line_initialization}" =~ ^\[(.*)\]$ ]]
+		if [[ "${line_initialization}" =~ ${pattern_section} ]]
 		then
 			section_current="${BASH_REMATCH[1]}"
 
 			continue
 		fi
 
-		if [ "${section_current}" = "${section_initialization}" ] && [[ "${line_initialization}" == "${key_initialization}="* ]]
+		if [ "${section_current}" = "${section_initialization}" ] && [[ "${line_initialization}" == "${key_initialization}${separator_pair}"* ]]
 		then
-			echo "${line_initialization#*=}"
+			echo "${line_initialization#*${separator_pair}}"
 
 			return
 		fi
 	done < "${file_initialization}"
+
 }
 
 # use to find a terminal emulator command
@@ -53,36 +85,74 @@ intent_value_initialization () {
 intent_terminal_find () {
 
 	local directory_configuration="${XDG_CONFIG_HOME:-${HOME}/.config}"
+	local directory_data_default="${HOME}/.local/share"
+	local paths_data_default="/usr/local/share:/usr/share"
+	local name_directory_applications="applications"
+	local file_kde="kdeglobals"
+	local file_xfce="xfce4/helpers.rc"
+	local section_kde="General"
+	local key_kde="TerminalApplication"
+	local key_xfce="TerminalEmulator"
+	local separator_desktop=":"
+	local separator_path=":"
+	local name_desktop_kde="KDE"
+	local name_desktop_xfce="XFCE"
+	local name_desktop_gnome="GNOME"
+	local name_desktop_mate="MATE"
+	local name_desktop_cinnamon="X-Cinnamon"
+	local name_desktop_lxqt="LXQt"
+	local name_desktop_lxde="LXDE"
+	local pattern_categories="Categories=*TerminalEmulator*"
+	local prefix_exec="Exec="
+	local pattern_desktop_file="*.desktop"
+	local depth_search="1"
+	local state_terminal
 	local directory_data
+	local directory_applications
 	local file_desktop
 	local line_desktop
 	local name_candidate
-	local status_terminal
+	local path_candidate
 	local command_desktop
 	local name_desktop
+	local pattern_desktop_kde
+	local pattern_desktop_xfce
+	local pattern_desktop_gnome
+	local pattern_desktop_mate
+	local pattern_desktop_cinnamon
+	local pattern_desktop_lxqt
+	local pattern_desktop_lxde
 
 	local list_candidates=()
 	local list_directories_data=()
 
 	local list_terminals=(
-		konsole
-		gnome-terminal
-		kgx
-		xfce4-terminal
-		mate-terminal
-		qterminal
-		lxterminal
-		tilix
-		terminator
-		kitty
-		alacritty
-		foot
-		wezterm
-		st
-		urxvt
-		xterm
-		zutty
+		"${name_terminal_konsole}"
+		"${name_terminal_gnome}"
+		"${name_terminal_kgx}"
+		"${name_terminal_xfce}"
+		"${name_terminal_mate}"
+		"${name_terminal_qterminal}"
+		"${name_terminal_lxterminal}"
+		"${name_terminal_tilix}"
+		"${name_terminal_terminator}"
+		"${name_terminal_kitty}"
+		"${name_terminal_alacritty}"
+		"${name_terminal_foot}"
+		"${name_terminal_wezterm}"
+		"${name_terminal_st}"
+		"${name_terminal_urxvt}"
+		"${name_terminal_xterm}"
+		"${name_terminal_zutty}"
 	)
+
+	pattern_desktop_kde="*${separator_desktop}${name_desktop_kde}${separator_desktop}*"
+	pattern_desktop_xfce="*${separator_desktop}${name_desktop_xfce}${separator_desktop}*"
+	pattern_desktop_gnome="*${separator_desktop}${name_desktop_gnome}${separator_desktop}*"
+	pattern_desktop_mate="*${separator_desktop}${name_desktop_mate}${separator_desktop}*"
+	pattern_desktop_cinnamon="*${separator_desktop}${name_desktop_cinnamon}${separator_desktop}*"
+	pattern_desktop_lxqt="*${separator_desktop}${name_desktop_lxqt}${separator_desktop}*"
+	pattern_desktop_lxde="*${separator_desktop}${name_desktop_lxde}${separator_desktop}*"
 
 	# preferred terminal variable
 
@@ -90,78 +160,83 @@ intent_terminal_find () {
 
 	# desktop setting then desktop default
 
-	name_desktop=":${XDG_CURRENT_DESKTOP}:"
+	name_desktop="${separator_desktop}${XDG_CURRENT_DESKTOP}${separator_desktop}"
 
-	if [[ "${name_desktop}" == *:KDE:* ]]
+	if [[ "${name_desktop}" == ${pattern_desktop_kde} ]]
 	then
-		list_candidates+=("$(intent_value_initialization "${directory_configuration}"/kdeglobals General TerminalApplication)")
-		list_candidates+=(konsole)
+		list_candidates+=("$(intent_value_initialization "${directory_configuration}/${file_kde}" "${section_kde}" "${key_kde}")")
+		list_candidates+=("${name_terminal_konsole}")
 
-	elif [[ "${name_desktop}" == *:XFCE:* ]]
+	elif [[ "${name_desktop}" == ${pattern_desktop_xfce} ]]
 	then
-		list_candidates+=("$(intent_value_initialization "${directory_configuration}"/xfce4/helpers.rc "" TerminalEmulator)")
-		list_candidates+=(xfce4-terminal)
+		list_candidates+=("$(intent_value_initialization "${directory_configuration}/${file_xfce}" "" "${key_xfce}")")
+		list_candidates+=("${name_terminal_xfce}")
 
-	elif [[ "${name_desktop}" == *:GNOME:* ]]
+	elif [[ "${name_desktop}" == ${pattern_desktop_gnome} ]]
 	then
-		list_candidates+=(kgx gnome-terminal)
+		list_candidates+=(
+			"${name_terminal_kgx}"
+			"${name_terminal_gnome}"
+		)
 
-	elif [[ "${name_desktop}" == *:MATE:* ]]
+	elif [[ "${name_desktop}" == ${pattern_desktop_mate} ]]
 	then
-		list_candidates+=(mate-terminal)
+		list_candidates+=("${name_terminal_mate}")
 
-	elif [[ "${name_desktop}" == *:X-Cinnamon:* ]]
+	elif [[ "${name_desktop}" == ${pattern_desktop_cinnamon} ]]
 	then
-		list_candidates+=(gnome-terminal)
+		list_candidates+=("${name_terminal_gnome}")
 
-	elif [[ "${name_desktop}" == *:LXQt:* ]]
+	elif [[ "${name_desktop}" == ${pattern_desktop_lxqt} ]]
 	then
-		list_candidates+=(qterminal)
+		list_candidates+=("${name_terminal_qterminal}")
 
-	elif [[ "${name_desktop}" == *:LXDE:* ]]
+	elif [[ "${name_desktop}" == ${pattern_desktop_lxde} ]]
 	then
-		list_candidates+=(lxterminal)
+		list_candidates+=("${name_terminal_lxterminal}")
 	fi
 
 	# system default
 
-	list_candidates+=(x-terminal-emulator)
+	list_candidates+=("${name_terminal_system}")
 
 	# installed terminal entries
 
-	IFS=':' read -r -a list_directories_data <<< "${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+	IFS="${separator_path}" read -r -a list_directories_data <<< "${XDG_DATA_DIRS:-${paths_data_default}}"
 
-	for directory_data in "${XDG_DATA_HOME:-${HOME}/.local/share}" "${list_directories_data[@]}"
+	for directory_data in "${XDG_DATA_HOME:-${directory_data_default}}" "${list_directories_data[@]}"
 	do
-		if [ ! -d "${directory_data}"/applications ]
+		directory_applications="${directory_data}/${name_directory_applications}"
+
+		if [ ! -d "${directory_applications}" ]
 		then
 			continue
 		fi
 
 		while IFS= read -r file_desktop
 		do
-			unset status_terminal
+			state_terminal="false"
 			unset command_desktop
 
 			while IFS= read -r line_desktop || [ -n "${line_desktop}" ]
 			do
-				if [[ "${line_desktop}" == Categories=*TerminalEmulator* ]]
+				if [[ "${line_desktop}" == ${pattern_categories} ]]
 				then
-					status_terminal="found"
+					state_terminal="true"
 				fi
 
-				if [ -z "${command_desktop}" ] && [[ "${line_desktop}" == Exec=* ]]
+				if [ -z "${command_desktop}" ] && [[ "${line_desktop}" == ${prefix_exec}* ]]
 				then
-					command_desktop="${line_desktop#Exec=}"
+					command_desktop="${line_desktop#${prefix_exec}}"
 					command_desktop="${command_desktop%% *}"
 				fi
 			done < "${file_desktop}"
 
-			if [ -n "${status_terminal}" ] && [ -n "${command_desktop}" ]
+			if [ "${state_terminal}" = "true" ] && [ -n "${command_desktop}" ]
 			then
 				list_candidates+=("${command_desktop}")
 			fi
-		done < <(find "${directory_data}"/applications -maxdepth 1 -name '*.desktop' 2> /dev/null)
+		done < <(find "${directory_applications}" -maxdepth "${depth_search}" -name "${pattern_desktop_file}" 2> /dev/null)
 	done
 
 	# well known terminals
@@ -173,14 +248,16 @@ intent_terminal_find () {
 	for name_candidate in "${list_candidates[@]}"
 	do
 		name_candidate="${name_candidate%% *}"
+		path_candidate="$(command -v "${name_candidate}")"
 
-		if [ -n "${name_candidate}" ] && [ -n "$(command -v "${name_candidate}")" ]
+		if [ -n "${name_candidate}" ] && [ -n "${path_candidate}" ]
 		then
 			echo "${name_candidate}"
 
 			return
 		fi
 	done
+
 }
 
 # use to open a command in a terminal emulator
@@ -188,6 +265,11 @@ intent_terminal_find () {
 intent_terminal_open () {
 
 	local name_terminal="${1}"
+	local format_command="%q "
+	local count_columns="120"
+	local count_rows="30"
+	local property_columns="TerminalColumns"
+	local property_rows="TerminalRows"
 
 	shift
 
@@ -195,38 +277,39 @@ intent_terminal_open () {
 	local text_command
 	local name_base
 
-	printf -v text_command '%q ' "${list_command[@]}"
+	printf -v text_command "${format_command}" "${list_command[@]}"
 
 	# command syntax per terminal
 
 	name_base="${name_terminal##*/}"
 
-	if [ "${name_base}" = "konsole" ]
+	if [ "${name_base}" = "${name_terminal_konsole}" ]
 	then
-		exec "${name_terminal}" -p TerminalColumns=120 -p TerminalRows=30 -e "${list_command[@]}"
+		exec "${name_terminal}" -p "${property_columns}=${count_columns}" -p "${property_rows}=${count_rows}" -e "${list_command[@]}"
 
-	elif [ "${name_base}" = "gnome-terminal" ] || [ "${name_base}" = "kgx" ]
+	elif [ "${name_base}" = "${name_terminal_gnome}" ] || [ "${name_base}" = "${name_terminal_kgx}" ]
 	then
 		exec "${name_terminal}" -- "${list_command[@]}"
 
-	elif [ "${name_base}" = "wezterm" ]
+	elif [ "${name_base}" = "${name_terminal_wezterm}" ]
 	then
 		exec "${name_terminal}" start -- "${list_command[@]}"
 
-	elif [ "${name_base}" = "kitty" ] || [ "${name_base}" = "foot" ]
+	elif [ "${name_base}" = "${name_terminal_kitty}" ] || [ "${name_base}" = "${name_terminal_foot}" ]
 	then
 		exec "${name_terminal}" "${list_command[@]}"
 
-	elif [ "${name_base}" = "xfce4-terminal" ] || [ "${name_base}" = "mate-terminal" ] || [ "${name_base}" = "terminator" ]
+	elif [ "${name_base}" = "${name_terminal_xfce}" ] || [ "${name_base}" = "${name_terminal_mate}" ] || [ "${name_base}" = "${name_terminal_terminator}" ]
 	then
 		exec "${name_terminal}" -x "${list_command[@]}"
 
-	elif [ "${name_base}" = "qterminal" ] || [ "${name_base}" = "lxterminal" ] || [ "${name_base}" = "tilix" ]
+	elif [ "${name_base}" = "${name_terminal_qterminal}" ] || [ "${name_base}" = "${name_terminal_lxterminal}" ] || [ "${name_base}" = "${name_terminal_tilix}" ]
 	then
 		exec "${name_terminal}" -e "${text_command}"
 	else
 		exec "${name_terminal}" -e "${list_command[@]}"
 	fi
+
 }
 
 # terminal ─────────────────────────────────────────────────────────────────────
@@ -249,13 +332,13 @@ fi
 
 # user functions
 
-source "${HOME}"/.local/bin/bash-functions
+source "${file_functions}"
 
 # link name is the function
 
 name_called="${0##*/}"
 
-if [ "${name_called}" != "run" ] && [ "${name_called}" != "utility-command-run" ]
+if [ "${name_called}" != "${name_link_run}" ] && [ "${name_called}" != "${name_file_run}" ]
 then
 	set -- "${name_called}" "${@}"
 fi
@@ -272,10 +355,13 @@ fi
 # dashed file names with underscored functions
 
 name_function="${1}"
+name_function_underscored="${name_function//${separator_dash}/${separator_underscore}}"
+text_function="$(declare -F "${name_function}")"
+text_function_underscored="$(declare -F "${name_function_underscored}")"
 
-if [ -z "$(declare -F "${name_function}")" ] && [ -n "$(declare -F "${name_function//-/_}")" ]
+if [ -z "${text_function}" ] && [ -n "${text_function_underscored}" ]
 then
-	name_function="${name_function//-/_}"
+	name_function="${name_function_underscored}"
 fi
 
 shift

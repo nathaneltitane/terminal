@@ -114,6 +114,10 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+directory_applications="/media/internal/Linux/applications"
+pattern_package="*.deb"
+name_session_kde="plasma"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -171,11 +175,11 @@ frobulator.purge ${list_purge[@]}
 
 frobulator.install ${list_install[@]}
 
-if [ -d /media/internal/Linux/applications ]
+if [ -d "${directory_applications}" ]
 then
-	cd /media/internal/Linux/applications
+	cd "${directory_applications}"
 
-	for package in *.deb
+	for package in ${pattern_package}
 	do
 		frobulator.install "${package}"
 	done
@@ -186,7 +190,7 @@ do
 	pip install "${package}"
 done
 
-if [[ "${DESKTOP_SESSION}" = "plasma" ]]
+if [ "${DESKTOP_SESSION}" = "${name_session_kde}" ]
 then
 	frobulator.install ${list_kde[@]}
 fi

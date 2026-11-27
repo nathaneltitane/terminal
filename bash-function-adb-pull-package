@@ -7,22 +7,51 @@
 adb_pull_package () {
 
 	local package
+	local path_package
+	local directory_apk
+	local directory_android
+	local file_base
+	local extension_package
+	local expression_package
+	local pattern_data
+
+	local list_packages=()
+
+	directory_apk="./apk"
+	directory_android="${HOME}/Android"
+	file_base="base.apk"
+	extension_package=".apk"
+	expression_package='s/^package://p'
+	pattern_data="/data/app"
 
 	adb_download
 
 	adb_set_environment
 
-	if [[ ! -d ./apk ]]
+	if [ ! -d "${directory_apk}" ]
 	then
-		mkdir -p "${HOME}"/Android
+		mkdir --parents "${directory_android}"
 
-		cd "${HOME}"/Android
+		cd "${directory_android}"
 	fi
 
-	for package in $(adb shell pm list packages | sed -n 's/^package://p')
-	do
-		adb pull "$(adb shell pm path "${package}" | grep /data/app | sed -n "s/^package://p")"
+	# installed package names
 
-		mv base.apk "${package}".apk
+	mapfile -t list_packages < <(adb shell pm list packages | sed --quiet "${expression_package}")
+
+	for package in "${list_packages[@]}"
+	do
+		if [ -z "${package}" ]
+		then
+			continue
+		fi
+
+		# apk path on the device
+
+		path_package="$(adb shell pm path "${package}" | grep "${pattern_data}" | sed --quiet "${expression_package}")"
+
+		adb pull "${path_package}"
+
+		mv "${file_base}" "${package}${extension_package}"
 	done
 }

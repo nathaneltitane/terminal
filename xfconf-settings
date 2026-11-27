@@ -122,7 +122,40 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="+%m-%d-%Y-%H-%M-%S"
+command_create="xfconf-query --create"
+type_boolean="bool"
+type_double="double"
+type_integer="int"
+type_string="string"
+state_true="true"
+state_false="false"
+pattern_double='^[-+]?[0-9]+\.[0-9]*$'
+pattern_integer='^[0-9]+$'
+pattern_channel_header='/Channel.*/d'
+channel_displays="displays"
+channel_session="xfce4-session"
+channel_editor="xfce4-settings-editor"
+channel_manager="xfce4-settings-manager"
+channel_appfinder="xfce4-appfinder"
+channel_desktop="xfce4-desktop"
+channel_window="xfwm4"
+channel_shortcuts="xfce4-keyboard-shortcuts"
+property_actions="/actions"
+property_backdrop="/backdrop/screen0/monitorVNC-0/workspace"
+property_rgba="/rgba"
+property_names="/general/workspace_names"
+property_providers="/providers"
+provider_window="xfwm4"
+provider_commands="commands"
+value_color_default="1.0"
+label_workspace="Workspace 0"
+command_replace="bash -c 'xfwm4 --replace & > /dev/null 2>&1'"
+count_rgba="2"
+count_workspace_backdrop="8"
+count_workspace_name="9"
+
+stamp=$(date "${format_stamp}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -165,7 +198,7 @@ list=()
 
 frobulator.inf "Generating" "[ ${file_settings} ]"
 
-xfconf-query -l | sed '/Channel.*/d' | while read channel
+xfconf-query -l | sed "${pattern_channel_header}" | while read channel
 do
 	xfconf-query -l -v -c "${channel}" | while read property setting
 	do
@@ -181,30 +214,30 @@ do
 
 		# parse data types
 
-		if [[ ${setting} = true ]] || [[ ${setting} = false ]]
+		if [[ ${setting} = "${state_true}" ]] || [[ ${setting} = "${state_false}" ]]
 		then
-			type=bool
+			type="${type_boolean}"
 
-		elif [[ ${setting} =~ ^[-+]?[0-9]+\.[0-9]*$ ]]
+		elif [[ ${setting} =~ ${pattern_double} ]]
 		then
-			type=double
+			type="${type_double}"
 
-		elif [[ ${setting} =~ ^[0-9]+$ ]]
+		elif [[ ${setting} =~ ${pattern_integer} ]]
 		then
-			type=int
+			type="${type_integer}"
 
 		else
-			type=string
+			type="${type_string}"
 		fi
 
-		if [[ ${channel} = "displays"               ]] ||
-		   [[ ${channel} = "xfce4-session"          ]] ||
-		   [[ ${channel} = "xfce4-settings-editor"  ]] ||
-		   [[ ${channel} = "xfce4-settings-manager" ]]
+		if [[ ${channel} = "${channel_displays}" ]] ||
+		   [[ ${channel} = "${channel_session}" ]] ||
+		   [[ ${channel} = "${channel_editor}" ]] ||
+		   [[ ${channel} = "${channel_manager}" ]]
 		then
 			:
 		else
-			echo "xfconf-query --create -c '${channel}' -p '${property}' -t ${type} -s '${setting}'"
+			echo "${command_create} -c '${channel}' -p '${property}' -t ${type} -s '${setting}'"
 		fi
 	done
 
@@ -215,63 +248,61 @@ done > "${file_settings}"
 
 # add 'xfce4-appfinder' actions string
 
-echo "xfconf-query --create -c 'xfce4-appfinder' -p '/actions' -t string -s ''" >> "${file_settings}"
+echo "${command_create} -c '${channel_appfinder}' -p '${property_actions}' -t ${type_string} -s ''" >> "${file_settings}"
 
 # add workspace background settings
 
-for number_rgba in {1..2}
+for (( number_rgba = 1 ; number_rgba <= count_rgba ; number_rgba ++ ))
 do
-	for number_workspace in {0..8}
+	for (( number_workspace = 0 ; number_workspace <= count_workspace_backdrop ; number_workspace ++ ))
 	do
-		value="1.0"
+		value_red="${value_color_default}"
+		value_green="${value_color_default}"
+		value_blue="${value_color_default}"
+		value_alpha="${value_color_default}"
 
-		r="${value}"
-		g="${value}"
-		b="${value}"
-		a="${value}"
+		unset text_command
 
-			unset command
+		text_command+="${command_create}"
+		text_command+=" -c '${channel_desktop}'"
+		text_command+=" -p '${property_backdrop}${number_workspace}${property_rgba}${number_rgba}'"
+		text_command+=" -t ${type_double} -s '${value_red}'"
+		text_command+=" -t ${type_double} -s '${value_green}'"
+		text_command+=" -t ${type_double} -s '${value_blue}'"
+		text_command+=" -t ${type_double} -s '${value_alpha}'"
 
-		command+="xfconf-query --create"
-		command+=" -c 'xfce4-desktop'"
-		command+=" -p '/backdrop/screen0/monitorVNC-0/workspace${number_workspace}/rgba${number_rgba}'"
-		command+=" -t double -s '${r}'"
-		command+=" -t double -s '${g}'"
-		command+=" -t double -s '${b}'"
-		command+=" -t double -s '${a}'"
-
-		echo ${command} >> "${file_settings}"
+		echo ${text_command} >> "${file_settings}"
 	done
 done
 
 # add workspace name settings
 
-unset command
+unset text_command
 
-command+="xfconf-query --create"
-command+=" -c 'xfwm4'"
-command+=" -p '/general/workspace_names'"
+text_command+="${command_create}"
+text_command+=" -c '${channel_window}'"
+text_command+=" -p '${property_names}'"
 
-for number_workspace in {1..9}
+for (( number_workspace = 1 ; number_workspace <= count_workspace_name ; number_workspace ++ ))
 do
-	command+=" -t string -s 'Workspace 0${number_workspace}'"
+	text_command+=" -t ${type_string} -s '${label_workspace}${number_workspace}'"
 done
 
-echo ${command} >> "${file_settings}"
+echo ${text_command} >> "${file_settings}"
 
 # add keyboard-shortcut providers
 
-unset command
+unset text_command
 
-command+="xfconf-query --create"
-command+=" -c 'xfce4-keyboard-shortcuts'"
-command+=" -p '/providers'"
-command+=" -t string -s 'xfwm4'"
-command+=" -t string -s 'commands'"
+text_command+="${command_create}"
+text_command+=" -c '${channel_shortcuts}'"
+text_command+=" -p '${property_providers}'"
+text_command+=" -t ${type_string} -s '${provider_window}'"
+text_command+=" -t ${type_string} -s '${provider_commands}'"
 
-echo ${command} >> "${file_settings}"
+echo ${text_command} >> "${file_settings}"
 
-echo "bash -c 'xfwm4 --replace & > /dev/null 2>&1'" >> "${file_settings}"
+echo "${command_replace}" >> "${file_settings}"
 
 frobulator.scs "Done."
 

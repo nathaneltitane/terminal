@@ -9,9 +9,22 @@ font="${name_font}:size=${size_font}"
 
 lines=60
 prompt="NAVIGATION${separator}"
+color_background_normal='#000000'
+color_foreground_normal='#FFFFFF'
+color_background_selected='#666666'
+color_foreground_selected='#000000'
 
 count_entries_history=3
-file_history="${HOME}"/.local/bin/.i3-navigation-history
+file_history="${HOME}/.local/bin/.i3-navigation-history"
+format_line='%s\n'
+prefix_path="/"
+selection_current="."
+pattern_url="^(https?|ftps):"
+label_selections_empty=''
+label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
+label_selections_history='[ History ]  ↴'
+label_selections_terminal='[ Open Terminal Here ]'
+label_selections_terminal_visual='[ Open Visual Terminal Here ]'
 
 command_file_manager="ranger"
 terminal="i3-sensible-terminal"
@@ -38,11 +51,15 @@ history_write () {
 
 	entry_history="${1}"
 
-	sed -i "\:${entry_history}:d" "${file_history}"
+	expression_delete="\\:${entry_history}:d"
 
-	printf '%s\n' "${entry_history}" >> "${file_history}"
+	sed --in-place "${expression_delete}" "${file_history}"
 
-	printf '%s\n' "$(tail -n "${count_entries_history}" "${file_history}")" > "${file_history}"
+	printf "${format_line}" "${entry_history}" >> "${file_history}"
+
+	text_history="$(tail --lines "${count_entries_history}" "${file_history}")"
+
+	printf "${format_line}" "${text_history}" > "${file_history}"
 }
 
 
@@ -50,13 +67,7 @@ selections_parse () {
 
 	directory_working="${selection_navigation}"
 
-	label_selections_empty=''
-	label_selections_separator='////////////////////////////////////////////////////////////////////////////////'
-
 	label_selections_working_directory="DIRECTORY${separator}${directory_working}"
-	label_selections_history='[ History ]  ↴'
-	label_selections_terminal='[ Open Terminal Here ]'
-	label_selections_terminal_visual='[ Open Visual Terminal Here ]'
 
 	selections=(
 		"${label_selections_working_directory}"
@@ -85,25 +96,32 @@ selections_parse () {
 
 while :
 do
-	selection="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' "${@}")" || exit 1
+	selection="$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background_normal}" -nf "${color_foreground_normal}" -sb "${color_background_selected}" -sf "${color_foreground_selected}" "${@}")"
 
-	if [ "${selection}" == '[ Open Terminal Here ]' ]
+	status_selection="${?}"
+
+	if [ "${status_selection}" -ne 0 ]
+	then
+		exit 1
+	fi
+
+	if [ "${selection}" = "${label_selections_terminal}" ]
 	then
 		terminal_open "${selection_navigation}"
 
 		history_write "${selection_navigation}"
 
-	elif [ "${selection}" == '[ Open Visual Terminal Here ]' ]
+	elif [ "${selection}" = "${label_selections_terminal_visual}" ]
 	then
 		terminal_open_visual "${selection_navigation}"
 
 		history_write "${selection_navigation}"
 
-	elif [[ "${selection}" == '/'* ]]
+	elif [[ "${selection}" == "${prefix_path}"* ]]
 	then
 		selection_navigation="${selection}"
 
-	elif [[ "${selection}" =~ ^(https?|ftps): ]]
+	elif [[ "${selection}" =~ ${pattern_url} ]]
 	then
 		handler_open "${selection}"
 
@@ -113,7 +131,7 @@ do
 		selection_navigation="$(realpath "${selection_navigation}/${selection}")"
 	fi
 
-	if [ -f "${selection_navigation}" ] || [ "${selection}" = '.' ]
+	if [ -f "${selection_navigation}" ] || [ "${selection}" = "${selection_current}" ]
 	then
 		handler_open "${selection_navigation}"
 

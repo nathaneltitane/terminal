@@ -8,7 +8,13 @@ size_font=10
 font="${name_font}:size=${size_font}"
 
 lines=15
-prompt="PROMPT${separator}"
+label_prompt="PROMPT"
+prompt="${label_prompt}${separator}"
+
+color_background="#000000"
+color_foreground="#FFFFFF"
+color_selected_background="#666666"
+color_selected_foreground="#000000"
 
 selections_parse () {
 
@@ -31,7 +37,7 @@ selections_parse () {
 	selections=()
 }
 
-selection_menu=$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+selection_menu=$(selections_parse | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selected_background}" -sf "${color_selected_foreground}")
 
 case "${selection_menu}" in
 	1)

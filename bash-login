@@ -23,6 +23,35 @@ source "${frobulator}"
 
 version="2026-10-21"
 
+# variables ────────────────────────────────────────────────────────────────────
+
+directory_install="${HOME}/.local/bin"
+directory_dextop="${HOME}/.dextop"
+file_release="/etc/os-release"
+file_pulse_client="/etc/pulse/client.conf"
+file_environment="dextop-environment"
+file_checkpoint="dextop-settings-checkpoint"
+file_update="dextop-update"
+file_audio="dextop-audio"
+file_settings="${directory_install}/container-settings"
+mode_install="install"
+value_audio="audio"
+keyword_update="update"
+keyword_dextop="dextop"
+keyword_shell="shell"
+keyword_utility="utility"
+keyword_all="all"
+name_process_proot="proot"
+name_process_pulseaudio="pulseaudio"
+name_module_tcp="module-native-protocol-tcp"
+host_loopback="127.0.0.1"
+state_daemonize="true"
+time_idle_exit="-1"
+value_anonymous="1"
+setting_pulse_server="default-server = ${host_loopback}"
+setting_pulse_localhost="auto-connect-localhost = yes"
+setting_pulse_spawn="autospawn = no"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 self="${BASH_SOURCE[0]}"
@@ -35,14 +64,12 @@ if [[ "${self}" = "${0}" ]]
 then
 	script="$(basename -- "${self}")"
 
-	directory_install="${HOME}"/.local/bin
-
 	while (( $# ))
 	do
 		case "${1}"
 		in
 			-i|--install)
-				option="install"
+				option="${mode_install}"
 			;;
 
 			-h|--help)
@@ -90,12 +117,12 @@ then
 
 	if [ -z "${option}" ]
 	then
-		option="install"
+		option="${mode_install}"
 	fi
 
 	# install
 
-	if [ "${option}" = "install" ]
+	if [ "${option}" = "${mode_install}" ]
 	then
 		# blank line - output separated from the shell prompt
 
@@ -135,7 +162,7 @@ then
 
 	# desktop environment chosen at setup: console / i3 / xfce - empty if not set up
 
-	name_environment="$(cat "${HOME}"/.dextop/dextop-environment)"
+	name_environment="$(cat "${directory_dextop}/${file_environment}")"
 
 	if [ -n "${name_environment}" ]
 	then
@@ -149,9 +176,9 @@ then
 		interface_session=${interface_session^^}
 	fi
 
-	if [ -f /etc/os-release ]
+	if [ -f "${file_release}" ]
 	then
-		. /etc/os-release
+		. "${file_release}"
 
 		name="${ID}"
 		version="${VERSION_ID}"
@@ -161,13 +188,13 @@ then
 
 	# settings
 
-	if [ ! -f "${HOME}"/.dextop/dextop-settings-checkpoint ]
+	if [ ! -f "${directory_dextop}/${file_checkpoint}" ]
 	then
 		frobulator.fwd "Setting up..."
 
-		dbus-launch "${HOME}"/.local/bin/container-settings
+		dbus-launch "${file_settings}"
 
-		frobulator.file "${HOME}"/.dextop dextop-settings-checkpoint
+		frobulator.file "${directory_dextop}" "${file_checkpoint}"
 
 		frobulator.clear
 	fi
@@ -176,7 +203,7 @@ then
 
 	# proot container processes - empty outside a container
 
-	id_process_proot="$(pgrep -f proot)"
+	id_process_proot="$(pgrep -f "${name_process_proot}")"
 
 	if [ -n "${id_process_proot}" ]
 	then
@@ -184,28 +211,28 @@ then
 	else
 		# automatic update selection: 'update' followed by dextop / shell / utility / all
 
-		content_update_dextop="$(cat "${HOME}"/.dextop/dextop-update)"
+		content_update_dextop="$(cat "${directory_dextop}/${file_update}")"
 
-		if [[ "${content_update_dextop}" = *update* ]]
+		if [[ "${content_update_dextop}" = *"${keyword_update}"* ]]
 		then
-			if [[ "${content_update_dextop}" = *dextop* ]]
+			if [[ "${content_update_dextop}" = *"${keyword_dextop}"* ]]
 			then
-				dextop -u dextop
+				dextop -u "${keyword_dextop}"
 			fi
 
-			if [[ "${content_update_dextop}" = *shell* ]]
+			if [[ "${content_update_dextop}" = *"${keyword_shell}"* ]]
 			then
-				dextop -u shell
+				dextop -u "${keyword_shell}"
 			fi
 
-			if [[ "${content_update_dextop}" = *utility* ]]
+			if [[ "${content_update_dextop}" = *"${keyword_utility}"* ]]
 			then
-				dextop -u utility all
+				dextop -u "${keyword_utility}" "${keyword_all}"
 			fi
 
-			if [[ "${content_update_dextop}" = *all* ]]
+			if [[ "${content_update_dextop}" = *"${keyword_all}"* ]]
 			then
-				dextop -u all
+				dextop -u "${keyword_all}"
 			fi
 
 			frobulator.clear
@@ -216,15 +243,15 @@ then
 
 	if [ -n "${id_process_proot}" ]
 	then
-		echo 'default-server = 127.0.0.1'   >  /etc/pulse/client.conf
-		echo 'auto-connect-localhost = yes' >> /etc/pulse/client.conf
-		echo 'autospawn = no'               >> /etc/pulse/client.conf
+		echo "${setting_pulse_server}"      >  "${file_pulse_client}"
+		echo "${setting_pulse_localhost}"   >> "${file_pulse_client}"
+		echo "${setting_pulse_spawn}"       >> "${file_pulse_client}"
 	else
 		# automatic audio selection: 'audio' when enabled
 
-		content_audio_dextop="$(cat "${HOME}"/.dextop/dextop-audio)"
+		content_audio_dextop="$(cat "${directory_dextop}/${file_audio}")"
 
-		if [ "${content_audio_dextop}" = "audio" ]
+		if [ "${content_audio_dextop}" = "${value_audio}" ]
 		then
 			# 'pulseaudio' path - empty if not installed
 
@@ -234,7 +261,7 @@ then
 			then
 				# running pulseaudio process ids - empty if stopped
 
-				id_process_pulseaudio="$(pgrep -f pulseaudio)"
+				id_process_pulseaudio="$(pgrep -f "${name_process_pulseaudio}")"
 
 				if [ -n "${id_process_pulseaudio}" ]
 				then
@@ -242,22 +269,22 @@ then
 				else
 					# start pulseaudio and daemonize
 
-					pulseaudio					\
-						--start					\
-						--daemonize=true		\
-						--exit-idle-time=-1
+					pulseaudio									\
+						--start									\
+						--daemonize="${state_daemonize}"		\
+						--exit-idle-time="${time_idle_exit}"
 
 					# initialize transmission control protocol
 
-					pacmd								\
-						load-module						\
-							module-native-protocol-tcp	\
-								auth-ip-acl=127.0.0.1	\
-								auth-anonymous=1
+					pacmd											\
+						load-module									\
+							"${name_module_tcp}"					\
+								auth-ip-acl="${host_loopback}"		\
+								auth-anonymous="${value_anonymous}"
 				fi
 			fi
 		fi
 	fi
 fi
 
-unset command_pulseaudio name_environment id_process_proot content_update_dextop content_audio_dextop id_process_pulseaudio
+unset command_pulseaudio name_environment id_process_proot content_update_dextop content_audio_dextop id_process_pulseaudio directory_install directory_dextop file_release file_pulse_client file_environment file_checkpoint file_update file_audio file_settings mode_install value_audio keyword_update keyword_dextop keyword_shell keyword_utility keyword_all name_process_proot name_process_pulseaudio name_module_tcp host_loopback state_daemonize time_idle_exit value_anonymous setting_pulse_server setting_pulse_localhost setting_pulse_spawn

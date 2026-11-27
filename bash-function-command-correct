@@ -39,22 +39,22 @@ command_correct_distance () {
 		return
 	fi
 
-	for (( index_second = 0; index_second <= length_second; index_second++ ))
+	for (( index_second = 0; index_second <= length_second; index_second ++ ))
 	do
 		list_row_last[index_second]="${index_second}"
 	done
 
-	for (( index_first = 1; index_first <= length_first; index_first++ ))
+	for (( index_first = 1; index_first <= length_first; index_first ++ ))
 	do
 		list_row_current=("${index_first}")
 
 		count_row_best="${index_first}"
 
-		character_first="${word_first:index_first-1:1}"
+		character_first="${word_first:index_first - 1:1}"
 
-		for (( index_second = 1; index_second <= length_second; index_second++ ))
+		for (( index_second = 1; index_second <= length_second; index_second ++ ))
 		do
-			character_second="${word_second:index_second-1:1}"
+			character_second="${word_second:index_second - 1:1}"
 
 			count_cost=1
 
@@ -67,23 +67,23 @@ command_correct_distance () {
 
 			count_best=$(( list_row_last[index_second] + 1 ))
 
-			if (( list_row_current[index_second-1] + 1 < count_best ))
+			if (( list_row_current[index_second - 1] + 1 < count_best ))
 			then
-				count_best=$(( list_row_current[index_second-1] + 1 ))
+				count_best=$(( list_row_current[index_second - 1] + 1 ))
 			fi
 
-			if (( list_row_last[index_second-1] + count_cost < count_best ))
+			if (( list_row_last[index_second - 1] + count_cost < count_best ))
 			then
-				count_best=$(( list_row_last[index_second-1] + count_cost ))
+				count_best=$(( list_row_last[index_second - 1] + count_cost ))
 			fi
 
 			# two swapped letters
 
-			if (( index_first > 1 && index_second > 1 )) && [[ "${character_first}" == "${word_second:index_second-2:1}" && "${word_first:index_first-2:1}" == "${character_second}" ]]
+			if (( index_first > 1 && index_second > 1 )) && [[ "${character_first}" == "${word_second:index_second - 2:1}" && "${word_first:index_first - 2:1}" == "${character_second}" ]]
 			then
-				if (( list_row_before[index_second-2] + 1 < count_best ))
+				if (( list_row_before[index_second - 2] + 1 < count_best ))
 				then
-					count_best=$(( list_row_before[index_second-2] + 1 ))
+					count_best=$(( list_row_before[index_second - 2] + 1 ))
 				fi
 			fi
 
@@ -121,25 +121,36 @@ command_correct_match () {
 	local -a list_candidates=("${@}")
 
 	local item
-	local count_limit=1
 	local count_best
 	local count_gap
 	local character_first="${word:0:1}"
 	local character_second="${word:1:1}"
 	local status_filter
+	local count_limit
+	local count_limit_short
+	local count_limit_long
+	local count_length_long
+	local count_candidates_filter
 
-	word_match=""
+	count_limit_short="1"
+	count_limit_long="2"
+	count_length_long="5"
+	count_candidates_filter="5000"
+	status_filter="false"
+	count_limit="${count_limit_short}"
 
-	if [ "${#word}" -ge 5 ]
+	unset word_match
+
+	if [ "${#word}" -ge "${count_length_long}" ]
 	then
-		count_limit=2
+		count_limit="${count_limit_long}"
 	fi
 
 	count_best=$(( count_limit + 1 ))
 
 	# long lists - first letters kept close
 
-	if [ "${#list_candidates[@]}" -gt 5000 ]
+	if [ "${#list_candidates[@]}" -gt "${count_candidates_filter}" ]
 	then
 		status_filter="true"
 	fi
@@ -148,7 +159,7 @@ command_correct_match () {
 	do
 		if [ "${item}" = "${word}" ]
 		then
-			word_match=""
+			unset word_match
 
 			return
 		fi
@@ -160,7 +171,7 @@ command_correct_match () {
 			continue
 		fi
 
-		if [ -n "${status_filter}" ] && [[ "${item:0:1}" != "${character_first}" && "${item:0:1}" != "${character_second}" ]]
+		if [ "${status_filter}" = "true" ] && [[ "${item:0:1}" != "${character_first}" && "${item:0:1}" != "${character_second}" ]]
 		then
 			continue
 		fi
@@ -179,7 +190,7 @@ command_correct_match () {
 
 	if (( count_best > count_limit ))
 	then
-		word_match=""
+		unset word_match
 	fi
 }
 
@@ -198,6 +209,26 @@ command_correct_candidates () {
 	local name_command="${list_segment[0]}"
 	local text_specification
 	local name_completion
+	local name_loader
+	local status_loader
+	local file_completion
+	local directory_system
+	local pattern_function
+	local pattern_command
+	local prefix_complete
+	local suffix_options
+	local suffix_space
+	local suffix_equal
+
+	name_loader="_completion_loader"
+	file_completion="share/bash-completion/bash_completion"
+	directory_system="/usr"
+	pattern_function=' -F ([^ ]+)'
+	pattern_command=' -C '
+	prefix_complete="complete "
+	suffix_options=" *"
+	suffix_space=" "
+	suffix_equal="="
 
 	local -a COMP_WORDS=()
 	local COMP_CWORD
@@ -209,26 +240,34 @@ command_correct_candidates () {
 
 	# completion missing in login shells
 
-	if ! declare -F _completion_loader > /dev/null
+	declare -F "${name_loader}" > "${sink}" 2>&1
+
+	status_loader="${?}"
+
+	if [ "${status_loader}" -ne 0 ]
 	then
-		if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
+		if [ -f "${PREFIX}"/"${file_completion}" ]
 		then
-			. "${PREFIX}"/share/bash-completion/bash_completion
-		elif [ -f /usr/share/bash-completion/bash_completion ]
+			. "${PREFIX}"/"${file_completion}"
+		elif [ -f "${directory_system}"/"${file_completion}" ]
 		then
-			. /usr/share/bash-completion/bash_completion
+			. "${directory_system}"/"${file_completion}"
 		fi
 	fi
 
-	text_specification="$(complete -p -- "${name_command}" 2> /dev/null)"
+	text_specification="$(complete -p -- "${name_command}" 2> "${sink}")"
 
 	# completion loaded on first use
 
-	if [ -z "${text_specification}" ] && declare -F _completion_loader > /dev/null
-	then
-		_completion_loader "${name_command}" > /dev/null 2>&1
+	declare -F "${name_loader}" > "${sink}" 2>&1
 
-		text_specification="$(complete -p -- "${name_command}" 2> /dev/null)"
+	status_loader="${?}"
+
+	if [ -z "${text_specification}" ] && [ "${status_loader}" -eq 0 ]
+	then
+		"${name_loader}" "${name_command}" > "${sink}" 2>&1
+
+		text_specification="$(complete -p -- "${name_command}" 2> "${sink}")"
 	fi
 
 	if [ -z "${text_specification}" ]
@@ -236,7 +275,7 @@ command_correct_candidates () {
 		return
 	fi
 
-	if [[ "${text_specification}" =~ \ -F\ ([^ ]+) ]]
+	if [[ "${text_specification}" =~ ${pattern_function} ]]
 	then
 		name_completion="${BASH_REMATCH[1]}"
 
@@ -245,23 +284,47 @@ command_correct_candidates () {
 		COMP_LINE="${COMP_WORDS[*]}"
 		COMP_POINT="${#COMP_LINE}"
 
-		"${name_completion}" "${name_command}" "${text_current}" "${COMP_WORDS[index_word-1]}" > /dev/null 2>&1
+		"${name_completion}" "${name_command}" "${text_current}" "${COMP_WORDS[index_word - 1]}" > "${sink}" 2>&1
 
 		list_completion=("${COMPREPLY[@]}")
-	elif [[ "${text_specification}" != *\ -C\ * ]]
+	elif [[ "${text_specification}" != *${pattern_command}* ]]
 	then
 		# same options as the completion
 
-		text_specification="${text_specification#complete }"
-		text_specification="${text_specification% *}"
+		text_specification="${text_specification#${prefix_complete}}"
+		text_specification="${text_specification%${suffix_options}}"
 
-		mapfile -t list_completion < <(eval "compgen ${text_specification} -- \"\${text_current}\"" 2> /dev/null)
+		mapfile -t list_completion < <(eval "compgen ${text_specification} -- \"\${text_current}\"" 2> "${sink}")
 	fi
 
 	# trailing spaces and equal signs
 
-	list_completion=("${list_completion[@]% }")
-	list_completion=("${list_completion[@]%=}")
+	list_completion=("${list_completion[@]%${suffix_space}}")
+	list_completion=("${list_completion[@]%${suffix_equal}}")
+}
+
+command_correct_member () {
+
+	# word found in a list
+	# result in status_member
+
+	local word_search="${1}"
+
+	shift
+
+	local item
+
+	status_member="false"
+
+	for item in "${@}"
+	do
+		if [ "${item}" = "${word_search}" ]
+		then
+			status_member="true"
+
+			return
+		fi
+	done
 }
 
 command-correct () {
@@ -271,16 +334,34 @@ command-correct () {
 
 	local text_line="${READLINE_LINE}"
 	local text_rest
-	local text_corrected=""
+	local text_corrected
 	local word
 	local word_lower
-	local status_command="true"
+	local type_word
+	local type_lower
+	local status_command
 	local status_skip
 	local status_skip_next
 	local status_capitals
+	local status_member
+	local status_wrapper
+	local status_control
+	local status_opener
 	local index_word
-	local index_start=""
-	local index_end=""
+	local index_start
+	local index_end
+	local key_accept
+	local sequence_swap
+	local function_accept
+	local pattern_space
+	local pattern_word
+	local pattern_redirection
+	local pattern_plain
+	local pattern_option_short
+	local pattern_number
+	local pattern_operator_end
+	local prefix_option_long
+	local count_length_minimum
 
 	local -a list_spaces=()
 	local -a list_words=()
@@ -288,13 +369,69 @@ command-correct () {
 	local -a list_segment=()
 	local -a list_commands=()
 
+	local -a list_control=(
+		'|'
+		'||'
+		'&&'
+		';'
+		'&'
+		'|&'
+	)
+
+	local -a list_wrappers=(
+		sudo
+		env
+		time
+		nohup
+		nice
+		command
+		builtin
+		exec
+		xargs
+		watch
+		then
+		do
+		else
+		elif
+		if
+		while
+		until
+		'!'
+		'{'
+		'('
+	)
+
+	local -a list_openers=(
+		for
+		case
+		select
+		function
+	)
+
+	key_accept='\C-x\C-a'
+	sequence_swap='\C-x\C-x\C-x\C-x'
+	function_accept="accept-line"
+	pattern_space='[[:space:]]'
+	pattern_word='^([[:space:]]*)([^[:space:]]+)(.*)$'
+	pattern_redirection='^[0-9]*[\<\>]'
+	pattern_plain='^[[:alnum:]._+-]+$'
+	pattern_option_short='^-[^-]'
+	pattern_number='^[0-9.]+$'
+	pattern_operator_end='(\;|\||\&)$'
+	prefix_option_long="--"
+	count_length_minimum="2"
+	status_command="true"
+	status_skip="false"
+	status_skip_next="false"
+	status_capitals="false"
+
 	# runs unless a fix is shown
 
-	bind '"\C-x\C-a": accept-line'
+	bind "\"${key_accept}\": ${function_accept}"
 
-	if [ -z "${text_line//[[:space:]]/}" ] || [ "${text_line}" = "${line_command_typed}" ]
+	if [ -z "${text_line//${pattern_space}/}" ] || [ "${text_line}" = "${line_command_typed}" ]
 	then
-		line_command_typed=""
+		unset line_command_typed
 
 		return
 	fi
@@ -303,7 +440,7 @@ command-correct () {
 
 	text_rest="${text_line}"
 
-	while [[ "${text_rest}" =~ ^([[:space:]]*)([^[:space:]]+)(.*)$ ]]
+	while [[ "${text_rest}" =~ ${pattern_word} ]]
 	do
 		list_spaces+=("${BASH_REMATCH[1]}")
 		list_words+=("${BASH_REMATCH[2]}")
@@ -316,8 +453,12 @@ command-correct () {
 	# caps lock: capital command with a lowercase match
 
 	word="${list_words[0]}"
+	word_lower="${word,,}"
 
-	if [[ "${word}" == "${word^^}" && "${word}" != "${word,,}" ]] && [ -z "$(type -t -- "${word}")" ] && [ -n "$(type -t -- "${word,,}")" ]
+	type_word="$(type -t -- "${word}")"
+	type_lower="$(type -t -- "${word_lower}")"
+
+	if [[ "${word}" == "${word^^}" && "${word}" != "${word_lower}" ]] && [ -z "${type_word}" ] && [ -n "${type_lower}" ]
 	then
 		status_capitals="true"
 	fi
@@ -326,18 +467,20 @@ command-correct () {
 	do
 		word="${list_words[index_word]}"
 
-		if [ -n "${status_capitals}" ] && [[ "${word}" == "${word^^}" && "${word}" != "${word,,}" ]]
+		if [ "${status_capitals}" = "true" ] && [[ "${word}" == "${word^^}" && "${word}" != "${word,,}" ]]
 		then
 			word="${word,,}"
 		fi
 
 		status_skip="${status_skip_next}"
 
-		status_skip_next=""
+		status_skip_next="false"
 
 		# control operators start a new command
 
-		if [[ "${word}" =~ ^(\||\|\||\&\&|\;|\&|\|\&)$ ]]
+		command_correct_member "${word}" "${list_control[@]}"
+
+		if [ "${status_member}" = "true" ]
 		then
 			status_command="true"
 
@@ -345,17 +488,19 @@ command-correct () {
 
 		# redirections - next word is a file
 
-		elif [[ "${word}" =~ ^[0-9]*[\<\>] ]]
+		elif [[ "${word}" =~ ${pattern_redirection} ]]
 		then
 			status_skip_next="true"
 
 		# quotes variables paths and short options left as typed
 
-		elif [ -z "${status_skip}" ] && [ "${#word}" -ge 2 ] && [[ "${word}" =~ ^[[:alnum:]._+-]+$ ]] && [[ ! "${word}" =~ ^-[^-] ]] && [[ ! "${word}" =~ ^[0-9.]+$ ]] && [ ! -e "${word}" ]
+		elif [ "${status_skip}" = "false" ] && [ "${#word}" -ge "${count_length_minimum}" ] && [[ "${word}" =~ ${pattern_plain} ]] && [[ ! "${word}" =~ ${pattern_option_short} ]] && [[ ! "${word}" =~ ${pattern_number} ]] && [ ! -e "${word}" ]
 		then
-			if [ -n "${status_command}" ]
+			if [ "${status_command}" = "true" ]
 			then
-				if [ -z "$(type -t -- "${word}")" ]
+				type_word="$(type -t -- "${word}")"
+
+				if [ -z "${type_word}" ]
 				then
 					if [ "${#list_commands[@]}" -eq 0 ]
 					then
@@ -378,9 +523,9 @@ command-correct () {
 				if [ "${#list_completion[@]}" -gt 0 ]
 				then
 					list_completion=()
-				elif [[ "${word}" == --* ]]
+				elif [[ "${word}" == ${prefix_option_long}* ]]
 				then
-					command_correct_candidates "--" "${#list_segment[@]}" "${list_segment[@]}"
+					command_correct_candidates "${prefix_option_long}" "${#list_segment[@]}" "${list_segment[@]}"
 				else
 					command_correct_candidates "" "${#list_segment[@]}" "${list_segment[@]}"
 				fi
@@ -399,27 +544,36 @@ command-correct () {
 
 		# command position after wrappers and keywords
 
-		if [ -n "${status_command}" ]
+		if [ "${status_command}" = "true" ]
 		then
-			case "${word}"
-			in
-				'|'|'||'|'&&'|';'|'&'|'|&')
-				;;
-				sudo|env|time|nohup|nice|command|builtin|exec|xargs|watch|then|do|else|elif|if|while|until|'!'|'{'|'(')
-				;;
-				-*|*=*)
-				;;
-				for|case|select|function)
-					status_command=""
+			command_correct_member "${word}" "${list_control[@]}"
 
-					list_segment=()
-				;;
-				*)
-					status_command=""
+			status_control="${status_member}"
 
-					list_segment=("${word}")
-				;;
-			esac
+			command_correct_member "${word}" "${list_wrappers[@]}"
+
+			status_wrapper="${status_member}"
+
+			command_correct_member "${word}" "${list_openers[@]}"
+
+			status_opener="${status_member}"
+
+			if [ "${status_control}" = "true" ] || [ "${status_wrapper}" = "true" ]
+			then
+				:
+			elif [[ "${word}" == -* || "${word}" == *=* ]]
+			then
+				:
+			elif [ "${status_opener}" = "true" ]
+			then
+				status_command="false"
+
+				list_segment=()
+			else
+				status_command="false"
+
+				list_segment=("${word}")
+			fi
 		elif [ "${#list_segment[@]}" -gt 0 ]
 		then
 			list_segment+=("${word}")
@@ -427,7 +581,7 @@ command-correct () {
 
 		# operators at the end of a word
 
-		if [[ "${word}" =~ (\;|\||\&)$ ]] && [ "${#word}" -gt 1 ]
+		if [[ "${word}" =~ ${pattern_operator_end} ]] && [ "${#word}" -ge "${count_length_minimum}" ]
 		then
 			status_command="true"
 
@@ -470,8 +624,8 @@ command-correct () {
 
 		# swapping point and mark twice lights up the span
 
-		bind '"\C-x\C-a": "\C-x\C-x\C-x\C-x"'
+		bind "\"${key_accept}\": \"${sequence_swap}\""
 	else
-		line_command_typed=""
+		unset line_command_typed
 	fi
 }

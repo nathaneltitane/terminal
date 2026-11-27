@@ -41,8 +41,12 @@ ollama_complete () {
 	local word_current="${text_line##* }"
 	local prefix_colon="${word_current%"${word_current##*:}"}"
 	local index_word
+	local index_command
+	local index_model
 	local name_model
 	local text_rest
+	local character_space
+	local count_lines_header
 
 	local list_words=()
 	local list_models=()
@@ -81,13 +85,18 @@ ollama_complete () {
 		stop
 	)
 
+	index_command="1"
+	index_model="2"
+	character_space=" "
+	count_lines_header="+2"
+
 	read -r -a list_words <<< "${text_line}"
 
 	index_word=$(( ${#list_words[@]} - 1 ))
 
 	# a trailing space starts a new word
 
-	if [ "${text_line: -1}" = " " ]
+	if [ "${text_line: -1}" = "${character_space}" ]
 	then
 		index_word=$(( index_word + 1 ))
 	fi
@@ -96,15 +105,15 @@ ollama_complete () {
 
 	# commands first - local model names after a model command
 
-	if [ "${index_word}" -eq 1 ]
+	if [ "${index_word}" -eq "${index_command}" ]
 	then
 		mapfile -t COMPREPLY < <(compgen -W "${list_commands[*]}" -- "${word_current}")
-	elif [ "${index_word}" -eq 2 ] && [[ " ${list_commands_model[*]} " == *" ${list_words[1]} "* ]]
+	elif [ "${index_word}" -eq "${index_model}" ] && [[ " ${list_commands_model[*]} " == *" ${list_words[index_command]} "* ]]
 	then
 		while read -r name_model text_rest
 		do
 			list_models+=("${name_model}")
-		done < <(command ollama list 2> /dev/null | tail -n +2)
+		done < <(command ollama list 2> "${sink}" | tail --lines="${count_lines_header}")
 
 		mapfile -t COMPREPLY < <(compgen -W "${list_models[*]}" -- "${word_current}")
 

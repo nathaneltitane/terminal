@@ -69,12 +69,15 @@ version="2026-10-23"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+option_image="image"
+option_selection="selection"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-i|--image)
-			option="image"
+			option="${option_image}"
 			name_distribution="${2}"
 
 			shift
@@ -85,7 +88,7 @@ do
 		;;
 
 		-s|--selection)
-			option="selection"
+			option="${option_selection}"
 		;;
 
 		-h|--help)
@@ -133,22 +136,48 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-architecture_distribution="arm64"
+name_debian="debian"
+name_fedora="fedora"
+name_ubuntu="ubuntu"
+architecture_arm64="arm64"
+architecture_amd64="amd64"
+architecture_i386="i386"
+architecture_fedora_arm64="aarch64"
+architecture_fedora_amd64="x86_64"
+version_default="13"
+codename_default="trixie"
+version_debian_archive="11"
+text_codename_none="-"
+separator_codename=" - "
+separator_path="/"
+directory_current="."
+prefix_archive="archive-"
+suffix_archive=".tar.xz"
+label_selection="Selection:"
+pattern_number="^[0-9]+$"
+count_fields="3"
+length_version_short="2"
+number_single_digit_maximum="9"
+padding_number=" "
+url_fedora_current="https://dl.fedoraproject.org/pub/fedora/linux/releases"
+url_fedora_archive="https://archives.fedoraproject.org/pub/archive/fedora/linux/releases"
+
+architecture_distribution="${architecture_arm64}"
 
 # archives saved next to the script
 
 directory_script="${BASH_SOURCE[0]}"
 
-if [[ "${directory_script}" != */* ]]
+if [[ "${directory_script}" != *${separator_path}* ]]
 then
-	directory_script="./${directory_script}"
+	directory_script="${directory_current}${separator_path}${directory_script}"
 fi
 
-directory_script="${directory_script%/*}"
+directory_script="${directory_script%${separator_path}*}"
 
-if [[ "${directory_script}" != /* ]]
+if [[ "${directory_script}" != ${separator_path}* ]]
 then
-	directory_script="${PWD}/${directory_script}"
+	directory_script="${PWD}${separator_path}${directory_script}"
 fi
 
 # supported distribution versions - name version codename - fedora has none
@@ -183,17 +212,17 @@ list_versions=(
 # fedora official container images - current releases then archived ones
 
 list_urls_fedora=(
-	https://dl.fedoraproject.org/pub/fedora/linux/releases
-	https://archives.fedoraproject.org/pub/archive/fedora/linux/releases
+	"${url_fedora_current}"
+	"${url_fedora_archive}"
 )
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
-if [ "${option}" != "image" ] && [ "${option}" != "selection" ]
+if [ "${option}" != "${option_image}" ] && [ "${option}" != "${option_selection}" ]
 then
-	name_distribution="debian"
-	version_distribution="13"
-	codename_distribution="trixie"
+	name_distribution="${name_debian}"
+	version_distribution="${version_default}"
+	codename_distribution="${codename_default}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -210,33 +239,33 @@ image_select () {
 
 		# continue list using array selection of suppported values
 
-		for (( index_version = 0 ; index_version < ${#list_versions[@]} ; index_version += 3 ))
+		for (( index_version = 0 ; index_version < ${#list_versions[@]} ; index_version += count_fields ))
 		do
-			number_entry=$(( ( ${index_version} / 3 ) + 1 ))
+			number_entry=$(( ( index_version / count_fields ) + 1 ))
 
 			name_entry="${list_versions[${index_version}]}"
-			version_entry="${list_versions[${index_version}+1]}"
-			codename_entry="${list_versions[${index_version}+2]}"
+			version_entry="${list_versions[index_version + 1]}"
+			codename_entry="${list_versions[index_version + 2]}"
 
 			indent="${marker_tab}"
 
-			if [ ${#version_entry} -le 2 ]
+			if [ "${#version_entry}" -le "${length_version_short}" ]
 			then
 				indent+="${marker_tab}"
 			fi
 
-			if [ "${number_entry}" -le 9 ]
+			if [ "${number_entry}" -le "${number_single_digit_maximum}" ]
 			then
 				# handle number spacing for entries 1-9
 
-				number_entry=" ${number_entry}"
+				number_entry="${padding_number}${number_entry}"
 			else
 				# handle number spacing for entries 10+
 
 				number_entry="${number_entry}"
 			fi
 
-			if [ "${codename_entry}" = "-" ]
+			if [ "${codename_entry}" = "${text_codename_none}" ]
 			then
 				echo "${marker_nul}" "[ ${number_entry} ]" "${name_entry}" "${version_entry}"
 			else
@@ -257,7 +286,7 @@ image_select () {
 
 		eval ${frobulator_return[@]}
 
-		frobulator.ipt "Selection:"
+		frobulator.ipt "${label_selection}"
 
 		frobulator.read selection
 
@@ -266,26 +295,26 @@ image_select () {
 		# integer check:
 		# handle numerical selection
 
-		count_entries=$(( ${#list_versions[@]} / 3 ))
+		count_entries=$(( ${#list_versions[@]} / count_fields ))
 
-		while [[ ! "${selection}" =~ ^[0-9]+$ ]] || [ "${selection}" -lt 1 ] || [ "${selection}" -gt "${count_entries}" ]
+		while [[ ! "${selection}" =~ ${pattern_number} ]] || [ "${selection}" -lt 1 ] || [ "${selection}" -gt "${count_entries}" ]
 		do
 			echo
 			frobulator.err "Invalid selection:"
 
 			frobulator.wrn "Select image [ 1 - ${count_entries} ]"
 
-			frobulator.ipt "Selection:"
+			frobulator.ipt "${label_selection}"
 
 			frobulator.read selection
 		done
 
-			index_version=$(( ${selection} ))
-			index_version=$(( ( ${index_version} * 3 ) - 3 ))
+			index_version=$(( selection ))
+			index_version=$(( ( index_version * count_fields ) - count_fields ))
 
 			name_entry="${list_versions[${index_version}]}"
-			version_entry="${list_versions[${index_version}+1]}"
-			codename_entry="${list_versions[${index_version}+2]}"
+			version_entry="${list_versions[index_version + 1]}"
+			codename_entry="${list_versions[index_version + 2]}"
 
 			number_entry="${selection}"
 
@@ -293,13 +322,13 @@ image_select () {
 			version_distribution="${version_entry}"
 			codename_distribution="${codename_entry}"
 
-			if [ "${codename_entry}" = "-" ]
+			if [ "${codename_entry}" = "${text_codename_none}" ]
 			then
 				unset codename_entry
 				unset codename_distribution
 			fi
 
-		frobulator.inf "User selection" "[ ${selection} // ${name_entry} ${version_entry}${codename_entry:+ - '${codename_entry}'} ]"
+		frobulator.inf "User selection" "[ ${selection} // ${name_entry} ${version_entry}${codename_entry:+${separator_codename}'${codename_entry}'} ]"
 
 	fi
 }
@@ -312,30 +341,31 @@ image_handle () {
 	local url_debian_archive="http://archive.debian.org/debian"
 	local url_ubuntu="http://archive.ubuntu.com/ubuntu"
 	local url_ubuntu_ports="http://ports.ubuntu.com/ubuntu-ports"
-	local version_debian_archive="11"
 
 	local index_version
-	local status_supported
+	local state_supported
 
 	name_distribution="${name_distribution,,}"
 
 	unset codename_distribution
 
-	for (( index_version = 0 ; index_version < ${#list_versions[@]} ; index_version += 3 ))
+	state_supported="false"
+
+	for (( index_version = 0 ; index_version < ${#list_versions[@]} ; index_version += count_fields ))
 	do
-		if [ "${list_versions[${index_version}]}" = "${name_distribution}" ] && [ "${list_versions[${index_version}+1]}" = "${version_distribution}" ]
+		if [ "${list_versions[index_version]}" = "${name_distribution}" ] && [ "${list_versions[index_version + 1]}" = "${version_distribution}" ]
 		then
-			status_supported="found"
-			codename_distribution="${list_versions[${index_version}+2]}"
+			state_supported="true"
+			codename_distribution="${list_versions[index_version + 2]}"
 		fi
 	done
 
-	if [ "${codename_distribution}" = "-" ]
+	if [ "${codename_distribution}" = "${text_codename_none}" ]
 	then
 		unset codename_distribution
 	fi
 
-	if [ -z "${status_supported}" ]
+	if [ "${state_supported}" = "false" ]
 	then
 		frobulator.err "Unsupported distribution version" "[ ${name_distribution} ${version_distribution} ]"
 		frobulator.nul "Type './${script} -s' to select a supported version."
@@ -347,7 +377,7 @@ image_handle () {
 
 	unset url_distribution
 
-	if [ "${name_distribution}" = debian ]
+	if [ "${name_distribution}" = "${name_debian}" ]
 	then
 		if [ "${version_distribution}" -lt "${version_debian_archive}" ]
 		then
@@ -356,9 +386,9 @@ image_handle () {
 			url_distribution="${url_debian}"
 		fi
 
-	elif [ "${name_distribution}" = ubuntu ]
+	elif [ "${name_distribution}" = "${name_ubuntu}" ]
 	then
-		if [ "${architecture_distribution}" = "amd64" ] || [ "${architecture_distribution}" = "i386" ]
+		if [ "${architecture_distribution}" = "${architecture_amd64}" ] || [ "${architecture_distribution}" = "${architecture_i386}" ]
 		then
 			url_distribution="${url_ubuntu}"
 		else
@@ -366,7 +396,7 @@ image_handle () {
 		fi
 	fi
 
-	frobulator.scs "Supported distribution version" "[ ${name_distribution} ${version_distribution}${codename_distribution:+ - '${codename_distribution}'} ]"
+	frobulator.scs "Supported distribution version" "[ ${name_distribution} ${version_distribution}${codename_distribution:+${separator_codename}'${codename_distribution}'} ]"
 }
 
 image_fedora () {
@@ -377,8 +407,22 @@ image_fedora () {
 	local url_release
 	local url_images
 	local architecture_fedora
-	local directory_oci="${directory_build}/.oci"
-	local file_index="${directory_oci}/index.html"
+	local name_directory_oci=".oci"
+	local name_file_index="index.html"
+	local name_file_manifest_index="index.json"
+	local directory_blobs="blobs/sha256"
+	local name_directory_container="Container"
+	local name_directory_images="images"
+	local pattern_link='href="'
+	local prefix_digest='"digest":"sha256:'
+	local key_layers='"layers"'
+	local prefix_image="Fedora-Container-Base-Generic-"
+	local suffix_image=".oci.tar.xz"
+	local prefix_checksum="Fedora-Container-"
+	local suffix_checksum="CHECKSUM"
+	local file_release="/etc/os-release"
+	local directory_oci="${directory_build}/${name_directory_oci}"
+	local file_index="${directory_oci}/${name_file_index}"
 	local line_index
 	local name_link
 	local file_image
@@ -386,27 +430,28 @@ image_fedora () {
 	local text_index
 	local digest_manifest
 	local digest_layer
+	local status_directory
 
-	if [ "${architecture_distribution}" = "arm64" ]
+	if [ "${architecture_distribution}" = "${architecture_arm64}" ]
 	then
-		architecture_fedora="aarch64"
+		architecture_fedora="${architecture_fedora_arm64}"
 
-	elif [ "${architecture_distribution}" = "amd64" ]
+	elif [ "${architecture_distribution}" = "${architecture_amd64}" ]
 	then
-		architecture_fedora="x86_64"
+		architecture_fedora="${architecture_fedora_amd64}"
 	else
 		frobulator.err "Unsupported fedora architecture" "[ ${architecture_distribution} ]"
 
 		return 1
 	fi
 
-	mkdir -p "${directory_oci}"
+	mkdir --parents "${directory_oci}"
 
 	# first mirror listing the release
 
 	for url_release in "${list_urls_fedora[@]}"
 	do
-		url_images="${url_release}/${version_distribution}/Container/${architecture_fedora}/images"
+		url_images="${url_release}/${version_distribution}/${name_directory_container}/${architecture_fedora}/${name_directory_images}"
 
 		frobulator.download "${url_images}/" "${file_index}" > "${sink}" 2>&1
 
@@ -422,16 +467,16 @@ image_fedora () {
 		do
 			# every link on the line
 
-			while [[ "${line_index}" == *'href="'* ]]
+			while [[ "${line_index}" == *"${pattern_link}"* ]]
 			do
-				line_index="${line_index#*href=\"}"
+				line_index="${line_index#*${pattern_link}}"
 				name_link="${line_index%%\"*}"
 
-				if [[ "${name_link}" == Fedora-Container-Base-Generic-${version_distribution}-*.${architecture_fedora}.oci.tar.xz ]]
+				if [[ "${name_link}" == ${prefix_image}${version_distribution}-*.${architecture_fedora}${suffix_image} ]]
 				then
 					file_image="${name_link}"
 
-				elif [[ "${name_link}" == Fedora-Container-${version_distribution}-*-${architecture_fedora}-CHECKSUM ]]
+				elif [[ "${name_link}" == ${prefix_checksum}${version_distribution}-*-${architecture_fedora}-${suffix_checksum} ]]
 				then
 					file_checksum="${name_link}"
 				fi
@@ -457,7 +502,15 @@ image_fedora () {
 	# published checksum
 
 	(
-		cd "${directory_oci}" &&
+		cd "${directory_oci}"
+
+		status_directory="${?}"
+
+		if [ "${status_directory}" -ne 0 ]
+		then
+			exit "${status_directory}"
+		fi
+
 		sha256sum --check --ignore-missing --quiet "${file_checksum}"
 	) > "${sink}" 2>&1
 
@@ -469,28 +522,28 @@ image_fedora () {
 
 	# index - manifest - first layer
 
-	text_index="$(< "${directory_oci}"/index.json)"
-	digest_manifest="${text_index#*\"digest\":\"sha256:}"
+	text_index="$(< "${directory_oci}/${name_file_manifest_index}")"
+	digest_manifest="${text_index#*${prefix_digest}}"
 	digest_manifest="${digest_manifest%%\"*}"
 
-	text_index="$(< "${directory_oci}"/blobs/sha256/"${digest_manifest}")"
-	text_index="${text_index#*\"layers\"}"
-	digest_layer="${text_index#*\"digest\":\"sha256:}"
+	text_index="$(< "${directory_oci}/${directory_blobs}/${digest_manifest}")"
+	text_index="${text_index#*${key_layers}}"
+	digest_layer="${text_index#*${prefix_digest}}"
 	digest_layer="${digest_layer%%\"*}"
 
-	tar										\
-		--extract							\
-		--gzip								\
-		--numeric-owner						\
-		--preserve-permissions				\
-			--file="${directory_oci}/blobs/sha256/${digest_layer}"	\
-				--directory="${directory_build}"	> "${sink}" 2>&1
+	tar \
+		--extract \
+		--gzip \
+		--numeric-owner \
+		--preserve-permissions \
+		--file="${directory_oci}/${directory_blobs}/${digest_layer}" \
+		--directory="${directory_build}" > "${sink}" 2>&1
 
 	frobulator.track || return "${status}"
 
-	frobulator.delete "${directory_build}" .oci
+	frobulator.delete "${directory_build}" "${name_directory_oci}"
 
-	[ -e "${directory_build}"/etc/os-release ]
+	[ -e "${directory_build}${file_release}" ]
 
 	frobulator.track
 
@@ -503,14 +556,17 @@ image_build () {
 	local file_script_debian="/usr/share/debootstrap/scripts/sid"
 	local file_script_ubuntu="/usr/share/debootstrap/scripts/gutsy"
 	local url_keyring_ubuntu="https://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg"
-	local version_debian_archive="11"
+	local suffix_keyring=".keyring"
+	local prefix_option_keyring="--keyring="
+	local file_second_stage="/debootstrap/debootstrap"
 
 	local status=0
 	local file_keyring
 	local file_script
 	local option_keyring
+	local status_download
 
-	if [ "${name_distribution}" = fedora ]
+	if [ "${name_distribution}" = "${name_fedora}" ]
 	then
 		image_fedora
 
@@ -519,7 +575,7 @@ image_build () {
 
 	# release keys and suite script - shared scripts cover releases newer than debootstrap
 
-	if [ "${name_distribution}" = debian ]
+	if [ "${name_distribution}" = "${name_debian}" ]
 	then
 		file_script="${file_script_debian}"
 
@@ -527,23 +583,29 @@ image_build () {
 
 		if [ "${version_distribution}" -lt "${version_debian_archive}" ]
 		then
-			option_keyring="--keyring=${file_keyring_removed}"
+			option_keyring="${prefix_option_keyring}${file_keyring_removed}"
 		fi
 
-	elif [ "${name_distribution}" = ubuntu ]
+	elif [ "${name_distribution}" = "${name_ubuntu}" ]
 	then
 		file_script="${file_script_ubuntu}"
 
 		# official ubuntu keyring over https - kept out of the image
 
-		file_keyring="${directory_build}.keyring"
+		file_keyring="${directory_build}${suffix_keyring}"
 
-		curl -s -L -f -o "${file_keyring}" "${url_keyring_ubuntu}" > "${sink}" 2>&1 ||
-		wget -q -O "${file_keyring}" "${url_keyring_ubuntu}" > "${sink}" 2>&1
+		curl --silent --location --fail --output "${file_keyring}" "${url_keyring_ubuntu}" > "${sink}" 2>&1
+
+		status_download="${?}"
+
+		if [ "${status_download}" -ne 0 ]
+		then
+			wget --quiet --output-document "${file_keyring}" "${url_keyring_ubuntu}" > "${sink}" 2>&1
+		fi
 
 		frobulator.track || return "${status}"
 
-		option_keyring="--keyring=${file_keyring}"
+		option_keyring="${prefix_option_keyring}${file_keyring}"
 	fi
 
 	variant="minbase"
@@ -569,7 +631,7 @@ image_build () {
 
 	if [ -n "${file_keyring}" ]
 	then
-		rm -f "${file_keyring}"
+		rm --force "${file_keyring}"
 	fi
 
 	if [ "${status}" -ne 0 ]
@@ -579,7 +641,7 @@ image_build () {
 
 	# second stage inside the image - foreign architectures run through qemu binfmt
 
-	frobulator.silence log chroot "${directory_build}" /debootstrap/debootstrap --second-stage
+	frobulator.silence log chroot "${directory_build}" "${file_second_stage}" --second-stage
 
 	frobulator.track || return "${status}"
 
@@ -597,7 +659,11 @@ image_archive () {
 	# archive next to the script under the served name - hidden entries kept
 
 	local status=0
-	local file_archive="archive-${name_distribution}-${version_distribution}.tar.xz"
+	local file_archive="${prefix_archive}${name_distribution}-${version_distribution}${suffix_archive}"
+	local name_debootstrap="debootstrap"
+	local program_compress="xz -9 -T0"
+	local depth_minimum="1"
+	local depth_maximum="1"
 	local item
 
 	local list_items=()
@@ -605,18 +671,18 @@ image_archive () {
 	while IFS= read -r item
 	do
 		list_items+=("${item##*/}")
-	done < <(find "${directory_build}" -mindepth 1 -maxdepth 1 ! -name debootstrap ! -name "${file_archive}")
+	done < <(find "${directory_build}" -mindepth "${depth_minimum}" -maxdepth "${depth_maximum}" ! -name "${name_debootstrap}" ! -name "${file_archive}")
 
-	tar										\
-		--create							\
-		--file="${directory_build}/${file_archive}"	\
-		--use-compress-program='xz -9 -T0'	\
-		--directory="${directory_build}"	\
-			"${list_items[@]}"				> "${sink}" 2>&1
+	tar \
+		--create \
+		--file="${directory_build}/${file_archive}" \
+		--use-compress-program="${program_compress}" \
+		--directory="${directory_build}" \
+		"${list_items[@]}" > "${sink}" 2>&1
 
 	frobulator.track || return "${status}"
 
-	cp -f "${directory_build}/${file_archive}" "${directory_script}/${file_archive}"
+	cp --force "${directory_build}/${file_archive}" "${directory_script}/${file_archive}"
 
 	frobulator.track || return "${status}"
 
@@ -647,7 +713,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ "${option}" = "selection" ]
+if [ "${option}" = "${option_selection}" ]
 then
 	unset name_distribution
 	unset version_distribution
@@ -663,7 +729,7 @@ image_handle
 
 frobulator.temporary directory_build
 
-directory_build=${frobulator_return[@]}
+directory_build="${frobulator_return[@]}"
 
 frobulator.trap "${directory_build}"
 
@@ -671,7 +737,7 @@ frobulator.background "build" "[ ${name_distribution} ${version_distribution} ]"
 
 frobulator.complete halt "Image build failed" "[ ${name_distribution} ${version_distribution} ]"
 
-frobulator.background "archive" "[ archive-${name_distribution}-${version_distribution}.tar.xz ]" -- image_archive
+frobulator.background "archive" "[ ${prefix_archive}${name_distribution}-${version_distribution}${suffix_archive} ]" -- image_archive
 
 frobulator.complete halt "Image archive failed" "[ ${directory_script} ]"
 

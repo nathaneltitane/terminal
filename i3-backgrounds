@@ -2,24 +2,40 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
+# variables
+
 separator=" // "
 name_font="Monospace"
 size_font=10
 font="${name_font}:size=${size_font}"
 
+color_background_normal='#000000'
+color_foreground_normal='#FFFFFF'
+color_background_selected='#666666'
+color_foreground_selected='#000000'
+
+depth_search=2
+pattern_jpg="*.jpg"
+pattern_png="*.png"
+pattern_svg="*.svg"
+pattern_exclude_cache="*.cache*"
+pattern_exclude_config="*.config*"
+pattern_exclude_thumbnails="*thumbnails*"
+prefix_method="--bg-"
+
 lines=60
 prompt="CHANGE BACKGROUND IMAGE${separator}"
 
-images="$(find "${HOME}"						\
-			-maxdepth 2							\
-			-type f								\
-			-iname "*.jpg"						\
-			-o -iname "*.png"					\
-			-o -iname "*.svg"					\
-				-not -path "*.cache*"			\
-				-not -path "*.config*"			\
-				-not -path "*thumbnails*" | sort
-		)"
+images="$(find "${HOME}"					\
+	-maxdepth "${depth_search}"				\
+	-type f									\
+	-iname "${pattern_jpg}"					\
+	-o -iname "${pattern_png}"				\
+	-o -iname "${pattern_svg}"				\
+	-not -path "${pattern_exclude_cache}"	\
+	-not -path "${pattern_exclude_config}"	\
+	-not -path "${pattern_exclude_thumbnails}" | sort
+)"
 
 list_options_display=(
 	center
@@ -29,11 +45,11 @@ list_options_display=(
 	zoom
 )
 
-selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+selection="$(echo "${images}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background_normal}" -nf "${color_foreground_normal}" -sb "${color_background_selected}" -sf "${color_foreground_selected}")"
 
 lines=${#list_options_display[@]}
 prompt="SELECT DISPLAY METHOD${separator}"
 
-display="$(printf '%s\n' "${list_options_display[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+display="$(printf '%s\n' "${list_options_display[@]}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background_normal}" -nf "${color_foreground_normal}" -sb "${color_background_selected}" -sf "${color_foreground_selected}")"
 
-feh --no-fehbg --bg-"${display}" "${selection}"
+feh --no-fehbg "${prefix_method}${display}" "${selection}"

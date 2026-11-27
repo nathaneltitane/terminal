@@ -69,6 +69,11 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+option_install="install"
+directory_default="/media/internal/LLM/claude"
+
 while (( $# ))
 do
 	case "${1}"
@@ -80,7 +85,7 @@ do
 		;;
 
 		-i|--install)
-			option="install"
+			option="${option_install}"
 		;;
 
 		-h|--help)
@@ -91,7 +96,7 @@ do
 			echo
 			echo -e "-d, --directory    Specify storage [d]irectory for claude configuration."
 			echo
-			echo -e "                   [ /media/internal/LLM/claude ] [ Default ]"
+			echo -e "                   [ ${directory_default} ] [ Default ]"
 			echo
 			echo -e "-i, --install      Run [i]nstallation of claude code before linking."
 			echo
@@ -130,9 +135,21 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+name_claude=".claude"
+name_json=".claude.json"
+name_process="claude"
+label_code="claude code"
+prefix_option="-"
+pattern_yes_short="[yY]"
+pattern_yes_long="[yY][eE][sS]"
+suffix_contents="/."
+count_wait="5"
+signal_kill="9"
+delay_check="1"
+
 list_items=(
-	.claude
-	.claude.json
+	"${name_claude}"
+	"${name_json}"
 )
 
 url_install="https://claude.ai/install.sh"
@@ -141,20 +158,20 @@ url_install="https://claude.ai/install.sh"
 
 if [ -z "${directory_storage}" ]
 then
-	directory_storage="/media/internal/LLM/claude"
+	directory_storage="${directory_default}"
 fi
 
 # validate arguments
 
-if [[ "${directory_storage}" = -* ]]
+if [[ "${directory_storage}" = "${prefix_option}"* ]]
 then
 	frobulator.err "Missing argument for '--directory'."
 
 	exit 1
 
-elif [ ! -d "${directory_storage}/.claude" ]
+elif [ ! -d "${directory_storage}/${name_claude}" ]
 then
-	frobulator.err "Configuration not found" "[ ${directory_storage}/.claude ]"
+	frobulator.err "Configuration not found" "[ ${directory_storage}/${name_claude} ]"
 
 	exit 1
 fi
@@ -163,7 +180,7 @@ fi
 
 # running claude code process id - empty if not running
 
-ids_process_claude="$(pgrep -x claude)"
+ids_process_claude="$(pgrep --exact "${name_process}")"
 
 if [ -n "${ids_process_claude}" ]
 then
@@ -173,8 +190,8 @@ then
 
 	frobulator.read reply
 
-	if [[ "${reply}" != [yY]         ]] &&
-	   [[ "${reply}" != [yY][eE][sS] ]]
+	if [[ "${reply}" != ${pattern_yes_short} ]] &&
+	   [[ "${reply}" != ${pattern_yes_long} ]]
 	then
 		frobulator.stp "Operation cancelled."
 
@@ -183,30 +200,30 @@ then
 
 	# terminate then kill after 5 seconds
 
-	pkill -x claude
+	pkill --exact "${name_process}"
 
-	for second in {1..5}
+	for (( index_second = 1 ; index_second <= count_wait ; index_second ++ ))
 	do
-		ids_process_claude="$(pgrep -x claude)"
+		ids_process_claude="$(pgrep --exact "${name_process}")"
 
 		if [ -z "${ids_process_claude}" ]
 		then
 			break
 		fi
 
-		sleep 1
+		sleep "${delay_check}"
 	done
 
-	ids_process_claude="$(pgrep -x claude)"
+	ids_process_claude="$(pgrep --exact "${name_process}")"
 
 	if [ -n "${ids_process_claude}" ]
 	then
-		pkill -9 -x claude
+		pkill --signal "${signal_kill}" --exact "${name_process}"
 
-		sleep 1
+		sleep "${delay_check}"
 	fi
 
-	ids_process_claude="$(pgrep -x claude)"
+	ids_process_claude="$(pgrep --exact "${name_process}")"
 
 	if [ -n "${ids_process_claude}" ]
 	then
@@ -215,7 +232,7 @@ then
 		exit 1
 	fi
 
-	frobulator.scs "Closed" "[ claude code ]"
+	frobulator.scs "Closed" "[ ${label_code} ]"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -224,11 +241,11 @@ claude_install () {
 
 	local list_status
 
-	frobulator.inf "Installing" "[ claude code ]"
+	frobulator.inf "Installing" "[ ${label_code} ]"
 
 	# official installer
 
-	curl -fsSL "${url_install}" | bash
+	curl --fail --silent --show-error --location "${url_install}" | bash
 
 	list_status=("${PIPESTATUS[@]}")
 
@@ -239,7 +256,7 @@ claude_install () {
 		return 1
 	fi
 
-	frobulator.scs "Installed" "[ claude code ]"
+	frobulator.scs "Installed" "[ ${label_code} ]"
 }
 
 claude_link () {
@@ -263,11 +280,11 @@ claude_link () {
 
 		if [ -d "${path_item_home}" ] && [ ! -L "${path_item_home}" ]
 		then
-			cp -a -n "${path_item_home}/." "${path_item_storage}/" 2> "${sink}"
+			cp --archive --no-clobber "${path_item_home}${suffix_contents}" "${path_item_storage}/" 2> "${sink}"
 
 		elif [ -f "${path_item_home}" ] && [ ! -L "${path_item_home}" ] && [ ! -e "${path_item_storage}" ]
 		then
-			cp -p "${path_item_home}" "${path_item_storage}"
+			cp --preserve "${path_item_home}" "${path_item_storage}"
 		fi
 
 		if [ ! -e "${path_item_storage}" ]
@@ -307,7 +324,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ "${option}" = "install" ]
+if [ "${option}" = "${option_install}" ]
 then
 	claude_install
 

@@ -114,6 +114,30 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+name_command="lpub3d24"
+name_link="lpub3d"
+name_software="LPub3D Software"
+name_configuration="lpub3d.conf"
+name_archive_official="ldraw.zip"
+name_archive_official_link="complete.zip"
+name_archive_unofficial="ldrawunf.zip"
+name_archive_unofficial_link="lpub3dldrawunf.zip"
+mode_permissions="777"
+file_launcher="/usr/share/applications/lpub3d.desktop"
+directory_binaries="/usr/bin"
+directory_config_relative=".config/${name_software}"
+directory_libraries_relative="${name_link}/libraries"
+directory_config="${HOME}/${directory_config_relative}"
+directory_share="${HOME}/.local/share/${name_software}"
+directory_share_lpub3d="${directory_share}/${name_link}"
+directory_share_ldraw="${directory_share_lpub3d}/ldraw"
+directory_share_libraries="${directory_share_lpub3d}/libraries"
+pattern_lego="/media/[iI]nternal/[lL]ego"
+pattern_lpub3d="${pattern_lego}/${name_link}"
+pattern_configuration="${pattern_lpub3d}/${name_configuration}"
+pattern_archive_official="${pattern_lego}/${name_archive_official}"
+pattern_archive_unofficial="${pattern_lego}/${name_archive_unofficial}"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -138,45 +162,47 @@ list=()
 
 # 'lpub3d24' path - empty if not installed
 
-command_lpub3d24="$(command -v lpub3d24)"
+command_lpub3d24="$(command -v "${name_command}")"
 
 if [ -n "${command_lpub3d24}" ]
 then
-    frobulator.link /usr/bin /usr/bin lpub3d24 lpub3d
+	frobulator.link "${directory_binaries}" "${directory_binaries}" "${name_command}" "${name_link}"
 fi
 
-if [ -d /media/[iI]nternal/[lL]ego ]
+# patterns stay unquoted
+
+if [ -d ${pattern_lego} ]
 then
-	if [ -d /media/[iI]nternal/[lL]ego/lpub3d ]
+	if [ -d ${pattern_lpub3d} ]
 	then
-		if [ -f /media/[iI]nternal/[lL]ego/lpub3d/lpub3d.conf ]
+		if [ -f ${pattern_configuration} ]
 		then
 			frobulator.inf "Linking configuration"
 
-			frobulator.directory "${HOME}" .config/"LPub3D Software"
+			frobulator.directory "${HOME}" "${directory_config_relative}"
 
-			frobulator.link /media/[iI]nternal/[lL]ego/lpub3d "${HOME}"/.config/"LPub3D Software" lpub3d.conf
+			frobulator.link ${pattern_lpub3d} "${directory_config}" "${name_configuration}"
 		fi
 
-		if [ -f /media/[iI]nternal/[lL]ego/ldraw.zip ]
+		if [ -f ${pattern_archive_official} ]
 		then
 			frobulator.inf "Generating library setup"
 
-			frobulator.directory "${HOME}"/.local/share/"LPub3D Software" lpub3d/libraries
+			frobulator.directory "${directory_share}" "${directory_libraries_relative}"
 
 			# official parts archive
 
-			frobulator.extract /media/[iI]nternal/[lL]ego/ldraw.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d
+			frobulator.extract ${pattern_archive_official} "${directory_share_lpub3d}"
 
-			frobulator.link /media/[iI]nternal/[lL]ego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldraw.zip complete.zip
+			frobulator.link ${pattern_lego} "${directory_share_libraries}" "${name_archive_official}" "${name_archive_official_link}"
 
 			# unofficial parts archive
 
-			frobulator.extract /media/[iI]nternal/[lL]ego/ldrawunf.zip "${HOME}"/.local/share/"LPub3D Software"/lpub3d/ldraw
+			frobulator.extract ${pattern_archive_unofficial} "${directory_share_ldraw}"
 
-			frobulator.link /media/[iI]nternal/[lL]ego "${HOME}"/.local/share/"LPub3D Software"/lpub3d/libraries ldrawunf.zip lpub3dldrawunf.zip
+			frobulator.link ${pattern_lego} "${directory_share_libraries}" "${name_archive_unofficial}" "${name_archive_unofficial_link}"
 
-			chmod -R 777 "${HOME}"/.local/share/"LPub3D Software"
+			chmod --recursive "${mode_permissions}" "${directory_share}"
 		fi
 
 	fi
@@ -184,7 +210,7 @@ fi
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/lpub3d.desktop
+cat <<- 'FILE' > "${file_launcher}"
 [Desktop Entry]
 Version=1.0
 Name=LPub3D

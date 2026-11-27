@@ -3,11 +3,16 @@
 script=$(basename -- "${BASH_SOURCE[0]}")
 
 separator=" // "
+name_prompt="LOOKUP"
+color_background="#000000"
+color_foreground="#FFFFFF"
+color_selection_background="#666666"
+color_selection_foreground="#000000"
 name_font="Monospace"
 size_font=10
 font="${name_font}:size=${size_font}"
 
 lines=15
-prompt="LOOKUP${separator}"
+prompt="${name_prompt}${separator}"
 
-dmenu_run -b -i -p  "${prompt}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000'
+dmenu_run -b -i -p  "${prompt}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selection_background}" -sf "${color_selection_foreground}"

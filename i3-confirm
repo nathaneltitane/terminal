@@ -2,14 +2,28 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
-lines=15
+# variables
+
+count_lines=15
+label_no="NO"
+label_yes="YES"
+separator_options='\N'
+color_background='#000000'
+color_foreground='#FFFFFF'
+color_selected_background='#666666'
+color_selected_foreground='#000000'
 
 prompt="${1}"
 execute="${2}"
 
-selection_menu=$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')
+selection_menu=$(echo -e "${label_no}${separator_options}${label_yes}" | dmenu -i -l "${count_lines}" -p "${prompt}" -fn "${font}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selected_background}" -sf "${color_selected_foreground}")
 
-[ "${selection_menu}" == "YES" ] && "${execute}"
+if [ "${selection_menu}" = "${label_yes}" ]
+then
+	"${execute}"
+else
+	exit 1
+fi
 
 # use with i3wm binding:
 # bindsym $modifier+key exec --no-startup-id /usr/bin/dmenu-confirm "Prompt?" "usr/bin/script-to-execute"

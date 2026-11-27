@@ -134,10 +134,33 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-interface="${interface:-enp2s0}"
-name_bridge="${name_bridge:-bridge0}"
+interface_default="enp2s0"
+name_bridge_default="bridge0"
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+interface="${interface:-${interface_default}}"
+name_bridge="${name_bridge:-${name_bridge_default}}"
+
+format_stamp="%m-%d-%Y-%H-%M-%S"
+
+stamp="$(date +"${format_stamp}")"
+
+directory_images=""${directory_images}""
+file_bashrc=".bashrc"
+name_file_bridge="bridge.xml"
+name_service_libvirt="libvirtd.service"
+name_service_tuned="tuned"
+name_profile_tuned="virtual-host"
+name_hypervisor="qemu"
+name_network="bridge"
+name_group_libvirt="libvirt"
+name_connection_slave="Bridge Connection"
+type_bridge="bridge"
+type_ethernet="ethernet"
+property_autoconnect="connection.autoconnect-slaves"
+value_autoconnect="1"
+line_export="export LIBVIRT_DEFAULT_URI='qemu:///system'"
+permission_acl_user="u:${USER}:rwX"
+permission_acl_default="d:u:${USER}:rwx"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -178,19 +201,19 @@ list=()
 
 frobulator.inf "Enabling libvirt"
 
-frobulator.service enable libvirtd.service
+frobulator.service enable "${name_service_libvirt}"
 
 frobulator.complete
 
 frobulator.inf "Validating host"
 
-virt-host-validate qemu
+virt-host-validate "${name_hypervisor}"
 
 frobulator.complete
 
 frobulator.inf "Enabling tuned"
 
-frobulator.service enable tuned
+frobulator.service enable "${name_service_tuned}"
 
 frobulator.complete
 
@@ -198,7 +221,7 @@ tuned-adm active
 
 frobulator.complete
 
-tuned-adm profile virtual-host
+tuned-adm profile "${name_profile_tuned}"
 
 frobulator.complete
 
@@ -210,39 +233,39 @@ nmcli device status
 
 frobulator.complete
 
-nmcli													\
-		connection add type bridge 						\
-		con-name ${name_bridge} 						\
+nmcli														\
+		connection add type "${type_bridge}"				\
+		con-name ${name_bridge}								\
 		ifname ${name_bridge}
 
 frobulator.complete
 
-nmcli													\
-		connection add type ethernet 					\
-		slave-type bridge 								\
-		con-name 'Bridge Connection' 					\
-		ifname ${interface} 							\
+nmcli														\
+		connection add type "${type_ethernet}"				\
+		slave-type "${type_bridge}"							\
+		con-name "${name_connection_slave}"					\
+		ifname ${interface}									\
 		master ${name_bridge}
 
 frobulator.complete
 
-nmcli													\
+nmcli														\
 		connection up ${name_bridge}
 
 frobulator.complete
 
-nmcli													\
-		connection modify ${name_bridge} 				\
-		connection.autoconnect-slaves 1
+nmcli														\
+		connection modify ${name_bridge}					\
+		"${property_autoconnect}" "${value_autoconnect}"
 
 frobulator.complete
 
-nmcli													\
+nmcli														\
 		connection up ${name_bridge}
 
 frobulator.complete
 
-nmcli													\
+nmcli														\
 		device status
 
 frobulator.complete
@@ -259,11 +282,11 @@ frobulator.trap "${directory_temporary}"
 
 frobulator.complete
 
-file_bridge_xml="${directory_temporary}"/bridge.xml
+file_bridge_xml="${directory_temporary}/${name_file_bridge}"
 
 cat > "${file_bridge_xml}" << FILE
 <network>
-<name>bridge</name>
+<name>${name_network}</name>
 <forward mode='bridge'/>
 <bridge name='${name_bridge}'/>
 </network>
@@ -273,11 +296,11 @@ virsh net-define "${file_bridge_xml}"
 
 frobulator.complete
 
-virsh net-start bridge
+virsh net-start "${name_network}"
 
 frobulator.complete
 
-virsh net-autostart bridge
+virsh net-autostart "${name_network}"
 
 frobulator.complete
 
@@ -285,31 +308,34 @@ frobulator.complete
 
 frobulator.inf "Configuring permissions"
 
-usermod 									\
+usermod										\
 	--append								\
-	--groups libvirt						\
+	--groups "${name_group_libvirt}"		\
 											"${USER}"
 
 frobulator.complete
 
-frobulator.write append "export LIBVIRT_DEFAULT_URI='qemu:///system'" "${HOME}" .bashrc
-
-frobulator.complete
-
-setfacl 									\
-	--recursive								\
-	--remove-all							/var/lib/libvirt/images
+frobulator.write append "${line_export}" "${HOME}" "${file_bashrc}"
 
 frobulator.complete
 
 setfacl										\
 	--recursive								\
-	--modify u:"${USER}":rwX				/var/lib/libvirt/images
+	--remove-all							\
+											"${directory_images}"
 
 frobulator.complete
 
 setfacl										\
-	--modify d:u:"${USER}":rwx				/var/lib/libvirt/images
+	--recursive								\
+	--modify "${permission_acl_user}"		\
+											"${directory_images}"
+
+frobulator.complete
+
+setfacl										\
+	--modify "${permission_acl_default}"	\
+											"${directory_images}"
 
 frobulator.complete
 

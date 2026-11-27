@@ -6,12 +6,24 @@
 
 list () {
 
-	local directory="${1:-${PWD}}"
-	local label_directories="directories"
-	local label_files="files"
+	local directory
+	local label_directories
+	local label_files
+	local label_directory
+	local label_file
+	local letter_directory
+	local letter_file
 	local count_directories
 	local count_files
 	local text_types
+
+	directory="${1:-${PWD}}"
+	label_directories="directories"
+	label_files="files"
+	label_directory="directory"
+	label_file="file"
+	letter_directory="d"
+	letter_file="f"
 
 	# output starts one line below the command
 
@@ -29,28 +41,28 @@ list () {
 		-h							\
 		-l							\
 		--group-directories-first	\
-									"${directory}"
+						"${directory}"
 
 	# whole tree in one pass - one letter per entry - listed directory itself excluded
 
-	text_types="$(find "${directory}" -mindepth 1 \( -type d -printf 'd' \) -o \( -type f -printf 'f' \))"
+	text_types="$(find "${directory}" -mindepth 1 \( -type d -printf "${letter_directory}" \) -o \( -type f -printf "${letter_file}" \))"
 
 	# letters counted by removing the other one
 
-	count_directories="${text_types//f/}"
+	count_directories="${text_types//${letter_file}/}"
 	count_directories="${#count_directories}"
 
-	count_files="${text_types//d/}"
+	count_files="${text_types//${letter_directory}/}"
 	count_files="${#count_files}"
 
 	if [ "${count_directories}" -eq 1 ]
 	then
-		label_directories="directory"
+		label_directories="${label_directory}"
 	fi
 
 	if [ "${count_files}" -eq 1 ]
 	then
-		label_files="file"
+		label_files="${label_file}"
 	fi
 
 	echo

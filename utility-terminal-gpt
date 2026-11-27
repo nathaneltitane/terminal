@@ -81,6 +81,7 @@ model_image_default="gpt-image-2.5-flare"
 size_image_default="1024x1024"
 count_tokens_maximum_default="4096"
 count_tokens_context_default="32000"
+prefix_option="-"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -161,7 +162,7 @@ do
 
 			# optional key file - installed instead of typing the key
 
-			if [ -n "${2}" ] && [[ "${2}" != -* ]]
+			if [ -n "${2}" ] && [[ "${2}" != "${prefix_option}"* ]]
 			then
 				file_key_source="${2}"
 
@@ -274,12 +275,75 @@ done
 
 url_api="https://api.openai.com/v1"
 
-directory_configuration="${HOME}/.config/chatty"
-directory_data="${HOME}/.local/share/chatty"
-directory_images="${HOME}/Pictures/chatty"
+name_application="chatty"
+name_file_key="key"
+name_file_history="history"
+name_command_glow="glow"
+name_command_kitty="kitten"
+name_command_open="xdg-open"
+name_term_kitty="xterm-kitty"
+extension_image=".png"
+prefix_home="~"
+prefix_question="> "
+prefix_image="image:"
+prefix_command="command:"
+prefix_model="model:"
+keyword_exit="exit"
+keyword_quit="q"
+keyword_clear="clear"
+keyword_history="history"
+keyword_models="models"
+endpoint_chat="chat/completions"
+endpoint_models="models"
+endpoint_images="images/generations"
+method_post="POST"
+method_get="GET"
+role_user="user"
+role_assistant="assistant"
+header_authorization="Authorization: Bearer"
+header_content_type="Content-Type: application/json"
+pattern_yes="^[yY]"
+pattern_integer="^[0-9]+$"
+pattern_decimal="^[0-9]+([.][0-9]+)?$"
+pattern_space="[[:space:]]"
+filter_error_type='.error.type // .error.code // empty'
+filter_error_message='.error.message // empty'
+filter_message_add='. + [ { role: $role, content: $content } ]'
+filter_messages_length='length'
+filter_messages_drop_first='.[1:]'
+filter_messages_drop_last='.[:-1]'
+filter_answer='.choices[0].message.content // empty'
+filter_models_one='.data[] | select(.id == $id)'
+filter_models_all='.data[].id'
+filter_image_data='.data[0].b64_json // empty'
+filter_image_url='.data[0].url // empty'
+filter_body_image='{ model: $model, prompt: $prompt, size: $size, n: 1 }'
+filter_body_chat='{
+	model: $model,
+	messages: ((if $system != "" then [ { role: "system", content: $system } ] else [] end) + $messages),
+	max_completion_tokens: $tokens
+}
++ (if $effort != "" then { reasoning_effort: $effort } else {} end)
++ (if $temperature != "" then { temperature: ($temperature | tonumber) } else {} end)'
+format_line='%s\n'
+format_text='%s'
+format_history='%s\n%s\n%s\n\n'
+format_stamp_history="%Y-%m-%d %H:%M"
+format_stamp_image="%Y%m%d-%H%M%S"
+mode_key="600"
+umask_private="077"
+count_characters_per_token="4"
+count_messages_minimum="1"
+count_columns_default="80"
+package_curl="curl"
+package_jq="jq"
 
-file_key="${directory_configuration}/key"
-file_history="${directory_data}/history"
+directory_configuration="${HOME}/.config/${name_application}"
+directory_data="${HOME}/.local/share/${name_application}"
+directory_images="${HOME}/Pictures/${name_application}"
+
+file_key="${directory_configuration}/${name_file_key}"
+file_history="${directory_data}/${name_file_history}"
 
 prompt_command="You are a command line expert. Answer with one working shell command for a Linux terminal and nothing else: no explanation, no code block, no quotes. Chain commands on one line when several are needed. The command must do the following:"
 
@@ -349,7 +413,7 @@ then
 
 		frobulator.read -r answer_remove
 
-		if [[ "${answer_remove}" =~ ^[yY] ]]
+		if [[ "${answer_remove}" =~ ${pattern_yes} ]]
 		then
 			for directory_remove in "${directory_configuration}" "${directory_data}"
 			do
@@ -414,7 +478,7 @@ chatty_key_save () {
 		unset password
 	fi
 
-	text_key="${text_key//[[:space:]]/}"
+	text_key="${text_key//${pattern_space}/}"
 
 	if [ -z "${text_key}" ]
 	then
@@ -423,13 +487,13 @@ chatty_key_save () {
 		return 1
 	fi
 
-	mkdir -p "${directory_configuration}"
+	mkdir --parents "${directory_configuration}"
 
-	( umask 077 ; printf '%s\n' "${text_key}" > "${file_key}" )
+	( umask "${umask_private}" ; printf "${format_line}" "${text_key}" > "${file_key}" )
 
-	chmod 600 "${file_key}"
+	chmod "${mode_key}" "${file_key}"
 
-	frobulator.scs "API key saved" "[ ${file_key/#${HOME}/\~} ]"
+	frobulator.scs "API key saved" "[ ${file_key/#${HOME}/${prefix_home}} ]"
 }
 
 chatty_request () {
@@ -450,14 +514,14 @@ chatty_request () {
 		--silent
 		--show-error
 		--request "${method_request}"
-		--header "Authorization: Bearer ${key_api}"
+		--header "${header_authorization} ${key_api}"
 		--output "${file_response}"
 		"${url_api}/${endpoint_request}"
 	)
 
 	if [ -n "${file_body}" ]
 	then
-		command_request+=(--header "Content-Type: application/json" --data-binary "@${file_body}")
+		command_request+=(--header "${header_content_type}" --data-binary "@${file_body}")
 	fi
 
 	if [ -t 2 ]
@@ -484,8 +548,8 @@ chatty_error () {
 		return 1
 	fi
 
-	type_error="$(jq -r '.error.type // .error.code // empty' "${file_response}" 2> "${sink}")"
-	message_error="$(jq -r '.error.message // empty' "${file_response}" 2> "${sink}")"
+	type_error="$(jq --raw-output "${filter_error_type}" "${file_response}" 2> "${sink}")"
+	message_error="$(jq --raw-output "${filter_error_message}" "${file_response}" 2> "${sink}")"
 
 	if [ -n "${type_error}" ] || [ -n "${message_error}" ]
 	then
@@ -506,7 +570,7 @@ chatty_message_add () {
 	local role_message="${1}"
 	local text_message="${2}"
 
-	json_messages="$(jq -c --arg role "${role_message}" --arg content "${text_message}" '. + [ { role: $role, content: $content } ]' <<< "${json_messages}")"
+	json_messages="$(jq --compact-output --arg role "${role_message}" --arg content "${text_message}" "${filter_message_add}" <<< "${json_messages}")"
 }
 
 chatty_context_trim () {
@@ -514,19 +578,21 @@ chatty_context_trim () {
 	# oldest messages dropped while the conversation exceeds the context budget - about four characters per token
 
 	local count_characters
+	local count_tokens_estimated
 	local count_messages
 
 	while true
 	do
 		count_characters="${#json_messages}"
-		count_messages="$(jq 'length' <<< "${json_messages}")"
+		count_tokens_estimated=$(( count_characters / count_characters_per_token ))
+		count_messages="$(jq "${filter_messages_length}" <<< "${json_messages}")"
 
-		if [ $(( count_characters / 4 )) -le "${count_tokens_context}" ] || [ "${count_messages}" -le 1 ]
+		if [ "${count_tokens_estimated}" -le "${count_tokens_context}" ] || [ "${count_messages}" -le "${count_messages_minimum}" ]
 		then
 			break
 		fi
 
-		json_messages="$(jq -c '.[1:]' <<< "${json_messages}")"
+		json_messages="$(jq --compact-output "${filter_messages_drop_first}" <<< "${json_messages}")"
 	done
 }
 
@@ -534,20 +600,15 @@ chatty_body_chat () {
 
 	# chat request body - system prompt first - optional settings only when given
 
-	jq -n \
-		--arg model "${model_chat}" \
-		--arg system "${text_system}" \
-		--argjson messages "${json_messages}" \
-		--argjson tokens "${count_tokens_maximum}" \
-		--arg effort "${effort_reasoning}" \
-		--arg temperature "${value_temperature}" \
-		'{
-			model: $model,
-			messages: ((if $system != "" then [ { role: "system", content: $system } ] else [] end) + $messages),
-			max_completion_tokens: $tokens
-		}
-		+ (if $effort != "" then { reasoning_effort: $effort } else {} end)
-		+ (if $temperature != "" then { temperature: ($temperature | tonumber) } else {} end)' > "${file_body}"
+	jq												\
+		--null-input								\
+		--arg model "${model_chat}"					\
+		--arg system "${text_system}"				\
+		--argjson messages "${json_messages}"		\
+		--argjson tokens "${count_tokens_maximum}"	\
+		--arg effort "${effort_reasoning}"			\
+		--arg temperature "${value_temperature}"	\
+													"${filter_body_chat}" > "${file_body}"
 }
 
 chatty_ask () {
@@ -555,36 +616,39 @@ chatty_ask () {
 	# prompt sent with the conversation - answer kept in the conversation - text in text_answer
 
 	local text_question="${1}"
+	local status_request
 
-	chatty_message_add user "${text_question}"
+	chatty_message_add "${role_user}" "${text_question}"
 
 	chatty_context_trim
 
 	chatty_body_chat
 
-	chatty_request POST chat/completions "${file_body}"
+	chatty_request "${method_post}" "${endpoint_chat}" "${file_body}"
 
-	if [ "${?}" -ne 0 ]
+	status_request="${?}"
+
+	if [ "${status_request}" -ne 0 ]
 	then
 		# failed question left out of the conversation
 
-		json_messages="$(jq -c '.[:-1]' <<< "${json_messages}")"
+		json_messages="$(jq --compact-output "${filter_messages_drop_last}" <<< "${json_messages}")"
 
 		return 1
 	fi
 
-	text_answer="$(jq -r '.choices[0].message.content // empty' "${file_response}")"
+	text_answer="$(jq --raw-output "${filter_answer}" "${file_response}")"
 
 	if [ -z "${text_answer}" ]
 	then
 		frobulator.wrn "Empty answer - token limit reached before the answer" "[ -x ${count_tokens_maximum} ]"
 
-		json_messages="$(jq -c '.[:-1]' <<< "${json_messages}")"
+		json_messages="$(jq --compact-output "${filter_messages_drop_last}" <<< "${json_messages}")"
 
 		return 1
 	fi
 
-	chatty_message_add assistant "${text_answer}"
+	chatty_message_add "${role_assistant}" "${text_answer}"
 
 	chatty_history_write "${text_question}" "${text_answer}"
 }
@@ -600,20 +664,20 @@ chatty_print () {
 
 	if [ ! -t 3 ]
 	then
-		printf '%s\n' "${text_print}" >&3
+		printf "${format_line}" "${text_print}" >&3
 
 		return
 	fi
 
-	path_glow="$(command -v glow)"
+	path_glow="$(command -v "${name_command_glow}")"
 
 	if [ -n "${path_glow}" ]
 	then
-		printf '%s\n' "${text_print}" | "${path_glow}" - >&3
+		printf "${format_line}" "${text_print}" | "${path_glow}" - >&3
 	else
 		count_columns="$(tput cols 2> "${sink}")"
 
-		printf '%s\n' "${text_print}" | fold -s -w "${count_columns:-80}" >&3
+		printf "${format_line}" "${text_print}" | fold --spaces --width="${count_columns:-${count_columns_default}}" >&3
 	fi
 }
 
@@ -626,11 +690,11 @@ chatty_history_write () {
 
 	local stamp_history
 
-	stamp_history="$(date +"%Y-%m-%d %H:%M")"
+	stamp_history="$(date +"${format_stamp_history}")"
 
-	mkdir -p "${directory_data}"
+	mkdir --parents "${directory_data}"
 
-	( umask 077 ; printf '%s\n%s\n%s\n\n' "[ ${stamp_history} // ${model_chat} ]" "> ${text_question}" "${text_answer}" >> "${file_history}" )
+	( umask "${umask_private}" ; printf "${format_history}" "[ ${stamp_history} // ${model_chat} ]" "${prefix_question}${text_question}" "${text_answer}" >> "${file_history}" )
 }
 
 chatty_models () {
@@ -638,14 +702,22 @@ chatty_models () {
 	# models available to the api key - one identifier per line - details of one model when given
 
 	local id_model="${1}"
+	local status_request
 
-	chatty_request GET models "" || return 1
+	chatty_request "${method_get}" "${endpoint_models}" ""
+
+	status_request="${?}"
+
+	if [ "${status_request}" -ne 0 ]
+	then
+		return 1
+	fi
 
 	if [ -n "${id_model}" ]
 	then
-		jq --arg id "${id_model}" '.data[] | select(.id == $id)' "${file_response}" >&3
+		jq --arg id "${id_model}" "${filter_models_one}" "${file_response}" >&3
 	else
-		jq -r '.data[].id' "${file_response}" | sort >&3
+		jq --raw-output "${filter_models_all}" "${file_response}" | sort >&3
 	fi
 }
 
@@ -662,29 +734,38 @@ chatty_image () {
 	local path_kitty
 	local path_open
 	local answer_open
+	local status_request
 
-	jq -n \
-		--arg model "${model_image}" \
-		--arg prompt "${text_description}" \
-		--arg size "${size_image}" \
-		'{ model: $model, prompt: $prompt, size: $size, n: 1 }' > "${file_body}"
+	jq										\
+		--null-input						\
+		--arg model "${model_image}"		\
+		--arg prompt "${text_description}"	\
+		--arg size "${size_image}"			\
+											"${filter_body_image}" > "${file_body}"
 
-	chatty_request POST images/generations "${file_body}" || return 1
+	chatty_request "${method_post}" "${endpoint_images}" "${file_body}"
 
-	mkdir -p "${directory_images}"
+	status_request="${?}"
 
-	stamp_image="$(date +"%Y%m%d-%H%M%S")"
+	if [ "${status_request}" -ne 0 ]
+	then
+		return 1
+	fi
 
-	file_image="${directory_images}/chatty-${stamp_image}.png"
+	mkdir --parents "${directory_images}"
+
+	stamp_image="$(date +"${format_stamp_image}")"
+
+	file_image="${directory_images}/${name_application}-${stamp_image}${extension_image}"
 
 	# image models answer with base64 data - older ones with a link
 
-	data_image="$(jq -r '.data[0].b64_json // empty' "${file_response}")"
-	url_image="$(jq -r '.data[0].url // empty' "${file_response}")"
+	data_image="$(jq --raw-output "${filter_image_data}" "${file_response}")"
+	url_image="$(jq --raw-output "${filter_image_url}" "${file_response}")"
 
 	if [ -n "${data_image}" ]
 	then
-		printf '%s' "${data_image}" | base64 --decode > "${file_image}"
+		printf "${format_text}" "${data_image}" | base64 --decode > "${file_image}"
 
 	elif [ -n "${url_image}" ]
 	then
@@ -695,20 +776,20 @@ chatty_image () {
 		return 1
 	fi
 
-	frobulator.scs "Image saved" "[ ${file_image/#${HOME}/\~} ]"
+	frobulator.scs "Image saved" "[ ${file_image/#${HOME}/${prefix_home}} ]"
 
-	printf '%s\n' "${file_image}" >&3
+	printf "${format_line}" "${file_image}" >&3
 
-	path_kitty="$(command -v kitten)"
+	path_kitty="$(command -v "${name_command_kitty}")"
 
-	if [ "${TERM}" = "xterm-kitty" ] && [ -n "${path_kitty}" ]
+	if [ "${TERM}" = "${name_term_kitty}" ] && [ -n "${path_kitty}" ]
 	then
 		"${path_kitty}" icat "${file_image}"
 
 		return
 	fi
 
-	path_open="$(command -v xdg-open)"
+	path_open="$(command -v "${name_command_open}")"
 
 	if [ -t 0 ] && [ -n "${path_open}" ]
 	then
@@ -716,7 +797,7 @@ chatty_image () {
 
 		frobulator.read -r answer_open
 
-		if [[ "${answer_open}" =~ ^[yY] ]]
+		if [[ "${answer_open}" =~ ${pattern_yes} ]]
 		then
 			frobulator.background -- "${path_open}" "${file_image}"
 		fi
@@ -732,14 +813,22 @@ chatty_command () {
 	local text_command
 	local pattern_risky
 	local answer_run
+	local status_ask
 
-	chatty_ask "${prompt_command} ${text_task}" || return 1
+	chatty_ask "${prompt_command} ${text_task}"
+
+	status_ask="${?}"
+
+	if [ "${status_ask}" -ne 0 ]
+	then
+		return 1
+	fi
 
 	text_command="${text_answer}"
 
 	frobulator.inf "Suggested command"
 
-	printf '%s\n' "${text_command}" >&3
+	printf "${format_line}" "${text_command}" >&3
 
 	for pattern_risky in "${list_patterns_risky[@]}"
 	do
@@ -755,7 +844,7 @@ chatty_command () {
 
 	frobulator.read -r answer_run
 
-	if [[ "${answer_run}" =~ ^[yY] ]]
+	if [[ "${answer_run}" =~ ${pattern_yes} ]]
 	then
 		frobulator.fwd "Running" "[ ${text_command} ]"
 
@@ -766,6 +855,8 @@ chatty_command () {
 chatty_input () {
 
 	# next prompt from the terminal - one line - or several lines until ctrl + d in big prompt mode
+
+	local status_read
 
 	text_input=""
 
@@ -781,15 +872,22 @@ chatty_input () {
 	else
 		frobulator.ipt "Prompt:"
 
-		read -e -r text_input || text_input="exit"
+		read -e -r text_input
+
+		status_read="${?}"
+
+		if [ "${status_read}" -ne 0 ]
+		then
+			text_input="${keyword_exit}"
+		fi
 	fi
 }
 
 # requirements ─────────────────────────────────────────────────────────────────
 
 list+=(
-	curl
-	jq
+	"${package_curl}"
+	"${package_jq}"
 )
 
 frobulator.assess ${list[@]}
@@ -798,14 +896,14 @@ list=()
 
 # numeric settings checked before any request
 
-if [[ ! "${count_tokens_maximum}" =~ ^[0-9]+$ ]] || [[ ! "${count_tokens_context}" =~ ^[0-9]+$ ]]
+if [[ ! "${count_tokens_maximum}" =~ ${pattern_integer} ]] || [[ ! "${count_tokens_context}" =~ ${pattern_integer} ]]
 then
 	frobulator.err "Token counts must be whole numbers" "[ -x ${count_tokens_maximum} // -c ${count_tokens_context} ]"
 
 	exit 1
 fi
 
-if [ -n "${value_temperature}" ] && [[ ! "${value_temperature}" =~ ^[0-9]+([.][0-9]+)?$ ]]
+if [ -n "${value_temperature}" ] && [[ ! "${value_temperature}" =~ ${pattern_decimal} ]]
 then
 	frobulator.err "Temperature must be a number" "[ -t ${value_temperature} ]"
 
@@ -817,7 +915,7 @@ fi
 file_body="$(mktemp)"
 file_response="$(mktemp)"
 
-trap 'rm -f "${file_body}" "${file_response}"' EXIT
+trap 'rm --force "${file_body}" "${file_response}"' EXIT
 
 # key ──────────────────────────────────────────────────────────────────────────
 
@@ -892,54 +990,58 @@ while true
 do
 	chatty_input
 
-	case "${text_input}"
-	in
-		"")
-			continue
-		;;
+	if [ -z "${text_input}" ]
+	then
+		continue
 
-		exit|q)
-			break
-		;;
+	elif [ "${text_input}" = "${keyword_exit}" ] || [ "${text_input}" = "${keyword_quit}" ]
+	then
+		break
 
-		clear)
-			json_messages="[]"
+	elif [ "${text_input}" = "${keyword_clear}" ]
+	then
+		json_messages="[]"
 
-			frobulator.inf "Conversation cleared"
-		;;
+		frobulator.inf "Conversation cleared"
 
-		history)
-			if [ -s "${file_history}" ]
-			then
-				cat "${file_history}" >&3
-			else
-				frobulator.inf "No saved conversations yet"
-			fi
-		;;
+	elif [ "${text_input}" = "${keyword_history}" ]
+	then
+		if [ -s "${file_history}" ]
+		then
+			cat "${file_history}" >&3
+		else
+			frobulator.inf "No saved conversations yet"
+		fi
 
-		models)
-			chatty_models
-		;;
+	elif [ "${text_input}" = "${keyword_models}" ]
+	then
+		chatty_models
 
-		model:*)
-			id_model="${text_input#model:}"
-			id_model="${id_model//[[:space:]]/}"
+	elif [[ "${text_input}" == "${prefix_model}"* ]]
+	then
+		id_model="${text_input#"${prefix_model}"}"
+		id_model="${id_model//${pattern_space}/}"
 
-			chatty_models "${id_model}"
-		;;
+		chatty_models "${id_model}"
 
-		image:*)
-			chatty_image "${text_input#image:}"
-		;;
+	elif [[ "${text_input}" == "${prefix_image}"* ]]
+	then
+		chatty_image "${text_input#"${prefix_image}"}"
 
-		command:*)
-			chatty_command "${text_input#command:}"
-		;;
+	elif [[ "${text_input}" == "${prefix_command}"* ]]
+	then
+		chatty_command "${text_input#"${prefix_command}"}"
 
-		*)
-			chatty_ask "${text_input}" && chatty_print "${text_answer}"
-		;;
-	esac
+	else
+		chatty_ask "${text_input}"
+
+		status_ask="${?}"
+
+		if [ "${status_ask}" -eq 0 ]
+		then
+			chatty_print "${text_answer}"
+		fi
+	fi
 done
 
 frobulator.scs "Done" "[ Chat ]"

@@ -69,20 +69,39 @@ version="2026-11-19"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+mode_python="python"
+mode_pipx="pipx"
+mode_mounts="mounts"
+mode_files="files"
+mode_home="home"
+mode_git="git"
+mode_shell="shell"
+mode_superuser="superuser"
+mode_themes="themes"
+mode_applications="applications"
+mode_media="media"
+mode_kde_runner="kde-runner"
+mode_efi="efi"
+mode_all="all"
+mode_uninstall="uninstall"
+mode_storage="storage"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-p|--python)
-			option="python"
+			option="${mode_python}"
 		;;
 
 		-x|--pipx)
-			option="pipx"
+			option="${mode_pipx}"
 		;;
 
 		-r|--storage)
-			option="storage"
+			option="${mode_storage}"
 
 			option_storage="${2}"
 
@@ -90,55 +109,55 @@ do
 		;;
 
 		-m|--mounts)
-			option="mounts"
+			option="${mode_mounts}"
 		;;
 
 		-f|--files)
-			option="files"
+			option="${mode_files}"
 		;;
 
 		-o|--home)
-			option="home"
+			option="${mode_home}"
 		;;
 
 		-g|--git)
-			option="git"
+			option="${mode_git}"
 		;;
 
 		-s|--shell)
-			option="shell"
+			option="${mode_shell}"
 		;;
 
 		-u|--superuser)
-			option="superuser"
+			option="${mode_superuser}"
 		;;
 
 		-t|--themes)
-			option="themes"
+			option="${mode_themes}"
 		;;
 
 		-l|--applications)
-			option="applications"
+			option="${mode_applications}"
 		;;
 
 		-d|--media)
-			option="media"
+			option="${mode_media}"
 		;;
 
 		-k|--kde-runner)
-			option="kde-runner"
+			option="${mode_kde_runner}"
 		;;
 
 		-e|--efi)
-			option="efi"
+			option="${mode_efi}"
 		;;
 
 		-a|--all)
-			option="all"
+			option="${mode_all}"
 		;;
 
 		-n|--uninstall)
-			option="uninstall"
+			option="${mode_uninstall}"
 		;;
 
 		-h|--help)
@@ -221,21 +240,105 @@ done
 
 architecture="$(dpkg --print-architecture)"
 
-codename="$(lsb_release -c -s)"
+codename="$(lsb_release --codename --short)"
+
+storage_wsl="wsl"
+storage_chromeos="chromeos"
+storage_android="android"
+storage_removable="removable"
+
+name_root="root"
+label_setting_up="Setting up"
+name_user_sudo="${SUDO_USER:-${USER}}"
+name_run="run"
+name_hushlogin=".hushlogin"
+name_bashrc=".bashrc"
+prefix_function_file="bash-function-"
+repository_terminal="nathaneltitane/terminal"
+directory_git="Git"
+pattern_hostname="[pP][eE][nN][gG][uU][iI][nN]"
+pattern_desktop_kde="[kK][dD][eE]"
+pattern_reply_yes="^[yY]"
+delimiter_passwd=":"
+field_passwd_home="6"
+format_line='%s\n'
+mode_shell_files="777"
+mode_sudoers_file="0440"
+
+text_sudoers_rule="${SUDO_USER} ALL=(ALL) NOPASSWD: ALL"
+path_sudoers="/etc/sudoers"
+directory_sudoers="/etc/sudoers.d"
+path_fstab="/etc/fstab"
+path_fstab_backup="/etc/fstab.backup"
+path_passwd="/etc/passwd"
+path_skel_bashrc="/etc/skel/.bashrc"
+path_os_release="/etc/os-release"
+path_mounts="/proc/mounts"
+directory_udev="/run/udev/data"
+directory_block="/sys/class/block"
+directory_device="/dev"
+directory_label="/dev/disk/by-label"
+directory_media="/media"
+directory_mnt="/mnt"
+name_bin_relative=".local/bin"
+directory_bin="${HOME}/${name_bin_relative}"
+directory_applications="/usr/share/applications"
+url_terminal="get.trmnl.me"
+
+directory_python="/usr/lib/python3.11"
+file_externally_managed="EXTERNALLY-MANAGED"
+directory_pipx_home="/opt/pipx"
+directory_pipx_bin="/usr/local/bin"
+directory_pipx_man="/usr/local/share/man"
+separator_inject=":"
+
+directory_chromeos="${directory_mnt}/chromeos"
+directory_google="/opt/google"
+directory_android_container="${directory_google}/containers/android"
+directory_android_media="${directory_android_container}/rootfs/android-data/data/media"
+
+directory_gtk2="/etc/gtk-2.0"
+directory_gtk3="/etc/gtk-3.0"
+directory_xdg="/etc/xdg"
+file_gtk2_settings="gtkrc"
+file_gtk3_settings="settings.ini"
+file_qt_settings="Trolltech.conf"
+
+file_kwin_configuration="kwinrc"
+group_kwin_shortcuts="ModifierOnlyShortcuts"
+key_kwin_meta="Meta"
+value_kwin_runner="org.kde.krunner,/App,,toggleDisplay"
+
+path_efi_firmware="/sys/firmware/efi"
+directory_boot="/boot"
+directory_efi="/boot/efi"
+directory_efi_loaders="${directory_efi}/EFI"
+directory_refind="${directory_efi_loaders}/refind"
+directory_refind_themes="${directory_refind}/themes"
+file_refind_loader="refind_x64.efi"
+file_refind_configuration="refind.conf"
+file_refind_theme_archive="archive-refind-theme.tar.gz"
+file_refind_source="refind-configuration"
+pattern_package_grub="grub*"
+pattern_package_shim="shim*"
+label_secure_boot_disabled="disabled"
+pattern_boot_entry='^Boot([0-9A-Fa-f]{4})[*[:space:]][[:space:]](.*)$'
+pattern_entry_path='^hd\(([0-9]+),gpt,'
+separator_entry=$'\t'
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${option}" ]
 then
-	option="all"
+	option="${mode_all}"
 fi
 
-if [ "${option}" = "storage" ]
+if [ "${option}" = "${mode_storage}" ]
 then
-	if	[ "${option_storage}" != "wsl"       ] &&
-		[ "${option_storage}" != "chromeos"  ] &&
-		[ "${option_storage}" != "android"   ] &&
-		[ "${option_storage}" != "removable" ]
+	if	[ "${option_storage}" != "${storage_wsl}"       ] &&
+		[ "${option_storage}" != "${storage_chromeos}"  ] &&
+		[ "${option_storage}" != "${storage_android}"   ] &&
+		[ "${option_storage}" != "${storage_removable}" ]
 	then
 		frobulator.err "Unrecognized storage type" "[ ${option_storage} ]"
 
@@ -251,18 +354,18 @@ name_environment="${XDG_CURRENT_DESKTOP}"
 
 intent_sudoers_clean () {
 
-	local line_sudoers="${SUDO_USER} ALL=(ALL) NOPASSWD: ALL"
+	local line_sudoers="${text_sudoers_rule}"
 	local count_line
 	local file_sudoers_temporary
 	local status_sudoers
 
-	count_line="$(grep -c -x -F "${line_sudoers}" /etc/sudoers)"
+	count_line="$(grep --count --line-regexp --fixed-strings "${line_sudoers}" "${path_sudoers}")"
 
 	if [ "${count_line}" -gt 0 ]
 	then
 		file_sudoers_temporary="$(mktemp)"
 
-		grep -v -x -F "${line_sudoers}" /etc/sudoers > "${file_sudoers_temporary}"
+		grep --invert-match --line-regexp --fixed-strings "${line_sudoers}" "${path_sudoers}" > "${file_sudoers_temporary}"
 
 		visudo -c -q -f "${file_sudoers_temporary}"
 
@@ -270,11 +373,11 @@ intent_sudoers_clean () {
 
 		if [ "${status_sudoers}" -eq 0 ]
 		then
-			cat "${file_sudoers_temporary}" > /etc/sudoers
+			cat "${file_sudoers_temporary}" > "${path_sudoers}"
 
-			frobulator.scs "Passwordless sudo line removed" "[ /etc/sudoers // ${count_line} ]"
+			frobulator.scs "Passwordless sudo line removed" "[ ${path_sudoers} // ${count_line} ]"
 		else
-			frobulator.err "Sudoers check failed - left unchanged" "[ /etc/sudoers ]"
+			frobulator.err "Sudoers check failed - left unchanged" "[ ${path_sudoers} ]"
 		fi
 
 		rm -f "${file_sudoers_temporary}"
@@ -291,11 +394,28 @@ intent_fstab_align () {
 	local line_fstab
 	local list_field
 	local list_fstab
-	local list_header=("# file system" "mount point" "type" "options")
-	local list_width=(0 0 0 0)
 	local line_aligned
 	local pattern_header='^#[[:space:]]*<?file system>?'
-	local status_header
+	local pattern_skipped='^[[:space:]]*(#|$)'
+	local format_header='%-*s   %-*s   %-*s   %-*s   %s'
+	local format_entry='%-*s   %-*s   %-*s   %-*s   %s %s'
+	local label_dump_pass="dump pass"
+	local value_options_default="defaults"
+	local state_header="false"
+
+	local list_header=(
+		"# file system"
+		"mount point"
+		"type"
+		"options"
+	)
+
+	local list_width=(
+		0
+		0
+		0
+		0
+	)
 
 	mapfile -t list_fstab < "${file_fstab}"
 
@@ -305,10 +425,10 @@ intent_fstab_align () {
 	do
 		if [[ "${line_fstab}" =~ ${pattern_header} ]]
 		then
-			status_header="found"
+			state_header="true"
 		fi
 
-		if [[ "${line_fstab}" =~ ^[[:space:]]*(#|$) ]]
+		if [[ "${line_fstab}" =~ ${pattern_skipped} ]]
 		then
 			continue
 		fi
@@ -326,7 +446,7 @@ intent_fstab_align () {
 
 	# header labels count too
 
-	if [ -n "${status_header}" ]
+	if [ "${state_header}" = "true" ]
 	then
 		for index_field in 0 1 2 3
 		do
@@ -343,37 +463,37 @@ intent_fstab_align () {
 
 		if [[ "${line_fstab}" =~ ${pattern_header} ]]
 		then
-			printf -v line_aligned '%-*s   %-*s   %-*s   %-*s   %s'	\
-				"${list_width[0]}" "${list_header[0]}"					\
-				"${list_width[1]}" "${list_header[1]}"					\
-				"${list_width[2]}" "${list_header[2]}"					\
-				"${list_width[3]}" "${list_header[3]}"					\
-				"dump pass"
+			printf -v line_aligned "${format_header}"	\
+				"${list_width[0]}" "${list_header[0]}"	\
+				"${list_width[1]}" "${list_header[1]}"	\
+				"${list_width[2]}" "${list_header[2]}"	\
+				"${list_width[3]}" "${list_header[3]}"	\
+				"${label_dump_pass}"
 
-			printf '%s\n' "${line_aligned}"
+			printf "${format_line}" "${line_aligned}"
 
 			continue
 		fi
 
 		# keep comments and blank lines
 
-		if [[ "${line_fstab}" =~ ^[[:space:]]*(#|$) ]]
+		if [[ "${line_fstab}" =~ ${pattern_skipped} ]]
 		then
-			printf '%s\n' "${line_fstab}"
+			printf "${format_line}" "${line_fstab}"
 
 			continue
 		fi
 
 		read -r -a list_field <<< "${line_fstab}"
 
-		printf -v line_aligned '%-*s   %-*s   %-*s   %-*s   %s %s'	\
-			"${list_width[0]}" "${list_field[0]}"						\
-			"${list_width[1]}" "${list_field[1]}"						\
-			"${list_width[2]}" "${list_field[2]}"						\
-			"${list_width[3]}" "${list_field[3]:-defaults}"			\
+		printf -v line_aligned "${format_entry}"	\
+			"${list_width[0]}" "${list_field[0]}"	\
+			"${list_width[1]}" "${list_field[1]}"	\
+			"${list_width[2]}" "${list_field[2]}"	\
+			"${list_width[3]}" "${list_field[3]:-${value_options_default}}"	\
 			"${list_field[4]:-0}" "${list_field[5]:-0}"
 
-		printf '%s\n' "${line_aligned}"
+		printf "${format_line}" "${line_aligned}"
 	done > "${file_fstab}"
 }
 
@@ -383,14 +503,16 @@ intent_fstab_entry () {
 
 	local label_drive="${1}"
 	local directory_mount="${2}"
-	local device_drive="/dev/disk/by-label/${1}"
-	local name_user="${SUDO_USER:-${USER}}"
+	local device_drive="${directory_label}/${1}"
+	local name_user="${name_user_sudo}"
 
 	local device_block
 	local entry_fstab
 	local field_device
 	local field_mount
 	local file_fstab_temporary
+	local file_udev
+	local id_device
 	local id_group
 	local id_user
 	local line_fstab
@@ -400,10 +522,27 @@ intent_fstab_entry () {
 	local list_udev
 	local name_entry
 	local options_mount
-	local status_block
+	local options_windows
+	local state_block
 	local status_fstab
 	local type_drive
 	local uuid_drive
+	local prefix_udev_type
+	local prefix_udev_uuid
+	local prefix_fstab_uuid
+	local prefix_fstab_label
+	local pattern_type_windows
+	local name_device_number
+
+	prefix_udev_type="E:ID_FS_TYPE="
+	prefix_udev_uuid="E:ID_FS_UUID="
+	prefix_fstab_uuid="UUID="
+	prefix_fstab_label="LABEL="
+	pattern_type_windows="^(exfat|vfat|ntfs|ntfs3)$"
+	name_device_number="dev"
+	options_mount="users,exec,nofail,x-mount.mkdir,x-systemd.device-timeout=5s"
+	options_windows="fmask=0022,dmask=0022,iocharset=utf8"
+	state_block="false"
 
 	if [ ! -e "${device_drive}" ]
 	then
@@ -414,17 +553,25 @@ intent_fstab_entry () {
 
 	# block device behind label
 
-	for device_block in /sys/class/block/*
+	for device_block in "${directory_block}"/*
 	do
-		if [ /dev/"${device_block##*/}" -ef "${device_drive}" ]
+		if [ "${directory_device}/${device_block##*/}" -ef "${device_drive}" ]
 		then
-			status_block="found"
+			state_block="true"
 
 			break
 		fi
 	done
 
-	if [ -z "${status_block}" ] || [ ! -f /run/udev/data/b"$(< "${device_block}"/dev)" ]
+	if [ "${state_block}" = "true" ]
+	then
+		id_device="$(< "${device_block}/${name_device_number}")"
+
+		file_udev="${directory_udev}/b${id_device}"
+	fi
+
+	if [ "${state_block}" != "true" ] ||
+	   [ ! -f "${file_udev}" ]
 	then
 		frobulator.err "Drive details not found" "[ ${label_drive} ]"
 
@@ -433,52 +580,48 @@ intent_fstab_entry () {
 
 	# filesystem from udev database
 
-	mapfile -t list_udev < /run/udev/data/b"$(< "${device_block}"/dev)"
+	mapfile -t list_udev < "${file_udev}"
 
 	for line_udev in "${list_udev[@]}"
 	do
-		case "${line_udev}"
-		in
-			E:ID_FS_TYPE=*)
-				type_drive="${line_udev#*=}"
-			;;
+		if [[ "${line_udev}" == "${prefix_udev_type}"* ]]
+		then
+			type_drive="${line_udev#"${prefix_udev_type}"}"
 
-			E:ID_FS_UUID=*)
-				uuid_drive="${line_udev#*=}"
-			;;
-		esac
+		elif [[ "${line_udev}" == "${prefix_udev_uuid}"* ]]
+		then
+			uuid_drive="${line_udev#"${prefix_udev_uuid}"}"
+		fi
 	done
-
-	options_mount="users,exec,nofail,x-mount.mkdir,x-systemd.device-timeout=5s"
 
 	# ownership for windows filesystems
 
-	case "${type_drive}"
-	in
-		exfat|vfat|ntfs|ntfs3)
-			while IFS=':' read -r name_entry _ id_user id_group _
-			do
-				if [ "${name_entry}" = "${name_user}" ]
-				then
-					break
-				fi
-			done < /etc/passwd
+	if [[ "${type_drive}" =~ ${pattern_type_windows} ]]
+	then
+		while IFS="${delimiter_passwd}" read -r name_entry _ id_user id_group _
+		do
+			if [ "${name_entry}" = "${name_user}" ]
+			then
+				break
+			fi
+		done < "${path_passwd}"
 
-			options_mount+=",uid=${id_user},gid=${id_group},fmask=0022,dmask=0022,iocharset=utf8"
-		;;
-	esac
+		options_mount+=",uid=${id_user},gid=${id_group},${options_windows}"
+	fi
 
-	entry_fstab="UUID=${uuid_drive} ${directory_mount} ${type_drive} ${options_mount} 0 0"
+	entry_fstab="${prefix_fstab_uuid}${uuid_drive} ${directory_mount} ${type_drive} ${options_mount} 0 0"
 
 	# replace previous entry
 
-	mapfile -t list_fstab < /etc/fstab
+	mapfile -t list_fstab < "${path_fstab}"
 
 	for line_fstab in "${list_fstab[@]}"
 	do
 		read -r field_device field_mount _ <<< "${line_fstab}"
 
-		if [ "${field_mount}" = "${directory_mount}" ] || [ "${field_device}" = "UUID=${uuid_drive}" ] || [ "${field_device}" = "LABEL=${label_drive}" ]
+		if [ "${field_mount}" = "${directory_mount}" ] ||
+		   [ "${field_device}" = "${prefix_fstab_uuid}${uuid_drive}" ] ||
+		   [ "${field_device}" = "${prefix_fstab_label}${label_drive}" ]
 		then
 			continue
 		fi
@@ -499,7 +642,7 @@ intent_fstab_entry () {
 
 	file_fstab_temporary="$(mktemp)"
 
-	printf '%s\n' "${list_keep[@]}" > "${file_fstab_temporary}"
+	printf "${format_line}" "${list_keep[@]}" > "${file_fstab_temporary}"
 
 	intent_fstab_align "${file_fstab_temporary}"
 
@@ -511,14 +654,14 @@ intent_fstab_entry () {
 	then
 		# original kept once per run
 
-		if [ -z "${status_fstab_backup}" ]
+		if [ "${state_fstab_backup}" != "true" ]
 		then
-			cp /etc/fstab /etc/fstab.backup
+			cp "${path_fstab}" "${path_fstab_backup}"
 
-			status_fstab_backup="done"
+			state_fstab_backup="true"
 		fi
 
-		cat "${file_fstab_temporary}" > /etc/fstab
+		cat "${file_fstab_temporary}" > "${path_fstab}"
 
 		frobulator.scs "Drive mounted at boot" "[ ${label_drive} // ${directory_mount} ]"
 	else
@@ -532,13 +675,13 @@ intent_fstab_entry () {
 
 # remove setup files and links
 
-if [ "${option}" = "uninstall" ]
+if [ "${option}" = "${mode_uninstall}" ]
 then
 	frobulator.qst "Remove the ${script} setup - shell files, links and passwordless sudo? [ y / N ]"
 
 	frobulator.read reply
 
-	if [[ ! "${reply}" =~ ^[yY] ]]
+	if [[ ! "${reply}" =~ ${pattern_reply_yes} ]]
 	then
 		frobulator.inf "Aborting" "[ ${option} ]"
 
@@ -547,11 +690,12 @@ then
 
 	# user and superuser homes
 
-	directory_home_root="$(getent passwd root | cut -d ':' -f 6)"
+	directory_home_root="$(getent passwd "${name_root}" | cut --delimiter="${delimiter_passwd}" --fields="${field_passwd_home}")"
 
 	list_homes=("${HOME}")
 
-	if [ -n "${directory_home_root}" ] && [ "${directory_home_root}" != "${HOME}" ]
+	if [ -n "${directory_home_root}" ] &&
+	   [ "${directory_home_root}" != "${HOME}" ]
 	then
 		list_homes+=("${directory_home_root}")
 	fi
@@ -580,7 +724,7 @@ then
 	do
 		state_link_shell="false"
 
-		if [ -L "${directory_home}/.bashrc" ]
+		if [ -L "${directory_home}/${name_bashrc}" ]
 		then
 			state_link_shell="true"
 		fi
@@ -595,13 +739,14 @@ then
 
 		# restore default bashrc
 
-		if [ "${state_link_shell}" = "true" ] && [ -f /etc/skel/.bashrc ]
+		if [ "${state_link_shell}" = "true" ] &&
+		   [ -f "${path_skel_bashrc}" ]
 		then
-			cp /etc/skel/.bashrc "${directory_home}/.bashrc"
+			cp "${path_skel_bashrc}" "${directory_home}/${name_bashrc}"
 
-			chown --reference="${directory_home}" "${directory_home}/.bashrc"
+			chown --reference="${directory_home}" "${directory_home}/${name_bashrc}"
 
-			frobulator.inf "Default shell configuration restored" "[ ${directory_home}/.bashrc ]"
+			frobulator.inf "Default shell configuration restored" "[ ${directory_home}/${name_bashrc} ]"
 		fi
 	done
 
@@ -614,23 +759,25 @@ then
 		bash-login
 		bash-logout
 		bash-profile
-		run
+		"${name_run}"
 		utility-command-run
 	)
 
 	# function links to run
 
-	for path_link in "${HOME}"/.local/bin/*
+	for path_link in "${directory_bin}"/*
 	do
 		# ahead of run itself
 
-		if [ -L "${path_link}" ] && [ "${path_link##*/}" != "run" ] && [ "${path_link}" -ef "${HOME}"/.local/bin/run ]
+		if [ -L "${path_link}" ] &&
+		   [ "${path_link##*/}" != "${name_run}" ] &&
+		   [ "${path_link}" -ef "${directory_bin}/${name_run}" ]
 		then
 			list_files_shell=("${path_link##*/}" "${list_files_shell[@]}")
 		fi
 	done
 
-	for path_function in "${HOME}"/.local/bin/bash-function-*
+	for path_function in "${directory_bin}/${prefix_function_file}"*
 	do
 		if [ -e "${path_function}" ]
 		then
@@ -640,22 +787,23 @@ then
 
 	for name_file in "${list_files_shell[@]}"
 	do
-		if [ -e "${HOME}/.local/bin/${name_file}" ]
+		if [ -e "${directory_bin}/${name_file}" ]
 		then
-			frobulator.delete "${HOME}/.local/bin" "${name_file}"
+			frobulator.delete "${directory_bin}" "${name_file}"
 		fi
 	done
 
 	# empty login notice file
 
-	if [ -f "${HOME}/.hushlogin" ] && [ ! -s "${HOME}/.hushlogin" ]
+	if [ -f "${HOME}/${name_hushlogin}" ] &&
+	   [ ! -s "${HOME}/${name_hushlogin}" ]
 	then
-		frobulator.delete "${HOME}" .hushlogin
+		frobulator.delete "${HOME}" "${name_hushlogin}"
 	fi
 
 	# storage links
 
-	for path_link in /media/* "${HOME}/Downloads"
+	for path_link in "${directory_media}"/* "${HOME}/Downloads"
 	do
 		if [ ! -L "${path_link}" ]
 		then
@@ -664,21 +812,21 @@ then
 
 		target_link="$(readlink "${path_link}")"
 
-		case "${target_link}"
-		in
-			/mnt/*|/opt/google/*|/media/"${SUDO_USER:-${USER}}"/*)
-				frobulator.delete "${path_link%/*}" "${path_link##*/}"
-			;;
-		esac
+		if [[ "${target_link}" == "${directory_mnt}/"* ]] ||
+		   [[ "${target_link}" == "${directory_google}/"* ]] ||
+		   [[ "${target_link}" == "${directory_media}/${name_user_sudo}/"* ]]
+		then
+			frobulator.delete "${path_link%/*}" "${path_link##*/}"
+		fi
 	done
 
 	# remove passwordless sudo
 
 	if [ -n "${SUDO_USER}" ]
 	then
-		if [ -f /etc/sudoers.d/"${SUDO_USER}" ]
+		if [ -f "${directory_sudoers}/${SUDO_USER}" ]
 		then
-			frobulator.delete /etc/sudoers.d "${SUDO_USER}"
+			frobulator.delete "${directory_sudoers}" "${SUDO_USER}"
 		fi
 
 		intent_sudoers_clean
@@ -762,14 +910,14 @@ list_media=(
 	gstreamer1.0*
 )
 
-if [ "${name_environment}" = [kK][dD][eE] ]
+if [ "${name_environment}" = ${pattern_desktop_kde} ]
 then
 	list+=(
 		${list_kde[@]}
 	)
 fi
 
-if [ ! -z "${DISPLAY}" ]
+if [ -n "${DISPLAY}" ]
 then
 	list+=(
 		${list_display[@]}
@@ -786,7 +934,7 @@ list=(
 	htop.desktop
 )
 
-frobulator.delete /usr/share/applications ${list[@]}
+frobulator.delete "${directory_applications}" ${list[@]}
 
 list=()
 
@@ -794,24 +942,24 @@ list=()
 
 # python
 
-if [ "${option}" = "python" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_python}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	if [[ "${HOSTNAME}" = ${pattern_hostname} ]]
 	then
-		frobulator.inf "Setting up" "[ python ]"
-
-		directory_python="/usr/lib/python3.11"
+		frobulator.inf "${label_setting_up}" "[ ${mode_python} ]"
 
 		rm					\
 			--recursive		\
 			--force			\
-							"${directory_python}"/EXTERNALLY-MANAGED
+							"${directory_python}/${file_externally_managed}"
 	fi
 fi
 
 # pipx
 
-if [ "${option}" = "pipx" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_pipx}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
 	list_install_pip=(
 		deno
@@ -829,9 +977,9 @@ then
 
 	list_pipx=(
 		env
-		PIPX_HOME=/opt/pipx
-		PIPX_BIN_DIR=/usr/local/bin
-		PIPX_MAN_DIR=/usr/local/share/man
+		"PIPX_HOME=${directory_pipx_home}"
+		"PIPX_BIN_DIR=${directory_pipx_bin}"
+		"PIPX_MAN_DIR=${directory_pipx_man}"
 		pipx
 	)
 
@@ -842,7 +990,7 @@ then
 
 	for item in "${list_inject_pip[@]}"
 	do
-		"${list_pipx[@]}" inject "${item%%:*}" "${item#*:}"
+		"${list_pipx[@]}" inject "${item%%"${separator_inject}"*}" "${item#*"${separator_inject}"}"
 	done
 
 	list_install_pip=()
@@ -852,35 +1000,39 @@ fi
 
 # storage - windows subsystem for linux
 
-if [ "${option}" = "storage" ] && [ "${option_storage}" = "wsl" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_storage}" ] &&
+   [ "${option_storage}" = "${storage_wsl}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
 	if [ -n "${WSL_DISTRO_NAME}" ]
 	then
-		frobulator.link /mnt /media y internal
-		frobulator.link /mnt /media z external
+		frobulator.link "${directory_mnt}" "${directory_media}" y internal
+		frobulator.link "${directory_mnt}" "${directory_media}" z external
 	fi
 fi
 
 # storage - linux subsystem for chromeos
 
-if [ "${option}" = "storage" ] && [ "${option_storage}" = "chromeos" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_storage}" ] &&
+   [ "${option_storage}" = "${storage_chromeos}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [ -d /mnt/chromeos ]
+	if [ -d "${directory_chromeos}" ]
 	then
-		if [ -d /mnt/chromeos/GoogleDrive ]
+		if [ -d "${directory_chromeos}/GoogleDrive" ]
 		then
-			frobulator.link /mnt/chromeos /media GoogleDrive Drive
+			frobulator.link "${directory_chromeos}" "${directory_media}" GoogleDrive Drive
 		fi
 
-		if [ -d /mnt/chromeos/MyFiles ]
+		if [ -d "${directory_chromeos}/MyFiles" ]
 		then
-			frobulator.link /mnt/chromeos/MyFiles "${HOME}" Downloads Downloads
+			frobulator.link "${directory_chromeos}/MyFiles" "${HOME}" Downloads Downloads
 		fi
 
-		if [ -d /mnt/chromeos/removable ]
+		if [ -d "${directory_chromeos}/${storage_removable}" ]
 		then
-			frobulator.link /mnt/chromeos/removable /media Internal Internal
-			frobulator.link /mnt/chromeos/removable /media External External
+			frobulator.link "${directory_chromeos}/${storage_removable}" "${directory_media}" Internal Internal
+			frobulator.link "${directory_chromeos}/${storage_removable}" "${directory_media}" External External
 		fi
 
 	fi
@@ -888,13 +1040,15 @@ fi
 
 # storage - android subsystem for chrome os
 
-if [ "${option}" = "storage" ] && [ "${option_storage}" = "android" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_storage}" ] &&
+   [ "${option_storage}" = "${storage_android}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [ -d /opt/google/containers/android ]
+	if [ -d "${directory_android_container}" ]
 	then
-		if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
+		if [ -d "${directory_android_media}" ]
 		then
-			frobulator.link /opt/google/containers/android/rootfs/android-data/data/media /media 0 Android
+			frobulator.link "${directory_android_media}" "${directory_media}" 0 Android
 		fi
 
 	fi
@@ -902,11 +1056,13 @@ fi
 
 # storage - removable
 
-if [ "${option}" = "storage" ] && [ "${option_storage}" = "removable" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_storage}" ] &&
+   [ "${option_storage}" = "${storage_removable}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [ -d /media/"${USER}"/* ]
+	if [ -d "${directory_media}/${USER}"/* ]
 	then
-		for directory in /media/"${USER}"/*
+		for directory in "${directory_media}/${USER}"/*
 		do
 			frobulator.inf "Removable storage found" "[ ${directory}]"
 
@@ -921,9 +1077,9 @@ then
 		do
 			directory=${item##*/}
 
-			if [ -d /opt/google/containers/android/rootfs/android-data/data/media ]
+			if [ -d "${directory_android_media}" ]
 			then
-				frobulator.link /media/"${USER}" /media "${directory}"
+				frobulator.link "${directory_media}/${USER}" "${directory_media}" "${directory}"
 			fi
 		done
 	fi
@@ -933,56 +1089,69 @@ fi
 
 # mounts
 
-if [ "${option}" = "mounts" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_mounts}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [ -f /etc/fstab ] && [ -d /run/udev/data ]
+	if [ -f "${path_fstab}" ] &&
+	   [ -d "${directory_udev}" ]
 	then
 		list_mounts=(
-			internal /media/internal
-			external /media/external
+			internal
+			/media/internal
+			external
+			/media/external
 		)
 
 		# mount points first for fstab check
 
-		for (( index_mount = 0; index_mount < ${#list_mounts[@]}; index_mount += 2 ))
+		for (( index_mount = 0 ; index_mount < ${#list_mounts[@]} ; index_mount += 2 ))
 		do
 			directory_mount="${list_mounts[$(( index_mount + 1 ))]}"
 
-			if [ -e /dev/disk/by-label/"${list_mounts[${index_mount}]}" ] && [ ! -d "${directory_mount}" ]
+			if [ -e "${directory_label}/${list_mounts[${index_mount}]}" ] &&
+			   [ ! -d "${directory_mount}" ]
 			then
 				frobulator.directory "${directory_mount%/*}" "${directory_mount##*/}"
 			fi
 		done
 
-		for (( index_mount = 0; index_mount < ${#list_mounts[@]}; index_mount += 2 ))
+		for (( index_mount = 0 ; index_mount < ${#list_mounts[@]} ; index_mount += 2 ))
 		do
 			intent_fstab_entry "${list_mounts[${index_mount}]}" "${list_mounts[$(( index_mount + 1 ))]}"
 		done
 
-		if [ -n "$(command -v systemctl)" ]
+		# systemctl command path - empty if not installed
+
+		path_systemctl="$(command -v systemctl)"
+
+		if [ -n "${path_systemctl}" ]
 		then
 			systemctl daemon-reload
 		fi
 
 		# mount now if missing
 
-		for (( index_mount = 1; index_mount < ${#list_mounts[@]}; index_mount += 2 ))
+		for (( index_mount = 1 ; index_mount < ${#list_mounts[@]} ; index_mount += 2 ))
 		do
 			directory_mount="${list_mounts[${index_mount}]}"
 
-			if [[ "$(< /proc/mounts)" != *" ${directory_mount} "* ]] && [ -d "${directory_mount}" ]
+			content_mounts="$(< "${path_mounts}")"
+
+			if [[ "${content_mounts}" != *" ${directory_mount} "* ]] &&
+			   [ -d "${directory_mount}" ]
 			then
 				mount "${directory_mount}" > "${sink}" 2>&1
 			fi
 		done
 
-		unset directory_mount index_mount list_mounts
+		unset directory_mount index_mount list_mounts path_systemctl content_mounts
 	fi
 fi
 
 # files
 
-if [ "${option}" = "files" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_files}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
 	list=(
 		.dns
@@ -1010,7 +1179,7 @@ then
 
 			# kde backup plans
 
-			frobulator.link "${storage}"/Git/terminal "${HOME}"/.config kde-backup-configuration kuprc
+			frobulator.link "${storage}/${directory_git}/terminal" "${HOME}/.config" kde-backup-configuration kuprc
 		fi
 	done
 
@@ -1021,11 +1190,12 @@ fi
 
 # home
 
-if [ "${option}" = "home" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_home}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
 	frobulator.file "${HOME}" .hushlogin
 
-	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	if [[ "${HOSTNAME}" = ${pattern_hostname} ]]
 	then
 		# generate home directory structure
 
@@ -1049,9 +1219,10 @@ fi
 
 # git
 
-if [ "${option}" = "git" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_git}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	frobulator.inf "Setting up" "[ git ]"
+	frobulator.inf "${label_setting_up}" "[ ${mode_git} ]"
 
 	list_storage=(
 		/media/[aA]ndroid
@@ -1062,24 +1233,25 @@ then
 	do
 		if [ -d "${storage}" ]
 		then
-			frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
+			frobulator.link "${storage}/${directory_git}" "${HOME}" git-configuration .gitconfig
 
-			chown "${USER}":"${USER}" "${storage}"/Git/git-configuration
+			chown "${USER}":"${USER}" "${storage}/${directory_git}/git-configuration"
 
-			frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+			frobulator.link "${storage}/${directory_git}" "${HOME}" git-credentials   .git-credentials
 
-			chown "${USER}":"${USER}" "${storage}"/Git/git-credentials
+			chown "${USER}":"${USER}" "${storage}/${directory_git}/git-credentials"
 		fi
 	done
 fi
 
 # shell
 
-if [ "${option}" = "shell" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_shell}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	frobulator.inf "Setting up" "[ shell ]"
+	frobulator.inf "${label_setting_up}" "[ ${mode_shell} ]"
 
-	frobulator.directory "${HOME}" .local/bin
+	frobulator.directory "${HOME}" "${name_bin_relative}"
 
 	list+=(
 		bash-aliases
@@ -1093,7 +1265,7 @@ then
 
 	# one file per function - loaded by bash-functions: names listed from the repository
 
-	frobulator.repository "nathaneltitane/terminal" "bash-function-"
+	frobulator.repository "${repository_terminal}" "${prefix_function_file}"
 
 	list+=("${frobulator_return[@]}")
 
@@ -1101,41 +1273,42 @@ then
 
 	list_files_shell=("${list[@]}")
 
-	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
+	frobulator.download "${url_terminal}" "${directory_bin}" ${list[@]}
 
 	# run command name
 
-	frobulator.link "${HOME}"/.local/bin "${HOME}"/.local/bin utility-command-run run
+	frobulator.link "${directory_bin}" "${directory_bin}" utility-command-run "${name_run}"
 
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-aliases       .bash_aliases
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-configuration .bashrc
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-configuration .bash_configuration
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-functions     .bash_functions
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-login         .bash_login
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-logout        .bash_logout
-	frobulator.link "${HOME}"/.local/bin "${HOME}"                bash-profile       .bash_profile
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-aliases       .bash_aliases
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-configuration .bashrc
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-configuration .bash_configuration
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-functions     .bash_functions
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-login         .bash_login
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-logout        .bash_logout
+	frobulator.link "${directory_bin}"   "${HOME}"                bash-profile       .bash_profile
 
 	# superuser home
 
-	directory_home_root="$(getent passwd root | cut -d ':' -f 6)"
+	directory_home_root="$(getent passwd "${name_root}" | cut --delimiter="${delimiter_passwd}" --fields="${field_passwd_home}")"
 
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-aliases       .bash_aliases
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-configuration .bashrc
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-configuration .bash_configuration
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-functions     .bash_functions
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-login         .bash_login
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-logout        .bash_logout
-	frobulator.link "${HOME}"/.local/bin "${directory_home_root}" bash-profile       .bash_profile
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-aliases       .bash_aliases
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-configuration .bashrc
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-configuration .bash_configuration
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-functions     .bash_functions
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-login         .bash_login
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-logout        .bash_logout
+	frobulator.link "${directory_bin}"   "${directory_home_root}" bash-profile       .bash_profile
 
 	# files back to user
 
-	if [ "${EUID}" -eq 0 ] && [ -n "${SUDO_USER}" ]
+	if [ "${EUID}" -eq 0 ] &&
+	   [ -n "${SUDO_USER}" ]
 	then
 		for item in "${list_files_shell[@]}"
 		do
-			chown "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${item}"
+			chown "${SUDO_USER}":"${SUDO_USER}" "${directory_bin}/${item}"
 
-			chmod 777 "${HOME}"/.local/bin/"${item}"
+			chmod "${mode_shell_files}" "${directory_bin}/${item}"
 		done
 	fi
 
@@ -1147,12 +1320,12 @@ then
 
 	for item in "${list_files_shell[@]}"
 	do
-		if [[ "${item}" != bash-function-* ]]
+		if [[ "${item}" != "${prefix_function_file}"* ]]
 		then
 			continue
 		fi
 
-		name_link="${item#bash-function-}"
+		name_link="${item#"${prefix_function_file}"}"
 
 		# shell only functions get no link
 
@@ -1165,16 +1338,18 @@ then
 
 		# real commands keep their name
 
-		if [ -n "${path_command}" ] && [ "${path_command}" != "${HOME}/.local/bin/${name_link}" ]
+		if [ -n "${path_command}" ] &&
+		   [ "${path_command}" != "${directory_bin}/${name_link}" ]
 		then
 			continue
 		fi
 
-		ln -sfn run "${HOME}"/.local/bin/"${name_link}"
+		ln -sfn "${name_run}" "${directory_bin}/${name_link}"
 
-		if [ "${EUID}" -eq 0 ] && [ -n "${SUDO_USER}" ]
+		if [ "${EUID}" -eq 0 ] &&
+		   [ -n "${SUDO_USER}" ]
 		then
-			chown -h "${SUDO_USER}":"${SUDO_USER}" "${HOME}"/.local/bin/"${name_link}"
+			chown -h "${SUDO_USER}":"${SUDO_USER}" "${directory_bin}/${name_link}"
 		fi
 	done
 
@@ -1187,7 +1362,8 @@ fi
 
 # superuser
 
-if [ "${option}" = "superuser" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_superuser}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
 	if [ -n "${SUDO_USER}" ]
 	then
@@ -1195,7 +1371,7 @@ then
 
 		file_sudoers_temporary="$(mktemp)"
 
-		echo "${SUDO_USER} ALL=(ALL) NOPASSWD: ALL" > "${file_sudoers_temporary}"
+		echo "${text_sudoers_rule}" > "${file_sudoers_temporary}"
 
 		visudo -c -q -f "${file_sudoers_temporary}"
 
@@ -1203,17 +1379,17 @@ then
 
 		if [ "${status_sudoers}" -eq 0 ]
 		then
-			cp "${file_sudoers_temporary}" /etc/sudoers.d/"${SUDO_USER}"
+			cp "${file_sudoers_temporary}" "${directory_sudoers}/${SUDO_USER}"
 
-			chmod 0440 /etc/sudoers.d/"${SUDO_USER}"
+			chmod "${mode_sudoers_file}" "${directory_sudoers}/${SUDO_USER}"
 
-			frobulator.scs "Passwordless sudo" "[ /etc/sudoers.d/${SUDO_USER} ]"
+			frobulator.scs "Passwordless sudo" "[ ${directory_sudoers}/${SUDO_USER} ]"
 
 			# remove legacy sudoers lines
 
 			intent_sudoers_clean
 		else
-			frobulator.err "Sudoers check failed - left unchanged" "[ /etc/sudoers.d/${SUDO_USER} ]"
+			frobulator.err "Sudoers check failed - left unchanged" "[ ${directory_sudoers}/${SUDO_USER} ]"
 		fi
 
 		rm -f "${file_sudoers_temporary}"
@@ -1222,11 +1398,12 @@ fi
 
 # themes
 
-if [ "${option}" = "themes" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_themes}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	if [[ "${HOSTNAME}" = ${pattern_hostname} ]]
 	then
-		frobulator.inf "Setting up" "[ themes ]"
+		frobulator.inf "${label_setting_up}" "[ ${mode_themes} ]"
 
 		content_gtkrc=$(cat <<- 'FILE'
 		gtk-icon-theme-name = "Breeze"
@@ -1235,7 +1412,7 @@ then
 		FILE
 		)
 
-		frobulator.write write "${content_gtkrc}" /etc/gtk-2.0 gtkrc
+		frobulator.write write "${content_gtkrc}" "${directory_gtk2}" "${file_gtk2_settings}"
 
 		content_settings=$(cat <<- 'FILE'
 		[Settings]
@@ -1246,7 +1423,7 @@ then
 		FILE
 		)
 
-		frobulator.write write "${content_settings}" /etc/gtk-3.0 settings.ini
+		frobulator.write write "${content_settings}" "${directory_gtk3}" "${file_gtk3_settings}"
 
 		content_trolltech=$(cat <<- 'FILE'
 		[Qt]
@@ -1254,7 +1431,7 @@ then
 		FILE
 		)
 
-		frobulator.write write "${content_trolltech}" /etc/xdg Trolltech.conf
+		frobulator.write write "${content_trolltech}" "${directory_xdg}" "${file_qt_settings}"
 
 		frobulator.scs 'Done'
 	fi
@@ -1262,11 +1439,12 @@ fi
 
 # applications
 
-if [ "${option}" = "applications" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_applications}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [[ "${HOSTNAME}" = [pP][eE][nN][gG][uU][iI][nN] ]]
+	if [[ "${HOSTNAME}" = ${pattern_hostname} ]]
 	then
-		frobulator.inf "Setting up" "[ applications ]"
+		frobulator.inf "${label_setting_up}" "[ ${mode_applications} ]"
 
 		# install
 
@@ -1285,7 +1463,7 @@ then
 			org.kde.konsole.desktop
 		)
 
-		frobulator.delete /usr/share/applications ${list[@]}
+		frobulator.delete "${directory_applications}" ${list[@]}
 
 		list=()
 
@@ -1305,9 +1483,10 @@ fi
 
 # media
 
-if [ "${option}" = "media" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_media}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	frobulator.inf "Setting up" "[ media ]"
+	frobulator.inf "${label_setting_up}" "[ ${mode_media} ]"
 
 	list+=(
 		${list_media[@]}
@@ -1320,15 +1499,16 @@ fi
 
 # kde - runner
 
-if [ "${option}" = "kde-runner" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_kde_runner}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [ "${XDG_CURRENT_DESKTOP}" = [kK][dD][eE] ]
+	if [ "${XDG_CURRENT_DESKTOP}" = ${pattern_desktop_kde} ]
 	then
 		kwriteconfig5						\
-			--file	kwinrc					\
-			--group	ModifierOnlyShortcuts	\
-			--key	Meta					\
-											"org.kde.krunner,/App,,toggleDisplay"
+			--file	"${file_kwin_configuration}"	\
+			--group	"${group_kwin_shortcuts}"		\
+			--key	"${key_kwin_meta}"				\
+													"${value_kwin_runner}"
 
 		qdbus org.kde.KWin /KWin reconfigure
 	fi
@@ -1336,9 +1516,10 @@ fi
 
 # efi
 
-if [ "${option}" = "efi" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${mode_efi}" ] ||
+   [ "${option}" = "${mode_all}" ]
 then
-	if [ -e /sys/firmware/efi ]
+	if [ -e "${path_efi_firmware}" ]
 	then
 
 		# install
@@ -1355,13 +1536,13 @@ then
 
 		# purge
 
-		apt purge --yes 'grub*' > "${sink}" 2>&1
+		apt purge --yes "${pattern_package_grub}" > "${sink}" 2>&1
 
 		list=(
 			grub
 		)
 
-		frobulator.delete /boot ${list[@]}
+		frobulator.delete "${directory_boot}" ${list[@]}
 
 		list=()
 
@@ -1371,34 +1552,35 @@ then
 			refind.conf
 		)
 
-		frobulator.delete /boot/efi/EFI/refind ${list[@]}
+		frobulator.delete "${directory_refind}" ${list[@]}
 
-		frobulator.download get.trmnl.me refind-configuration /boot/efi/EFI/refind refind.conf
+		frobulator.download "${url_terminal}" "${file_refind_source}" "${directory_refind}" "${file_refind_configuration}"
 
-		frobulator.download get.trmnl.me /boot/efi/EFI/refind/themes archive-refind-theme.tar.gz
+		frobulator.download "${url_terminal}" "${directory_refind_themes}" "${file_refind_theme_archive}"
 
-		frobulator.extract /boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz /boot/efi/EFI/refind/themes
+		frobulator.extract "${directory_refind_themes}/${file_refind_theme_archive}" "${directory_refind_themes}"
 
 		list=()
 
 		rm					\
 			--recursive		\
 			--force			\
-							/boot/efi/EFI/refind/themes/archive-refind-theme.tar.gz
+							"${directory_refind_themes}/${file_refind_theme_archive}"
 
 		# cleanup
 
 		# remove leftover efi loaders
 
-		name_distribution="$(source /etc/os-release && echo "${ID}")"
+		name_distribution="$(source "${path_os_release}"; echo "${ID}")"
 
-		if [ -f /boot/efi/EFI/refind/refind_x64.efi ] && [ -n "${name_distribution}" ]
+		if [ -f "${directory_refind}/${file_refind_loader}" ] &&
+		   [ -n "${name_distribution}" ]
 		then
 			list=(
 				"${name_distribution}"
 			)
 
-			frobulator.delete /boot/efi/EFI ${list[@]}
+			frobulator.delete "${directory_efi_loaders}" ${list[@]}
 
 			list=()
 		fi
@@ -1407,14 +1589,14 @@ then
 
 		state_secure_boot="$(mokutil --sb-state 2> "${sink}")"
 
-		if [[ "${state_secure_boot}" = *disabled* ]]
+		if [[ "${state_secure_boot}" = *"${label_secure_boot_disabled}"* ]]
 		then
-			apt purge --yes 'shim*' > "${sink}" 2>&1
+			apt purge --yes "${pattern_package_shim}" > "${sink}" 2>&1
 		fi
 
 		# remove stale firmware boot entries
 
-		partition_efi="$(findmnt --noheadings --output SOURCE /boot/efi)"
+		partition_efi="$(findmnt --noheadings --output SOURCE "${directory_efi}")"
 		number_partition_efi="$(cat /sys/class/block/"${partition_efi##*/}"/partition 2> "${sink}")"
 		guid_partition_efi="$(lsblk --noheadings --output PARTUUID "${partition_efi}")"
 
@@ -1422,11 +1604,11 @@ then
 
 		for entry in "${list_entries[@]}"
 		do
-			if [[ "${entry}" =~ ^Boot([0-9A-Fa-f]{4})[*[:space:]][[:space:]](.*)$ ]]
+			if [[ "${entry}" =~ ${pattern_boot_entry} ]]
 			then
 				number_entry="${BASH_REMATCH[1]}"
-				label_entry="${BASH_REMATCH[2]%%$'\t'*}"
-				path_entry="${BASH_REMATCH[2]#*$'\t'}"
+				label_entry="${BASH_REMATCH[2]%%"${separator_entry}"*}"
+				path_entry="${BASH_REMATCH[2]#*"${separator_entry}"}"
 
 				unset state_entry_remove
 
@@ -1435,7 +1617,7 @@ then
 					state_entry_remove="true"
 				fi
 
-				if [[ "${path_entry,,}" =~ ^hd\(([0-9]+),gpt,${guid_partition_efi,,} ]] &&
+				if [[ "${path_entry,,}" =~ ${pattern_entry_path}${guid_partition_efi,,} ]] &&
 				   [ "${BASH_REMATCH[1]}" != "${number_partition_efi}" ]
 				then
 					state_entry_remove="true"

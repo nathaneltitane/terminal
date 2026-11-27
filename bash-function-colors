@@ -10,38 +10,48 @@ colors () {
 	local code_color_foreground
 	local number_color_background
 	local code_color_background
+	local code_color_reset
+	local format_color
+	local count_colors
+
+	local list_requirements=()
+
+	format_color='F:%s B:%s '
+	count_colors="8"
 
 	# output starts one line below the command
 
 	echo
 
-	list=(
+	list_requirements=(
 		tput
 		printf
 	)
 
-	frobulator.require ${list[@]}
+	frobulator.require ${list_requirements[@]}
 
-	list=()
+	list_requirements=()
 
 	# print palette
 
-	for number_color_foreground in {0..7}
+	for (( number_color_foreground = 0 ; number_color_foreground < count_colors ; number_color_foreground ++ ))
 	do
 		code_color_foreground=$(tput setaf "${number_color_foreground}")
 
-		for number_color_background in {0..7}
+		for (( number_color_background = 0 ; number_color_background < count_colors ; number_color_background ++ ))
 		do
 			code_color_background=$(tput setab "${number_color_background}")
 
 			echo -n "${code_color_background} ${code_color_foreground}"
 
-			printf 'F:%s B:%s ' "${number_color_foreground}" "${number_color_background}"
+			printf "${format_color}" "${number_color_foreground}" "${number_color_background}"
 		done
 
 		# reset
 
-		echo $(tput sgr0)
+		code_color_reset=$(tput sgr0)
+
+		echo ${code_color_reset}
 	done
 
 	echo

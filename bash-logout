@@ -23,6 +23,16 @@ source "${frobulator}"
 
 version="2026-10-21"
 
+# variables ────────────────────────────────────────────────────────────────────
+
+option_install="install"
+directory_install="${HOME}"/.local/bin
+file_logout_dextop="${HOME}"/.dextop/dextop-logout
+state_logout="logout"
+pattern_pulseaudio="pulseaudio"
+pattern_x11="com.termux.x11"
+pattern_virgl="virgl"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 self="${BASH_SOURCE[0]}"
@@ -31,18 +41,16 @@ self="${BASH_SOURCE[0]}"
 
 # executed directly: install only
 
-if [[ "${self}" = "${0}" ]]
+if [ "${self}" = "${0}" ]
 then
 	script="$(basename -- "${self}")"
-
-	directory_install="${HOME}"/.local/bin
 
 	while (( $# ))
 	do
 		case "${1}"
 		in
 			-i|--install)
-				option="install"
+				option="${option_install}"
 			;;
 
 			-h|--help)
@@ -90,12 +98,12 @@ then
 
 	if [ -z "${option}" ]
 	then
-		option="install"
+		option="${option_install}"
 	fi
 
 	# install
 
-	if [ "${option}" = "install" ]
+	if [ "${option}" = "${option_install}" ]
 	then
 		# blank line - output separated from the shell prompt
 
@@ -137,15 +145,15 @@ then
 
 	# automatic session stop selection: 'logout' when enabled
 
-	content_logout_dextop="$(cat "${HOME}"/.dextop/dextop-logout)"
+	content_logout_dextop="$(cat "${file_logout_dextop}")"
 
-	if [ "${content_logout_dextop}" = "logout" ]
+	if [ "${content_logout_dextop}" = "${state_logout}" ]
 	then
 		# audio
 
 		# running pulseaudio process ids - empty if stopped
 
-		id_process_pulseaudio="$(pgrep -f pulseaudio)"
+		id_process_pulseaudio="$(pgrep -f "${pattern_pulseaudio}")"
 
 		if [ -n "${id_process_pulseaudio}" ]
 		then
@@ -156,15 +164,15 @@ then
 
 		# running termux x11 display process ids - empty if stopped
 
-		id_process_x11="$(pgrep -f com.termux.x11)"
+		id_process_x11="$(pgrep -f "${pattern_x11}")"
 
 		if [ -n "${id_process_x11}" ]
 		then
 			container-session -x
 
-			pkill -f com.termux.x11
+			pkill -f "${pattern_x11}"
 
-			pkill -f virgl
+			pkill -f "${pattern_virgl}"
 		fi
 	fi
 fi

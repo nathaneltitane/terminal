@@ -8,22 +8,29 @@ adb_write () {
 
 	local name_host
 	local text_write
+	local expression_sed
+	local keycode_enter
+	local delay_write
+
+	expression_sed="s/ /%s/g"
+	keycode_enter="66"
+	delay_write="0.125"
 
 	adb_download
 
 	adb_set_environment
 
-	name_host=$(adb ${device} shell getprop net.name_host)
+	name_host="$(adb ${device} shell getprop net.name_host)"
 
 	text_write="${*}"
 
-	echo ${text_write@Q} | sed "s/ /%s/g" | xargs -0 adb "${device}" shell input text
+	echo ${text_write@Q} | sed --expression="${expression_sed}" | xargs --null adb "${device}" shell input text
 
 	# enter
 
-	adb_keycode 66
+	adb_keycode "${keycode_enter}"
 
 	# sleep for consecutive writes
 
-	sleep 0.125
+	sleep "${delay_write}"
 }

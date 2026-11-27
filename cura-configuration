@@ -114,6 +114,12 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+directory_source="/media/[iI]nternal/[pP]rinter/cura/configuration"
+directory_target="${HOME}/.config/cura/4.13/"
+file_configuration="cura.cfg"
+package_pipx="pipx"
+package_trimesh="trimesh"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -127,8 +133,8 @@ done
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	pipx
-	trimesh
+	"${package_pipx}"
+	"${package_trimesh}"
 )
 
 frobulator.assess ${list[@]}
@@ -137,15 +143,15 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -d /media/[iI]nternal/[pP]rinter/cura/configuration ]
+if [ -d ${directory_source} ]
 then
 	frobulator.inf "Linking configuration"
 
-	frobulator.copy /media/[iI]nternal/[pP]rinter/cura/configuration "${HOME}"/.config/cura/4.13/ cura.cfg
+	frobulator.copy ${directory_source} "${directory_target}" "${file_configuration}"
 fi
 
 list=(
-	trimesh
+	"${package_trimesh}"
 )
 
 for dependency in ${list[@]}

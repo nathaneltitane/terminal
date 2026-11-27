@@ -6,11 +6,13 @@
 
 duplicate () {
 
+	local mode_status="progress"
+
 	frobulator.require dd
 
 	dd				\
 		if="${1}"	\
 		of="${2}"	\
 		bs="${3}"	\
-		status=progress
+		status="${mode_status}"
 }

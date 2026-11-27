@@ -69,6 +69,17 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# package names and force state named before options
+
+name_all="all"
+name_termux="termux"
+name_api="api"
+name_gui="gui"
+name_styling="styling"
+name_tasker="tasker"
+name_x11="x11"
+force="false"
+
 selection=()
 
 while (( $# ))
@@ -76,31 +87,31 @@ do
 	case "${1}"
 	in
 		-a|--all)
-			selection+=(all)
+			selection+=("${name_all}")
 		;;
 
 		-t|--termux)
-			selection+=(termux)
+			selection+=("${name_termux}")
 		;;
 
 		-i|--api)
-			selection+=(api)
+			selection+=("${name_api}")
 		;;
 
 		-g|--gui)
-			selection+=(gui)
+			selection+=("${name_gui}")
 		;;
 
 		-s|--styling)
-			selection+=(styling)
+			selection+=("${name_styling}")
 		;;
 
 		-k|--tasker)
-			selection+=(tasker)
+			selection+=("${name_tasker}")
 		;;
 
 		-x|--x11)
-			selection+=(x11)
+			selection+=("${name_x11}")
 		;;
 
 		-d|--directory)
@@ -110,7 +121,7 @@ do
 		;;
 
 		-f|--force)
-			force=true
+			force="true"
 		;;
 
 		-h|--help)
@@ -175,6 +186,22 @@ done
 # variables ────────────────────────────────────────────────────────────────────
 
 url_github_api="${marker_hts}api.github.com/repos/termux"
+path_release_latest="releases/latest"
+path_release_newest="releases?per_page=1"
+path_release_tag="releases/tags"
+selector_latest="latest"
+selector_newest="newest"
+name_versions="package-termux.versions"
+separator_key="|"
+separator_version=" "
+separator_source="|"
+suffix_slash="/"
+prefix_option="-"
+delay_connect="30"
+filter_release='if type == "array" then .[0] else . end'
+filter_tag='.tag_name // empty'
+filter_asset='[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"'
+name_argument="suffix"
 
 # package sources:
 # package | repository | release (latest / newest / tag) | asset name ending | file
@@ -196,12 +223,12 @@ declare -A list_versions_package
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
-if [ "${#selection[@]}" -eq 0 ] || [[ " ${selection[*]} " = *" all "* ]]
+if [ "${#selection[@]}" -eq 0 ] || [[ " ${selection[*]} " = *" ${name_all} "* ]]
 then
-	selection=(termux api gui styling tasker x11)
+	selection=("${name_termux}" "${name_api}" "${name_gui}" "${name_styling}" "${name_tasker}" "${name_x11}")
 fi
 
-if [[ "${directory}" = -* ]]
+if [[ "${directory}" = ${prefix_option}* ]]
 then
 	frobulator.err "Missing argument for '--directory'."
 
@@ -217,11 +244,11 @@ then
 	directory="$(dirname -- "${file_script}")"
 fi
 
-directory="${directory%/}"
+directory="${directory%${suffix_slash}}"
 
 # asset ids of downloaded packages - unchanged ones are skipped
 
-file_versions="${directory}/package-termux.versions"
+file_versions="${directory}${suffix_slash}${name_versions}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -250,7 +277,7 @@ versions_save () {
 
 	for name_file_versions in "${!list_versions_package[@]}"
 	do
-		echo "${name_file_versions} ${list_versions_package[${name_file_versions}]}"
+		echo "${name_file_versions}${separator_version}${list_versions_package[${name_file_versions}]}"
 	done | sort > "${file_versions}"
 }
 
@@ -260,7 +287,7 @@ release_fetch () {
 
 	local repository_release="${1}"
 	local selector_release="${2}"
-	local key_release="${repository_release}|${selector_release}"
+	local key_release="${repository_release}${separator_key}${selector_release}"
 
 	local url_release
 
@@ -269,20 +296,20 @@ release_fetch () {
 		return 0
 	fi
 
-	if [ "${selector_release}" = "latest" ]
+	if [ "${selector_release}" = "${selector_latest}" ]
 	then
-		url_release="${url_github_api}/${repository_release}/releases/latest"
+		url_release="${url_github_api}/${repository_release}/${path_release_latest}"
 
-	elif [ "${selector_release}" = "newest" ]
+	elif [ "${selector_release}" = "${selector_newest}" ]
 	then
-		url_release="${url_github_api}/${repository_release}/releases?per_page=1"
+		url_release="${url_github_api}/${repository_release}/${path_release_newest}"
 	else
-		url_release="${url_github_api}/${repository_release}/releases/tags/${selector_release}"
+		url_release="${url_github_api}/${repository_release}/${path_release_tag}/${selector_release}"
 	fi
 
 	list_cache_release["${key_release}"]="$(
-		curl --silent --fail --location --connect-timeout 30 "${url_release}" 2> "${sink}" |
-			jq -c 'if type == "array" then .[0] else . end' 2> "${sink}"
+		curl --silent --fail --location --connect-timeout "${delay_connect}" "${url_release}" 2> "${sink}" |
+			jq -c "${filter_release}" 2> "${sink}"
 	)"
 }
 
@@ -303,25 +330,29 @@ package_update () {
 	local tag_release
 	local id_asset
 	local url_asset
+	local path_package
+	local status_download
 
 	for entry_source in "${list_sources_package[@]}"
 	do
-		IFS='|' read -r name_package_source repository_source release_source suffix_source file_source <<< "${entry_source}"
+		IFS="${separator_source}" read -r name_package_source repository_source release_source suffix_source file_source <<< "${entry_source}"
 
 		if [ "${name_package_source}" != "${package}" ]
 		then
 			continue
 		fi
 
+		path_package="${directory}${suffix_slash}${file_source}"
+
 		release_fetch "${repository_source}" "${release_source}"
 
-		json_release="${list_cache_release[${repository_source}|${release_source}]}"
+		json_release="${list_cache_release[${repository_source}${separator_key}${release_source}]}"
 
-		tag_release="$(jq -r '.tag_name // empty' <<< "${json_release}" 2> "${sink}")"
+		tag_release="$(jq -r "${filter_tag}" <<< "${json_release}" 2> "${sink}")"
 
 		read -r id_asset url_asset < <(
-			jq -r --arg suffix "${suffix_source}" \
-				'[.assets[]? | select(.name | endswith($suffix))][0] // empty | "\(.id) \(.browser_download_url)"' \
+			jq -r --arg "${name_argument}" "${suffix_source}" \
+				"${filter_asset}" \
 				<<< "${json_release}" 2> "${sink}"
 		)
 
@@ -334,7 +365,7 @@ package_update () {
 			continue
 		fi
 
-		if [ "${force}" != true ] && [ -f "${directory}/${file_source}" ] &&
+		if [ "${force}" != "true" ] && [ -f "${path_package}" ] &&
 		   [ "${list_versions_package[${file_source}]}" = "${id_asset}" ]
 		then
 			frobulator.inf "Up to date - ${package}" "[ '${file_source}'${marker_spc}${marker_hnt}${marker_spc}${tag_release} ]"
@@ -342,9 +373,11 @@ package_update () {
 			continue
 		fi
 
-		frobulator.download "${url_asset}" "${directory}/${file_source}"
+		frobulator.download "${url_asset}" "${path_package}"
 
-		if [ "${?}" -ne 0 ]
+		status_download="${?}"
+
+		if [ "${status_download}" -ne 0 ]
 		then
 			status_package=1
 

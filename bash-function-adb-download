@@ -6,10 +6,28 @@
 
 adb_download () {
 
+	local name_archive="platform-tools.zip"
+	local name_extracted="platform-tools"
+	local name_adb="adb"
+	local name_fastboot="fastboot"
+	local name_root="root"
+	local label_tools="Android Platform Tools"
+	local directory_binaries="${HOME}/.local/bin"
 	local directory_temporary
-	local file_archive
 	local directory_extracted
-	local item
+	local file_archive
+	local file_adb
+	local file_fastboot
+	local name_utility
+	local group_id
+	local text_version
+	local status_fetch
+	local status_extract
+
+	local list_utilities=(
+		"${name_adb}"
+		"${name_fastboot}"
+	)
 
 	frobulator.temporary directory_temporary
 
@@ -20,82 +38,85 @@ adb_download () {
 		return 1
 	fi
 
-	file_archive="${directory_temporary}/platform-tools.zip"
-	directory_extracted="${directory_temporary}/platform-tools"
+	file_archive="${directory_temporary}/${name_archive}"
+	directory_extracted="${directory_temporary}/${name_extracted}"
+	file_adb="${directory_binaries}/${name_adb}"
+	file_fastboot="${directory_binaries}/${name_fastboot}"
 
-	frobulator.inf "Fetching latest" "[ Android Platform Tools ]"
+	frobulator.inf "Fetching latest" "[ ${label_tools} ]"
 
-	curl						\
-		--silent				\
-		--fail					\
-		--location				\
+	curl							\
+		--silent					\
+		--fail						\
+		--location					\
 		--output "${file_archive}"	\
-								"${url_android_platform_tools}"
+									"${url_android_platform_tools}"
 
-	if [ "${?}" -ne 0 ]
+	status_fetch="${?}"
+
+	if [ "${status_fetch}" -ne 0 ]
 	then
 		frobulator.delete "${directory_temporary}"
 
-		frobulator.err "Unable to fetch" "[ Android Platform Tools ]"
+		frobulator.err "Unable to fetch" "[ ${label_tools} ]"
 
 		return 1
 	fi
 
 	unzip -q "${file_archive}" -d "${directory_temporary}"
 
-	if [ "${?}" -ne 0 ]
+	status_extract="${?}"
+
+	if [ "${status_extract}" -ne 0 ]
 	then
 		frobulator.delete "${directory_temporary}"
 
-		frobulator.err "Unable to extract" "[ Android Platform Tools ]"
+		frobulator.err "Unable to extract" "[ ${label_tools} ]"
 
 		return 1
 	fi
 
-	if [ ! -x "${directory_extracted}/adb" ] || [ ! -x "${directory_extracted}/fastboot" ]
+	if [ ! -x "${directory_extracted}/${name_adb}" ] || [ ! -x "${directory_extracted}/${name_fastboot}" ]
 	then
 		frobulator.delete "${directory_temporary}"
 
-		frobulator.err "Invalid archive" "[ Android Platform Tools ]"
+		frobulator.err "Invalid archive" "[ ${label_tools} ]"
 
 		return 1
 	fi
 
-	frobulator.terminate adb
+	frobulator.terminate "${name_adb}"
 
 	frobulator.directory "${directory_android}"
 
-	frobulator.directory "${HOME}/.local/bin"
+	frobulator.directory "${directory_binaries}"
 
 	frobulator.delete "${directory_platform_tools}"
 
 	mv "${directory_extracted}" "${directory_platform_tools}"
 
-	list=(
-		adb
-		fastboot
-	)
-
-	for item in "${list[@]}"
+	for name_utility in "${list_utilities[@]}"
 	do
-		frobulator.link "${directory_platform_tools}" "${HOME}/.local/bin" "${item}"
+		frobulator.link "${directory_platform_tools}" "${directory_binaries}" "${name_utility}"
 	done
 
-	list=()
-
-	if [ "${USER}" != "root" ]
+	if [ "${USER}" != "${name_root}" ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${directory_android}" "${HOME}/.local/bin/adb" "${HOME}/.local/bin/fastboot"
+		group_id="$(id -g "${USER}")"
+
+		chown --recursive "${USER}:${group_id}" "${directory_android}" "${file_adb}" "${file_fastboot}"
 	fi
 
 	frobulator.delete "${directory_temporary}"
 
-	export PATH="${HOME}/.local/bin:${directory_platform_tools}:${PATH}"
+	export PATH="${directory_binaries}:${directory_platform_tools}:${PATH}"
 
 	hash -r
 
-	frobulator.fwd "Utilities version: $(adb version | head -n 1)"
+	text_version="$("${name_adb}" version | head --lines=1)"
 
-	frobulator.scs "Utilities deployment ready" "[ Android Platform Tools ]"
+	frobulator.fwd "Utilities version: ${text_version}"
+
+	frobulator.scs "Utilities deployment ready" "[ ${label_tools} ]"
 
 }

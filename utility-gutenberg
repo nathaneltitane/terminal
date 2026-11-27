@@ -69,6 +69,11 @@ version="2026-11-19"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+directory_default="/media/external/Books"
+size_batch=50
+
 while (( $# ))
 do
 	case "${1}"
@@ -107,13 +112,13 @@ do
 			echo
 			echo -e "-p, --process      Run [p]rocessing of downloaded books into the flat gutenberg library."
 			echo
-			echo -e "-f, --follow       [F]ollow the download - process in batches of 50 until it ends."
+			echo -e "-f, --follow       [F]ollow the download - process in batches of ${size_batch} until it ends."
 			echo
 			echo -e "-r, --resume       Run as a [r]esume service - continues after reboot - removed once done."
 			echo
 			echo -e "-d, --directory    Specify books [d]irectory."
 			echo
-			echo -e "                   [ /media/external/Books ] [ Default ]"
+			echo -e "                   [ ${directory_default} ] [ Default ]"
 			echo
 			echo -e "-h, --help         Show [h]elp and usage information."
 			echo
@@ -154,10 +159,35 @@ done
 
 url_mirror="gutenberg.pglaf.org::gutenberg-epub/"
 
-# follow mode - books per batch - wait while the download catches up
+# follow mode - wait while the download catches up
 
-size_batch=50
 seconds_wait=300
+seconds_start=5
+
+# folder and file names
+
+name_mirror="Gutenberg"
+name_library="epub"
+name_output="epub-gutenberg"
+name_log="gutenberg-rsync.log"
+name_cover="cover.py"
+name_process="process.py"
+directory_systemd="/etc/systemd/system"
+directory_proc="/proc"
+directory_systemd_run="/run/systemd/system"
+
+# literals shared by functions
+
+prefix_option="-"
+pattern_indent='s/^\t\t//'
+label_download="download"
+state_running="running"
+state_active="active"
+state_activating="activating"
+character_quote='"'
+escape_quote='\"'
+character_percent="%"
+escape_percent="%%"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -168,27 +198,27 @@ then
 
 	exit 1
 
-elif [[ "${option_directory}" = -* ]]
+elif [[ "${option_directory}" = ${prefix_option}* ]]
 then
 	frobulator.err "Missing argument for '--directory'."
 
 	exit 1
 fi
 
-directory_books="${option_directory:-/media/external/Books}"
+directory_books="${option_directory:-${directory_default}}"
 
 # mirror and library - exfat ignores letter case - names differ by more than case
 
-directory_mirror="${directory_books}/Gutenberg"
-directory_library="${directory_books}/epub"
-directory_output="${directory_books}/epub-gutenberg"
+directory_mirror="${directory_books}/${name_mirror}"
+directory_library="${directory_books}/${name_library}"
+directory_output="${directory_books}/${name_output}"
 
-file_log_mirror="${directory_books}/gutenberg-rsync.log"
+file_log_mirror="${directory_books}/${name_log}"
 
 # resume service - removed once the run completes
 
 name_service="gutenberg-resume.service"
-file_service="/etc/systemd/system/${name_service}"
+file_service="${directory_systemd}/${name_service}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -204,12 +234,12 @@ gutenberg_scripts () {
 
 	frobulator.trap "${directory_temporary}"
 
-	file_cover="${directory_temporary}/cover.py"
-	file_process="${directory_temporary}/process.py"
+	file_cover="${directory_temporary}/${name_cover}"
+	file_process="${directory_temporary}/${name_process}"
 
 	# python indentation in tabs - only the shell indentation removed
 
-	sed -e 's/^\t\t//' > "${file_cover}" << 'COVER'
+	sed --expression="${pattern_indent}" > "${file_cover}" << 'COVER'
 		#!/usr/bin/env python3
 
 		# cover - plain typographic book cover - 1200 x 1800 greyscale
@@ -444,7 +474,7 @@ COVER
 
 	frobulator.track
 
-	sed -e 's/^\t\t//' > "${file_process}" << 'PROCESS'
+	sed --expression="${pattern_indent}" > "${file_process}" << 'PROCESS'
 		#!/usr/bin/env python3
 
 		# process - gutenberg mirror books into the flat library - one call handles up to a limit of books
@@ -794,24 +824,41 @@ gutenberg_mirror () {
 	# low priority - partial files resumed - empty directories pruned
 
 	local status=0
+	local priority_nice
+	local class_ionice
+	local limit_bandwidth
+	local pattern_include_directory
+	local pattern_include_epub
+	local pattern_include_record
+	local pattern_include_cover
+	local pattern_exclude_all
 
-	frobulator.directory "${directory_books}" "$(basename "${directory_mirror}")"
+	priority_nice="10"
+	class_ionice="3"
+	limit_bandwidth="64m"
+	pattern_include_directory="*/"
+	pattern_include_epub="pg*-images-3.epub"
+	pattern_include_record="pg*.rdf"
+	pattern_include_cover="pg*.cover.medium.jpg"
+	pattern_exclude_all="*"
 
-	nice -n 10 ionice -c 3							\
-		rsync										\
-			--recursive								\
-			--times									\
-			--prune-empty-dirs						\
-			--partial								\
-			--bwlimit=64m							\
-			--log-file="${file_log_mirror}"			\
-			--include='*/'							\
-			--include='pg*-images-3.epub'			\
-			--include='pg*.rdf'						\
-			--include='pg*.cover.medium.jpg'		\
-			--exclude='*'							\
-			"${url_mirror}"							\
-													"${directory_mirror}/" > "${sink}" 2>&1
+	frobulator.directory "${directory_books}" "${name_mirror}"
+
+	nice -n "${priority_nice}" ionice -c "${class_ionice}"	\
+		rsync												\
+			--recursive										\
+			--times											\
+			--prune-empty-dirs								\
+			--partial										\
+			--bwlimit="${limit_bandwidth}"					\
+			--log-file="${file_log_mirror}"					\
+			--include="${pattern_include_directory}"		\
+			--include="${pattern_include_epub}"				\
+			--include="${pattern_include_record}"			\
+			--include="${pattern_include_cover}"			\
+			--exclude="${pattern_exclude_all}"				\
+			"${url_mirror}"									\
+															"${directory_mirror}/" > "${sink}" 2>&1
 
 	frobulator.track
 
@@ -835,9 +882,13 @@ gutenberg_process () {
 	# all downloaded books - or batches following the download until it ends
 
 	local status=0
+	local status_loop
 	local count_handled
+	local pids_mirror
 
-	frobulator.directory "${directory_books}" "$(basename "${directory_output}")"
+	status_loop="true"
+
+	frobulator.directory "${directory_books}" "${name_output}"
 
 	if [ "${option_follow}" != "true" ]
 	then
@@ -850,7 +901,7 @@ gutenberg_process () {
 		return "${status}"
 	fi
 
-	while true
+	while [ "${status_loop}" = "true" ]
 	do
 		count_handled="$(gutenberg_batch "${size_batch}")"
 
@@ -862,18 +913,22 @@ gutenberg_process () {
 		then
 			# nothing new - done once the download has ended
 
-			if [ -n "${pid_mirror}" ] && [ -d /proc/"${pid_mirror}" ]
+			if [ -n "${pid_mirror}" ] && [ -d "${directory_proc}"/"${pid_mirror}" ]
 			then
-				status_mirror="running"
+				status_mirror="${state_running}"
 			else
 				unset status_mirror
 			fi
 
-			if [ -z "$(pgrep -f "${url_mirror}")" ] && [ -z "${status_mirror}" ]
+			pids_mirror="$(pgrep -f "${url_mirror}")"
+
+			if [ -z "${pids_mirror}" ] && [ -z "${status_mirror}" ]
 			then
 				frobulator.scs "Download finished - all books processed"
 
-				break
+				status_loop="false"
+
+				continue
 			fi
 
 			frobulator.timeout "${seconds_wait}"
@@ -898,7 +953,7 @@ gutenberg_resume () {
 
 	local list_arguments=()
 
-	if [ ! -d /run/systemd/system ]
+	if [ ! -d "${directory_systemd_run}" ]
 	then
 		frobulator.err "Resume requires systemd."
 
@@ -915,9 +970,9 @@ gutenberg_resume () {
 	command_systemctl="$(command -v systemctl)"
 	command_remove="$(command -v rm)"
 
-	state_service="$(systemctl is-active "${name_service}" 2> /dev/null)"
+	state_service="$(systemctl is-active "${name_service}" 2> "${sink}")"
 
-	if [ "${state_service}" = "active" ] || [ "${state_service}" = "activating" ]
+	if [ "${state_service}" = "${state_active}" ] || [ "${state_service}" = "${state_activating}" ]
 	then
 		frobulator.err "Resume service already running." "[ ${name_service} ]"
 
@@ -945,9 +1000,9 @@ gutenberg_resume () {
 
 	for item in "${file_script}" "${list_arguments[@]}"
 	do
-		item="${item//%/%%}"
+		item="${item//${character_percent}/${escape_percent}}"
 
-		text_arguments+=" \"${item//\"/\\\"}\""
+		text_arguments+=" ${character_quote}${item//${character_quote}/${escape_quote}}${character_quote}"
 	done
 
 	cat <<- FILE > "${file_service}"
@@ -955,7 +1010,7 @@ gutenberg_resume () {
 		Description=Resume gutenberg mirror and processing
 		Wants=network-online.target
 		After=network-online.target
-		RequiresMountsFor="${directory_books//%/%%}" "${directory_script//%/%%}"
+		RequiresMountsFor="${directory_books//${character_percent}/${escape_percent}}" "${directory_script//${character_percent}/${escape_percent}}"
 
 		[Service]
 		Type=oneshot
@@ -1051,13 +1106,13 @@ then
 
 	option_follow="true"
 
-	sleep 5
+	sleep "${seconds_start}"
 
 elif [ "${option_mirror}" = "true" ]
 then
 	frobulator.inf "Mirroring" "[ ${url_mirror} ]"
 
-	frobulator.background "download" "[ ${directory_mirror} ]" -- gutenberg_mirror
+	frobulator.background "${label_download}" "[ ${directory_mirror} ]" -- gutenberg_mirror
 fi
 
 if [ "${option_process}" = "true" ]

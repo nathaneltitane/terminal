@@ -114,7 +114,14 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="+%m-%d-%Y-%H-%M-%S"
+file_selector="/usr/bin/conky-color-selector"
+file_launcher="/usr/share/applications/conky-color-selector.desktop"
+package_conky="conky"
+package_convert="convert"
+package_zenity="zenity"
+
+stamp=$(date "${format_stamp}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -129,9 +136,9 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	conky
-	convert
-	zenity
+	"${package_conky}"
+	"${package_convert}"
+	"${package_zenity}"
 )
 
 frobulator.require ${list[@]}
@@ -140,7 +147,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-cat <<- 'FILE' > /usr/bin/conky-color-selector
+cat <<- 'FILE' > "${file_selector}"
 #!/bin/bash
 
 # conky color selector #
@@ -184,11 +191,11 @@ find "${HOME}" -type f -name *conkyrc -exec \
 	-e "s|default_shade_color.*|default_shade_color $color|g" {} +
 FILE
 
-sudo chmod +x /usr/bin/conky-color-selector
+sudo chmod +x "${file_selector}"
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/conky-color-selector.desktop
+cat <<- 'FILE' > "${file_launcher}"
 [Desktop Entry]
 Name=Conky Color Selector
 Comment=Color selector for Conky

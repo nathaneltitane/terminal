@@ -6,7 +6,7 @@
 
 ada () {
 
-	# values below reach the status functions too - bash locals are seen by the functions ada calls
+	# use to chat with a local model
 
 	local path_command
 	local name_command
@@ -22,7 +22,6 @@ ada () {
 	local label_thinking
 	local label_threads_default
 	local option_think
-	local flag_monitor
 	local pattern_number
 	local property_environment
 	local property_pid
@@ -31,7 +30,6 @@ ada () {
 	local mode_chat
 	local mode_code
 	local state_think
-	local state_monitor
 	local state_found
 	local status_assistant
 	local status_create
@@ -76,7 +74,7 @@ ada () {
 	local list_settings=()
 	local list_lines=()
 
-	# set before the help text - it is named there
+	# set before the help text
 
 	name_command="ollama"
 	name_service="${name_command}"
@@ -90,7 +88,6 @@ ada () {
 	label_thinking="thinking"
 	label_threads_default="default"
 	option_think="--think"
-	flag_monitor="m"
 	pattern_number="^[0-9]+$"
 	property_environment="Environment"
 	property_pid="MainPID"
@@ -103,7 +100,7 @@ ada () {
 	file_terminal="/dev/tty"
 	index_row_first="1"
 
-	# server address - ollama's own setting first
+	# server address
 
 	protocol_server="http"
 	address_default="127.0.0.1:11434"
@@ -112,18 +109,18 @@ ada () {
 	url_generate="${protocol_server}://${address_server}${path_generate}"
 	format_payload='{"model":"%s"}'
 
-	# loading line left on screen before the chat clears it - in seconds
+	# loading pause in seconds
 
 	delay_loading="1"
 
-	# screen rows - status line, empty row, chat scrolling below
+	# screen rows
 
 	row_status="1"
 	row_gap="2"
 	row_chat="3"
 	column_first="1"
 
-	# terminal sequences - positions filled in by printf - row then column
+	# terminal sequences
 
 	format_cursor_position='\e[%s;%sH'
 	format_scroll_region='\e[%s;%sr'
@@ -183,7 +180,7 @@ ada () {
 		shift
 	done
 
-	# ${name_command} command path - empty if not installed
+	# command path
 
 	path_command="$(command -v "${name_command}")"
 
@@ -194,7 +191,7 @@ ada () {
 		return 1
 	fi
 
-	# thread count - written to the assistant settings file, model rebuilt and unloaded so the next load uses it
+	# set model threads
 
 	if [ -n "${count_threads}" ]
 	then
@@ -209,7 +206,7 @@ ada () {
 			return 1
 		fi
 
-		# settings file kept with the models - folder read from the service environment
+		# settings file location
 
 		text_environment="$(systemctl show "${name_service}" --property="${property_environment}" --value 2> "${sink}")"
 
@@ -232,7 +229,7 @@ ada () {
 			return 1
 		fi
 
-		# thread line replaced - added when missing
+		# replace or add thread line
 
 		line_threads="${keyword_parameter} ${name_parameter_threads} ${count_threads}"
 		state_found="false"
@@ -271,7 +268,7 @@ ada () {
 		frobulator.scs "Processor threads set" "[ ${name_assistant}${separator_values}${count_threads} ]"
 	fi
 
-	# assistant model first - model in memory next - newest installed one last
+	# pick model
 
 	if [ -z "${name_model}" ]
 	then
@@ -315,7 +312,7 @@ ada () {
 		return
 	fi
 
-	# thinking switch only for models that think
+	# thinking models only
 
 	text_details="$("${path_command}" show "${name_model}" 2> "${sink}")"
 
@@ -324,7 +321,7 @@ ada () {
 		list_think=("${option_think}=${state_think}")
 	fi
 
-	# threads from the model settings - fixed for the whole chat
+	# model thread count
 
 	count_threads_model="${label_threads_default}"
 
@@ -336,7 +333,7 @@ ada () {
 		fi
 	done <<< "${text_details}"
 
-	# load first - memory split only known once loaded
+	# load model
 
 	frobulator.inf "Loading model" "[ ${name_model} ]"
 
@@ -346,7 +343,7 @@ ada () {
 
 	sleep "${delay_loading}"
 
-	# one status line on the top row - an empty row under it - chat scrolls below
+	# draw status line
 
 	clear
 
@@ -354,27 +351,15 @@ ada () {
 
 	printf "${format_cursor_position}" "${row_chat}" "${column_first}"
 
-	# status line kept current - redrawn only when its values or the terminal size change - job notices off while it runs
+	# follow status outside job table
 
-	state_monitor="${-}"
-
-	set +m
-
-	ada_status_follow &
-	pid_status="${!}"
-
-	disown "${pid_status}"
-
-	if [[ "${state_monitor}" == *"${flag_monitor}"* ]]
-	then
-		set -m
-	fi
+	pid_status="$(ada_status_follow > "${file_terminal}" 2> "${sink}" & echo "${!}")"
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
 
 	kill "${pid_status}" 2> "${sink}"
 
-	# whole screen scrolls again - cleared so the prompt starts on the top row
+	# restore whole screen
 
 	printf "${sequence_scroll_reset}"
 
@@ -386,8 +371,7 @@ ada () {
 
 ada_status_text () {
 
-	# memory, processor / graphics split and context from the loaded list - threads from the settings
-	# split shown by ollama as "89%/11% CPU/GPU", "100% CPU" or "100% GPU"
+	# use to build the status text
 
 	local label_processor="CPU"
 	local label_graphics="GPU"
@@ -443,7 +427,7 @@ ada_status_text () {
 
 ada_status_draw () {
 
-	# top row only - scroll area set below the empty row - cursor kept where the chat left it
+	# use to draw the status line
 
 	local text_size
 	local count_rows
@@ -452,7 +436,7 @@ ada_status_draw () {
 
 	frobulator.columns
 
-	# rows and columns read from the terminal itself - works from the background too
+	# terminal size
 
 	text_size="$(stty size 2> "${sink}" < "${file_terminal}")"
 	count_rows="${text_size%% *}"
@@ -472,7 +456,7 @@ ada_status_draw () {
 
 ada_server_time () {
 
-	# processor time of the ollama server and its model runners - grows only while a model works
+	# use to sum server processor time
 
 	local directory_processes="/proc"
 	local name_file_stat="stat"
@@ -490,7 +474,7 @@ ada_server_time () {
 	local list_fields=()
 	local list_processes=("${pid_server}")
 
-	# runners started by any server thread - the list has no closing newline so read reports failure
+	# runners of every server thread
 
 	for file_children in "${directory_processes}/${pid_server}/${name_directory_tasks}"/*/"${name_file_children}"
 	do
@@ -507,7 +491,7 @@ ada_server_time () {
 		then
 			read -r text_stat < "${file_stat}"
 
-			# fields after the command name - user and system time
+			# user and system time
 
 			read -r -a list_fields <<< "${text_stat##*) }"
 
@@ -521,8 +505,7 @@ ada_server_time () {
 
 ada_status_follow () {
 
-	# marker animated every frame - wave while the model works - sliding bar while it waits
-	# terminal size checked every few frames - status values less often - whole line redrawn when they change
+	# use to animate and refresh the status line
 
 	local delay_frame="0.25"
 	local count_frames_size="2"
@@ -557,7 +540,7 @@ ada_status_follow () {
 
 		(( count_ticks ++ ))
 
-		# processor time grown past the threshold within one frame - the model is working
+		# working when time grows
 
 		time_current="$(ada_server_time "${pid_server}")"
 		time_delta=$(( time_current - time_last ))
@@ -592,7 +575,7 @@ ada_status_follow () {
 			text_last="${text_current:-${text_last}}"
 		fi
 
-		# next frame of the marker only - the rest of the line untouched
+		# next marker frame
 
 		count_frames="${#list_frames[@]}"
 		index_current=$(( index_frame % count_frames ))
@@ -615,7 +598,7 @@ ada_status_follow () {
 
 ada_complete () {
 
-	# line up to the cursor - model names hold colons that split bash words
+	# use to complete options and models
 
 	local name_command="ollama"
 	local index_row_first="1"
@@ -654,7 +637,7 @@ ada_complete () {
 
 		mapfile -t COMPREPLY < <(compgen -W "${list_models[*]}" -- "${word_current}")
 
-		# bash completes only the part after the last colon
+		# strip colon prefix
 
 		COMPREPLY=("${COMPREPLY[@]#"${prefix_colon}"}")
 	fi

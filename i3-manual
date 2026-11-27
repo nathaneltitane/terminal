@@ -2,6 +2,8 @@
 
 script=$(basename -- "${BASH_SOURCE[0]}")
 
+# variables
+
 terminal="i3-sensible-terminal"
 
 separator=" // "
@@ -9,7 +11,50 @@ name_font="Monospace"
 size_font=10
 font="${name_font}:size=${size_font}"
 
+color_background_normal='#000000'
+color_foreground_normal='#FFFFFF'
+color_background_selected='#666666'
+color_foreground_selected='#000000'
+
 lines=30
 prompt="MANUALS${separator}"
 
-man -k . | tr [:upper:] [:lower:] | sed 's/[)(]//g' | sed 's/[0-9]//g' | awk -F "- " '{printf "%-90s%s\n", $1,$2}' | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r "${terminal}" -e man
+pattern_manual="."
+set_upper="[:upper:]"
+set_lower="[:lower:]"
+expression_brackets="s/[)(]//g"
+expression_digits="s/[0-9]//g"
+separator_description="- "
+width_column="90"
+format_row="%-${width_column}s%s\n"
+
+# functions
+
+manual_format () {
+
+	# use to align name and description columns
+
+	local line
+	local text_name
+	local text_rest
+	local text_description
+
+	while IFS= read -r line
+	do
+		text_name="${line%%${separator_description}*}"
+		unset text_description
+
+		if [[ "${line}" == *${separator_description}* ]]
+		then
+			text_rest="${line#*${separator_description}}"
+			text_description="${text_rest%%${separator_description}*}"
+		fi
+
+		printf "${format_row}" "${text_name}" "${text_description}"
+	done
+
+}
+
+# main
+
+man --apropos "${pattern_manual}" | tr "${set_upper}" "${set_lower}" | sed --expression="${expression_brackets}" | sed --expression="${expression_digits}" | manual_format | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background_normal}" -nf "${color_foreground_normal}" -sb "${color_background_selected}" -sf "${color_foreground_selected}" | xargs --no-run-if-empty "${terminal}" -e man

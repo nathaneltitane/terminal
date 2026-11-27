@@ -6,9 +6,17 @@
 
 locate () {
 
+	local name_command="find"
+	local pattern_directory="^(d|dir|directory)$"
+	local pattern_file="^(f|file)$"
+	local type_directory="d"
+	local type_file="f"
+	local wildcard_any="*"
+	local text_unsupported="unsupported type"
 	local command_find
 	local type_find
 	local query
+	local pattern_name
 
 	# output starts one line below the command
 
@@ -18,15 +26,15 @@ locate () {
 
 	query="${2}"
 
-	if [[ "${type_find}" =~ ^(d|dir|directory)$ ]]
+	if [[ "${type_find}" =~ ${pattern_directory} ]]
 	then
-		type_find='d'
+		type_find="${type_directory}"
 
-	elif [[ "${type_find}" =~ ^(f|file)$ ]]
+	elif [[ "${type_find}" =~ ${pattern_file} ]]
 	then
-		type_find='f'
+		type_find="${type_file}"
 	else
-		echo "unsupported type"
+		echo "${text_unsupported}"
 		echo
 
 		return 1
@@ -34,14 +42,16 @@ locate () {
 
 	# 'find' path - empty if not installed
 
-	command_find="$(command -v find)"
+	command_find="$(command -v "${name_command}")"
 
 	if [ -n "${command_find}" ]
 	then
-		find								\
-			"${PWD}"						\
-				-type			"${type_find}"	\
-				-iname 			"*${query}*"
+		pattern_name="${wildcard_any}${query}${wildcard_any}"
+
+		"${command_find}"			\
+			"${PWD}"				\
+				-type	"${type_find}"	\
+				-iname	"${pattern_name}"
 	fi
 
 }

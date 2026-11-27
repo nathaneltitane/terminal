@@ -6,10 +6,18 @@
 
 countd () {
 
+	local depth_maximum="1"
+	local format_summary="%s directories under %s\n"
+	local count_directories
+
+	# directories in this folder including itself
+
+	count_directories="$(find "${PWD}" -maxdepth "${depth_maximum}" -type d | wc --lines)"
+
 	# output starts one line below the command
 
 	echo
 
-	echo "$(find "${PWD}" -maxdepth 1 -type d | wc -l) directories under ${PWD}"
+	printf "${format_summary}" "${count_directories}" "${PWD}"
 
 }

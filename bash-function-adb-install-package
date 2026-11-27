@@ -15,4 +15,5 @@ adb_install_package () {
 	package="${1}"
 
 	adb install "${package}"
+
 }

@@ -14,6 +14,8 @@ music_mirror_match () {
 	local directory_external="${1}"
 	local name_folder="${2}"
 	local name_parent="${3}"
+	local pattern_disc="^(CD|DISC)[[:space:]]*0*([0-9]+)$"
+	local separator_name=" "
 
 	local number_disc
 	local name_candidate
@@ -21,7 +23,7 @@ music_mirror_match () {
 
 	local -a list_candidates=()
 
-	if [[ "${name_folder}" =~ ^(CD|DISC)[[:space:]]*0*([0-9]+)$ ]]
+	if [[ "${name_folder}" =~ ${pattern_disc} ]]
 	then
 		number_disc="${BASH_REMATCH[2]}"
 
@@ -29,7 +31,7 @@ music_mirror_match () {
 		do
 			name_candidate="$(basename -- "${directory_candidate}")"
 
-			if [[ "${name_candidate}" =~ ^(CD|DISC)[[:space:]]*0*([0-9]+)$ ]] && [ "${BASH_REMATCH[2]}" = "${number_disc}" ]
+			if [[ "${name_candidate}" =~ ${pattern_disc} ]] && [ "${BASH_REMATCH[2]}" = "${number_disc}" ]
 			then
 				list_candidates+=("${name_candidate}")
 			fi
@@ -43,16 +45,16 @@ music_mirror_match () {
 		fi
 	fi
 
-	if [ -n "${name_parent}" ] && [ -d "${directory_external}/${name_parent} ${name_folder}" ]
+	if [ -n "${name_parent}" ] && [ -d "${directory_external}/${name_parent}${separator_name}${name_folder}" ]
 	then
-		echo "${name_parent} ${name_folder}"
+		echo "${name_parent}${separator_name}${name_folder}"
 
 		return 0
 	fi
 
 	list_candidates=()
 
-	for directory_candidate in "${directory_external}/${name_folder} "*/ "${directory_external}/"*" ${name_folder}"/
+	for directory_candidate in "${directory_external}/${name_folder}${separator_name}"*/ "${directory_external}/"*"${separator_name}${name_folder}"/
 	do
 		if [ -d "${directory_candidate}" ]
 		then
@@ -81,6 +83,8 @@ music_mirror_rename () {
 	local name_folder
 	local name_parent
 	local name_renamed
+	local path_folder
+	local path_renamed
 
 	name_parent="$(basename -- "${directory_external}")"
 
@@ -92,10 +96,11 @@ music_mirror_rename () {
 		fi
 
 		name_folder="$(basename -- "${directory_folder}")"
+		path_folder="${path_relative:+${path_relative}/}${name_folder}"
 
 		if [ -d "${directory_external}/${name_folder}" ]
 		then
-			music_mirror_rename "${directory_external}/${name_folder}" "${directory_device}/${name_folder}" "${path_relative:+${path_relative}/}${name_folder}"
+			music_mirror_rename "${directory_external}/${name_folder}" "${directory_device}/${name_folder}" "${path_folder}"
 
 			continue
 		fi
@@ -107,17 +112,19 @@ music_mirror_rename () {
 			continue
 		fi
 
-		frobulator.inf "Renamed on external drive" "[ '${path_relative:+${path_relative}/}${name_folder}' >> '${name_renamed}' ]"
+		path_renamed="${path_relative:+${path_relative}/}${name_renamed}"
+
+		frobulator.inf "Renamed on external drive" "[ '${path_folder}' >> '${name_renamed}' ]"
 
 		if [ "${option_execute}" = "true" ] && [ ! -e "${directory_device}/${name_renamed}" ]
 		then
 			mv -- "${directory_device}/${name_folder}" "${directory_device}/${name_renamed}"
 
-			music_mirror_rename "${directory_external}/${name_renamed}" "${directory_device}/${name_renamed}" "${path_relative:+${path_relative}/}${name_renamed}"
+			music_mirror_rename "${directory_external}/${name_renamed}" "${directory_device}/${name_renamed}" "${path_renamed}"
 		else
-			list_paths_renamed+=("${path_relative:+${path_relative}/}${name_folder}")
+			list_paths_renamed+=("${path_folder}")
 
-			music_mirror_rename "${directory_external}/${name_renamed}" "${directory_device}/${name_folder}" "${path_relative:+${path_relative}/}${name_folder}"
+			music_mirror_rename "${directory_external}/${name_renamed}" "${directory_device}/${name_folder}" "${path_folder}"
 		fi
 	done
 }
@@ -133,7 +140,32 @@ music-mirror () {
 	# -r: full resync - each top folder on the device mirrored whole - subfolders it lacks added too
 	# without options every folder is a dry run
 
-	local directory_music_external="/media/${USER}/external/Music"
+	local directory_media="/media"
+	local name_external="external"
+	local name_music="Music"
+	local suffix_music="/${name_music}"
+	local directory_music_external="${directory_media}/${USER}/${name_external}/${name_music}"
+	local name_utility="utility-add-remove"
+	local directory_utility="${HOME}/.local/bin"
+	local host_download="get.trmnl.me"
+	local name_device_phone="phone"
+	local name_device_tablet="tablet"
+	local name_device_note="note"
+	local flag_resync="-r"
+	local flag_execute="-e"
+	local directory_runtime="/run/user"
+	local service_dbus="org.kde.kdeconnect"
+	local path_dbus_devices="/modules/kdeconnect/devices"
+	local path_dbus_sftp="/sftp"
+	local method_mount="org.kde.kdeconnect.device.sftp.mountAndWait"
+	local method_mount_point="org.kde.kdeconnect.device.sftp.mountPoint"
+	local method_directories="org.kde.kdeconnect.device.sftp.getDirectories"
+	local separator_directory=": "
+	local path_storage_internal="/storage/emulated"
+	local path_storage_default="${path_storage_internal}/0"
+	local separator_path_start=" |"
+	local separator_path_end="| "
+	local format_path_marker="${separator_path_start}%s${separator_path_end}"
 
 	local directory_music_device
 	local directory_mount
@@ -154,6 +186,12 @@ music-mirror () {
 	local option_resync="false"
 	local option
 
+	local -a list_names_priority=(
+		"${name_device_phone}"
+		"${name_device_tablet}"
+		"${name_device_note}"
+	)
+
 	local -a list_devices=()
 	local -a list_devices_ordered=()
 	local -a list_entries_candidate=()
@@ -167,6 +205,9 @@ music-mirror () {
 	local text_folders_seen
 	local name_folder_top
 	local index_path
+	local id_user
+	local directory_mount_default
+	local status_download
 
 	local -a list_directories_music_device=()
 	local -a list_directories_target=()
@@ -192,13 +233,19 @@ music-mirror () {
 		return 1
 	fi
 
-	path_utility="$(command -v utility-add-remove)"
+	path_utility="$(command -v "${name_utility}")"
 
 	if [ -z "${path_utility}" ]
 	then
-		frobulator.download get.trmnl.me "${HOME}/.local/bin" utility-add-remove || return
+		frobulator.download "${host_download}" "${directory_utility}" "${name_utility}"
+		status_download="${?}"
 
-		path_utility="${HOME}/.local/bin/utility-add-remove"
+		if [ "${status_download}" -ne 0 ]
+		then
+			return "${status_download}"
+		fi
+
+		path_utility="${directory_utility}/${name_utility}"
 	fi
 
 	# reachable devices - 'id name' per line
@@ -214,7 +261,7 @@ music-mirror () {
 
 	# order: priority device names first - then the others as listed
 
-	for name_priority in phone tablet note
+	for name_priority in "${list_names_priority[@]}"
 	do
 		for line_device in "${list_devices[@]}"
 		do
@@ -229,7 +276,9 @@ music-mirror () {
 	do
 		name_device="${line_device#* }"
 
-		if [ "${name_device}" != "phone" ] && [ "${name_device}" != "tablet" ] && [ "${name_device}" != "note" ]
+		if [ "${name_device}" != "${name_device_phone}" ] &&
+		   [ "${name_device}" != "${name_device_tablet}" ] &&
+		   [ "${name_device}" != "${name_device_note}" ]
 		then
 			list_devices_ordered+=("${line_device}")
 		fi
@@ -243,20 +292,24 @@ music-mirror () {
 
 	for option in "${@}"
 	do
-		if [ "${option}" = "-r" ]
+		if [ "${option}" = "${flag_resync}" ]
 		then
 			option_resync="true"
 
 			continue
 		fi
 
-		if [ "${option}" = "-e" ]
+		if [ "${option}" = "${flag_execute}" ]
 		then
 			option_execute="true"
 		fi
 
 		list_options+=("${option}")
 	done
+
+	# user id for mounts
+
+	id_user="$(id -u)"
 
 	for line_device in "${list_devices_ordered[@]}"
 	do
@@ -273,16 +326,17 @@ music-mirror () {
 
 		# storage mounted through kde connect - mounted here when not yet
 
-		directory_mount="/run/user/$(id -u)/${id_device}"
+		directory_mount_default="${directory_runtime}/${id_user}/${id_device}"
+		directory_mount="${directory_mount_default}"
 
 		if [ -n "${path_qdbus}" ]
 		then
-			path_dbus="/modules/kdeconnect/devices/${id_device}/sftp"
+			path_dbus="${path_dbus_devices}/${id_device}${path_dbus_sftp}"
 
-			"${path_qdbus}" org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.mountAndWait > "${sink}" 2>&1
+			"${path_qdbus}" "${service_dbus}" "${path_dbus}" "${method_mount}" > "${sink}" 2>&1
 
-			directory_mount="$("${path_qdbus}" org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.mountPoint 2> "${sink}")"
-			directory_mount="${directory_mount:-/run/user/$(id -u)/${id_device}}"
+			directory_mount="$("${path_qdbus}" "${service_dbus}" "${path_dbus}" "${method_mount_point}" 2> "${sink}")"
+			directory_mount="${directory_mount:-${directory_mount_default}}"
 		fi
 
 		# storage places reported by kde connect - 'path: name' per line - internal storage and sd cards
@@ -294,13 +348,13 @@ music-mirror () {
 		then
 			while IFS= read -r line_directory
 			do
-				list_directories_device+=("${line_directory%%: *}")
-			done < <("${path_qdbus}" org.kde.kdeconnect "${path_dbus}" org.kde.kdeconnect.device.sftp.getDirectories 2> "${sink}")
+				list_directories_device+=("${line_directory%%${separator_directory}*}")
+			done < <("${path_qdbus}" "${service_dbus}" "${path_dbus}" "${method_directories}" 2> "${sink}")
 		fi
 
 		if [ "${#list_directories_device[@]}" -eq 0 ]
 		then
-			list_directories_device=("${directory_mount}/storage/emulated/0")
+			list_directories_device=("${directory_mount}${path_storage_default}")
 		fi
 
 		# internal storage first - sd cards after
@@ -309,7 +363,7 @@ music-mirror () {
 
 		for directory_candidate in "${list_directories_device[@]}"
 		do
-			if [[ "${directory_candidate}" = */storage/emulated/* ]]
+			if [[ "${directory_candidate}" = *${path_storage_internal}/* ]]
 			then
 				list_directories_ordered=("${directory_candidate}" "${list_directories_ordered[@]}")
 			else
@@ -322,7 +376,7 @@ music-mirror () {
 
 		list_directories_music_device=()
 
-		for directory_candidate in "${list_directories_ordered[@]/%//Music}"
+		for directory_candidate in "${list_directories_ordered[@]/%/${suffix_music}}"
 		do
 			list_entries_candidate=("${directory_candidate}"/*)
 
@@ -352,7 +406,7 @@ music-mirror () {
 
 			music_mirror_rename "${directory_music_external}" "${directory_music_device}" ""
 
-			text_paths_renamed+="$(printf ' |%s| ' "${list_paths_renamed[@]}")"
+			text_paths_renamed+="$(printf "${format_path_marker}" "${list_paths_renamed[@]}")"
 
 			# folder list: subfolders kept on the device or the folder itself when it has none
 			# a folder already found in an earlier music folder is left out - the earlier copy is mirrored
@@ -387,7 +441,9 @@ music-mirror () {
 
 			for path_relative in "${list_paths_candidate[@]}"
 			do
-				if [[ "${text_folders_seen}" == *" |${path_relative}| "* ]] || [[ "${text_folders_seen}" == *" |${path_relative%%/*}| "* ]] || [[ "${text_folders_seen}" == *" |${path_relative}/"* ]]
+				if [[ "${text_folders_seen}" == *"${separator_path_start}${path_relative}${separator_path_end}"* ]] ||
+				   [[ "${text_folders_seen}" == *"${separator_path_start}${path_relative%%/*}${separator_path_end}"* ]] ||
+				   [[ "${text_folders_seen}" == *"${separator_path_start}${path_relative}/"* ]]
 				then
 					frobulator.wrn "Skipped - also in an earlier music folder" "[ '${path_relative}' ]"
 
@@ -400,7 +456,7 @@ music-mirror () {
 
 			for path_relative in "${list_paths_candidate[@]}"
 			do
-				text_folders_seen+=" |${path_relative}| "
+				text_folders_seen+="${separator_path_start}${path_relative}${separator_path_end}"
 			done
 		done
 
@@ -415,7 +471,8 @@ music-mirror () {
 			then
 				# dry run - renamed folders mirrored once the renames are executed
 
-				if [[ "${text_paths_renamed}" == *" |${path_relative}| "* ]] || [[ "${text_paths_renamed}" == *" |${path_relative%/*}| "* ]]
+				if [[ "${text_paths_renamed}" == *"${separator_path_start}${path_relative}${separator_path_end}"* ]] ||
+				   [[ "${text_paths_renamed}" == *"${separator_path_start}${path_relative%/*}${separator_path_end}"* ]]
 				then
 					frobulator.inf "Mirrored after the rename" "[ '${path_relative}' ]"
 				else

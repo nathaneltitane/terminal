@@ -6,14 +6,16 @@
 
 snippet () {
 
-	local url
+	local protocol_service="http"
+	local host_service="sprunge.us"
+	local field_form='sprunge=<-'
+	local url_service="${protocol_service}://${host_service}"
 
-	url="http://sprunge.us"
-
-	if (( $# ))
+	if [ "${#}" -gt 0 ]
 	then
-		curl -F 'sprunge=<-' "${url}" < "${1}"
+		curl --form "${field_form}" "${url_service}" < "${1}"
 	else
-		curl -F 'sprunge=<-' "${url}"
+		curl --form "${field_form}" "${url_service}"
 	fi
+
 }

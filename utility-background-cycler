@@ -114,7 +114,11 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="%m-%d-%Y-%H-%M-%S"
+file_cycler="/usr/bin/background-cycler"
+file_launcher="/usr/share/applications/background-cycler.desktop"
+
+stamp="$(date +"${format_stamp}")"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -138,7 +142,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-cat <<- 'FILE' > /usr/bin/background-cycler
+cat <<- 'FILE' > "${file_cycler}"
 #!/bin/bash
 
 # background cycler #
@@ -159,15 +163,15 @@ FILE
 
 # set permissions
 
-sudo chmod +x /usr/bin/background-cycler
+sudo chmod +x "${file_cycler}"
 
 # write launcher
 
-cat <<- FILE > /usr/share/applications/background-cycler.desktop
+cat <<- FILE > "${file_launcher}"
 [Desktop Entry]
 Name=Background Cycler
 Comment=Enable timed background cycling
-Exec=/usr/bin/background-cycler
+Exec=${file_cycler}
 Icon=background
 Terminal=false
 Type=Application

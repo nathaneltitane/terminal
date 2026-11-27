@@ -69,18 +69,26 @@ version="2026-10-22"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+mode_install="install"
+mode_uninstall="uninstall"
+mode_bind="bind"
+mode_unbind="unbind"
+suffix_slash="/"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-r|--root)
-			directory_root="${2%/}"
+			directory_root="${2%${suffix_slash}}"
 
 			shift
 		;;
 
 		-u|--uninstall)
-			option="uninstall"
+			option="${mode_uninstall}"
 		;;
 
 		-h|--help)
@@ -131,16 +139,28 @@ done
 # variables ────────────────────────────────────────────────────────────────────
 
 name_theme="refind"
+name_kernels="all"
 
-directory_theme="${directory_root}/usr/share/plymouth/themes/${name_theme}"
+path_themes="/usr/share/plymouth/themes"
+path_root="/"
+
+directory_theme="${directory_root}${path_themes}/${name_theme}"
 directory_icons="/boot/efi/EFI/refind/themes/icons"
 
 file_options="${directory_root}/boot/refind_linux.conf"
 file_modules="${directory_root}/etc/initramfs-tools/modules"
 file_refind="/boot/efi/EFI/refind/refind.conf"
+file_release="${directory_root}/etc/os-release"
+file_mounts="/proc/mounts"
+file_logo="logo.png"
 
 directory_systemd="${directory_root}/etc/systemd/system"
 directory_sbin="${directory_root}/usr/local/sbin"
+
+format_line='%s\n'
+character_quote='"'
+permission_executable="755"
+permission_readable="644"
 
 # extra splash time before login screen
 
@@ -170,7 +190,7 @@ list_parameters=(
 
 if [ -z "${option}" ]
 then
-	option="install"
+	option="${mode_install}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -193,30 +213,37 @@ intent_mounts () {
 
 	local mode="${1}"
 	local item
-	local list_mounts=(dev dev/pts proc sys run)
 	local index_mount
 	local text_mounts
+
+	local -a list_mounts=(
+		dev
+		dev/pts
+		proc
+		sys
+		run
+	)
 
 	if [ -z "${directory_root}" ]
 	then
 		return
 	fi
 
-	text_mounts="$(< /proc/mounts)"
+	text_mounts="$(< "${file_mounts}")"
 
-	if [ "${mode}" = "bind" ]
+	if [ "${mode}" = "${mode_bind}" ]
 	then
 		for item in "${list_mounts[@]}"
 		do
 			if [[ "${text_mounts}" != *" ${directory_root}/${item} "* ]]
 			then
-				mount --bind /"${item}" "${directory_root}/${item}"
+				mount --bind "${path_root}${item}" "${directory_root}/${item}"
 			fi
 		done
 	else
 		# unmount in reverse
 
-		for (( index_mount = ${#list_mounts[@]} - 1; index_mount >= 0; index_mount-- ))
+		for (( index_mount = ${#list_mounts[@]} - 1; index_mount >= 0; index_mount -- ))
 		do
 			item="${list_mounts[${index_mount}]}"
 
@@ -240,6 +267,11 @@ intent_options () {
 	local list_option
 	local option_boot
 	local options_boot
+	local prefix_entry
+	local option_quiet
+
+	prefix_entry='"Boot with standard options"'
+	option_quiet="quiet"
 
 	if [ ! -f "${file_options}" ]
 	then
@@ -256,13 +288,13 @@ intent_options () {
 
 		# standard entry only
 
-		if [[ "${line_options}" != '"Boot with standard options"'* ]]
+		if [[ "${line_options}" != ${prefix_entry}* ]]
 		then
 			continue
 		fi
 
-		options_boot="${line_options%\"}"
-		options_boot="${options_boot##*\"}"
+		options_boot="${line_options%${character_quote}}"
+		options_boot="${options_boot##*${character_quote}}"
 
 		read -r -a list_option <<< "${options_boot}"
 
@@ -278,22 +310,22 @@ intent_options () {
 			fi
 		done
 
-		if [ "${mode}" = "install" ]
+		if [ "${mode}" = "${mode_install}" ]
 		then
-			if [[ " ${list_keep[*]} " != *" quiet "* ]]
+			if [[ " ${list_keep[*]} " != *" ${option_quiet} "* ]]
 			then
-				list_keep+=(quiet)
+				list_keep+=("${option_quiet}")
 			fi
 
 			list_keep+=("${list_parameters[@]}")
 		fi
 
-		list_line[${index_line}]="${line_options%\"${options_boot}\"}\"${list_keep[*]}\""
+		list_line[${index_line}]="${line_options%${character_quote}${options_boot}${character_quote}}${character_quote}${list_keep[*]}${character_quote}"
 
 		frobulator.add "Boot options" "[ ${list_keep[*]} ]"
 	done
 
-	printf '%s\n' "${list_line[@]}" > "${file_options}"
+	printf "${format_line}" "${list_line[@]}" > "${file_options}"
 }
 
 # use to load graphics driver early
@@ -308,6 +340,13 @@ intent_modules () {
 	local list_keep=()
 	local list_line=()
 	local name_driver
+	local pattern_card
+	local pattern_connector
+	local path_driver
+
+	pattern_card="/sys/class/drm/card*"
+	pattern_connector="*-*"
+	path_driver="device/driver"
 
 	if [ -f "${file_modules}" ]
 	then
@@ -316,11 +355,11 @@ intent_modules () {
 
 	# drop previous block
 
-	for (( index_line = 0; index_line < ${#list_line[@]}; index_line++ ))
+	for (( index_line = 0; index_line < ${#list_line[@]}; index_line ++ ))
 	do
 		if [ "${list_line[${index_line}]}" = "${line_modules}" ]
 		then
-			(( index_line++ ))
+			(( index_line ++ ))
 
 			continue
 		fi
@@ -328,18 +367,18 @@ intent_modules () {
 		list_keep+=("${list_line[${index_line}]}")
 	done
 
-	if [ "${mode}" = "install" ]
+	if [ "${mode}" = "${mode_install}" ]
 	then
 		# drivers of display cards
 
-		for directory_card in /sys/class/drm/card*
+		for directory_card in ${pattern_card}
 		do
-			if [[ "${directory_card##*/}" == *-* ]] || [ ! -d "${directory_card}"/device/driver ]
+			if [[ "${directory_card##*/}" == ${pattern_connector} ]] || [ ! -d "${directory_card}"/"${path_driver}" ]
 			then
 				continue
 			fi
 
-			directory_driver="$(cd -P "${directory_card}"/device/driver && pwd)"
+			directory_driver="$(readlink --canonicalize "${directory_card}"/"${path_driver}")"
 			name_driver="${directory_driver##*/}"
 
 			if [[ " ${list_drivers[*]} " != *" ${name_driver} "* ]]
@@ -356,7 +395,7 @@ intent_modules () {
 		done
 	fi
 
-	printf '%s\n' "${list_keep[@]}" > "${file_modules}"
+	printf "${format_line}" "${list_keep[@]}" > "${file_modules}"
 }
 
 # use to keep refind in graphics mode
@@ -383,12 +422,12 @@ intent_refind () {
 		fi
 	done
 
-	if [ "${mode}" = "install" ]
+	if [ "${mode}" = "${mode_install}" ]
 	then
 		list_keep+=("${line_refind}")
 	fi
 
-	printf '%s\n' "${list_keep[@]}" > "${file_refind}"
+	printf "${format_line}" "${list_keep[@]}" > "${file_refind}"
 }
 
 # use to show logo longer
@@ -396,14 +435,23 @@ intent_refind () {
 intent_quit () {
 
 	local mode="${1}"
+	local name_quit_directory
+	local name_manager_directory
+	local name_quit_file
+	local name_manager_file
 
-	if [ "${mode}" = "install" ]
+	name_quit_directory="plymouth-quit.service.d"
+	name_manager_directory="display-manager.service.d"
+	name_quit_file="delay.conf"
+	name_manager_file="plymouth.conf"
+
+	if [ "${mode}" = "${mode_install}" ]
 	then
-		mkdir -p "${directory_systemd}"/plymouth-quit.service.d "${directory_systemd}"/display-manager.service.d
+		mkdir --parents "${directory_systemd}"/"${name_quit_directory}" "${directory_systemd}"/"${name_manager_directory}"
 
 		# splash delay and console font missed while splash held tty1
 
-		cat <<- FILE > "${directory_systemd}"/plymouth-quit.service.d/delay.conf
+		cat <<- FILE > "${directory_systemd}"/"${name_quit_directory}"/"${name_quit_file}"
 			[Service]
 			ExecStartPre=/bin/sleep ${seconds_splash}
 			ExecStartPost=-/bin/sh -c '[ -f /etc/console-setup/cached_setup_font.sh ] && exec /bin/sh /etc/console-setup/cached_setup_font.sh'
@@ -411,14 +459,14 @@ intent_quit () {
 
 		# login screen after splash
 
-		cat <<- 'FILE' > "${directory_systemd}"/display-manager.service.d/plymouth.conf
+		cat <<- 'FILE' > "${directory_systemd}"/"${name_manager_directory}"/"${name_manager_file}"
 			[Unit]
 			After=plymouth-quit.service
 		FILE
 	else
-		frobulator.delete "${directory_systemd}"/plymouth-quit.service.d delay.conf
+		frobulator.delete "${directory_systemd}"/"${name_quit_directory}" "${name_quit_file}"
 
-		frobulator.delete "${directory_systemd}"/display-manager.service.d plymouth.conf
+		frobulator.delete "${directory_systemd}"/"${name_manager_directory}" "${name_manager_file}"
 	fi
 }
 
@@ -428,20 +476,37 @@ intent_wall () {
 
 	local mode="${1}"
 	local item
-	local list_power=(poweroff halt shutdown)
+	local name_logind_directory
+	local name_logind_file
+	local name_wrapper
+	local marker_wrapper
+	local file_wrapper
+	local text_wrapper
 
-	if [ "${mode}" = "install" ]
+	local -a list_power=(
+		poweroff
+		halt
+		shutdown
+	)
+
+	name_logind_directory="systemd-logind.service.d"
+	name_logind_file="wall.conf"
+	name_wrapper="reboot"
+	marker_wrapper="without reboot broadcast"
+	file_wrapper="${directory_sbin}"/"${name_wrapper}"
+
+	if [ "${mode}" = "${mode_install}" ]
 	then
-		mkdir -p "${directory_systemd}"/systemd-logind.service.d "${directory_sbin}"
+		mkdir --parents "${directory_systemd}"/"${name_logind_directory}" "${directory_sbin}"
 
-		cat <<- 'FILE' > "${directory_systemd}"/systemd-logind.service.d/wall.conf
+		cat <<- 'FILE' > "${directory_systemd}"/"${name_logind_directory}"/"${name_logind_file}"
 			[Service]
 			ExecStartPost=-/usr/bin/busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager SetWallMessage sb "" false
 		FILE
 
 		# power commands ahead of systemctl links
 
-		cat <<- 'FILE' > "${directory_sbin}"/reboot
+		cat <<- 'FILE' > "${file_wrapper}"
 			#!/bin/bash
 
 			# power commands without reboot broadcast
@@ -449,20 +514,25 @@ intent_wall () {
 			exec -a "${0##*/}" /usr/bin/systemctl --no-wall "${@}"
 		FILE
 
-		chmod 755 "${directory_sbin}"/reboot
+		chmod "${permission_executable}" "${file_wrapper}"
 
 		for item in "${list_power[@]}"
 		do
-			ln -sf reboot "${directory_sbin}/${item}"
+			ln --symbolic --force "${name_wrapper}" "${directory_sbin}/${item}"
 		done
 	else
-		frobulator.delete "${directory_systemd}"/systemd-logind.service.d wall.conf
+		frobulator.delete "${directory_systemd}"/"${name_logind_directory}" "${name_logind_file}"
 
 		# own wrapper only
 
-		if [ -f "${directory_sbin}"/reboot ] && [[ "$(< "${directory_sbin}"/reboot)" == *"without reboot broadcast"* ]]
+		if [ -f "${file_wrapper}" ]
 		then
-			for item in reboot "${list_power[@]}"
+			text_wrapper="$(< "${file_wrapper}")"
+		fi
+
+		if [ -f "${file_wrapper}" ] && [[ "${text_wrapper}" == *"${marker_wrapper}"* ]]
+		then
+			for item in "${name_wrapper}" "${list_power[@]}"
 			do
 				frobulator.delete "${directory_sbin}" "${item}"
 			done
@@ -478,31 +548,42 @@ intent_theme () {
 	local name_distribution
 	local name_entry
 	local value_entry
+	local separator_entry
+	local name_key_distribution
+	local prefix_icon
+	local suffix_icon
+	local name_distribution_default
+
+	separator_entry="="
+	name_key_distribution="ID"
+	prefix_icon="os_"
+	suffix_icon=".png"
+	name_distribution_default="linux"
 
 	# distribution icon from refind theme
 
-	while IFS='=' read -r name_entry value_entry
+	while IFS="${separator_entry}" read -r name_entry value_entry
 	do
-		if [ "${name_entry}" = "ID" ]
+		if [ "${name_entry}" = "${name_key_distribution}" ]
 		then
-			name_distribution="${value_entry//\"/}"
+			name_distribution="${value_entry//${character_quote}/}"
 		fi
-	done < "${directory_root}"/etc/os-release
+	done < "${file_release}"
 
-	file_icon="${directory_icons}/os_${name_distribution}.png"
+	file_icon="${directory_icons}/${prefix_icon}${name_distribution}${suffix_icon}"
 
 	if [ ! -f "${file_icon}" ]
 	then
-		file_icon="${directory_icons}/os_linux.png"
+		file_icon="${directory_icons}/${prefix_icon}${name_distribution_default}${suffix_icon}"
 	fi
 
 	# system folders stay root owned
 
-	mkdir -p "${directory_theme}"
+	mkdir --parents "${directory_theme}"
 
-	cp "${file_icon}" "${directory_theme}"/logo.png
+	cp "${file_icon}" "${directory_theme}"/"${file_logo}"
 
-	chmod 644 "${directory_theme}"/logo.png
+	chmod "${permission_readable}" "${directory_theme}"/"${file_logo}"
 
 	cat <<- FILE > "${directory_theme}/${name_theme}.plymouth"
 		[Plymouth Theme]
@@ -511,8 +592,8 @@ intent_theme () {
 		ModuleName=script
 
 		[script]
-		ImageDir=/usr/share/plymouth/themes/${name_theme}
-		ScriptFile=/usr/share/plymouth/themes/${name_theme}/${name_theme}.script
+		ImageDir=${path_themes}/${name_theme}
+		ScriptFile=${path_themes}/${name_theme}/${name_theme}.script
 	FILE
 
 	cat <<- 'FILE' > "${directory_theme}/${name_theme}.script"
@@ -590,18 +671,18 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -n "${directory_root}" ] && [ ! -f "${directory_root}"/etc/os-release ]
+if [ -n "${directory_root}" ] && [ ! -f "${file_release}" ]
 then
 	frobulator.err "No system found" "[ ${directory_root} ]"
 
 	exit 1
 fi
 
-intent_mounts bind
+intent_mounts "${mode_bind}"
 
-if [ "${option}" = "install" ]
+if [ "${option}" = "${mode_install}" ]
 then
-	frobulator.inf "Setting up silent boot" "[ ${directory_root:-/} ]"
+	frobulator.inf "Setting up silent boot" "[ ${directory_root:-${path_root}} ]"
 
 	intent_run apt-get install --yes plymouth plymouth-label > "${sink}" 2>&1
 
@@ -613,47 +694,47 @@ then
 
 	frobulator.complete
 
-	intent_modules install
+	intent_modules "${mode_install}"
 
-	intent_options install
+	intent_options "${mode_install}"
 
-	intent_refind install
+	intent_refind "${mode_install}"
 
-	intent_quit install
+	intent_quit "${mode_install}"
 
-	intent_wall install
+	intent_wall "${mode_install}"
 fi
 
-if [ "${option}" = "uninstall" ]
+if [ "${option}" = "${mode_uninstall}" ]
 then
-	frobulator.inf "Restoring text boot" "[ ${directory_root:-/} ]"
+	frobulator.inf "Restoring text boot" "[ ${directory_root:-${path_root}} ]"
 
 	intent_run plymouth-set-default-theme --reset
 
-	frobulator.delete "${directory_root}"/usr/share/plymouth/themes "${name_theme}"
+	frobulator.delete "${directory_root}${path_themes}" "${name_theme}"
 
-	intent_modules uninstall
+	intent_modules "${mode_uninstall}"
 
-	intent_options uninstall
+	intent_options "${mode_uninstall}"
 
-	intent_quit uninstall
+	intent_quit "${mode_uninstall}"
 
-	intent_wall uninstall
+	intent_wall "${mode_uninstall}"
 
 	# shared refind setting kept for other systems
 
 	if [ -z "${directory_root}" ]
 	then
-		intent_refind uninstall
+		intent_refind "${mode_uninstall}"
 	fi
 fi
 
 frobulator.fwd "Updating initramfs"
 
-intent_run update-initramfs -u -k all > "${sink}" 2>&1
+intent_run update-initramfs -u -k "${name_kernels}" > "${sink}" 2>&1
 
 frobulator.complete
 
-intent_mounts unbind
+intent_mounts "${mode_unbind}"
 
 frobulator.result "${script}"

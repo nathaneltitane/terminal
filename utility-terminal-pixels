@@ -69,6 +69,10 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+option_uninstall="uninstall"
+
 while (( $# ))
 do
 	case "${1}"
@@ -114,7 +118,7 @@ do
 		;;
 
 		-u|--uninstall)
-			option="uninstall"
+			option="${option_uninstall}"
 		;;
 
 		-h|--help)
@@ -200,7 +204,7 @@ done
 
 # remove installed copies
 
-if [ "${option}" = "uninstall" ]
+if [ "${option}" = "${option_uninstall}" ]
 then
 	count_removed=0
 
@@ -239,12 +243,12 @@ image_osc () {
 	# osc - opening sequence characters
 	# verify terminal multiplexer instance and type
 
-	if [[ "${TERM}" == screen* ]] ||
-		[[ "${TERM}" == tmux* ]]
+	if [[ "${TERM}" == ${pattern_screen} ]] ||
+		[[ "${TERM}" == ${pattern_tmux} ]]
 	then
-		printf "\033Ptmux;\033\033]"
+		printf "${sequence_open_multiplexer}"
 	else
-		printf "\033]"
+		printf "${sequence_open}"
 	fi
 }
 
@@ -253,11 +257,11 @@ image_tsc () {
 	# tsc - termination secquence characters
 	# verify terminal multiplexer instance and type
 
-	if [[ "${TERM}" == screen* || "${TERM}" == tmux* ]]
+	if [[ "${TERM}" == ${pattern_screen} || "${TERM}" == ${pattern_tmux} ]]
 	then
-		printf "\a\033\\"
+		printf "${sequence_close_multiplexer}"
 	else
-		printf "\a"
+		printf "${sequence_close}"
 	fi
 }
 
@@ -268,7 +272,7 @@ image_unit () {
 	# verify image sizing unit format:
 	# [n] / [n]px / [n]% / auto
 
-	if [[ ! "$1" =~ ^(:?[0-9]+(:?px|%)?|auto)$ ]]
+	if [[ ! "${1}" =~ ${pattern_size} ]]
 	then
 		frobulator.err "Invalid image size unit" "[ '${size_requested}' ]"
 
@@ -330,44 +334,51 @@ image_parse () {
 
 	image_osc
 
-	printf "1337;"
+	printf "${prefix_protocol}"
 
-	if [[ "${state_block}" -eq 1 ]]
+	if [ "${state_block}" -eq 1 ]
 	then
-		printf "File"
+		printf "${name_type_block}"
 	else
-		printf "MultipartFile"
+		printf "${name_type_multipart}"
 	fi
 
-	printf "=inline=%s" "${state_inline}"
+	printf "${format_inline}" "${state_inline}"
 
-	printf ";size=%d" $(printf "%s" "${content_base64}" | base64 -d -i | wc -c)
+	size_content="$(printf "%s" "${content_base64}" | base64 --decode --ignore-garbage | wc --bytes)"
+
+	printf "${format_size}" "${size_content}"
 
 	if [ -n "${source_image}" ]
 	then
-		printf ";name=%s" "$(printf "%s" "${source_image}" | base64 -w 0)"
+		name_encoded="$(printf "%s" "${source_image}" | base64 --wrap=0)"
+
+		printf "${format_name}" "${name_encoded}"
 	fi
 
 	if [ -n "${width_image}" ]
 	then
-		printf ";width=%s" "${width_image}"
+		printf "${format_width}" "${width_image}"
 	fi
 
 	if [ -n "${height_image}" ]
 	then
-		printf ";height=%s" "${height_image}"
+		printf "${format_height}" "${height_image}"
 	fi
 
 	if [ -n "${state_ratio}" ]
 	then
-		printf ";preserveAspectRatio=%s" "${state_ratio}"
+		printf "${format_ratio}" "${state_ratio}"
 	fi
 
-	[ -n "${hint_type}" ] && printf ";type=%s" "${hint_type}"
-
-	if [[ "${state_block}" -eq 1 ]]
+	if [ -n "${hint_type}" ]
 	then
-		printf ":%s" "${content_base64}"
+		printf "${format_type}" "${hint_type}"
+	fi
+
+	if [ "${state_block}" -eq 1 ]
+	then
+		printf "${format_block}" "${content_base64}"
 
 		image_tsc
 	else
@@ -376,9 +387,7 @@ image_parse () {
 		# split into 512-byte parts:
 		# optimizes parsing through terminal multiplexer
 
-		count_bytes_part=512
-
-		mapfile -t list_parts < <(printf "%s" "${content_base64}" | fold -w "${count_bytes_part}")
+		mapfile -t list_parts < <(printf "%s" "${content_base64}" | fold --width="${count_bytes_part}")
 
 		# load byte stream
 
@@ -386,7 +395,7 @@ image_parse () {
 		do
 			image_osc
 
-			printf '1337;FilePart=%s' "${part}"
+			printf "${format_part}" "${part}"
 
 			image_tsc
 		done
@@ -395,7 +404,7 @@ image_parse () {
 
 		image_osc
 
-		printf '1337;FileEnd'
+		printf "${text_end}"
 
 		image_tsc
 	fi
@@ -404,7 +413,7 @@ image_parse () {
 
 	if [ "${state_name}" = "1" ]
 	then
-		echo "Image: ${source_image}"
+		echo "${label_image} ${source_image}"
 		echo
 	fi
 }
@@ -413,9 +422,9 @@ image_print () {
 
 	# stdin only without a file
 
-	if [ "${source_input}" = "stdin" ] && [ -z "${source_image}" ]
+	if [ "${source_input}" = "${value_input_stdin}" ] && [ -z "${source_image}" ]
 	then
-		content_base64=$(cat | base64 -w 0)
+		content_base64="$(base64 --wrap=0)"
 	fi
 
 	image_parse "${source_image}" "${state_inline}" "${content_base64}" "${state_name}" "${width_image}" "${height_image}" "${state_ratio}" "${hint_type}" "${state_block}"
@@ -423,6 +432,32 @@ image_print () {
 }
 
 # defaults ─────────────────────────────────────────────────────────────────────
+
+prefix_protocol="1337;"
+name_type_block="File"
+name_type_multipart="MultipartFile"
+format_inline="=inline=%s"
+format_size=";size=%d"
+format_name=";name=%s"
+format_width=";width=%s"
+format_height=";height=%s"
+format_ratio=";preserveAspectRatio=%s"
+format_type=";type=%s"
+format_block=":%s"
+format_part="${prefix_protocol}FilePart=%s"
+text_end="${prefix_protocol}FileEnd"
+sequence_open='\033]'
+sequence_open_multiplexer='\033Ptmux;\033\033]'
+sequence_close='\a'
+sequence_close_multiplexer='\a\033\\'
+pattern_screen="screen*"
+pattern_tmux="tmux*"
+pattern_size='^(:?[0-9]+(:?px|%)?|auto)$'
+pattern_url='^https?://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,})?(:[0-9]{1,5})?(/.*)?$'
+count_bytes_part="512"
+label_image="Image:"
+value_input_tty="tty"
+value_input_stdin="stdin"
 
 state_inline="${state_inline:-1}"
 
@@ -434,7 +469,7 @@ state_ratio="${state_ratio:-1}"
 
 if [ -z "${state_block}" ]
 then
-	if [[ "${TERM}" == screen* ]] || [[ "${TERM}" == tmux* ]]
+	if [[ "${TERM}" == ${pattern_screen} ]] || [[ "${TERM}" == ${pattern_tmux} ]]
 	then
 		state_block="0"
 	else
@@ -462,14 +497,14 @@ if [ -t 0 ]
 then
 	# 'stdin' is a tty
 
-	source_input="tty"
+	source_input="${value_input_tty}"
 else
-	source_input="stdin"
+	source_input="${value_input_stdin}"
 fi
 
 # variables ────────────────────────────────────────────────────────────────────
 
-if [ -z "${source_image}" ] && [ "${source_input}" = "tty" ]
+if [ -z "${source_image}" ] && [ "${source_input}" = "${value_input_tty}" ]
 then
 	frobulator.err "Missing image file."
 
@@ -482,13 +517,13 @@ then
 
 elif [ -r "${source_image}" ]
 then
-	content_base64=$(cat "${source_image}" | base64 -w 0)
+	content_base64="$(base64 --wrap=0 "${source_image}")"
 
-elif [[ "${source_image}" =~ ^https?://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,})?(:[0-9]{1,5})?(/.*)?$ ]]
+elif [[ "${source_image}" =~ ${pattern_url} ]]
 then
 	# curl status, not base64
 
-	content_base64=$(curl -f -s -L "${source_image}" | base64 -w 0; exit "${PIPESTATUS[0]}")
+	content_base64="$(curl --fail --silent --location "${source_image}" | base64 --wrap=0; exit "${PIPESTATUS[0]}")"
 
 	frobulator.complete halt "Could not retrieve image" "[ ${source_image} ]"
 

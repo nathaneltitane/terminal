@@ -10,16 +10,38 @@ rgb () {
 	local value_red
 	local value_green
 	local value_blue
+	local prefix_hex
+	local prefix_base
+	local format_color
+	local length_prefix
+	local length_hex
+	local length_channel
+	local offset_red
+	local offset_green
+	local offset_blue
+
+	prefix_hex="#"
+	prefix_base="16#"
+	format_color='%03d %03d %03d\n'
+	length_prefix="1"
+	length_hex="6"
+	length_channel="2"
+	offset_red="0"
+	offset_green="2"
+	offset_blue="4"
 
 	frobulator.require printf
 
 	read code_hex <<< "${1}"
 
-	[[ ${code_hex:0:1} = "#" ]] && code_hex=${code_hex:1:6}
+	if [ "${code_hex:0:length_prefix}" = "${prefix_hex}" ]
+	then
+		code_hex="${code_hex:length_prefix:length_hex}"
+	fi
 
-	value_red=$(( 16#${code_hex:0:2} ))
-	value_green=$(( 16#${code_hex:2:2} ))
-	value_blue=$(( 16#${code_hex:4:2} ))
+	value_red=$(( ${prefix_base}${code_hex:offset_red:length_channel} ))
+	value_green=$(( ${prefix_base}${code_hex:offset_green:length_channel} ))
+	value_blue=$(( ${prefix_base}${code_hex:offset_blue:length_channel} ))
 
-	printf '%03d %03d %03d\n' ${value_red} ${value_green} ${value_blue}
+	printf "${format_color}" ${value_red} ${value_green} ${value_blue}
 }

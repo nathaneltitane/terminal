@@ -209,19 +209,54 @@ frobulator.trap "${directory_temporary}"
 
 frobulator.complete
 
-list_from="${directory_temporary}/from.list"
-list_to="${directory_temporary}/to.list"
-list_changes="${directory_temporary}/changes.list"
+name_from="from"
+name_to="to"
+name_changes="changes"
+name_rename="rename"
+name_copy="copy"
+name_remove="remove"
 
-list_sizes_from="${directory_temporary}/from.sizes"
-list_sizes_to="${directory_temporary}/to.sizes"
-list_rename="${directory_temporary}/rename.list"
-list_copy="${directory_temporary}/copy.list"
-list_remove="${directory_temporary}/remove.list"
+extension_list="list"
+extension_sizes="sizes"
+
+list_from="${directory_temporary}/${name_from}.${extension_list}"
+list_to="${directory_temporary}/${name_to}.${extension_list}"
+list_changes="${directory_temporary}/${name_changes}.${extension_list}"
+
+list_sizes_from="${directory_temporary}/${name_from}.${extension_sizes}"
+list_sizes_to="${directory_temporary}/${name_to}.${extension_sizes}"
+list_rename="${directory_temporary}/${name_rename}.${extension_list}"
+list_copy="${directory_temporary}/${name_copy}.${extension_list}"
+list_remove="${directory_temporary}/${name_remove}.${extension_list}"
+
+operation_add="add"
+operation_remove="remove"
+operation_mirror="mirror"
+
+label_index="index"
+hint_from="[ ${name_from} ]"
+hint_to="[ ${name_to} ]"
+
+color_added="lime"
+color_removed="crimson"
+
+type_file="f"
+type_directory="d"
+prefix_extension="*."
+prefix_temporary=".mirror-rename-"
+expression_prefix_current='s|^\./||'
+format_index_size='%P\t%s\n'
+format_size='%s'
+encoding_source="UTF-8"
+encoding_target="ASCII//TRANSLIT"
+pattern_yes_short="[yY]"
+pattern_yes_long="[yY][eE][sS]"
+character_tab=$'\t'
+count_depth_minimum="1"
 
 count_differential=0
 
-reply=""
+unset reply
 
 # handled formats - audio files and playlists - every other file ignored
 
@@ -255,7 +290,7 @@ list_filter_find=()
 
 for extension_handled in "${list_extensions_handled[@]}"
 do
-	list_filter_find+=(-o -iname "*.${extension_handled}")
+	list_filter_find+=(-o -iname "${prefix_extension}${extension_handled}")
 done
 
 list_filter_find=(\( "${list_filter_find[@]:1}" \))
@@ -365,15 +400,15 @@ fi
 
 if [ "${add}" = true ]
 then
-	operation="add"
+	operation="${operation_add}"
 
 elif [ "${remove}" = true ]
 then
-	operation="remove"
+	operation="${operation_remove}"
 
 elif [ "${mirror}" = true ]
 then
-	operation="mirror"
+	operation="${operation_mirror}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -392,7 +427,7 @@ index () {
 		return 1
 	fi
 
-	find . -type f "${list_filter_find[@]}" | sed 's|^\./||' | sort > "${destination}"
+	find . -type "${type_file}" "${list_filter_find[@]}" | sed "${expression_prefix_current}" | sort > "${destination}"
 
 	status="${?}"
 
@@ -435,7 +470,9 @@ add () {
 	do
 		destination="${to}/${file}"
 
-		mkdir -p "$(dirname -- "${destination}")"
+		directory_destination="$(dirname -- "${destination}")"
+
+		mkdir --parents "${directory_destination}"
 
 		status="${?}"
 
@@ -448,7 +485,7 @@ add () {
 
 		frobulator.add "Adding" "[ ${file} ]"
 
-		cp -a -- "${from}/${file}" "${destination}"
+		cp --archive -- "${from}/${file}" "${destination}"
 
 		status="${?}"
 
@@ -471,7 +508,7 @@ remove () {
 	do
 		frobulator.rem "Removing" "[ ${file} ]"
 
-		rm -f -- "${to}/${file}"
+		rm --force -- "${to}/${file}"
 
 		status="${?}"
 
@@ -495,7 +532,7 @@ index_size () {
 	local source="${1}"
 	local destination="${2}"
 
-	find "${source}" -type f "${list_filter_find[@]}" -printf '%P\t%s\n' > "${destination}"
+	find "${source}" -type "${type_file}" "${list_filter_find[@]}" -printf "${format_index_size}" > "${destination}"
 }
 
 # mirror: case and accent insensitive name for matching renamed files
@@ -504,7 +541,7 @@ fold_name () {
 
 	local folded
 
-	folded="$(iconv -f UTF-8 -t ASCII//TRANSLIT <<< "${1}" 2> "${sink}")"
+	folded="$(iconv --from-code="${encoding_source}" --to-code="${encoding_target}" <<< "${1}" 2> "${sink}")"
 
 	echo "${folded,,}"
 }
@@ -523,12 +560,12 @@ mirror_plan () {
 	local -A sizes_to
 	local -A list_folds_renamed
 
-	while IFS=$'\t' read -r file size
+	while IFS="${character_tab}" read -r file size
 	do
 		sizes_from["${file}"]="${size}"
 	done < "${list_sizes_from}"
 
-	while IFS=$'\t' read -r file size
+	while IFS="${character_tab}" read -r file size
 	do
 		sizes_to["${file}"]="${size}"
 	done < "${list_sizes_to}"
@@ -554,9 +591,11 @@ mirror_plan () {
 
 			echo "${file}" >> "${list_rename}"
 
-			list_folds_renamed["$(fold_name "${file}")"]=1
+			file_fold="$(fold_name "${file}")"
 
-			size="$(stat -c '%s' "${to}/${file}")"
+			list_folds_renamed["${file_fold}"]=1
+
+			size="$(stat --format="${format_size}" "${to}/${file}")"
 
 			if [ "${size}" != "${sizes_from[${file}]}" ]
 			then
@@ -588,9 +627,9 @@ mirror_plan () {
 		echo "${file}" >> "${list_remove}"
 	done
 
-	sort -o "${list_rename}" "${list_rename}"
-	sort -o "${list_copy}" "${list_copy}"
-	sort -o "${list_remove}" "${list_remove}"
+	sort --output="${list_rename}" "${list_rename}"
+	sort --output="${list_copy}" "${list_copy}"
+	sort --output="${list_remove}" "${list_remove}"
 }
 
 mirror_rename () {
@@ -604,7 +643,7 @@ mirror_rename () {
 	do
 		(( number ++ ))
 
-		temporary="$(dirname -- "${to}/${file}")/.mirror-rename-${number}"
+		temporary="$(dirname -- "${to}/${file}")/${prefix_temporary}${number}"
 
 		frobulator.inf "Renaming" "[ ${file} ]"
 
@@ -624,10 +663,13 @@ mirror_rename () {
 mirror_copy () {
 
 	local file
+	local directory_destination
 
 	while IFS= read -r file
 	do
-		mkdir -p "$(dirname -- "${to}/${file}")"
+		directory_destination="$(dirname -- "${to}/${file}")"
+
+		mkdir --parents "${directory_destination}"
 
 		frobulator.fail "Failed to create directory" "[ ${file} ]" || return
 
@@ -650,7 +692,7 @@ mirror_remove () {
 	do
 		frobulator.rem "Removing" "[ ${file} ]"
 
-		rm -f -- "${to}/${file}"
+		rm --force -- "${to}/${file}"
 
 		frobulator.fail "Failed to remove" "[ ${file} ]" || return
 
@@ -681,17 +723,17 @@ list=()
 
 # mirror
 
-if [ "${operation}" = "mirror" ]
+if [ "${operation}" = "${operation_mirror}" ]
 then
-	frobulator.background index "[ from ]" -- index_size "${from}" "${list_sizes_from}"
+	frobulator.background "${label_index}" "${hint_from}" -- index_size "${from}" "${list_sizes_from}"
 
-	frobulator.background index "[ to ]" -- index_size "${to}" "${list_sizes_to}"
+	frobulator.background "${label_index}" "${hint_to}" -- index_size "${to}" "${list_sizes_to}"
 
 	mirror_plan true
 
-	count_rename=$(wc -l < "${list_rename}")
-	count_copy=$(wc -l < "${list_copy}")
-	count_remove=$(wc -l < "${list_remove}")
+	count_rename=$(wc --lines < "${list_rename}")
+	count_copy=$(wc --lines < "${list_copy}")
+	count_remove=$(wc --lines < "${list_remove}")
 
 	# all planned changes together
 
@@ -715,14 +757,14 @@ then
 	then
 		frobulator.add "Files to be copied" "[ ${count_copy} ]"
 
-		display "${list_copy}" lime
+		display "${list_copy}" "${color_added}"
 	fi
 
 	if [ "${count_remove}" -gt 0 ]
 	then
 		frobulator.rem "Files to be removed" "[ ${count_remove} ]"
 
-		display "${list_remove}" crimson
+		display "${list_remove}" "${color_removed}"
 	fi
 
 	if [ "${execute}" = false ]
@@ -743,8 +785,8 @@ then
 
 		frobulator.read reply
 
-		if [[ "${reply}" != [yY]         ]] &&
-		   [[ "${reply}" != [yY][eE][sS] ]]
+		if [[ "${reply}" != ${pattern_yes_short} ]] &&
+		   [[ "${reply}" != ${pattern_yes_long}  ]]
 		then
 			frobulator.stp "Operation cancelled."
 
@@ -772,12 +814,12 @@ then
 
 	frobulator.complete halt "File removal failed."
 
-	find "${to}" -mindepth 1 -depth -type d -empty -delete
+	find "${to}" -mindepth "${count_depth_minimum}" -depth -type "${type_directory}" -empty -delete
 
 	# files in each list: one per line
 
-	count_copy="$(wc -l < "${list_copy}")"
-	count_remove="$(wc -l < "${list_remove}")"
+	count_copy="$(wc --lines < "${list_copy}")"
+	count_remove="$(wc --lines < "${list_remove}")"
 
 	frobulator.inf "Files renamed" "[ ${count_rename} ]"
 	frobulator.inf "Files copied" "[ ${count_copy} ]"
@@ -790,47 +832,47 @@ fi
 
 # index directories
 
-frobulator.background index "[ from ]" -- index "${from}" "${list_from}"
+frobulator.background "${label_index}" "${hint_from}" -- index "${from}" "${list_from}"
 
-frobulator.background index "[ to ]" -- index "${to}" "${list_to}"
+frobulator.background "${label_index}" "${hint_to}" -- index "${to}" "${list_to}"
 
 # determine changes
 
-if [ "${operation}" = "add" ]
+if [ "${operation}" = "${operation_add}" ]
 then
 	comm -2 -3 "${list_from}" "${list_to}" > "${list_changes}"
 
-elif [ "${operation}" = "remove" ]
+elif [ "${operation}" = "${operation_remove}" ]
 then
 	comm -1 -3 "${list_from}" "${list_to}" > "${list_changes}"
 fi
 
-count_differential=$(wc -l < "${list_changes}")
+count_differential=$(wc --lines < "${list_changes}")
 
 # display changes
 
 if [ "${count_differential}" -gt 0 ]
 then
-	if [ "${operation}" = "add" ]
+	if [ "${operation}" = "${operation_add}" ]
 	then
 		frobulator.add "Files to be added" "[ ${count_differential} ]"
 
-		display "${list_changes}" lime
+		display "${list_changes}" "${color_added}"
 
-	elif [ "${operation}" = "remove" ]
+	elif [ "${operation}" = "${operation_remove}" ]
 	then
 		frobulator.rem "Files to be removed" "[ ${count_differential} ]"
 
-		display "${list_changes}" crimson
+		display "${list_changes}" "${color_removed}"
 	else
 		display "${list_changes}"
 	fi
 else
-	if [ "${operation}" = "add" ]
+	if [ "${operation}" = "${operation_add}" ]
 	then
 		frobulator.inf "No files to be added."
 
-	elif [ "${operation}" = "remove" ]
+	elif [ "${operation}" = "${operation_remove}" ]
 	then
 		frobulator.inf "No files to be removed."
 	fi
@@ -854,19 +896,19 @@ if [ "${confirm}" = true ]
 then
 	frobulator.separate
 
-	if [ "${operation}" = "add" ]
+	if [ "${operation}" = "${operation_add}" ]
 	then
 		frobulator.qst "Proceed with addition?"
 
-	elif [ "${operation}" = "remove" ]
+	elif [ "${operation}" = "${operation_remove}" ]
 	then
 		frobulator.qst "Proceed with removal?"
 	fi
 
 	frobulator.read reply
 
-	if [[ "${reply}" != [yY]         ]] &&
-	   [[ "${reply}" != [yY][eE][sS] ]]
+	if [[ "${reply}" != ${pattern_yes_short} ]] &&
+	   [[ "${reply}" != ${pattern_yes_long}  ]]
 	then
 		frobulator.stp "Operation cancelled."
 
@@ -876,7 +918,7 @@ fi
 
 # execute operation
 
-if [ "${operation}" = "add" ]
+if [ "${operation}" = "${operation_add}" ]
 then
 	frobulator.fwd "Adding..."
 
@@ -893,7 +935,7 @@ then
 
 	frobulator.inf "Files added to destination" "[ ${count_differential} ]"
 
-elif [ "${operation}" = "remove" ]
+elif [ "${operation}" = "${operation_remove}" ]
 then
 	frobulator.fwd "Removing..."
 
@@ -910,7 +952,7 @@ then
 
 	# remove empty directories
 
-	find "${to}" -depth -type d -empty -delete
+	find "${to}" -depth -type "${type_directory}" -empty -delete
 
 	status="${?}"
 

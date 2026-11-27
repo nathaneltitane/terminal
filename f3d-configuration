@@ -114,6 +114,12 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+directory_printer="/media/internal/Printer/f3d"
+directory_source="${directory_printer}/configuration"
+directory_target="/usr/share/f3d"
+file_conf="f3d.conf"
+file_config="config.json"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -136,9 +142,9 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-if [ -d /media/internal/Printer/f3d ]
+if [ -d "${directory_printer}" ]
 then
 	frobulator.inf "Linking configuration"
 
-	frobulator.link /media/internal/Printer/f3d/configuration /usr/share/f3d f3d.conf config.json
+	frobulator.link "${directory_source}" "${directory_target}" "${file_conf}" "${file_config}"
 fi

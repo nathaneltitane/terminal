@@ -169,10 +169,34 @@ label="LLM"
 process="ollama"
 service="${process}.service"
 
-name_model="${name_model:-qwen3-coder}"
+name_model_default="qwen3-coder"
+size_model_default="30b"
+directory_default="/media/internal"
+index_default_vulkan="0"
+separator_size=":"
+user_root="root"
+mode_install_user="user"
+mode_install_root="root"
+mode_readable="+r"
+prefix_hidden="."
+suffix_dropin=".d"
+suffix_override="-override.conf"
+suffix_backup=".backup-"
+prefix_modelfile="modelfile-"
+format_stamp="+%Y%m%d-%H%M%S"
+format_payload='{"model":"%s"}'
+directory_systemd="/etc/systemd/system"
+file_render_device="/dev/dri/renderD128"
+name_device_vulkan="AMD Radeon RX Vega M"
+protocol_api="http"
+address_server="127.0.0.1:11434"
+path_generate="/api/generate"
+url_generate="${protocol_api}://${address_server}${path_generate}"
+
+name_model="${name_model:-${name_model_default}}"
 version_model="${version_model-}"
-size_model="${size_model:-30b}"
-model="${name_model}${version_model}:${size_model}"
+size_model="${size_model:-${size_model_default}}"
+model="${name_model}${version_model}${separator_size}${size_model}"
 
 # assistant model built on the pulled one - benchmarked fastest on 8 threads with the graphics chip on auto
 
@@ -183,19 +207,31 @@ url_model="https://ollama.com/install.sh"
 
 # path to a separate mount so models survive a system reinstall/format
 
-directory="${directory:-/media/internal}"
+directory="${directory:-${directory_default}}"
 directory_models="${directory}/${label}/${process}"
+name_settings="${prefix_hidden}${process}"
+directory_settings="${directory_models}/${name_settings}"
+directory_settings_home="${HOME}/${name_settings}"
+file_model="${directory_models}/${prefix_modelfile}${name_assistant}"
+file_override="${directory_systemd}/${service}${suffix_dropin}/${process}${suffix_override}"
 
 # service runs as models owner
 
 user_service="${USER}"
 
-if [ "${user_service}" = "root" ]
+if [ "${user_service}" = "${user_root}" ]
 then
 	user_service="${process}"
 fi
 
-group_service="$(id -gn "${user_service}" 2> "${sink}" || echo "${process}")"
+group_service="$(id --group --name "${user_service}" 2> "${sink}")"
+
+status_group="${?}"
+
+if [ "${status_group}" -ne 0 ]
+then
+	group_service="${process}"
+fi
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -203,7 +239,7 @@ group_service="$(id -gn "${user_service}" 2> "${sink}" || echo "${process}")"
 # current ollama builds support vulkan directly, so no rocm gfx spoof is needed.
 # vulkan0 corresponds to the discrete radeon rx vega m gh on this system.
 
-index_device_vulkan="${index_device_vulkan:-0}"
+index_device_vulkan="${index_device_vulkan:-${index_default_vulkan}}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -216,6 +252,9 @@ url_install () {
 
 	local command_path
 	local installer
+	local status_fetch
+	local status_install
+	local group_owner
 
 	local -a list_paths_ownership=("${@:5}")
 
@@ -242,38 +281,44 @@ url_install () {
 		--output "${installer}"	\
 								"${url}"
 
-	if [ "${?}" -ne 0 ] || [ ! -s "${installer}" ]
+	status_fetch="${?}"
+
+	if [ "${status_fetch}" -ne 0 ] || [ ! -s "${installer}" ]
 	then
 		frobulator.err "Unable to fetch installer" "[ ${label} ]"
 
-		rm -f "${installer}"
+		rm --force "${installer}"
 
 		return 1
 	fi
 
-	chmod +r "${installer}"
+	chmod "${mode_readable}" "${installer}"
 
-	if [ "${mode_run}" = "user" ] && [ -n "${SUDO_USER}" ]
+	if [ "${mode_run}" = "${mode_install_user}" ] && [ -n "${SUDO_USER}" ]
 	then
-		sudo -u "${SUDO_USER}" bash "${installer}"
+		sudo --user "${SUDO_USER}" bash "${installer}"
 	else
 		bash "${installer}"
 	fi
 
-	if [ "${?}" -ne 0 ]
+	status_install="${?}"
+
+	if [ "${status_install}" -ne 0 ]
 	then
 		frobulator.err "Installation failed" "[ ${label} ]"
 
-		rm -f "${installer}"
+		rm --force "${installer}"
 
 		return 1
 	fi
 
-	rm -f "${installer}"
+	rm --force "${installer}"
 
-	if [ "${USER}" != "root" ] && [ "${#list_paths_ownership[@]}" -gt 0 ]
+	if [ "${USER}" != "${user_root}" ] && [ "${#list_paths_ownership[@]}" -gt 0 ]
 	then
-		chown -R "${USER}:$(id -g "${USER}")" "${list_paths_ownership[@]}" > "${sink}" 2>&1
+		group_owner="$(id --group "${USER}")"
+
+		chown --recursive "${USER}:${group_owner}" "${list_paths_ownership[@]}" > "${sink}" 2>&1
 	fi
 
 	frobulator.scs "Installed" "[ ${label} ]"
@@ -293,9 +338,9 @@ list=()
 
 # vulkan readiness
 
-if [ ! -e /dev/dri/renderD128 ]
+if [ ! -e "${file_render_device}" ]
 then
-	frobulator.wrn "GPU render device not found" "[ /dev/dri/renderD128 ]"
+	frobulator.wrn "GPU render device not found" "[ ${file_render_device} ]"
 fi
 
 # 'vulkaninfo' path - empty if not installed
@@ -308,7 +353,7 @@ then
 else
 	text_vulkan_summary="$(vulkaninfo --summary 2> "${sink}")"
 
-	if [[ "${text_vulkan_summary}" != *"AMD Radeon RX Vega M"* ]]
+	if [[ "${text_vulkan_summary}" != *"${name_device_vulkan}"* ]]
 	then
 		frobulator.wrn "Expected Radeon RX Vega M Vulkan device not detected"
 	fi
@@ -316,7 +361,7 @@ fi
 
 # process install
 
-url_install root "${label}" "${process}" "${url_model}"
+url_install "${mode_install_root}" "${label}" "${process}" "${url_model}"
 
 frobulator.complete halt
 
@@ -324,13 +369,14 @@ frobulator.complete halt
 
 frobulator.inf "Configuring models directory" "[ ${directory_models} ]"
 
-frobulator.directory "$(dirname "${directory_models}")" "$(basename "${directory_models}")"
+directory_models_parent="$(dirname "${directory_models}")"
+name_models="$(basename "${directory_models}")"
 
-chown -R "${user_service}:${group_service}" "${directory_models}"
+frobulator.directory "${directory_models_parent}" "${name_models}"
+
+chown --recursive "${user_service}:${group_service}" "${directory_models}"
 
 # client settings directory - kept with the models so it survives a system reinstall/format
-
-directory_settings="${directory_models}/.${process}"
 
 if [ "${user_service}" != "${process}" ]
 then
@@ -338,53 +384,62 @@ then
 
 	# first run moves existing settings - stored settings win, home copy kept aside
 
-	if [ -d "${HOME}/.${process}" ] && [ ! -L "${HOME}/.${process}" ]
+	if [ -d "${directory_settings_home}" ] && [ ! -L "${directory_settings_home}" ]
 	then
 		if [ ! -e "${directory_settings}" ]
 		then
-			mv "${HOME}/.${process}" "${directory_settings}"
+			mv "${directory_settings_home}" "${directory_settings}"
 		else
-			mv "${HOME}/.${process}" "${HOME}/.${process}.backup-$(date +%Y%m%d-%H%M%S)"
+			stamp_backup="$(date "${format_stamp}")"
+
+			mv "${directory_settings_home}" "${directory_settings_home}${suffix_backup}${stamp_backup}"
 		fi
 	fi
 
-	frobulator.directory "${directory_models}" ".${process}"
+	frobulator.directory "${directory_models}" "${name_settings}"
 
-	frobulator.link "${directory_models}" "${HOME}" ".${process}"
+	frobulator.link "${directory_models}" "${HOME}" "${name_settings}"
 
-	chown -R "${user_service}:${group_service}" "${directory_settings}"
-	chown -h "${user_service}:${group_service}" "${HOME}/.${process}"
+	chown --recursive "${user_service}:${group_service}" "${directory_settings}"
+	chown --no-dereference "${user_service}:${group_service}" "${directory_settings_home}"
 fi
 
 # gpu permissions
 
-if [ -n "$(id -u "${user_service}" 2> "${sink}")" ]
-then
-	if [ -n "$(getent group render)" ]
-	then
-		usermod --append --groups render "${user_service}"
-	fi
+list_groups_gpu=(
+	render
+	video
+)
 
-	if [ -n "$(getent group video)" ]
-	then
-		usermod --append --groups video "${user_service}"
-	fi
+id_service="$(id --user "${user_service}" 2> "${sink}")"
+
+if [ -n "${id_service}" ]
+then
+	for name_group in "${list_groups_gpu[@]}"
+	do
+		text_group="$(getent group "${name_group}")"
+
+		if [ -n "${text_group}" ]
+		then
+			usermod --append --groups "${name_group}" "${user_service}"
+		fi
+	done
 fi
 
 # local vulkan configuration
 
 frobulator.inf "Configuring Vulkan GPU" "[ Vulkan${index_device_vulkan} ]"
 
-frobulator.directory /etc/systemd/system "${service}".d
+frobulator.directory "${directory_systemd}" "${service}${suffix_dropin}"
 
-cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"-override.conf
+cat <<- FILE > "${file_override}"
 [Service]
 User=${user_service}
 Group=${group_service}
 Environment="OLLAMA_VULKAN=1"
 Environment="GGML_VK_VISIBLE_DEVICES=${index_device_vulkan}"
 Environment="OLLAMA_MODELS=${directory_models}"
-Environment="OLLAMA_HOST=127.0.0.1:11434"
+Environment="OLLAMA_HOST=${address_server}"
 Environment="OLLAMA_NO_CLOUD=true"
 Environment="OLLAMA_KEEP_ALIVE=-1"
 FILE
@@ -413,8 +468,6 @@ frobulator.complete halt "Local model verification failed" "[ ${model} ]"
 
 frobulator.inf "Creating assistant model" "[ ${name_assistant} // ${model} ]"
 
-file_model="${directory_models}/modelfile-${name_assistant}"
-
 cat <<- FILE > "${file_model}"
 FROM ${model}
 PARAMETER num_thread ${count_threads}
@@ -425,7 +478,9 @@ frobulator.silence "ollama create ${name_assistant} -f ${file_model}"
 
 frobulator.complete halt "Unable to create assistant model" "[ ${name_assistant} ]"
 
-curl -s http://127.0.0.1:11434/api/generate -d "{\"model\":\"${name_assistant}\"}" > "${sink}"
+printf -v payload_load "${format_payload}" "${name_assistant}"
+
+curl --silent "${url_generate}" --data "${payload_load}" > "${sink}"
 
 frobulator.ntf inf "Offline local ${label} [ '${model}' ]" inf "Model name:            ${name_model}
 Model version:         ${version_model}
@@ -434,7 +489,7 @@ Assistant model:       ${name_assistant} [ ${count_threads} threads // ${size_co
 Model directory:       ${directory_models}
 Settings directory:    ${directory_settings}
 
-API:                   http://127.0.0.1:11434
+API:                   ${protocol_api}://${address_server}
 
 Run:                   'ada' or 'ollama run ${name_assistant}'
 

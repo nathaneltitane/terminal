@@ -1,26 +1,78 @@
 #!/bin/bash
 
 separator=" // "
+file_uevent="/sys/class/power_supply/battery/uevent"
+keyword_capacity="capacity="
+keyword_health="health="
+keyword_status="status="
+keyword_temperature="temp="
+format_date="%F"
+format_time="%r"
+name_host_local="localhost"
+name_host_android="Android"
+name_user_default="termux"
+property_interface="wifi.interface"
+sequence_open='\['
+sequence_close='\]'
+color_foreground="0"
+color_background="7"
+color_reset="0"
+row_top="0"
+column_first="0"
 
-capacity_battery=$(cat /sys/class/power_supply/battery/uevent    | grep -i 'capacity=' | cut -d '=' -f 2)
-health_battery=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'health='   | cut -d '=' -f 2)
-status_battery=$(cat /sys/class/power_supply/battery/uevent      | grep -i 'status='   | cut -d '=' -f 2)
-temperature_battery=$(cat /sys/class/power_supply/battery/uevent | grep -i 'temp='     | cut -d '=' -f 2)
+# battery values from the kernel
 
-date=$(date +"%F")
-time=$(date +"%r")
+mapfile -t list_uevent < "${file_uevent}"
 
-[ "$HOSTNAME" = "localhost" ] && HOSTNAME="Android"
-[ -z "${USER}" ] && USER="termux"
+for line_uevent in "${list_uevent[@]}"
+do
+	line_lower="${line_uevent,,}"
+	value_uevent="${line_uevent#*=}"
+	value_uevent="${value_uevent%%=*}"
+
+	if [[ "${line_lower}" == *"${keyword_capacity}"* ]]
+	then
+		capacity_battery="${value_uevent}"
+	fi
+
+	if [[ "${line_lower}" == *"${keyword_health}"* ]]
+	then
+		health_battery="${value_uevent}"
+	fi
+
+	if [[ "${line_lower}" == *"${keyword_status}"* ]]
+	then
+		status_battery="${value_uevent}"
+	fi
+
+	if [[ "${line_lower}" == *"${keyword_temperature}"* ]]
+	then
+		temperature_battery="${value_uevent}"
+	fi
+done
+
+date="$(date +"${format_date}")"
+time="$(date +"${format_time}")"
+interface_network="$(getprop "${property_interface}")"
+
+if [ "${HOSTNAME}" = "${name_host_local}" ]
+then
+	HOSTNAME="${name_host_android}"
+fi
+
+if [ -z "${USER}" ]
+then
+	USER="${name_user_default}"
+fi
 
 unset PS1
 
-PS1='\['
+PS1="${sequence_open}"
 PS1+="$(tput sc)"
 PS1+="$(tput ed)"
-PS1+="$(tput cup 0 0)"
-PS1+="$(tput setaf 0)"
-PS1+="$(tput setab 7)"
+PS1+="$(tput cup "${row_top}" "${column_first}")"
+PS1+="$(tput setaf "${color_foreground}")"
+PS1+="$(tput setab "${color_background}")"
 PS1+="$(tput el)"
 PS1+=" HOSTNAME: ${HOSTNAME}"
 PS1+="${separator}"
@@ -30,10 +82,10 @@ PS1+=" DATE: ${date}"
 PS1+="${separator}"
 PS1+=" BATT. % ${capacity_battery} [ ${status_battery} ]"
 PS1+="${separator}"
-PS1+=" NET: $(getprop wifi.interface)"
+PS1+=" NET: ${interface_network}"
 PS1+="${separator}"
 PS1+="TERMUX: ${TERMUX_VERSION}"
-PS1+="$(tput sgr 0)"
+PS1+="$(tput sgr "${color_reset}")"
 PS1+="$(tput rc)"
-PS1+='\]'
+PS1+="${sequence_close}"
 PS1+="[ ${USER} ] >_ $ "

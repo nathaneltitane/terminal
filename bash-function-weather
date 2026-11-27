@@ -6,9 +6,55 @@
 
 weather () {
 
-	local url_weather="wttr.in/?format=j1"
+	local host_weather="wttr.in"
+	local url_weather="${host_weather}/?format=j1"
 	local url_space="https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"
+	local name_command="jq"
+	local name_palette_blue="cornflower"
+	local name_palette_green="fern"
+	local code_palette_blue="68"
+	local code_palette_green="71"
+	local color_wind="navy"
+	local color_humidity="navy"
+	local color_sunlight="yellow"
+	local color_forecast="grey"
+	local color_rain_dry="white"
+	local color_rain_wet="blue"
+	local color_kp_quiet="${name_palette_green}"
+	local color_kp_active="yellow"
+	local color_kp_storm="orange"
+	local color_kp_severe="red"
+	local symbol_temperature="🌡"
+	local symbol_rain="☂"
+	local symbol_humidity="🌢"
+	local symbol_sunlight="🌣"
+	local symbol_space="☄"
+	local label_kp_quiet="quiet"
+	local label_kp_active="active"
+	local label_kp_storm="storm // auroras possible"
+	local label_kp_severe="severe storm // auroras possible"
+	local unit_temperature="°C"
+	local separator_values=" // "
+	local separator_fields="|"
+	local format_date="+%a %d %b"
+	local pattern_kp="^[0-9]$"
+	local text_rain_none="0"
+	local delay_timeout_weather="15"
+	local delay_timeout_space="10"
+	local level_kp_quiet="3"
+	local level_kp_active="4"
+	local level_kp_storm="6"
+	local offset_wind_reverse="180"
+	local offset_wind_sector="22"
+	local degrees_circle="360"
+	local degrees_sector="45"
+	local filter_location=".nearest_area[0] | [.areaName[0].value, .region[0].value] | join(\"${separator_fields}\")"
+	local filter_current=".current_condition[0] | [.temp_C, .FeelsLikeC, (.weatherDesc[0].value | rtrimstr(\" \")), .weatherCode, .windspeedKmph, .winddirDegree, .winddir16Point, .humidity, .precipMM, .uvIndex] | map(tostring) | join(\"${separator_fields}\")"
+	local filter_astronomy=".weather[0].astronomy[0] | [.sunrise, .sunset] | join(\"${separator_fields}\")"
+	local filter_space=".[-1].kp_index"
+	local filter_forecast=".weather[] | [.date, .mintempC, .maxtempC, .hourly[4].weatherCode, ([.hourly[].chanceofrain | tonumber] | max), (.hourly[4].weatherDesc[0].value | rtrimstr(\" \"))] | map(tostring) | join(\"${separator_fields}\")"
 
+	local path_command
 	local text_weather
 	local name_area
 	local name_region
@@ -32,6 +78,11 @@ weather () {
 	local label_day
 	local condition_day
 	local color_rain
+	local color_temperature
+	local symbol_condition
+	local symbol_day
+	local symbol_arrow
+	local index_arrow
 	local index_kp
 	local label_kp
 	local color_kp
@@ -42,40 +93,47 @@ weather () {
 
 	echo
 
-	if [ -z "$(command -v jq)" ]
+	# json parser path - empty if not installed
+
+	path_command="$(command -v "${name_command}")"
+
+	if [ -z "${path_command}" ]
 	then
-		frobulator.require jq
+		frobulator.require "${name_command}"
 	fi
 
 	# weather colors - added to the palette - cornflower blue - fern green
 
-	frobulator.palette cornflower 68
-	frobulator.palette fern 71
+	frobulator.palette "${name_palette_blue}" "${code_palette_blue}"
+	frobulator.palette "${name_palette_green}" "${code_palette_green}"
 
 	# forecast data - location from this connection
 
-	text_weather="$(curl --silent --fail --max-time 15 "${url_weather}")"
+	text_weather="$(curl --silent --fail --max-time "${delay_timeout_weather}" "${url_weather}")"
 
 	if [ -z "${text_weather}" ]
 	then
-		frobulator.err "Weather service unreachable" "[ wttr.in ]"
+		frobulator.err "Weather service unreachable" "[ ${host_weather} ]"
 
 		return 1
 	fi
 
-	IFS='|' read -r name_area name_region < <(
-		jq -r '.nearest_area[0] | [.areaName[0].value, .region[0].value] | join("|")' <<< "${text_weather}"
+	IFS="${separator_fields}" read -r name_area name_region < <(
+		jq -r "${filter_location}" <<< "${text_weather}"
 	)
 
-	IFS='|' read -r temperature_current temperature_feels condition_current code_condition speed_wind degrees_wind direction_wind percent_humidity amount_rain index_uv < <(
-		jq -r '.current_condition[0] | [.temp_C, .FeelsLikeC, (.weatherDesc[0].value | rtrimstr(" ")), .weatherCode, .windspeedKmph, .winddirDegree, .winddir16Point, .humidity, .precipMM, .uvIndex] | map(tostring) | join("|")' <<< "${text_weather}"
+	IFS="${separator_fields}" read -r temperature_current temperature_feels condition_current code_condition speed_wind degrees_wind direction_wind percent_humidity amount_rain index_uv < <(
+		jq -r "${filter_current}" <<< "${text_weather}"
 	)
 
-	IFS='|' read -r time_sunrise time_sunset < <(
-		jq -r '.weather[0].astronomy[0] | [.sunrise, .sunset] | join("|")' <<< "${text_weather}"
+	IFS="${separator_fields}" read -r time_sunrise time_sunset < <(
+		jq -r "${filter_astronomy}" <<< "${text_weather}"
 	)
 
 	# current conditions - symbol by weather code - colour by temperature
+
+	color_temperature="$(weather_color "${temperature_current}")"
+	symbol_condition="$(weather_symbol "${code_condition}")"
 
 	# location - nearest area and region
 
@@ -83,76 +141,80 @@ weather () {
 
 	# condition - sky description - symbol from its weather code
 
-	frobulator.num "$(weather_color "${temperature_current}")" "$(weather_symbol "${code_condition}")" "Condition" "[ ${condition_current} ]"
+	frobulator.num "${color_temperature}" "${symbol_condition}" "Condition" "[ ${condition_current} ]"
 
 	# temperature - current and felt - celsius
 
-	frobulator.num "$(weather_color "${temperature_current}")" "🌡" "Temperature" "[ ${temperature_current} °C // feels ${temperature_feels} °C ]"
+	frobulator.num "${color_temperature}" "${symbol_temperature}" "Temperature" "[ ${temperature_current} ${unit_temperature}${separator_values}feels ${temperature_feels} ${unit_temperature} ]"
 
 	# wind - compass point and speed - arrow towards where the wind blows - opposite of where it comes from
 
-	frobulator.num navy "${list_arrows_wind[( ( degrees_wind + 180 + 22 ) % 360 ) / 45]}" "Wind" "[ ${direction_wind} // ${speed_wind} km/h ]"
+	index_arrow=$(( ( ( degrees_wind + offset_wind_reverse + offset_wind_sector ) % degrees_circle ) / degrees_sector ))
+	symbol_arrow="${list_arrows_wind[index_arrow]}"
+
+	frobulator.num "${color_wind}" "${symbol_arrow}" "Wind" "[ ${direction_wind}${separator_values}${speed_wind} km/h ]"
 
 	# rain - precipitation amount - blue when raining
 
-	color_rain="white"
+	color_rain="${color_rain_dry}"
 
-	if [ "${amount_rain%%.*}" -gt 0 ] || [ "${amount_rain#*.}" != "0" ]
+	if [ "${amount_rain%%.*}" -gt 0 ] || [ "${amount_rain#*.}" != "${text_rain_none}" ]
 	then
-		color_rain="blue"
+		color_rain="${color_rain_wet}"
 	fi
 
-	frobulator.num "${color_rain}" "☂" "Rain" "[ ${amount_rain} mm ]"
+	frobulator.num "${color_rain}" "${symbol_rain}" "Rain" "[ ${amount_rain} mm ]"
 
 	# humidity - relative - percent
 
-	frobulator.num navy "🌢" "Humidity" "[ ${percent_humidity} % ]"
+	frobulator.num "${color_humidity}" "${symbol_humidity}" "Humidity" "[ ${percent_humidity} % ]"
 
 	# sunlight - sunrise to sunset - ultraviolet index
 
-	frobulator.num yellow "🌣" "Sunlight" "[ ${time_sunrise} - ${time_sunset} // uvi ${index_uv} ]"
+	frobulator.num "${color_sunlight}" "${symbol_sunlight}" "Sunlight" "[ ${time_sunrise} - ${time_sunset}${separator_values}uvi ${index_uv} ]"
 
 	# space weather - noaa planetary k index - geomagnetic activity - 0 to 9
 
-	index_kp="$(curl --silent --fail --max-time 10 "${url_space}" | jq -r '.[-1].kp_index' 2> "${sink}")"
+	index_kp="$(curl --silent --fail --max-time "${delay_timeout_space}" "${url_space}" | jq -r "${filter_space}" 2> "${sink}")"
 
-	if [[ "${index_kp}" =~ ^[0-9]$ ]]
+	if [[ "${index_kp}" =~ ${pattern_kp} ]]
 	then
-		if [ "${index_kp}" -le 3 ]
+		if [ "${index_kp}" -le "${level_kp_quiet}" ]
 		then
-			label_kp="quiet"
-			color_kp="fern"
+			label_kp="${label_kp_quiet}"
+			color_kp="${color_kp_quiet}"
 
-		elif [ "${index_kp}" -eq 4 ]
+		elif [ "${index_kp}" -eq "${level_kp_active}" ]
 		then
-			label_kp="active"
-			color_kp="yellow"
+			label_kp="${label_kp_active}"
+			color_kp="${color_kp_active}"
 
-		elif [ "${index_kp}" -le 6 ]
+		elif [ "${index_kp}" -le "${level_kp_storm}" ]
 		then
-			label_kp="storm // auroras possible"
-			color_kp="orange"
+			label_kp="${label_kp_storm}"
+			color_kp="${color_kp_storm}"
 		else
-			label_kp="severe storm // auroras possible"
-			color_kp="red"
+			label_kp="${label_kp_severe}"
+			color_kp="${color_kp_severe}"
 		fi
 
-		frobulator.num "${color_kp}" "☄" "Space" "[ kp ${index_kp} // ${label_kp} ]"
+		frobulator.num "${color_kp}" "${symbol_space}" "Space" "[ kp ${index_kp}${separator_values}${label_kp} ]"
 	fi
 
 	# forecast - separated - grey - midday symbol - lowest and highest temperature - highest rain chance of the day
 
 	frobulator.sep
 
-	while IFS='|' read -r date_forecast temperature_low temperature_high code_day percent_rain condition_day
+	while IFS="${separator_fields}" read -r date_forecast temperature_low temperature_high code_day percent_rain condition_day
 	do
-		label_day="$(date -d "${date_forecast}" '+%a %d %b')"
+		label_day="$(date -d "${date_forecast}" "${format_date}")"
+		symbol_day="$(weather_symbol "${code_day}")"
 
 		# day - temperature range - rain chance - midday condition
 
-		frobulator.num grey "$(weather_symbol "${code_day}")" "${label_day}" "[ ${temperature_low} to ${temperature_high} °C - rain ${percent_rain} % // ${condition_day} ]"
+		frobulator.num "${color_forecast}" "${symbol_day}" "${label_day}" "[ ${temperature_low} to ${temperature_high} ${unit_temperature} - rain ${percent_rain} %${separator_values}${condition_day} ]"
 	done < <(
-		jq -r '.weather[] | [.date, .mintempC, .maxtempC, .hourly[4].weatherCode, ([.hourly[].chanceofrain | tonumber] | max), (.hourly[4].weatherDesc[0].value | rtrimstr(" "))] | map(tostring) | join("|")' <<< "${text_weather}"
+		jq -r "${filter_forecast}" <<< "${text_weather}"
 	)
 }
 
@@ -160,41 +222,85 @@ weather_symbol () {
 
 	# weather code - text symbol - no emoji presentation
 
-	case "${1}"
-	in
-		113)																				echo "🌣" ;;
-		116|119|122)																		echo "☁" ;;
-		143|248|260)																		echo "🌫" ;;
-		389|395)																			echo "⛈" ;;
-		200|386|392)																		echo "🌩" ;;
-		176|263|266|281|284|293|296|299|302|305|308|311|314|353|356|359)					echo "⛆" ;;
-		179|182|185|227|230|317|320|323|326|329|332|335|338|350|362|365|368|371|374|377)	echo "❄" ;;
-		*)																					echo "?" ;;
-	esac
+	local pattern_sun="^(113)$"
+	local pattern_cloud="^(116|119|122)$"
+	local pattern_fog="^(143|248|260)$"
+	local pattern_thunderstorm="^(389|395)$"
+	local pattern_lightning="^(200|386|392)$"
+	local pattern_rain="^(176|263|266|281|284|293|296|299|302|305|308|311|314|353|356|359)$"
+	local pattern_snow="^(179|182|185|227|230|317|320|323|326|329|332|335|338|350|362|365|368|371|374|377)$"
+	local symbol_code_sun="🌣"
+	local symbol_code_cloud="☁"
+	local symbol_code_fog="🌫"
+	local symbol_code_thunderstorm="⛈"
+	local symbol_code_lightning="🌩"
+	local symbol_code_rain="⛆"
+	local symbol_code_snow="❄"
+	local symbol_code_unknown="?"
+	local code_weather="${1}"
+
+	if [[ "${code_weather}" =~ ${pattern_sun} ]]
+	then
+		echo "${symbol_code_sun}"
+
+	elif [[ "${code_weather}" =~ ${pattern_cloud} ]]
+	then
+		echo "${symbol_code_cloud}"
+
+	elif [[ "${code_weather}" =~ ${pattern_fog} ]]
+	then
+		echo "${symbol_code_fog}"
+
+	elif [[ "${code_weather}" =~ ${pattern_thunderstorm} ]]
+	then
+		echo "${symbol_code_thunderstorm}"
+
+	elif [[ "${code_weather}" =~ ${pattern_lightning} ]]
+	then
+		echo "${symbol_code_lightning}"
+
+	elif [[ "${code_weather}" =~ ${pattern_rain} ]]
+	then
+		echo "${symbol_code_rain}"
+
+	elif [[ "${code_weather}" =~ ${pattern_snow} ]]
+	then
+		echo "${symbol_code_snow}"
+	else
+		echo "${symbol_code_unknown}"
+	fi
 }
 
 weather_color () {
 
 	# temperature - palette colour - blue cold to red hot
 
+	local color_freezing="navy"
+	local color_cold="cornflower"
+	local color_mild="fern"
+	local color_warm="orange"
+	local color_hot="red"
+	local threshold_cold="10"
+	local threshold_mild="20"
+	local threshold_warm="27"
 	local temperature="${1}"
 
 	if [ "${temperature}" -le 0 ]
 	then
-		echo "navy"
+		echo "${color_freezing}"
 
-	elif [ "${temperature}" -le 10 ]
+	elif [ "${temperature}" -le "${threshold_cold}" ]
 	then
-		echo "cornflower"
+		echo "${color_cold}"
 
-	elif [ "${temperature}" -le 20 ]
+	elif [ "${temperature}" -le "${threshold_mild}" ]
 	then
-		echo "fern"
+		echo "${color_mild}"
 
-	elif [ "${temperature}" -le 27 ]
+	elif [ "${temperature}" -le "${threshold_warm}" ]
 	then
-		echo "orange"
+		echo "${color_warm}"
 	else
-		echo "red"
+		echo "${color_hot}"
 	fi
 }

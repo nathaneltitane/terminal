@@ -116,13 +116,18 @@ done
 
 application="leocad"
 architecture="arm64"
-url="https://api.github.com/repos/leozide/leocad/releases/latest"
+url_release="https://api.github.com/repos/leozide/leocad/releases/latest"
+url_base_download="https://github.com/leozide/leocad/releases/download/continuous"
+pattern_archive="[aA0-zZ9-]*${architecture}.zip"
+pattern_zip="*.zip"
+directory_extract="/usr/bin"
+label_extract="extract"
 
-archive=$(curl -s -L "${url}" | grep -o [aA0-zZ9-]*${architecture}.zip | head -n 1)
+archive=$(curl --silent --location "${url_release}" | grep --only-matching "${pattern_archive}" | head --lines=1)
 
-url_archive="https://github.com/leozide/leocad/releases/download/continuous/${archive}"
+url_archive="${url_base_download}/${archive}"
 
-output_extract=$(unzip -qq -d /usr/bin -o "${directory_download}"/*.zip)
+output_extract=$(unzip -qq -d "${directory_extract}" -o "${directory_download}"/${pattern_zip})
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -152,6 +157,6 @@ frobulator.download "${url_archive}" "${directory_download}"
 
 # extract
 
-frobulator.background "extract" -- frobulator.silence "${output_extract}"
+frobulator.background "${label_extract}" -- frobulator.silence "${output_extract}"
 
 frobulator.scs "Done."

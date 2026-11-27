@@ -9,6 +9,23 @@ record () {
 	local directory_output
 	local date_recording
 	local id_window
+	local name_folder
+	local format_date
+	local prefix_clip
+	local extension_clip
+	local pattern_window
+	local delimiter_field
+	local count_field
+	local delay_focus
+
+	name_folder="Videos"
+	format_date="+%m-%d-%Y-%H-%M-%S"
+	prefix_clip="clip-"
+	extension_clip=".ogv"
+	pattern_window="Window id"
+	delimiter_field=" "
+	count_field="4"
+	delay_focus="1"
 
 	# output starts one line below the command
 
@@ -32,21 +49,21 @@ record () {
 
 	list=()
 
-	if [ -d "${HOME}"/Videos ]
+	if [ -d "${HOME}"/"${name_folder}" ]
 	then
-		directory_output="${HOME}"/Videos
+		directory_output="${HOME}"/"${name_folder}"
 	else
 		directory_output="${HOME}"
 	fi
 
-	date_recording="$(date +"%m-%d-%Y-%H-%M-%S")"
-	id_window="$(xwininfo | grep "Window id" | cut -d ' ' -f 4)"
+	date_recording="$(date "${format_date}")"
+	id_window="$(xwininfo | grep --regexp="${pattern_window}" | cut --delimiter="${delimiter_field}" --fields="${count_field}")"
 
 	wmctrl		\
 		-i		\
 		-R		"${id_window}"
 
-	frobulator.timeout 1
+	frobulator.timeout "${delay_focus}"
 
 	recordmydesktop								\
 		--no-cursor								\
@@ -54,5 +71,5 @@ record () {
 		--no-sound								\
 		--overwrite								\
 		--windowid "${id_window}"				\
-		--output="${directory_output}"/clip-"${date_recording}".ogv
+		--output="${directory_output}"/"${prefix_clip}""${date_recording}""${extension_clip}"
 }

@@ -69,12 +69,16 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+option_uninstall="uninstall"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-u|--uninstall)
-			option="uninstall"
+			option="${option_uninstall}"
 		;;
 
 		-h|--help)
@@ -122,7 +126,7 @@ done
 
 # remove installed copies
 
-if [ "${option}" = "uninstall" ]
+if [ "${option}" = "${option_uninstall}" ]
 then
 	count_removed=0
 
@@ -160,7 +164,123 @@ frobulator.script "Welcome to the Gutendex teminal library!"
 
 # variables ────────────────────────────────────────────────────────────────────
 
-url_api="${marker_hts}gutendex.com/books"
+host_api="gutendex.com"
+path_api="books"
+url_api="${marker_hts}${host_api}/${path_api}"
+
+name_file_search="search.json"
+name_file_book="book.json"
+extension_book="epub"
+format_epub="application/epub+zip"
+characters_remove='"|/\:;,!?*<>{}_'
+expression_squeeze='s/  */ /g'
+expression_trim='s/^ *//;s/ *$//'
+encoded_space="%20"
+separator_space=" "
+separator_title=" - "
+separator_extension="."
+value_null="null"
+keyword_all="all"
+pattern_query="^[A-Za-z0-9]+$"
+pattern_language="^[A-Za-z]+$"
+pattern_language_numeric="^[0-90-9]+$"
+pattern_identifier="^[0-9]+$"
+pattern_selection_search="^(1|s|S)$"
+pattern_selection_details="^(2|g|G)$"
+pattern_selection_download="^(3|d|D)$"
+pattern_selection_exit="^(4|e|E)$"
+format_language_row="%-*s %-4s    |    %-*s %-4s\n"
+width_padding="4"
+count_columns_table="2"
+count_columns_fold="80"
+
+# json filters with arguments
+
+filter_ids_language='
+	.results[] |
+	select(.languages[] |
+	contains($language)) |
+	.id
+'
+
+filter_ids_all='
+	.results[].id
+'
+
+filter_count='.count'
+
+filter_results='
+	.results[] |
+	select(.languages[] |
+	contains($language)) |
+	"Identifier:"
+	+ " "
+	+ (.id|tostring)
+	+ "\n"
+	+ "\n"
+	+ "    "
+	+ "Title:"
+	+ "   "
+	+ "    "
+	+ .title
+	+ "\n"
+	+ "    "
+	+ "Author:"
+	+ "  "
+	+ "    "
+	+ (.authors[].name // "N/A")
+	+ "\n"
+	+ "    "
+	+ "Language:"
+	+ "    "
+	+ (.languages | join(", "))
+	+ "\n"
+	+ "    "
+	+ "Download:"
+	+ "    "
+	+ (.formats[$format] // "N/A")
+	+ "\n"
+'
+
+filter_formats='
+	.formats | to_entries[] |
+	"    - "
+	+ (.key | sub("^application/"; ""))
+	+ ":"
+	+ "\n"
+	+ "      [ " + .value + " ]"
+	+ "\n"
+'
+
+filter_details='
+	"\n"
+	+ "\n"
+	+ "Title:"
+	+ "\n"
+	+ "\n"
+	+ .title
+	+ "\n"
+	+ "\n"
+	+ "Author:"
+	+ "\n"
+	+ "\n"
+	+ (.authors[].name // "Unknown")
+	+ "\n"
+	+ "\n"
+	+ "Subjects:"
+	+ "\n"
+	+ "\n"
+	+ "    - "
+	+ (.subjects | join("\n    - "))
+	+ "\n"
+	+ "\n"
+	+ "Formats:"
+	+ "\n"
+'
+
+filter_epub='.formats[$format]'
+filter_title='.title'
+filter_author='.authors[0].name'
 
 # api responses - temporary - removed on exit
 
@@ -168,8 +288,8 @@ frobulator.temporary directory_temporary
 
 frobulator.trap "${directory_temporary}"
 
-file_json_search="${directory_temporary}/search.json"
-file_json_book="${directory_temporary}/book.json"
+file_json_search="${directory_temporary}/${name_file_search}"
+file_json_book="${directory_temporary}/${name_file_book}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -186,7 +306,7 @@ languages_list () {
 	# get all language names as an indexed array
 
 	list_names_language=("${!list_languages[@]}")
-	count_languages=${#list_names_language[@]}
+	count_languages="${#list_names_language[@]}"
 
 	# find longest langauge string
 
@@ -194,27 +314,28 @@ languages_list () {
 
 	for name_language in "${list_names_language[@]}"
 	do
-		if [[ ${#name_language} -gt ${length_language_longest} ]]
+		if [ "${#name_language}" -gt "${length_language_longest}" ]
 		then
-			length_language_longest=${#name_language}
+			length_language_longest="${#name_language}"
 		fi
 	done
 
 	# calculate half of the array length and round up
 
-	count_rows=$(( ( count_languages + 1 ) / 2 ))
+	count_rows=$(( ( count_languages + 1 ) / count_columns_table ))
+	width_column=$(( length_language_longest + width_padding ))
 
-	for (( i = 0 ; i < count_rows ; i ++ ))
+	for (( index_row = 0 ; index_row < count_rows ; index_row ++ ))
 	do
-		name_language_left="${list_names_language[i]}"
+		name_language_left="${list_names_language[index_row]}"
 
 		# avoid out-of-bounds error
 
-		name_language_right="${list_names_language[i+count_rows]:-}"
+		name_language_right="${list_names_language[index_row + count_rows]:-}"
 
-		printf "%-*s %-4s    |    %-*s %-4s\n"																	\
-		"$(( length_language_longest + 4 ))" "$name_language_left" "${list_languages[$name_language_left]}"		\
-		"$(( length_language_longest + 4 ))" "$name_language_right" "${list_languages[$name_language_right]}"
+		printf "${format_language_row}"																\
+			"${width_column}" "${name_language_left}" "${list_languages[${name_language_left}]}"	\
+			"${width_column}" "${name_language_right}" "${list_languages[${name_language_right}]}"
 	done
 
 	echo
@@ -222,7 +343,8 @@ languages_list () {
 	IFS=''
 
 	unset code_language
-	}
+
+}
 
 selections () {
 
@@ -244,13 +366,15 @@ selections () {
 	frobulator.read selection
 
 	echo
+
 }
 
 string_sanitize () {
 
 	string="${1}"
 
-	echo "${string}" | tr -d '"|/\:;,!?*<>{}_' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+	echo "${string}" | tr --delete "${characters_remove}" | sed --expression="${expression_squeeze}" | sed --expression="${expression_trim}"
+
 }
 
 book_query () {
@@ -259,9 +383,10 @@ book_query () {
 
 	frobulator.read query
 
-	while [[ ! "${query}" =~ ^[A-Za-z0-9]+$ ]]
+	while [[ ! "${query}" =~ ${pattern_query} ]]
 	do
 		echo
+
 		frobulator.err "Invalid input type:"
 
 		frobulator.wrn "Alphanumeric characters only"
@@ -276,7 +401,7 @@ book_query () {
 
 	# url encode space characters
 
-	query=$(echo "${query}" | sed 's/ /%20/g')
+	query="${query//${separator_space}/${encoded_space}}"
 
 	declare -A list_languages=(
 		["Abkhazian"]="ab"
@@ -470,19 +595,19 @@ book_query () {
 
 	while true
 	do
-		if [[ -z "${code_language}" ]]
+		if [ -z "${code_language}" ]
 		then
 			break
 		fi
 
-		if [[ "${code_language}" =~ ^[A-Za-z]+$ ]]
+		if [[ "${code_language}" =~ ${pattern_language} ]]
 		then
 			break
 		fi
 
-		if [[ "${code_language}" =~ ^[0-90-9]+$ ]]
+		if [[ "${code_language}" =~ ${pattern_language_numeric} ]]
 		then
-		    frobulator.err "Invalid input type:"
+			frobulator.err "Invalid input type:"
 
 			frobulator.wrn "Alphabetical characters only"
 		fi
@@ -506,33 +631,18 @@ book_query () {
 
 	# response written to file - a background assignment never reaches the script
 
-	frobulator.background process "Querying" -- curl -s -o "${file_json_search}" "${url_search}"
+	frobulator.background process "Querying" -- curl --silent --output "${file_json_search}" "${url_search}"
 
 	json_search="$(< "${file_json_search}")"
 
 	if [ -n "${code_language}" ]
 	then
-		list_ids_search_last=(
-			$(echo "${json_search}" | jq -r '
-									.results[] |
-									select(.languages[] |
-									contains("'"${code_language}"'")) |
-									.id
-								'
-			)
-		)
-
+		mapfile -t list_ids_search_last < <(jq --raw-output --arg language "${code_language}" "${filter_ids_language}" <<< "${json_search}")
 	else
-		list_ids_search_last=(
-			$(echo "${json_search}" | jq -r '
-									.results[].id
-								'
-			)
-		)
-
+		mapfile -t list_ids_search_last < <(jq --raw-output "${filter_ids_all}" <<< "${json_search}")
 	fi
 
-	count_matches=$(curl -s "${url_search}" | jq -r '.count')
+	count_matches="$(curl --silent "${url_search}" | jq --raw-output "${filter_count}")"
 
 	if [ "${count_matches}" -eq 0 ]
 	then
@@ -542,39 +652,9 @@ book_query () {
 
 		frobulator.sep
 
-		curl -s "${url_search}" | jq -r '
-									.results[] |
-									select(.languages[] |
-									contains("'"${code_language}"'")) |
-									"Identifier:"
-									+ " "
-									+ (.id|tostring)
-									+ "\n"
-									+ "\n"
-									+ "    "
-									+ "Title:"
-									+ "   "
-									+ "    "
-									+ .title
-									+ "\n"
-									+ "    "
-									+ "Author:"
-									+ "  "
-									+ "    "
-									+ (.authors[].name // "N/A")
-									+ "\n"
-									+ "    "
-									+ "Language:"
-									+ "    "
-									+ (.languages | join(", "))
-									+ "\n"
-									+ "    "
-									+ "Download:"
-									+ "    "
-									+ (.formats."application/epub+zip" // "N/A")
-									+ "\n"
-								'
+		curl --silent "${url_search}" | jq --raw-output --arg language "${code_language}" --arg format "${format_epub}" "${filter_results}"
 	fi
+
 }
 
 book_details () {
@@ -583,9 +663,10 @@ book_details () {
 
 	frobulator.read id_book
 
-	while [[ ! "${id_book}" =~ ^[0-9]+$ ]]
+	while [[ ! "${id_book}" =~ ${pattern_identifier} ]]
 	do
 		echo
+
 		frobulator.err "Invalid input type:"
 
 		frobulator.wrn "Numeric characters only"
@@ -600,46 +681,13 @@ book_details () {
 
 	frobulator.sep
 
-	text_formats=$(curl -s "${url_api}/${id_book}/" | jq -r '
-															.formats | to_entries[] |
-															"    - "
-															+ (.key | sub("^application/"; ""))
-															+ ":"
-															+ "\n"
-															+ "      [ " + .value + " ]"
-															+ "\n"
-														'
-			)
+	text_formats="$(curl --silent "${url_api}/${id_book}/" | jq --raw-output "${filter_formats}")"
 
 	# details fetched in the background to a file - shown once they arrive
 
-	frobulator.background process "Fetching details" -- curl -s -o "${file_json_book}" "${url_api}/${id_book}/"
+	frobulator.background process "Fetching details" -- curl --silent --output "${file_json_book}" "${url_api}/${id_book}/"
 
-	jq -r '
-													"\n"
-													+ "\n"
-													+ "Title:"
-													+ "\n"
-													+ "\n"
-													+ .title
-													+ "\n"
-													+ "\n"
-													+ "Author:"
-													+ "\n"
-													+ "\n"
-													+ (.authors[].name // "Unknown")
-													+ "\n"
-													+ "\n"
-													+ "Subjects:"
-													+ "\n"
-													+ "\n"
-													+ "    - "
-													+ (.subjects | join("\n    - "))
-													+ "\n"
-													+ "\n"
-													+ "Formats:"
-													+ "\n"
-												' "${file_json_book}" | fold -s -w 80
+	jq --raw-output "${filter_details}" "${file_json_book}" | fold --spaces --width="${count_columns_fold}"
 
 	echo "${text_formats}"
 
@@ -654,9 +702,11 @@ book_download () {
 
 	frobulator.read -a list_ids_book
 
-	if [ "${list_ids_book[0]}" = "all" ]
+	if [ "${list_ids_book[0]}" = "${keyword_all}" ]
 	then
-		if [ ${#list_ids_search_last[@]} -eq 0 ]
+		count_ids_last="${#list_ids_search_last[@]}"
+
+		if [ "${count_ids_last}" -eq 0 ]
 		then
 			frobulator.err "No previous search results stored or found."
 
@@ -670,68 +720,58 @@ book_download () {
 	do
 		frobulator.inf "Fetching book information" " [ ${id_book} ]"
 
-		frobulator.background process "Fetching book information" " [ ${id_book} ]" -- curl -s -o "${file_json_book}" "${url_api}/${id_book}/"
+		frobulator.background process "Fetching book information" " [ ${id_book} ]" -- curl --silent --output "${file_json_book}" "${url_api}/${id_book}/"
 
 		json_book="$(< "${file_json_book}")"
 		echo
 
-		url_epub=$(echo "${json_book}" | jq -r '.formats."application/epub+zip"')
+		url_epub="$(jq --raw-output --arg format "${format_epub}" "${filter_epub}" <<< "${json_book}")"
 
-		title=$(echo "${json_book}" | jq -r '.title')
-		author=$(echo "${json_book}" | jq -r '.authors[0].name')
+		title="$(jq --raw-output "${filter_title}" <<< "${json_book}")"
+		author="$(jq --raw-output "${filter_author}" <<< "${json_book}")"
 
-		if [ "${url_epub}" = "null" ]
+		if [ "${url_epub}" = "${value_null}" ]
 		then
 			frobulator.err "No EPUB version available for book" "[ ${id_book} ]"
 
 			continue
 		fi
 
-		author=$(string_sanitize "${author}")
-		title=$(string_sanitize  "${title}")
+		author="$(string_sanitize "${author}")"
+		title="$(string_sanitize "${title}")"
 
-		extension="epub"
+		extension="${extension_book}"
 
-		file_book="${author} - ${title}.${extension}"
+		file_book="${author}${separator_title}${title}${separator_extension}${extension}"
 
-		frobulator.background "Downloading" "[ ${file_book} ]" -- curl -s -L -o "${file_book}" "${url_epub}"
+		frobulator.background "Downloading" "[ ${file_book} ]" -- curl --silent --location --output "${file_book}" "${url_epub}"
 		echo
 
 		frobulator.inf "Download complete" "[ ${file_book} ]"
 	done
+
 }
 
 while true
 do
 	selections
 
-	case "${selection}"
-	in
-		1 | s | S )
+	if [[ "${selection}" =~ ${pattern_selection_search} ]]
+	then
+		book_query
 
-			book_query
+	elif [[ "${selection}" =~ ${pattern_selection_details} ]]
+	then
+		book_details
 
-		;;
+	elif [[ "${selection}" =~ ${pattern_selection_download} ]]
+	then
+		book_download
 
-		2 | g | G )
-
-			book_details
-		;;
-
-		3 | d | D )
-
-			book_download
-		;;
-
-		4 | e | E )
-
-			exit
-		;;
-
-		*)
-			frobulator.wrn "Invalid selection. Use selection numbers or [b]racketed pointers to access features."
-		;;
-
-	esac
+	elif [[ "${selection}" =~ ${pattern_selection_exit} ]]
+	then
+		exit
+	else
+		frobulator.wrn "Invalid selection. Use selection numbers or [b]racketed pointers to access features."
+	fi
 done
-

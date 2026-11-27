@@ -186,24 +186,101 @@ directory_share="${directory_share%/}"
 id_user="$(id -u "${USER}")"
 
 directory_runtime="/run/user/${id_user}"
-directory_storage_android="${HOME}/.local/share/waydroid/data/media/0"
+directory_data_waydroid="${HOME}/.local/share/waydroid"
+directory_storage_android="${directory_data_waydroid}/data/media/0"
+directory_system_android="${directory_data_waydroid}/data/system"
+directory_applications="${HOME}/.local/share/applications"
+directory_systemd="/etc/systemd/system"
+directory_modprobe="/etc/modprobe.d"
+directory_modules="/etc/modules-load.d"
+directory_state_waydroid="/var/lib/waydroid"
+directory_images="${directory_state_waydroid}/images"
+directory_keyrings="/usr/share/keyrings"
+directory_repository="/etc/apt/sources.list.d"
+directory_dropin="${directory_systemd}/waydroid-container.service.d"
+directory_configuration="${HOME}/.config"
 
 # android storage user - media_rw - files seen by android apps as their own
 
 id_media_rw=1023
 
-file_repository=/etc/apt/sources.list.d/waydroid.list
+host_repository="repo.waydro.id"
+url_repository="https://${host_repository}"
+name_keyring="waydroid.gpg"
+name_repository="waydroid.list"
+url_keyring="${url_repository}/${name_keyring}"
+file_keyring="${directory_keyrings}/${name_keyring}"
+file_repository="${directory_repository}/${name_repository}"
+file_release="/etc/os-release"
+file_history_apt="/var/log/apt/history.log"
+file_image_system="system.img"
+file_image_vendor="vendor.img"
+file_binder="binder.conf"
+file_dropin="docker-forward.conf"
+file_keyboard="input-manager-state.xml"
+file_database_services="/data/data/com.google.android.gsf/databases/gservices.db"
 
 # local copy of the android images - system.img and vendor.img - used instead of downloading
 
 directory_images_local=/media/internal/Linux/Waydroid
-file_keyring=/usr/share/keyrings/waydroid.gpg
+
+name_package_curl="curl"
+name_package_waydroid="waydroid"
+name_package_weston="weston"
+name_package_bindfs="bindfs"
+name_module_binder="binder_linux"
+name_devices_binder="binder,hwbinder,vndbinder"
+name_service_container="waydroid-container.service"
+name_chain_docker="DOCKER-USER"
+name_interface_waydroid="waydroid0"
+name_type_image="GAPPS"
+name_session_x11="x11"
+name_property_display="Display"
+name_property_type="Type"
+name_label_none="none"
+prefix_unit_share="waydroid-share-"
+suffix_unit=".service"
+label_layout="layout:"
+protocol_curl="=https"
+pattern_codename='^VERSION_CODENAME='
+pattern_image="*.img"
+pattern_launcher="waydroid.*.desktop"
+pattern_history_install='^Install: .*waydroid:'
+pattern_layout="^${label_layout}"
+expression_history_prefix='s/^Install: //'
+expression_history_split='s/), /)\n/g'
+expression_history_suffix='s/:.*//'
+format_status_package='${Status}'
+status_package_installed="install ok installed"
+separator_layouts=","
+character_space=" "
+frontend_apt="noninteractive"
+owner_android="1000:1000"
+mode_file_private="0600"
+value_boot_completed="1"
+width_weston="1280"
+height_weston="800"
+count_matches_first="1"
+count_attempts_register="24"
+count_attempts_keyboard="60"
+delay_weston="3"
+delay_register="5"
+delay_keyboard="3"
+
+pattern_share_unit="${prefix_unit_share}*${suffix_unit}"
 
 socket_weston="waydroid-0"
+pattern_weston_process="weston .*--socket=${socket_weston}"
 
 # weston settings for the android window - no top panel
 
-file_weston="${HOME}/.config/weston-waydroid.ini"
+file_weston="${directory_configuration}/weston-waydroid.ini"
+
+list_packages_waydroid=(
+	"${name_package_waydroid}"
+	"${name_package_weston}"
+	"${name_package_bindfs}"
+)
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -238,7 +315,7 @@ fi
 if [ "${option_install}" = "true" ]
 then
 	list=(
-		curl
+		"${name_package_curl}"
 	)
 
 	frobulator.require ${list[@]}
@@ -249,19 +326,19 @@ then
 
 	# waydroid repository - signing key and source list - distribution codename
 
-	frobulator.inf "Adding repository" "[ repo.waydro.id ]"
+	frobulator.inf "Adding repository" "[ ${host_repository} ]"
 
-	name_codename="$(grep -m 1 '^VERSION_CODENAME=' /etc/os-release)"
+	name_codename="$(grep --max-count="${count_matches_first}" "${pattern_codename}" "${file_release}")"
 	name_codename="${name_codename#*=}"
 
 	if [ ! -f "${file_keyring}" ]
 	then
-		curl -s --proto '=https' --tlsv1.2 -Sf https://repo.waydro.id/waydroid.gpg --output "${file_keyring}"
+		curl --silent --proto "${protocol_curl}" --tlsv1.2 --show-error --fail "${url_keyring}" --output "${file_keyring}"
 
 		frobulator.complete
 	fi
 
-	frobulator.write write "deb [signed-by=${file_keyring}] https://repo.waydro.id/ ${name_codename} main" /etc/apt/sources.list.d waydroid.list
+	frobulator.write write "deb [signed-by=${file_keyring}] ${url_repository}/ ${name_codename} main" "${directory_repository}" "${name_repository}"
 
 	frobulator.complete
 
@@ -270,9 +347,7 @@ then
 	frobulator.complete
 
 	list=(
-		waydroid
-		weston
-		bindfs
+		"${list_packages_waydroid[@]}"
 	)
 
 	frobulator.install ${list[@]}
@@ -285,27 +360,27 @@ then
 
 	frobulator.inf "Configuring android ipc" "[ binder // hwbinder // vndbinder ]"
 
-	frobulator.write write "options binder_linux devices=binder,hwbinder,vndbinder" /etc/modprobe.d binder.conf
+	frobulator.write write "options ${name_module_binder} devices=${name_devices_binder}" "${directory_modprobe}" "${file_binder}"
 
 	frobulator.complete
 
-	frobulator.write write "binder_linux" /etc/modules-load.d binder.conf
+	frobulator.write write "${name_module_binder}" "${directory_modules}" "${file_binder}"
 
 	frobulator.complete
 
-	modprobe binder_linux
+	modprobe "${name_module_binder}"
 
 	frobulator.complete
 
 	# android image with google apps - downloaded once
 
-	list_images=(/var/lib/waydroid/images/*.img)
+	list_images=("${directory_images}"/${pattern_image})
 
 	if [ -e "${list_images[0]}" ]
 	then
-		frobulator.inf "Android image present" "[ /var/lib/waydroid/images ]"
+		frobulator.inf "Android image present" "[ ${directory_images} ]"
 
-	elif [ -f "${directory_images_local}/system.img" ] && [ -f "${directory_images_local}/vendor.img" ]
+	elif [ -f "${directory_images_local}/${file_image_system}" ] && [ -f "${directory_images_local}/${file_image_vendor}" ]
 	then
 		frobulator.inf "Using local android image" "[ ${directory_images_local} ]"
 
@@ -315,7 +390,7 @@ then
 	else
 		frobulator.inf "Downloading android image" "[ lineage // google apps ]"
 
-		waydroid init -s GAPPS -f
+		waydroid init -s "${name_type_image}" -f
 
 		frobulator.complete
 
@@ -323,7 +398,7 @@ then
 
 		frobulator.directory "${directory_images_local}"
 
-		cp /var/lib/waydroid/images/system.img /var/lib/waydroid/images/vendor.img "${directory_images_local}"/
+		cp "${directory_images}/${file_image_system}" "${directory_images}/${file_image_vendor}" "${directory_images_local}"/
 
 		frobulator.complete
 	fi
@@ -335,10 +410,10 @@ then
 
 	if [ -n "${path_docker}" ]
 	then
-		frobulator.inf "Allowing android network through docker" "[ DOCKER-USER // waydroid0 ]"
+		frobulator.inf "Allowing android network through docker" "[ ${name_chain_docker} // ${name_interface_waydroid} ]"
 
-		rule_inbound="iptables -C DOCKER-USER -i waydroid0 -j ACCEPT 2> /dev/null || iptables -I DOCKER-USER -i waydroid0 -j ACCEPT"
-		rule_return="iptables -C DOCKER-USER -o waydroid0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2> /dev/null || iptables -I DOCKER-USER -o waydroid0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"
+		rule_inbound="iptables -C ${name_chain_docker} -i ${name_interface_waydroid} -j ACCEPT 2> /dev/null || iptables -I ${name_chain_docker} -i ${name_interface_waydroid} -j ACCEPT"
+		rule_return="iptables -C ${name_chain_docker} -o ${name_interface_waydroid} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2> /dev/null || iptables -I ${name_chain_docker} -o ${name_interface_waydroid} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"
 
 		content_dropin=$(cat <<- FILE
 		# waydroid network through docker - docker drops forwarded traffic by default
@@ -350,7 +425,7 @@ then
 		FILE
 		)
 
-		frobulator.write write "${content_dropin}" /etc/systemd/system/waydroid-container.service.d docker-forward.conf
+		frobulator.write write "${content_dropin}" "${directory_dropin}" "${file_dropin}"
 
 		frobulator.complete
 
@@ -359,7 +434,7 @@ then
 		frobulator.complete
 	fi
 
-	frobulator.service activate waydroid-container.service
+	frobulator.service activate "${name_service_container}"
 
 	frobulator.complete
 fi
@@ -370,16 +445,16 @@ if [ "${option_ui}" = "true" ]
 then
 	# x11 session - waydroid needs wayland - weston window as the wayland display
 
-	type_session="$(loginctl show-user "${USER}" -p Display --value 2> "${sink}")"
-	type_session="$(loginctl show-session "${type_session}" -p Type --value 2> "${sink}")"
+	type_session="$(loginctl show-user "${USER}" -p "${name_property_display}" --value 2> "${sink}")"
+	type_session="$(loginctl show-session "${type_session}" -p "${name_property_type}" --value 2> "${sink}")"
 
 	display_wayland="${WAYLAND_DISPLAY}"
 
-	if [ "${type_session}" = "x11" ] || [ -z "${display_wayland}" ]
+	if [ "${type_session}" = "${name_session_x11}" ] || [ -z "${display_wayland}" ]
 	then
 		# weston already open - reused - a new one would leave android on the old display
 
-		list_weston="$(pgrep -u "${USER}" -f "weston .*--socket=${socket_weston}")"
+		list_weston="$(pgrep -u "${USER}" -f "${pattern_weston_process}")"
 
 		if [ -n "${list_weston}" ]
 		then
@@ -389,7 +464,7 @@ then
 		fi
 	fi
 
-	if [ "${type_session}" = "x11" ] && [ -z "${list_weston}" ] || [ -z "${display_wayland}" ]
+	if [ "${type_session}" = "${name_session_x11}" ] && [ -z "${list_weston}" ] || [ -z "${display_wayland}" ]
 	then
 		# android session tied to a closed window - stopped so it starts on the new one
 
@@ -403,13 +478,13 @@ then
 		FILE
 		)
 
-		frobulator.write write "${content_weston}" "${HOME}/.config" "${file_weston##*/}"
+		frobulator.write write "${content_weston}" "${directory_configuration}" "${file_weston##*/}"
 
 		frobulator.complete
 
-		user_run weston --config="${file_weston}" --socket="${socket_weston}" --width=1280 --height=800 > "${sink}" 2>&1 &
+		user_run weston --config="${file_weston}" --socket="${socket_weston}" --width="${width_weston}" --height="${height_weston}" > "${sink}" 2>&1 &
 
-		sleep 3
+		sleep "${delay_weston}"
 
 		display_wayland="${socket_weston}"
 	fi
@@ -433,16 +508,16 @@ then
 
 	frobulator.inf "Waiting for the android id"
 
-	for (( count_wait = 0 ; count_wait < 24 ; count_wait ++ ))
+	for (( count_wait = 0 ; count_wait < count_attempts_register ; count_wait ++ ))
 	do
-		id_android="$(waydroid shell -- sh -c "sqlite3 /data/data/com.google.android.gsf/databases/gservices.db \"${query_register}\"" 2> "${sink}")"
+		id_android="$(waydroid shell -- sh -c "sqlite3 ${file_database_services} \"${query_register}\"" 2> "${sink}")"
 
 		if [ -n "${id_android}" ]
 		then
 			break
 		fi
 
-		sleep 5
+		sleep "${delay_register}"
 	done
 
 	if [ -z "${id_android}" ]
@@ -480,7 +555,7 @@ then
 	name_share="${name_share^}"
 
 	directory_target="${directory_storage_android}/${name_share}"
-	name_service="waydroid-share-${name_share,,}.service"
+	name_service="${prefix_unit_share}${name_share,,}${suffix_unit}"
 
 	# bindfs - android sees media_rw as owner - files created from android belong to the desktop user
 
@@ -501,7 +576,7 @@ then
 	FILE
 	)
 
-	frobulator.write write "${content_service}" /etc/systemd/system "${name_service}"
+	frobulator.write write "${content_service}" "${directory_systemd}" "${name_service}"
 
 	frobulator.complete
 
@@ -525,11 +600,11 @@ then
 
 	if [ -z "${name_layout}" ]
 	then
-		text_layout="$(user_run setxkbmap -query 2> "${sink}" | grep -m 1 '^layout:')"
-		text_layout="${text_layout#layout:}"
-		text_layout="${text_layout// /}"
+		text_layout="$(user_run setxkbmap -query 2> "${sink}" | grep --max-count="${count_matches_first}" "${pattern_layout}")"
+		text_layout="${text_layout#"${label_layout}"}"
+		text_layout="${text_layout//"${character_space}"/}"
 
-		name_layout="${text_layout%%,*}"
+		name_layout="${text_layout%%"${separator_layouts}"*}"
 	fi
 
 	# desktop layout code to the android keyboard layout name
@@ -557,7 +632,7 @@ then
 
 	if [ -z "${name_layout_android}" ]
 	then
-		frobulator.err "Keyboard layout not supported" "[ ${name_layout:-none} ]"
+		frobulator.err "Keyboard layout not supported" "[ ${name_layout:-${name_label_none}} ]"
 
 		exit 1
 	fi
@@ -572,8 +647,6 @@ then
 
 	# waydroid keyboard - device vendor 1 product 1 - plain xml read as well as binary xml
 
-	directory_system_android="${HOME}/.local/share/waydroid/data/system"
-
 	content_keyboard=$(cat <<- FILE
 	<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 	<input-manager-state>
@@ -586,14 +659,14 @@ then
 	FILE
 	)
 
-	frobulator.write write "${content_keyboard}" "${directory_system_android}" input-manager-state.xml
+	frobulator.write write "${content_keyboard}" "${directory_system_android}" "${file_keyboard}"
 
 	frobulator.complete
 
 	# android system user owns it
 
-	chown 1000:1000 "${directory_system_android}/input-manager-state.xml"
-	chmod 0600 "${directory_system_android}/input-manager-state.xml"
+	chown "${owner_android}" "${directory_system_android}/${file_keyboard}"
+	chmod "${mode_file_private}" "${directory_system_android}/${file_keyboard}"
 
 	frobulator.complete
 
@@ -601,16 +674,16 @@ then
 
 	user_run env WAYLAND_DISPLAY="${socket_weston}" waydroid show-full-ui > "${sink}" 2>&1 &
 
-	for (( count_wait = 0 ; count_wait < 60 ; count_wait ++ ))
+	for (( count_wait = 0 ; count_wait < count_attempts_keyboard ; count_wait ++ ))
 	do
 		state_boot="$(waydroid shell -- getprop sys.boot_completed < "${sink}" 2> "${sink}")"
 
-		if [ "${state_boot}" = "1" ]
+		if [ "${state_boot}" = "${value_boot_completed}" ]
 		then
 			break
 		fi
 
-		sleep 3
+		sleep "${delay_keyboard}"
 	done
 
 	waydroid shell -- settings put secure show_ime_with_hard_keyboard 0 < "${sink}" > "${sink}" 2>&1
@@ -629,11 +702,11 @@ then
 
 	frobulator.inf "Stopping waydroid"
 
-	pkill -u "${USER}" -f "weston .*--socket=${socket_weston}" > "${sink}" 2>&1
+	pkill -u "${USER}" -f "${pattern_weston_process}" > "${sink}" 2>&1
 
 	user_run waydroid session stop > "${sink}" 2>&1
 
-	list_units_share=(/etc/systemd/system/waydroid-share-*.service)
+	list_units_share=("${directory_systemd}"/${pattern_share_unit})
 
 	for file_unit in "${list_units_share[@]}"
 	do
@@ -643,20 +716,20 @@ then
 		fi
 	done
 
-	systemctl disable --now waydroid-container.service > "${sink}" 2>&1
+	systemctl disable --now "${name_service_container}" > "${sink}" 2>&1
 
 	frobulator.complete
 
 	# shared folders - must be unmounted - anything removed below would otherwise reach the real folders
 
-	list_mounts_share="$(findmnt -rno TARGET | grep -F "${directory_storage_android}/")"
+	list_mounts_share="$(findmnt --raw --noheadings --output TARGET | grep --fixed-strings "${directory_storage_android}/")"
 
 	for directory_mount in ${list_mounts_share}
 	do
 		fusermount -u "${directory_mount}" > "${sink}" 2>&1
 	done
 
-	list_mounts_share="$(findmnt -rno TARGET | grep -F "${directory_storage_android}/")"
+	list_mounts_share="$(findmnt --raw --noheadings --output TARGET | grep --fixed-strings "${directory_storage_android}/")"
 
 	if [ -n "${list_mounts_share}" ]
 	then
@@ -670,10 +743,10 @@ then
 	frobulator.inf "Removing configuration"
 
 	list_files_configuration=(
-		/etc/systemd/system/waydroid-share-*.service
-		/etc/systemd/system/waydroid-container.service.d
-		/etc/modprobe.d/binder.conf
-		/etc/modules-load.d/binder.conf
+		"${directory_systemd}"/${pattern_share_unit}
+		"${directory_dropin}"
+		"${directory_modprobe}/${file_binder}"
+		"${directory_modules}/${file_binder}"
 		"${file_repository}"
 		"${file_keyring}"
 	)
@@ -692,31 +765,31 @@ then
 
 	# firewall rules added for the android network
 
-	iptables -D DOCKER-USER -i waydroid0 -j ACCEPT > "${sink}" 2>&1
-	iptables -D DOCKER-USER -o waydroid0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > "${sink}" 2>&1
+	iptables -D "${name_chain_docker}" -i "${name_interface_waydroid}" -j ACCEPT > "${sink}" 2>&1
+	iptables -D "${name_chain_docker}" -o "${name_interface_waydroid}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > "${sink}" 2>&1
 
 	# android ipc driver - unloaded now when free - at next reboot otherwise
 
-	modprobe -r binder_linux > "${sink}" 2>&1
+	modprobe -r "${name_module_binder}" > "${sink}" 2>&1
 
 	# packages - those installed together with waydroid - read from the apt history - nothing installed before it
 
 	frobulator.inf "Removing packages"
 
 	list_packages_installed=(
-		$(grep -h "^Install: .*waydroid:" /var/log/apt/history.log 2> "${sink}" |
-			sed -e 's/^Install: //' -e 's/), /)\n/g' |
-			sed -e 's/:.*//' |
-			sort -u)
+		$(grep --no-filename "${pattern_history_install}" "${file_history_apt}" 2> "${sink}" |
+			sed --expression="${expression_history_prefix}" --expression="${expression_history_split}" |
+			sed --expression="${expression_history_suffix}" |
+			sort --unique)
 	)
 
 	list_packages_removed=()
 
-	for name_package in "${list_packages_installed[@]}" waydroid weston bindfs
+	for name_package in "${list_packages_installed[@]}" "${list_packages_waydroid[@]}"
 	do
-		state_package="$(dpkg-query -W -f='${Status}' "${name_package}" 2> "${sink}")"
+		state_package="$(dpkg-query --show --showformat="${format_status_package}" "${name_package}" 2> "${sink}")"
 
-		if [ "${state_package}" = "install ok installed" ]
+		if [ "${state_package}" = "${status_package_installed}" ]
 		then
 			list_packages_removed+=("${name_package}")
 		fi
@@ -724,7 +797,7 @@ then
 
 	if [ "${#list_packages_removed[@]}" -gt 0 ]
 	then
-		DEBIAN_FRONTEND=noninteractive apt-get purge --assume-yes "${list_packages_removed[@]}" > "${sink}" 2>&1
+		DEBIAN_FRONTEND="${frontend_apt}" apt-get purge --assume-yes "${list_packages_removed[@]}" > "${sink}" 2>&1
 
 		frobulator.complete
 	fi
@@ -734,11 +807,11 @@ then
 
 	frobulator.inf "Removing waydroid data"
 
-	list_launchers=("${HOME}"/.local/share/applications/waydroid.*.desktop)
+	list_launchers=("${directory_applications}"/${pattern_launcher})
 
 	list_files_data=(
-		/var/lib/waydroid
-		"${HOME}/.local/share/waydroid"
+		"${directory_state_waydroid}"
+		"${directory_data_waydroid}"
 		"${file_weston}"
 		"${list_launchers[@]}"
 	)

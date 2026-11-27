@@ -114,7 +114,12 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="+%m-%d-%Y-%H-%M-%S"
+file_selector="/usr/bin/conky-picture-selector"
+file_launcher="/usr/share/applications/conky-picture-selector.desktop"
+mode_executable="+x"
+
+stamp=$(date "${format_stamp}")
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -138,7 +143,7 @@ list=()
 
 # configuration ────────────────────────────────────────────────────────────────
 
-cat << "FILE" > /usr/bin/conky-picture-selector
+cat << "FILE" > "${file_selector}"
 #!/bin/bash
 
 # conky configuration directory
@@ -219,11 +224,11 @@ wait
 conky -c "${file_config_frame}" &
 FILE
 
-chmod +x /usr/bin/conky-picture-selector
+chmod "${mode_executable}" "${file_selector}"
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/conky-picture-selector.desktop
+cat <<- 'FILE' > "${file_launcher}"
 [Desktop Entry]
 Name=Conky Picture Selector
 Comment=Highly configurable system monitor

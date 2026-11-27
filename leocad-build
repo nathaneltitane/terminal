@@ -69,6 +69,10 @@ version="2026-10-24"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+address_source="github.com/leozide/leocad.git"
+
 while (( $# ))
 do
 	case "${1}"
@@ -87,7 +91,7 @@ do
 			echo
 			echo -e "-s, --source    Specify [s]ource URL to build from."
 			echo
-			echo -e "                [ ${marker_hts}github.com/leozide/leocad.git ] [ Default ]"
+			echo -e "                [ ${marker_hts}${address_source} ] [ Default ]"
 			echo
 			echo -e "-h, --help      Show [h]elp and usage information."
 			echo
@@ -138,11 +142,20 @@ count_processors="$(nproc)"
 
 command_plasma="plasmashell"
 
+# launcher and build file names
+
+extension_project=".pro"
+extension_launcher=".desktop"
+directory_release="build/release"
+directory_applications="/usr/share/applications"
+label_clone="clone"
+label_build="build"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${url_source}" ]
 then
-	url_source="${marker_hts}github.com/leozide/leocad.git"
+	url_source="${marker_hts}${address_source}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -172,7 +185,11 @@ list=(
 
 # kde desktop - konsole part and kparts headers for the terminal panel
 
-if [ -n "$(command -v "${command_plasma}")" ]
+# plasma command path - empty if not installed
+
+path_plasma="$(command -v "${command_plasma}")"
+
+if [ -n "${path_plasma}" ]
 then
 	list+=(
 		konsole-kpart
@@ -200,7 +217,7 @@ frobulator.complete continue "Cleanup trap failure" "[ ${directory_build} ]"
 
 command_clone="git clone --quiet"
 
-frobulator.background "clone" -- frobulator.silence "${command_clone} '${url_source}' '${directory_build}'"
+frobulator.background "${label_clone}" -- frobulator.silence "${command_clone} '${url_source}' '${directory_build}'"
 
 frobulator.complete halt "Clone failure" "[ ${url_source} ]"
 
@@ -210,7 +227,7 @@ frobulator.complete halt "Directory not found" "[ ${directory_build} ]"
 
 # configure project
 
-frobulator.silence "qmake ${application}.pro"
+frobulator.silence "qmake ${application}${extension_project}"
 
 frobulator.complete halt "Unable to configure project" "[ ${application} ]"
 
@@ -218,13 +235,13 @@ frobulator.complete halt "Unable to configure project" "[ ${application} ]"
 
 command_build="make -j${count_processors}"
 
-frobulator.background "build" -- frobulator.silence log "${command_build}"
+frobulator.background "${label_build}" -- frobulator.silence log "${command_build}"
 
 frobulator.complete halt "Build failure" "[ ${application} ]"
 
 # install binary
 
-frobulator.copy "${directory_build}"/build/release "${directory_install}" "${application}"
+frobulator.copy "${directory_build}/${directory_release}" "${directory_install}" "${application}"
 
 frobulator.complete continue "Install failure" "[ ${directory_install}/${application} ]"
 
@@ -244,8 +261,8 @@ Keywords=CAD;LEGO;LDraw;
 LAUNCHER
 )
 
-frobulator.write write "${content_launcher}" /usr/share/applications "${application}".desktop
+frobulator.write write "${content_launcher}" "${directory_applications}" "${application}${extension_launcher}"
 
-frobulator.complete continue "Launcher failure" "[ /usr/share/applications/${application}.desktop ]"
+frobulator.complete continue "Launcher failure" "[ ${directory_applications}/${application}${extension_launcher} ]"
 
 frobulator.result "${script}"

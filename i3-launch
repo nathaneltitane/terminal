@@ -1,14 +1,23 @@
 #!/bin/bash
 
-i3-dmenu-desktop						\
-	--dmenu="							\
-			dmenu						\
-				-b						\
-				-i						\
-				-p 'LAUNCH //'			\
-				-fn 'Monospace:size=10'	\
-				-nb '#000000'			\
-				-nf '#FFFFFF'			\
-				-sb '#666666'			\
-				-sf '#000000'			\
-			"
+# variables
+
+prompt_menu="LAUNCH //"
+font_menu="Monospace:size=10"
+color_background="#000000"
+color_foreground="#FFFFFF"
+color_selected_background="#666666"
+color_selected_foreground="#000000"
+
+i3-dmenu-desktop							\
+	--dmenu="								\
+		dmenu								\
+		-b									\
+		-i									\
+		-p '${prompt_menu}'					\
+		-fn '${font_menu}'					\
+		-nb '${color_background}'			\
+		-nf '${color_foreground}'			\
+		-sb '${color_selected_background}'	\
+		-sf '${color_selected_foreground}'	\
+		"

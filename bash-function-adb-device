@@ -6,18 +6,20 @@
 
 adb_device () {
 
+	local count_arguments_minimum="1"
+	local delay_connect="2"
 	local device
 
 	adb_download
 
 	adb_set_environment
 
-	if [ $# -gt 1 ]
+	if [ $# -gt "${count_arguments_minimum}" ]
 	then
 		device="-s ${@:2}"
 
 		adb connect ${@:2}
 
-		sleep 2
+		sleep "${delay_connect}"
 	fi
 }

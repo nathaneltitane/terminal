@@ -6,7 +6,9 @@ frobulator="${HOME}"/.local/bin/frobulator
 
 # frobulator next to linked files
 
-directory_shell="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+file_shell="$(readlink --canonicalize -- "${BASH_SOURCE[0]}")"
+
+directory_shell="$(dirname -- "${file_shell}")"
 
 if [ -f "${directory_shell}"/frobulator ]
 then
@@ -26,6 +28,28 @@ version="2026-11-19"
 # defaults ─────────────────────────────────────────────────────────────────────
 
 self="${BASH_SOURCE[0]}"
+value_install="install"
+name_root="root"
+name_termux="termux"
+name_proot="proot"
+file_completion_prefix="${PREFIX}/share/bash-completion/bash_completion"
+file_completion_system="/usr/share/bash-completion/bash_completion"
+file_completion_legacy="/etc/bash_completion"
+directory_aliases="${HOME}/.bash-aliases"
+file_aliases="${HOME}/.bash_aliases"
+directory_functions="${HOME}/.bash-functions"
+file_functions="${HOME}/.bash_functions"
+file_login="${HOME}/.bash_login"
+file_profile="${HOME}/.bash_profile"
+format_color_foreground='\e[38;5;%sm'
+sequence_color_reset='\e[39m'
+prompt_wrap_start='\['
+prompt_wrap_end='\]'
+prompt_bracket_open="[ "
+prompt_bracket_close=" ]"
+prompt_symbol=" >_ "
+prompt_marker_root="# "
+prompt_marker_user='$ '
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -42,7 +66,7 @@ then
 		case "${1}"
 		in
 			-i|--install)
-				option="install"
+				option="${value_install}"
 			;;
 
 			-h|--help)
@@ -90,12 +114,12 @@ then
 
 	if [ -z "${option}" ]
 	then
-		option="install"
+		option="${value_install}"
 	fi
 
 	# install
 
-	if [ "${option}" = "install" ]
+	if [ "${option}" = "${value_install}" ]
 	then
 		# blank line - output separated from the shell prompt
 
@@ -160,17 +184,17 @@ status_shell_posix="${?}"
 
 if [ "${status_shell_posix}" -ne 0 ]
 then
-	if [ -f "${PREFIX}"/share/bash-completion/bash_completion ]
+	if [ -f "${file_completion_prefix}" ]
 	then
-		. "${PREFIX}"/share/bash-completion/bash_completion
+		. "${file_completion_prefix}"
 
-	elif [ -f /usr/share/bash-completion/bash_completion ]
+	elif [ -f "${file_completion_system}" ]
 	then
-		. /usr/share/bash-completion/bash_completion
+		. "${file_completion_system}"
 
-	elif [ -f /etc/bash_completion ]
+	elif [ -f "${file_completion_legacy}" ]
 	then
-		. /etc/bash_completion
+		. "${file_completion_legacy}"
 	fi
 fi
 
@@ -186,7 +210,7 @@ if [ -n "${TERMUX_VERSION}" ]
 then
 	if [ -z "${USER}" ]
 	then
-		USER="termux"
+		USER="${name_termux}"
 	fi
 fi
 
@@ -256,38 +280,38 @@ then
 
 	# ansi color attributes
 
-	if [[ -t 1 ]]
+	if [ -t 1 ]
 	then
 		# monochromatic colors
 
-		white=$(echo -e \\e\[38\;5\;"${white}"m)
-		silver=$(echo -e \\e\[38\;5\;"${silver}"m)
-		grey=$(echo -e \\e\[38\;5\;"${grey}"m)
-		black=$(echo -e \\e\[38\;5\;"${black}"m)
+		printf -v white "${format_color_foreground}" "${white}"
+		printf -v silver "${format_color_foreground}" "${silver}"
+		printf -v grey "${format_color_foreground}" "${grey}"
+		printf -v black "${format_color_foreground}" "${black}"
 
 		# standard colors by saturation offset
 
-		red=$(echo -e \\e\[38\;5\;"${red}"m)
-		crimson=$(echo -e \\e\[38\;5\;"${crimson}"m)
+		printf -v red "${format_color_foreground}" "${red}"
+		printf -v crimson "${format_color_foreground}" "${crimson}"
 
-		green=$(echo -e \\e\[38\;5\;"${green}"m)
-		lime=$(echo -e \\e\[38\;5\;"${lime}"m)
+		printf -v green "${format_color_foreground}" "${green}"
+		printf -v lime "${format_color_foreground}" "${lime}"
 
-		yellow=$(echo -e \\e\[38\;5\;"${yellow}"m)
-		orange=$(echo -e \\e\[38\;5\;"${orange}"m)
+		printf -v yellow "${format_color_foreground}" "${yellow}"
+		printf -v orange "${format_color_foreground}" "${orange}"
 
-		blue=$(echo -e \\e\[38\;5\;"${blue}"m)
-		navy=$(echo -e \\e\[38\;5\;"${navy}"m)
+		printf -v blue "${format_color_foreground}" "${blue}"
+		printf -v navy "${format_color_foreground}" "${navy}"
 
-		magenta=$(echo -e \\e\[38\;5\;"${magenta}"m)
-		purple=$(echo -e \\e\[38\;5\;"${purple}"m)
+		printf -v magenta "${format_color_foreground}" "${magenta}"
+		printf -v purple "${format_color_foreground}" "${purple}"
 
-		aqua=$(echo -e \\e\[38\;5\;"${aqua}"m)
-		teal=$(echo -e \\e\[38\;5\;"${teal}"m)
+		printf -v aqua "${format_color_foreground}" "${aqua}"
+		printf -v teal "${format_color_foreground}" "${teal}"
 
 		# reset all attributes
 
-		reset=$(echo -e \\e\[39m)
+		printf -v reset "${sequence_color_reset}"
 	fi
 else
 	# handle color selections
@@ -305,7 +329,7 @@ else
 
 	# 'tput' colors and attributes
 
-	if [[ -t 1 ]]
+	if [ -t 1 ]
 	then
 		# monochromatic colors
 
@@ -351,10 +375,10 @@ unset PS1
 
 # logged in user name and running proot container process ids - empty outside one
 
-name_user="$(id -u -n)"
-id_process_proot="$(pidof proot)"
+name_user="$(id --user --name)"
+id_process_proot="$(pidof "${name_proot}")"
 
-if [ "${name_user}" = "root" ]
+if [ "${name_user}" = "${name_root}" ]
 then
 	color_prompt="${red}"
 
@@ -366,62 +390,117 @@ else
 	color_prompt="${green}"
 fi
 
-PS1+="\[""${reset}""\][ "
-PS1+="\[""${color_prompt}""\]${USER}"
-PS1+="\[""${reset}""\] ]"
+PS1+="${prompt_wrap_start}${reset}${prompt_wrap_end}${prompt_bracket_open}"
+PS1+="${prompt_wrap_start}${color_prompt}${prompt_wrap_end}${USER}"
+PS1+="${prompt_wrap_start}${reset}${prompt_wrap_end}${prompt_bracket_close}"
 
-if [ "${name_user}" = "root" ]
+if [ "${name_user}" = "${name_root}" ]
 then
-	PS1+="\[""${white}""\] >_ # \[""${reset}""\]"
+	PS1+="${prompt_wrap_start}${white}${prompt_wrap_end}${prompt_symbol}${prompt_marker_root}${prompt_wrap_start}${reset}${prompt_wrap_end}"
 else
-	PS1+="\[""${white}""\] >_ \$ \[""${reset}""\]"
+	PS1+="${prompt_wrap_start}${white}${prompt_wrap_end}${prompt_symbol}${prompt_marker_user}${prompt_wrap_start}${reset}${prompt_wrap_end}"
 fi
 
 unset name_user
 
 unset color_prompt
 
+unset prompt_wrap_start prompt_wrap_end prompt_bracket_open prompt_bracket_close prompt_symbol prompt_marker_root prompt_marker_user
+
 # path ─────────────────────────────────────────────────────────────────────────
 
 PATH=""
 
+list_path_container=(
+	/usr/local/sbin
+	/usr/local/bin
+	/usr/sbin
+	/usr/bin
+	/sbin
+	/bin
+)
+
+list_path_termux=(
+	"${HOME}/.local/sbin"
+	"${HOME}/.local/bin"
+	"${HOME}/.sbin"
+	"${HOME}/.bin"
+)
+
+list_path_prefix=(
+	"${PREFIX}/sbin"
+	"${PREFIX}/bin"
+)
+
+list_path_android=(
+	/system/sbin
+	/system/bin
+)
+
 # container
 
-[ -d /usr/local/sbin ]       && PATH+="/usr/local/sbin:"
-[ -d /usr/local/bin ]        && PATH+="/usr/local/bin:"
-[ -d /usr/sbin ]             && PATH+="/usr/sbin:"
-[ -d /usr/bin ]              && PATH+="/usr/bin:"
-[ -d /sbin ]                 && PATH+="/sbin:"
-[ -d /bin ]                  && PATH+="/bin:"
+for directory_path in "${list_path_container[@]}"
+do
+	if [ -d "${directory_path}" ]
+	then
+		PATH+="${directory_path}:"
+	fi
+done
 
 # termux
 
-[ -d "${HOME}"/.local/sbin ] && PATH+="${HOME}/.local/sbin:"
-[ -d "${HOME}"/.local/bin ]  && PATH+="${HOME}/.local/bin:"
-[ -d "${HOME}"/.sbin ]       && PATH+="${HOME}/.sbin:"
-[ -d "${HOME}"/.bin ]        && PATH+="${HOME}/.bin:"
+for directory_path in "${list_path_termux[@]}"
+do
+	if [ -d "${directory_path}" ]
+	then
+		PATH+="${directory_path}:"
+	fi
+done
 
 # linked files directory for root shells
 
-[ "${directory_shell}" != "${HOME}/.local/bin" ] && PATH+="${directory_shell}:"
+if [ "${directory_shell}" != "${HOME}/.local/bin" ]
+then
+	PATH+="${directory_shell}:"
+fi
 
 # termux prefix
 
-[ -n "${PREFIX}" ] && [ -d "${PREFIX}"/sbin ] && PATH+="${PREFIX}/sbin:"
-[ -n "${PREFIX}" ] && [ -d "${PREFIX}"/bin ]  && PATH+="${PREFIX}/bin:"
+if [ -n "${PREFIX}" ]
+then
+	for directory_path in "${list_path_prefix[@]}"
+	do
+		if [ -d "${directory_path}" ]
+		then
+			PATH+="${directory_path}:"
+		fi
+	done
+fi
 
 # android
 
-[ -d /system/sbin ]          && PATH+="/system/sbin:"
-[ -d /system/bin ]           && PATH+="/system/bin:"
+for directory_path in "${list_path_android[@]}"
+do
+	if [ -d "${directory_path}" ]
+	then
+		PATH+="${directory_path}:"
+	fi
+done
+
+unset directory_path
+
+unset list_path_container
+unset list_path_termux
+unset list_path_prefix
+unset list_path_android
 
 PATH="${PATH}"
 
 # aliases ──────────────────────────────────────────────────────────────────────
 
-if [ -d "${HOME}"/.bash-aliases ]
+if [ -d "${directory_aliases}" ]
 then
-	for alias in "${HOME}"/.bash-aliases/*
+	for alias in "${directory_aliases}"/*
 	do
 		if [ -x "${alias}" ]
 		then
@@ -430,16 +509,16 @@ then
 	done
 fi
 
-if [ -f "${HOME}"/.bash_aliases ]
+if [ -f "${file_aliases}" ]
 then
-	. "${HOME}"/.bash_aliases
+	. "${file_aliases}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
 
-if [ -d "${HOME}"/.bash-functions ]
+if [ -d "${directory_functions}" ]
 then
-	for function in "${HOME}"/.bash-functions/*
+	for function in "${directory_functions}"/*
 	do
 		if [ -x "${function}" ]
 		then
@@ -448,29 +527,29 @@ then
 	done
 fi
 
-if [ -f "${HOME}"/.bash_functions ]
+if [ -f "${file_functions}" ]
 then
-	. "${HOME}"/.bash_functions
+	. "${file_functions}"
 fi
 
 # login ────────────────────────────────────────────────────────────────────────
 
-if [ -f "${HOME}"/.bash_login ]
+if [ -f "${file_login}" ]
 then
-	. "${HOME}"/.bash_login
+	. "${file_login}"
 fi
 
 # profile ──────────────────────────────────────────────────────────────────────
 
 # proot container processes matching by command line - empty outside a container
 
-id_process_proot="$(pgrep -f proot)"
+id_process_proot="$(pgrep -f "${name_proot}")"
 
 if [ -n "${id_process_proot}" ]
 then
-	if [ -f "${HOME}"/.bash_profile ]
+	if [ -f "${file_profile}" ]
 	then
-		. "${HOME}"/.bash_profile
+		. "${file_profile}"
 	fi
 fi
 

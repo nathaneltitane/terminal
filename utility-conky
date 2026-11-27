@@ -114,7 +114,15 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-stamp=$(date +"%m-%d-%Y-%H-%M-%S")
+format_stamp="+%m-%d-%Y-%H-%M-%S"
+package_conky="conky"
+directory_conky="${HOME}/.config/conky"
+file_conkyrc="${directory_conky}/conkyrc"
+file_writer="/usr/bin/write-conky"
+file_launcher="/usr/share/applications/conky.desktop"
+mode_open="777"
+
+stamp=$(date "${format_stamp}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -129,7 +137,7 @@ stamp=$(date +"%m-%d-%Y-%H-%M-%S")
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	conky
+	"${package_conky}"
 )
 
 frobulator.require ${list[@]}
@@ -148,12 +156,12 @@ size_x="0"
 size_y="0"
 width="210"
 
-if [ ! -d "${HOME}"/.config/conky ]
+if [ ! -d "${directory_conky}" ]
 then
-	mkdir -p "${HOME}"/.config/conky
+	mkdir --parents "${directory_conky}"
 fi
 
-cat << HEADER > "${HOME}"/.config/conky/conkyrc
+cat << HEADER > "${file_conkyrc}"
 # conky #
 
 alignment $alignment
@@ -196,7 +204,7 @@ TEXT
 
 HEADER
 
-cat << 'MAIN' > /usr/bin/write-conky
+cat << 'MAIN' > "${file_writer}"
 #!/bin/bash
 
 # write conky #
@@ -494,15 +502,15 @@ THROUGHPUT\${alignr}[ M ][ G ][ kbps ]
 FILE
 MAIN
 
-sudo chmod +x /usr/bin/write-conky
+sudo chmod +x "${file_writer}"
 
-sudo chmod -R 777 "${HOME}"/.config/conky
+sudo chmod --recursive "${mode_open}" "${directory_conky}"
 
-write-conky
+"${file_writer}"
 
 # generate launcher
 
-cat <<- 'FILE' > /usr/share/applications/conky.desktop
+cat <<- 'FILE' > "${file_launcher}"
 [Desktop Entry]
 Name=Conky
 Comment=Highly configurable system monitor

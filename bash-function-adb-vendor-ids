@@ -6,33 +6,47 @@
 
 adb_vendor_ids () {
 
+	local directory_settings="${HOME}/.android"
+	local file_ids="${directory_settings}/adb_usb.ini"
+	local file_rules="/etc/udev/rules.d/51-android.rules"
+	local name_package_udev="udev"
+	local format_id='0x%04x\n'
+	local format_rule='SUBSYSTEM=="usb", SYSFS{idVendor}=="%s", MODE="0666" ;\n'
+	local mode_settings="777"
+	local count_id_maximum="65535"
+	local offset_prefix="2"
 	local status_package_udev
 	local number_id
 	local id_vendor
+	local text_ids
 
 	adb_download
 
 	adb_set_environment
 
-	mkdir -p "${HOME}"/.android
+	mkdir --parents "${directory_settings}"
 
-	for number_id in {0..65535}
+	for (( number_id = 0 ; number_id <= count_id_maximum ; number_id ++ ))
 	do
-		printf '0x%04x\n' "${number_id}"
-	done >> "${HOME}"/.android/adb_usb.ini
+		printf "${format_id}" "${number_id}"
+	done >> "${file_ids}"
 
-	chmod -R 777 "${HOME}"/.android
+	chmod --recursive "${mode_settings}" "${directory_settings}"
 
 	# udev package listing - empty if not installed
 
-	status_package_udev="$(dpkg -l udev)"
+	status_package_udev="$(dpkg -l "${name_package_udev}")"
 
 	if [ -n "${status_package_udev}" ]
 	then
+		# ids read back from the file
+
+		text_ids="$(< "${file_ids}")"
+
 		while read -r id_vendor
 		do
-			echo SUBSYSTEM==\"usb\", SYSFS{idVendor}==\""${id_vendor:2}"\", MODE=\"0666\" \;
+			printf "${format_rule}" "${id_vendor:offset_prefix}"
 
-		done <<< $(cat "${HOME}"/.android/adb_usb.ini) >> /etc/udev/rules.d/51-android.rules
+		done <<< "${text_ids}" >> "${file_rules}"
 	fi
 }

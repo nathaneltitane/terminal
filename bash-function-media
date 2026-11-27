@@ -10,8 +10,86 @@ media () {
 	local source_media="${2}"
 	local directory_output="${3}"
 	local directory_binary="${HOME}/.local/bin"
+	local directory_origin="${PWD}"
 
-	local file_archive_deno
+	local type_audio="audio"
+	local type_video="video"
+	local name_downloader="yt-dlp"
+	local name_solver="deno"
+	local url_downloader="https://github.com/yt-dlp/yt-dlp/releases/latest/download"
+	local url_solver="https://github.com/denoland/deno/releases/latest/download"
+	local file_downloader="${directory_binary}/${name_downloader}"
+	local file_solver="${directory_binary}/${name_solver}"
+	local file_ffmpeg="/usr/bin/ffmpeg"
+	local architecture_arm="arm64"
+	local architecture_target="aarch64"
+	local suffix_archive_solver="-unknown-linux-gnu.zip"
+	local mode_executable="+x"
+	local format_audio="bestaudio"
+	local format_video="bestvideo+bestaudio"
+	local extension_audio="mp3"
+	local extension_video="mp4"
+	local quality_audio="best"
+	local format_thumbnail="jpg"
+	local arguments_thumbnail="ThumbnailsConvertor+ffmpeg_o:-c:v mjpeg -qmin 1 -qscale:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\""
+	local template_output_audio='%(uploader)s - %(title)s.%(ext)s'
+	local template_output_video='%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'
+	local host_excluded="soundcloud.com"
+	local suffix_desktop=".desktop"
+	local separator_profile=":"
+	local separator_keyring="+"
+	local pattern_firefox="firefox*"
+	local pattern_librewolf="librewolf*"
+	local pattern_waterfox="waterfox*"
+	local pattern_chrome="google-chrome*"
+	local pattern_chromium="chromium*"
+	local pattern_brave="brave*"
+	local pattern_vivaldi="vivaldi*"
+	local pattern_opera="opera*"
+	local pattern_chromium_based="^(chrome|chromium|brave|vivaldi|opera)"
+	local pattern_kwallet="kwallet*"
+	local name_browser_firefox="firefox"
+	local name_browser_chrome="chrome"
+	local name_browser_chromium="chromium"
+	local name_browser_brave="brave"
+	local name_browser_vivaldi="vivaldi"
+	local name_browser_opera="opera"
+	local directory_librewolf="${HOME}/.librewolf"
+	local directory_waterfox="${HOME}/.waterfox"
+	local directory_firefox="${HOME}/.mozilla/firefox"
+	local directory_chrome="${HOME}/.config/google-chrome"
+	local directory_chromium="${HOME}/.config/chromium"
+	local directory_brave="${HOME}/.config/BraveSoftware/Brave-Browser"
+	local directory_vivaldi="${HOME}/.config/vivaldi"
+	local directory_opera="${HOME}/.config/opera"
+	local profile_librewolf="${name_browser_firefox}${separator_profile}${directory_librewolf}"
+	local prefix_service_kwallet="org.kde.kwalletd"
+	local prefix_path_kwallet="/modules/kwalletd"
+	local method_kwallet_network="org.kde.KWallet.networkWallet"
+	local method_kwallet_open="org.kde.KWallet.isOpen"
+	local prefix_argument_string="string:"
+	local service_secrets="org.freedesktop.secrets"
+	local path_secrets="/org/freedesktop/secrets/aliases/default"
+	local method_secrets_get="org.freedesktop.DBus.Properties.Get"
+	local interface_secrets="org.freedesktop.Secret.Collection"
+	local property_secrets="Locked"
+	local prefix_name_kwallet="kwallet"
+	local name_keyring_secrets="gnomekeyring"
+	local prefix_reply_string='string "'
+	local character_quote='"'
+	local text_boolean_true="boolean true"
+	local prefix_bus="unix:path=/run/user"
+	local suffix_bus="bus"
+	local platform_offscreen="offscreen"
+	local remote_components="ejs:github"
+	local runtime_prefix="deno:"
+	local depth_find="1"
+	local type_find="f"
+	local suffix_topic=" - Topic"
+	local count_sleep_range="5"
+	local count_sleep_minimum="1"
+
+	local file_archive_solver
 	local path_file_media
 	local list_files_media
 	local directory_file
@@ -21,19 +99,33 @@ media () {
 	local duration_sleep
 	local format_download
 	local extension_media
-	local directory_origin="${PWD}"
 	local architecture_machine
-	local directory_profile
+	local entry_profile
 	local path_dbus_send
 	local name_keyring
-	local state_keyring
+	local state_keyring_locked
 	local version_kwallet
 	local output_keyring
 	local name_wallet
+	local id_user
 
 	local -a list_options_type=()
 	local -a list_options_url=()
 	local -a list_options_site=()
+	local -a list_versions_kwallet=(
+		6
+		5
+	)
+
+	local -a list_profiles=(
+		"${name_browser_firefox}${separator_profile}${directory_firefox}"
+		"${profile_librewolf}"
+		"${name_browser_chrome}${separator_profile}${directory_chrome}"
+		"${name_browser_chromium}${separator_profile}${directory_chromium}"
+		"${name_browser_brave}${separator_profile}${directory_brave}"
+		"${name_browser_vivaldi}${separator_profile}${directory_vivaldi}"
+		"${name_browser_opera}${separator_profile}${directory_opera}"
+	)
 
 	# output starts one line below the command
 
@@ -41,12 +133,12 @@ media () {
 
 	if [ -z "${type_media}" ]
 	then
-		frobulator.err "No type specified" "[ audio | video ]"
+		frobulator.err "No type specified" "[ ${type_audio} | ${type_video} ]"
 
 		return 1
 	fi
 
-	if [ "${type_media}" != "audio" ] && [ "${type_media}" != "video" ]
+	if [ "${type_media}" != "${type_audio}" ] && [ "${type_media}" != "${type_video}" ]
 	then
 		frobulator.err "Invalid type" "[ ${type_media} ]"
 
@@ -70,75 +162,75 @@ media () {
 		directory_output="${PWD}"
 	fi
 
-	if [ ! -f "${directory_binary}/yt-dlp" ]
+	if [ ! -f "${file_downloader}" ]
 	then
-		frobulator.download "https://github.com/yt-dlp/yt-dlp/releases/latest/download" "${directory_binary}" "yt-dlp"
+		frobulator.download "${url_downloader}" "${directory_binary}" "${name_downloader}"
 	else
-		frobulator.silence "${directory_binary}/yt-dlp --update"
+		frobulator.silence "${file_downloader} --update"
 	fi
 
-	if [ ! -x "${directory_binary}/yt-dlp" ]
+	if [ ! -x "${file_downloader}" ]
 	then
-		frobulator.err "Downloader unavailable" "[ yt-dlp ]"
+		frobulator.err "Downloader unavailable" "[ ${name_downloader} ]"
 
 		return 1
 	fi
 
-	if [ ! -f "${directory_binary}/deno" ]
+	if [ ! -f "${file_solver}" ]
 	then
 		# deno build matching this processor - x86_64 or aarch64
 
 		architecture_machine="$(uname -m)"
 
-		if [ "${architecture_machine}" = "arm64" ]
+		if [ "${architecture_machine}" = "${architecture_arm}" ]
 		then
-			architecture_machine="aarch64"
+			architecture_machine="${architecture_target}"
 		fi
 
-		file_archive_deno="deno-${architecture_machine}-unknown-linux-gnu.zip"
+		file_archive_solver="${name_solver}-${architecture_machine}${suffix_archive_solver}"
 
-		frobulator.download "https://github.com/denoland/deno/releases/latest/download" "${directory_binary}" "${file_archive_deno}"
+		frobulator.download "${url_solver}" "${directory_binary}" "${file_archive_solver}"
 
-		unzip -o -q "${directory_binary}/${file_archive_deno}" -d "${directory_binary}"
+		unzip -o -q "${directory_binary}/${file_archive_solver}" -d "${directory_binary}"
 
-		rm -f "${directory_binary}/${file_archive_deno}"
+		rm --force "${directory_binary}/${file_archive_solver}"
 
-		chmod +x "${directory_binary}/deno"
+		chmod "${mode_executable}" "${file_solver}"
 	else
-		frobulator.silence "${directory_binary}/deno upgrade"
+		frobulator.silence "${file_solver} upgrade"
 	fi
 
-	if [ ! -x "${directory_binary}/deno" ]
+	if [ ! -x "${file_solver}" ]
 	then
-		frobulator.err "Solver unavailable" "[ deno ]"
+		frobulator.err "Solver unavailable" "[ ${name_solver} ]"
 
 		return 1
 	fi
 
-	if [ "${type_media}" = "audio" ]
+	if [ "${type_media}" = "${type_audio}" ]
 	then
-		format_download="bestaudio"
-		extension_media="mp3"
+		format_download="${format_audio}"
+		extension_media="${extension_audio}"
 
 		list_options_type+=( --extract-audio )
 		list_options_type+=( --audio-format "${extension_media}" )
-		list_options_type+=( --audio-quality best )
+		list_options_type+=( --audio-quality "${quality_audio}" )
 
 		# cover art - video thumbnail embedded in the file - converted to jpg for mp3 tags
 		# cropped to a centred square - the shorter side kept - album art without the 16:9 bars
 
 		list_options_type+=( --embed-thumbnail )
-		list_options_type+=( --convert-thumbnails jpg )
-		list_options_type+=( --postprocessor-args "ThumbnailsConvertor+ffmpeg_o:-c:v mjpeg -qmin 1 -qscale:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"" )
-		list_options_type+=( --output '%(uploader)s - %(title)s.%(ext)s' )
+		list_options_type+=( --convert-thumbnails "${format_thumbnail}" )
+		list_options_type+=( --postprocessor-args "${arguments_thumbnail}" )
+		list_options_type+=( --output "${template_output_audio}" )
 
-	elif [ "${type_media}" = "video" ]
+	elif [ "${type_media}" = "${type_video}" ]
 	then
-		format_download="bestvideo+bestaudio"
-		extension_media="mp4"
+		format_download="${format_video}"
+		extension_media="${extension_video}"
 
 		list_options_type+=( --merge-output-format "${extension_media}" )
-		list_options_type+=( --output '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' )
+		list_options_type+=( --output "${template_output_video}" )
 	fi
 
 	if [ -f "${source_media}" ]
@@ -149,45 +241,60 @@ media () {
 	# browser cookies - not for soundcloud
 	# desktop default browser - else the first browser profile on disk - else none
 
-	if [ "${source_media#*soundcloud.com}" = "${source_media}" ]
+	if [ "${source_media#*"${host_excluded}"}" = "${source_media}" ]
 	then
 		name_browser="$(xdg-settings get default-web-browser 2> "${sink}")"
 
-		name_browser="${name_browser%.desktop}"
+		name_browser="${name_browser%"${suffix_desktop}"}"
 
-		case "${name_browser}"
-		in
-			firefox*)			name_browser="firefox" ;;
-			librewolf*)			name_browser="firefox:${HOME}/.librewolf" ;;
-			waterfox*)			name_browser="firefox:${HOME}/.waterfox" ;;
-			google-chrome*)		name_browser="chrome" ;;
-			chromium*)			name_browser="chromium" ;;
-			brave*)				name_browser="brave" ;;
-			vivaldi*)			name_browser="vivaldi" ;;
-			opera*)				name_browser="opera" ;;
-			*)					name_browser="" ;;
-		esac
+		if [[ "${name_browser}" == ${pattern_firefox} ]]
+		then
+			name_browser="${name_browser_firefox}"
+
+		elif [[ "${name_browser}" == ${pattern_librewolf} ]]
+		then
+			name_browser="${profile_librewolf}"
+
+		elif [[ "${name_browser}" == ${pattern_waterfox} ]]
+		then
+			name_browser="${name_browser_firefox}${separator_profile}${directory_waterfox}"
+
+		elif [[ "${name_browser}" == ${pattern_chrome} ]]
+		then
+			name_browser="${name_browser_chrome}"
+
+		elif [[ "${name_browser}" == ${pattern_chromium} ]]
+		then
+			name_browser="${name_browser_chromium}"
+
+		elif [[ "${name_browser}" == ${pattern_brave} ]]
+		then
+			name_browser="${name_browser_brave}"
+
+		elif [[ "${name_browser}" == ${pattern_vivaldi} ]]
+		then
+			name_browser="${name_browser_vivaldi}"
+
+		elif [[ "${name_browser}" == ${pattern_opera} ]]
+		then
+			name_browser="${name_browser_opera}"
+		else
+			name_browser=""
+		fi
 
 		# no desktop session - browser profiles on disk
 
 		if [ -z "${name_browser}" ]
 		then
-			for directory_profile in									\
-				"firefox:${HOME}/.mozilla/firefox"						\
-				"firefox:${HOME}/.librewolf"							\
-				"chrome:${HOME}/.config/google-chrome"					\
-				"chromium:${HOME}/.config/chromium"						\
-				"brave:${HOME}/.config/BraveSoftware/Brave-Browser"		\
-				"vivaldi:${HOME}/.config/vivaldi"						\
-				"opera:${HOME}/.config/opera"
+			for entry_profile in "${list_profiles[@]}"
 			do
-				if [ -d "${directory_profile#*:}" ]
+				if [ -d "${entry_profile#*"${separator_profile}"}" ]
 				then
-					name_browser="${directory_profile%%:*}"
+					name_browser="${entry_profile%%"${separator_profile}"*}"
 
-					if [ "${directory_profile}" = "firefox:${HOME}/.librewolf" ]
+					if [ "${entry_profile}" = "${profile_librewolf}" ]
 					then
-						name_browser="${directory_profile}"
+						name_browser="${entry_profile}"
 					fi
 
 					break
@@ -200,37 +307,39 @@ media () {
 		# kde wallet 6 then 5 - then the secret service - gnome keyring, keepassxc and others
 		# a locked keyring is opened at desktop login - not from a terminal - nothing found: yt-dlp detects on its own
 
-		if [[ "${name_browser}" =~ ^(chrome|chromium|brave|vivaldi|opera) ]]
+		if [[ "${name_browser}" =~ ${pattern_chromium_based} ]]
 		then
 			# exported for this function only - the shell keeps its own values
 
-			local -x DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+			id_user="$(id -u)"
+
+			local -x DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-${prefix_bus}/${id_user}/${suffix_bus}}"
 
 			path_dbus_send="$(command -v dbus-send)"
 
 			name_keyring=""
-			state_keyring="unlocked"
+			state_keyring_locked="false"
 
 			if [ -n "${path_dbus_send}" ]
 			then
-				for version_kwallet in 6 5
+				for version_kwallet in "${list_versions_kwallet[@]}"
 				do
-					output_keyring="$("${path_dbus_send}" --session --print-reply --dest="org.kde.kwalletd${version_kwallet}" "/modules/kwalletd${version_kwallet}" org.kde.KWallet.networkWallet 2> "${sink}")"
+					output_keyring="$("${path_dbus_send}" --session --print-reply --dest="${prefix_service_kwallet}${version_kwallet}" "${prefix_path_kwallet}${version_kwallet}" "${method_kwallet_network}" 2> "${sink}")"
 
 					if [ -n "${output_keyring}" ]
 					then
 						# reply line: string "kdewallet"
 
-						name_wallet="${output_keyring##*string \"}"
-						name_wallet="${name_wallet%\"*}"
+						name_wallet="${output_keyring##*"${prefix_reply_string}"}"
+						name_wallet="${name_wallet%"${character_quote}"*}"
 
-						output_keyring="$("${path_dbus_send}" --session --print-reply --dest="org.kde.kwalletd${version_kwallet}" "/modules/kwalletd${version_kwallet}" org.kde.KWallet.isOpen string:"${name_wallet}" 2> "${sink}")"
+						output_keyring="$("${path_dbus_send}" --session --print-reply --dest="${prefix_service_kwallet}${version_kwallet}" "${prefix_path_kwallet}${version_kwallet}" "${method_kwallet_open}" "${prefix_argument_string}${name_wallet}" 2> "${sink}")"
 
-						name_keyring="kwallet${version_kwallet}"
+						name_keyring="${prefix_name_kwallet}${version_kwallet}"
 
-						if [[ "${output_keyring}" != *"boolean true"* ]]
+						if [[ "${output_keyring}" != *"${text_boolean_true}"* ]]
 						then
-							state_keyring="locked"
+							state_keyring_locked="true"
 						fi
 
 						break
@@ -239,32 +348,32 @@ media () {
 
 				if [ -z "${name_keyring}" ]
 				then
-					output_keyring="$("${path_dbus_send}" --session --print-reply --dest=org.freedesktop.secrets /org/freedesktop/secrets/aliases/default org.freedesktop.DBus.Properties.Get string:org.freedesktop.Secret.Collection string:Locked 2> "${sink}")"
+					output_keyring="$("${path_dbus_send}" --session --print-reply --dest="${service_secrets}" "${path_secrets}" "${method_secrets_get}" "${prefix_argument_string}${interface_secrets}" "${prefix_argument_string}${property_secrets}" 2> "${sink}")"
 
 					if [ -n "${output_keyring}" ]
 					then
-						name_keyring="gnomekeyring"
+						name_keyring="${name_keyring_secrets}"
 
-						if [[ "${output_keyring}" == *"boolean true"* ]]
+						if [[ "${output_keyring}" == *"${text_boolean_true}"* ]]
 						then
-							state_keyring="locked"
+							state_keyring_locked="true"
 						fi
 					fi
 				fi
 			fi
 
-			if [ -n "${name_keyring}" ] && [ "${state_keyring}" = "unlocked" ]
+			if [ -n "${name_keyring}" ] && [ "${state_keyring_locked}" = "false" ]
 			then
-				name_browser="${name_browser}+${name_keyring}"
+				name_browser="${name_browser}${separator_keyring}${name_keyring}"
 
 				# kwallet-query is a qt program - it aborts without a display - ssh sessions have none
 
-				if [[ "${name_keyring}" == kwallet* ]] && [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ]
+				if [[ "${name_keyring}" == ${pattern_kwallet} ]] && [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ]
 				then
-					local -x QT_QPA_PLATFORM="offscreen"
+					local -x QT_QPA_PLATFORM="${platform_offscreen}"
 				fi
 
-			elif [ "${state_keyring}" = "locked" ]
+			elif [ "${state_keyring_locked}" = "true" ]
 			then
 				frobulator.wrn "Browser cookies locked" "[ ${name_keyring} ]"
 				frobulator.nul "Log in to the desktop once to unlock the keyring - downloading without a signed in session."
@@ -282,32 +391,32 @@ media () {
 
 	cd "${directory_output}"
 
-	duration_sleep=$(( RANDOM % 5 + 1 ))
+	duration_sleep=$(( RANDOM % count_sleep_range + count_sleep_minimum ))
 
 	# download in the background - no job notices - progress ticker until it ends
 	# warnings hidden - cookie decryption and the like - the ticker stays on one line
 
 	frobulator.background download --								\
-		"${directory_binary}/yt-dlp"									\
-			--remote-components		"ejs:github"				\
-			--js-runtimes			"deno:${directory_binary}/deno"	\
-			--ffmpeg-location		"/usr/bin/ffmpeg"			\
-			--quiet												\
-			--no-warnings										\
-			--no-update											\
-			--ignore-errors										\
-			--no-overwrites										\
-			--sleep-requests		"${duration_sleep}"			\
-			--yes-playlist										\
-			--format				"${format_download}"					\
+		"${file_downloader}"										\
+			--remote-components		"${remote_components}"			\
+			--js-runtimes			"${runtime_prefix}${file_solver}"	\
+			--ffmpeg-location		"${file_ffmpeg}"				\
+			--quiet													\
+			--no-warnings											\
+			--no-update												\
+			--ignore-errors											\
+			--no-overwrites											\
+			--sleep-requests		"${duration_sleep}"				\
+			--yes-playlist											\
+			--format				"${format_download}"			\
 			"${list_options_site[@]}"								\
 			"${list_options_type[@]}"								\
-			"${list_options_url[@]}"									\
+			"${list_options_url[@]}"								\
 			"${source_media}"
 
 	# downloaded files in output folder only
 
-	list_files_media="$(find "${PWD}" -maxdepth 1 -type f -iname "*.${extension_media}")"
+	list_files_media="$(find "${PWD}" -maxdepth "${depth_find}" -type "${type_find}" -iname "*.${extension_media}")"
 
 	IFS=$'\n'
 
@@ -316,7 +425,7 @@ media () {
 		directory_file="${path_file_media%/*}"
 		name_source="${path_file_media##*/}"
 
-		name_target="${name_source// - Topic/}"
+		name_target="${name_source//"${suffix_topic}"/}"
 
 		if [ "${name_source}" != "${name_target}" ]
 		then

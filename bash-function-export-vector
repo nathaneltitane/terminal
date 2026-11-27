@@ -7,8 +7,15 @@
 export-vector () {
 
 	local type_export
+	local type_default
+	local extension_vector
+	local size_width
 	local file
 	local name_file
+
+	type_default="png"
+	extension_vector="svg"
+	size_width="4096"
 
 	frobulator.require inkscape
 
@@ -16,20 +23,20 @@ export-vector () {
 
 	if [ -z "${type_export}" ]
 	then
-		type_export="png"
+		type_export="${type_default}"
 	fi
 
-	for file in *.svg
+	for file in *."${extension_vector}"
 	do
 		if [ -f "${file}" ]
 		then
 			name_file="${file%.*}"
 
-			inkscape "${file}"						\
-				--batch-process						\
-				--export-width=4096					\
-				--export-area-page					\
-				--export-type="${type_export}"		\
+			inkscape "${file}"					\
+				--batch-process					\
+				--export-width="${size_width}"	\
+				--export-area-page				\
+				--export-type="${type_export}"	\
 				--export-filename="${name_file}"."${type_export}"
 		fi
 	done

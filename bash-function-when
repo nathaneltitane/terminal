@@ -6,15 +6,19 @@
 
 when () {
 
+	local format_time="+%I:%M %p"
+	local format_date="+%A, %B %d %Y"
+	local format_message="It is %s on %s\n"
 	local time_current
 	local date_current
 
-	time_current=$(date '+%I:%M %p')
-	date_current=$(date '+%A, %B %d %Y')
+	time_current="$(date "${format_time}")"
+	date_current="$(date "${format_date}")"
 
 	echo
 
-	echo "It is ${time_current} on ${date_current}"
+	printf "${format_message}" "${time_current}" "${date_current}"
 
 	echo
+
 }

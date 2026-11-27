@@ -9,6 +9,21 @@ adb_record () {
 	local date_recording
 	local file_recording
 	local id_process_record
+	local format_date
+	local prefix_recording
+	local extension_recording
+	local directory_device
+	local directory_screenrecord
+	local prompt_stop
+	local delay_stop
+
+	format_date="+%m-%d-%Y-%H-%M-%S"
+	prefix_recording="recording-"
+	extension_recording=".mp4"
+	directory_device="/sdcard"
+	directory_screenrecord="screenrecord"
+	prompt_stop="Press enter to stop recording..."
+	delay_stop="0.5"
 
 	adb_download
 
@@ -16,25 +31,25 @@ adb_record () {
 
 	# recording file - timestamped - recorded on the device then pulled here
 
-	date_recording="$(date +"%m-%d-%Y-%H-%M-%S")"
+	date_recording="$(date "${format_date}")"
 
-	file_recording="recording-${date_recording}.mp4"
+	file_recording="${prefix_recording}${date_recording}${extension_recording}"
 
 	# recording started in the background - no job notices - stopped on enter
 
-	frobulator.background -- adb shell screenrecord /sdcard/"${file_recording}"
+	frobulator.background -- adb shell screenrecord "${directory_device}/${file_recording}"
 
 	id_process_record="${frobulator_return[0]}"
 
-	read -r -p 'Press enter to stop recording...'
+	read -r -p "${prompt_stop}"
 
 	kill "${id_process_record}" > "${sink}" 2>&1
 
-	sleep 0.5
+	sleep "${delay_stop}"
 
-	mkdir -p screenrecord
+	mkdir --parents "${directory_screenrecord}"
 
-	adb pull /sdcard/"${file_recording}" screenrecord/"${file_recording}"
+	adb pull "${directory_device}/${file_recording}" "${directory_screenrecord}/${file_recording}"
 
-	adb shell rm /sdcard/"${file_recording}"
+	adb shell rm "${directory_device}/${file_recording}"
 }

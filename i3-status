@@ -4,12 +4,39 @@ indent="	"
 separator=" // "
 joiner=" > "
 
+setting_scale="scale=2"
+factor_memory="1024"
+delay_refresh=1
+factor_temperature_battery=10
+factor_temperature_cpu=1000
+unit_memory_source="KB"
+unit_memory_target="GB"
+date_format="%m-%d-%Y"
+time_format="%r"
+hostname_android="Android"
+hostname_default="localhost"
+user_default="termux"
+directory_battery="/sys/class/power_supply/battery"
+directory_thermal="/sys/class/thermal"
+file_meminfo="/proc/meminfo"
+keyword_route="default"
+pattern_route="^${keyword_route}"
+delimiter_field=" "
+delimiter_value="="
+
+list_units=(
+	KB
+	MB
+	GB
+	TB
+)
+
 decimal_calculate () {
 
 	value="${1}"
 	factor_decimal="${2}"
 
-	scale=$(bc <<< "scale=2; ${value} / ${factor_decimal}")
+	scale=$(bc <<< "${setting_scale}; ${value} / ${factor_decimal}")
 
 	echo "${scale}"
 
@@ -18,6 +45,15 @@ decimal_calculate () {
 
 memory_convert () {
 
+	local unit_name
+	local expression
+	local index_from
+	local index_to
+	local index_unit
+	local index_step
+	local operator_conversion
+	local option_calculator
+
 	value="${1}"
 
 	unit_from="${2}"
@@ -25,131 +61,72 @@ memory_convert () {
 
 	unit_memory="${unit_to}"
 
-	case "${unit_from}"
-	in
-		KB)
-			case "${unit_to}"
-			in
-				KB)
-					echo "${value}"
-				;;
+	unset index_from
+	unset index_to
 
-				MB)
-					echo "${value} / 1024" | bc
-				;;
+	for (( index_unit = 0 ; index_unit < ${#list_units[@]} ; index_unit ++ ))
+	do
+		unit_name="${list_units[index_unit]}"
 
-				GB)
-					echo "${value} / 1024 / 1024" | bc
-				;;
+		if [ "${unit_name}" = "${unit_from}" ]
+		then
+			index_from="${index_unit}"
+		fi
 
-				TB)
-					echo "${value} / 1024 / 1024 / 1024" | bc
-				;;
+		if [ "${unit_name}" = "${unit_to}" ]
+		then
+			index_to="${index_unit}"
+		fi
+	done
 
-				*)
-					echo "Invalid unit_to: ${unit_to}"
+	if [ -z "${index_from}" ]
+	then
+		echo "Invalid unit_from: ${unit_from}"
 
-					exit 1
-				;;
+		exit 1
 
-			esac
+	elif [ -z "${index_to}" ]
+	then
+		echo "Invalid unit_to: ${unit_to}"
 
-			;;
+		exit 1
 
-		MB)
-			case "${unit_to}"
-			in
-				KB)
-					echo "${value} * 1024" | bc -l
-				;;
+	elif [ "${index_from}" -eq "${index_to}" ]
+	then
+		echo "${value}"
 
-				MB)
-					echo "${value}"
-				;;
+	else
+		expression="${value}"
 
-				GB)
-					echo "${value} / 1024" | bc -l
-				;;
+		# larger unit divides - smaller unit multiplies
 
-				TB)
-					echo "${value} / 1024 / 1024" | bc -l
-				;;
+		option_calculator="-l"
 
-				*)
-					echo "Invalid unit_to: ${unit_to}"
+		if [ "${index_to}" -gt "${index_from}" ]
+		then
+			operator_conversion="/"
+			index_step=$(( index_to - index_from ))
 
-					exit 1
-				;;
+			# kilobytes keep whole numbers
 
-			esac
+			if [ "${index_from}" -eq 0 ]
+			then
+				option_calculator=""
+			fi
+		else
+			operator_conversion="*"
+			index_step=$(( index_from - index_to ))
+		fi
 
-			;;
+		while [ "${index_step}" -gt 0 ]
+		do
+			expression="${expression} ${operator_conversion} ${factor_memory}"
 
-		GB)
-			case "${unit_to}"
-			in
-				KB)
-					echo "${value} * 1024 * 1024" | bc -l
-				;;
+			(( index_step -- ))
+		done
 
-				MB)
-					echo "${value} * 1024" | bc -l
-				;;
-
-				GB)
-					echo "${value}"
-				;;
-
-				TB)
-					echo "${value} / 1024" | bc -l
-				;;
-
-				*)
-					echo "Invalid unit_to: ${unit_to}"
-
-					exit 1
-				;;
-
-			esac
-
-			;;
-
-		TB)
-			case "${unit_to}"
-			in
-				KB)
-					echo "${value} * 1024 * 1024 * 1024" | bc -l
-				;;
-
-				MB)
-					echo "${value} * 1024 * 1024" | bc -l
-				;;
-
-				GB)
-					echo "${value} * 1024" | bc -l
-				;;
-
-				TB)
-					echo "${value}"
-				;;
-
-				*)
-					echo "Invalid unit_to: ${unit_to}"
-
-					exit 1
-				;;
-
-			esac
-
-			;;
-
-		*)
-			echo "Invalid unit_from: ${unit_from}"
-
-			exit 1
-		;;
-
-	esac
+		bc ${option_calculator} <<< "${expression}"
+	fi
 
 	unset value
 
@@ -160,7 +137,7 @@ uevent_parse () {
 	name_uevent="${1}"
 	directory_uevent="${2}"
 
-	cat "${directory_uevent}" | grep -i "${name_uevent}=" | cut -d '=' -f 2
+	cat "${directory_uevent}" | grep --ignore-case "${name_uevent}${delimiter_value}" | cut --delimiter="${delimiter_value}" --fields=2
 
 }
 
@@ -176,28 +153,28 @@ system_event_parse () {
 status_date () {
 
 	#date_current=$(date +"%F")
-	date_current=$(date +"%m-%d-%Y")
+	date_current=$(date +"${date_format}")
 
 	status+="${date_current}${separator}"
 }
 
 status_time () {
 
-	time_current=$(date +"%r")
+	time_current=$(date +"${time_format}")
 
 	status+="${time_current}${separator}"
 }
 
 status_host () {
 
-	if [ "$HOSTNAME" = "localhost" ]
+	if [ "$HOSTNAME" = "${hostname_default}" ]
 	then
-		HOSTNAME="Android"
+		HOSTNAME="${hostname_android}"
 	fi
 
 	if [ -z "${USER}" ]
 	then
-		USER="termux"
+		USER="${user_default}"
 	fi
 
 	HOSTNAME="${HOSTNAME^^}"
@@ -212,7 +189,7 @@ status_battery () {
 
 	# battery - system
 
-	# capacity_battery=$(system_event_parse capacity /sys/class/power_supply/battery)
+	# capacity_battery=$(system_event_parse capacity "${directory_battery}")
 	# battery_charge_counter=$(system_event_parse charge_counter /sys/class/power_supply/battery)
 	# battery_charge_counter_shadow=$(system_event_parse charge_counter_shadow /sys/class/power_supply/battery)
 	# battery_charge_full=$(system_event_parse charge_full /sys/class/power_supply/battery)
@@ -230,7 +207,7 @@ status_battery () {
 	# battery_present=$(system_event_parse present /sys/class/power_supply/battery)
 	# battery_status=$(system_event_parse status /sys/class/power_supply/battery)
 	# battery_technology=$(system_event_parse technology /sys/class/power_supply/battery)
-	# temperature_battery=$(system_event_parse temp /sys/class/power_supply/battery)
+	# temperature_battery=$(system_event_parse temp "${directory_battery}")
 	# battery_time_online=$(system_event_parse online /sys/class/power_supply/battery)
 	# battery_time_to_full=$(system_event_parse time_to_full_now /sys/class/power_supply/battery)
 	# battery_voltage=$(system_event_parse voltage /sys/class/power_supply/battery)
@@ -264,14 +241,14 @@ status_battery () {
 	# battery_voltage_average_uevent=$(uevent_parse voltage_avg /sys/class/power_supply/battery/uevent)
 	# battery_voltage_now_uevent=$(uevent_parse voltage_now /sys/class/power_supply/battery/uevent)
 
-	if [[ -f /sys/class/power_supply/battery ]]
+	if [ -f "${directory_battery}" ]
 	then
 		capacity_battery=$(system_event_parse capacity /sys/class/power_supply/battery)
 
 		unit_capacity_battery="%"
 
 		temperature_battery=$(system_event_parse temp /sys/class/power_supply/battery)
-		temperature_battery=$(decimal_calculate "${temperature_battery}" 10)
+		temperature_battery=$(decimal_calculate "${temperature_battery}" "${factor_temperature_battery}")
 
 		unit_temperature_battery="°C"
 
@@ -287,12 +264,12 @@ status_cpu_temperature () {
 
 	for (( i = 0 ; i < ${count_cpu} ; i ++ ))
 	do
-		path_temperature_cpu="/sys/class/thermal/thermal_zone${i}/temp"
+		path_temperature_cpu="${directory_thermal}/thermal_zone${i}/temp"
 
 		if [ -f "${path_temperature_cpu}" ]
 		then
 			temperature_cpu=$(cat "${path_temperature_cpu}")
-			temperature_cpu=$(decimal_calculate "${temperature_cpu}" 1000)
+			temperature_cpu=$(decimal_calculate "${temperature_cpu}" "${factor_temperature_cpu}")
 
 			unit_temperature_cpu="°C"
 
@@ -304,21 +281,24 @@ status_cpu_temperature () {
 
 status_memory_information () {
 
-	unit_memory="GB"
+	unit_memory="${unit_memory_target}"
 
-	memory_total=$(grep -i 'memtotal' /proc/meminfo | awk '{print $2}')
-	memory_available=$(grep -i 'memavailable' /proc/meminfo | awk '{print $2}')
+	line_memory_total=$(grep --ignore-case 'memtotal' "${file_meminfo}")
+	line_memory_available=$(grep --ignore-case 'memavailable' "${file_meminfo}")
 
-	memory_used=$(( ${memory_total} - ${memory_available} ))
+	read -r _ memory_total _ <<< "${line_memory_total}"
+	read -r _ memory_available _ <<< "${line_memory_available}"
 
-	memory_total=$(memory_convert ${memory_total} KB "${unit_memory}")
-	memory_available=$(memory_convert ${memory_available} KB "${unit_memory}")
-	memory_used=$(memory_convert ${memory_used} KB "${unit_memory}")
+	memory_used=$(( memory_total - memory_available ))
+
+	memory_total=$(memory_convert ${memory_total} "${unit_memory_source}" "${unit_memory}")
+	memory_available=$(memory_convert ${memory_available} "${unit_memory_source}" "${unit_memory}")
+	memory_used=$(memory_convert ${memory_used} "${unit_memory_source}" "${unit_memory}")
 
 	unit_memory="${unit_memory^^}"
 
-	percentage_memory_available=$(echo "scale=2; (${memory_available} / ${memory_total}) * 100" | bc)
-	percentage_memory_used=$(echo "scale=2; (${memory_used} / ${memory_total}) * 100" | bc)
+	percentage_memory_available=$(echo "${setting_scale}; (${memory_available} / ${memory_total}) * 100" | bc)
+	percentage_memory_used=$(echo "${setting_scale}; (${memory_used} / ${memory_total}) * 100" | bc)
 
 	unit_percentage_memory="%"
 
@@ -331,13 +311,13 @@ status_memory_information () {
 
 status_network_information () {
 
-	route_default=$(ip route | grep 'default')
+	route_default=$(ip route | grep "${keyword_route}")
 
-	if [[ -n "${route_default}" ]]
+	if [ -n "${route_default}" ]
 	then
-		device_interface_network=$(ip route | grep '^default' | cut -d ' ' -f 5)
-		gateway_interface_network=$(ip route | grep '^default' | cut -d ' ' -f 3)
-		address_interface_network=$(ip route | grep '^default' | cut -d ' ' -f 9)
+		device_interface_network=$(ip route | grep "${pattern_route}" | cut --delimiter="${delimiter_field}" --fields=5)
+		gateway_interface_network=$(ip route | grep "${pattern_route}" | cut --delimiter="${delimiter_field}" --fields=3)
+		address_interface_network=$(ip route | grep "${pattern_route}" | cut --delimiter="${delimiter_field}" --fields=9)
 
 		device_interface_network="${device_interface_network^^}"
 
@@ -371,7 +351,7 @@ status_feed () {
 
 		unset status
 
-		sleep 1
+		sleep "${delay_refresh}"
 
 	done
 }

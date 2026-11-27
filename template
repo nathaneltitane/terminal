@@ -69,12 +69,17 @@ version="YYYY-MM-DD"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+directory_install="${HOME}/.local/bin"
+option_install="install"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-i|--install)
-			option="install"
+			option="${option_install}"
 		;;
 
 		-h|--help)
@@ -83,7 +88,7 @@ do
 			echo
 			echo -e "Options:"
 			echo
-			echo -e "-i, --install    Run [i]nstallation of ${script} to ${HOME}/.local/bin."
+			echo -e "-i, --install    Run [i]nstallation of ${script} to ${directory_install}."
 			echo
 			echo -e "-h, --help       Show [h]elp and usage information."
 			echo
@@ -120,13 +125,13 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-directory_install="${HOME}"/.local/bin
+file_installed="${directory_install}/${script}"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${option}" ]
 then
-	option="install"
+	option="${option_install}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -151,7 +156,7 @@ list=()
 
 # install
 
-if [ "${option}" = "install" ]
+if [ "${option}" = "${option_install}" ]
 then
 	file_script="$(realpath "${BASH_SOURCE[0]}")"
 
@@ -159,13 +164,13 @@ then
 
 	if [ "${directory_script}" -ef "${directory_install}" ]
 	then
-		frobulator.inf "Already installed" "[ ${directory_install}/${script} ]"
+		frobulator.inf "Already installed" "[ ${file_installed} ]"
 	else
 		frobulator.copy "${directory_script}" "${directory_install}" "${script}"
 
-		frobulator.permissions public execute "${directory_install}/${script}"
+		frobulator.permissions public execute "${file_installed}"
 
-		frobulator.scs "Installed" "[ ${directory_install}/${script} ]"
+		frobulator.scs "Installed" "[ ${file_installed} ]"
 	fi
 fi
 

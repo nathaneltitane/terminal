@@ -69,32 +69,41 @@ version="2026-10-04"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
+# set before the help text
+
+option_termux="termux"
+option_git="git"
+option_shell="shell"
+option_adb="adb"
+option_geany="geany"
+option_all="all"
+
 while (( $# ))
 do
 	case "${1}"
 	in
 		-t|--termux)
-			option="termux"
+			option="${option_termux}"
 		;;
 
 		-g|--git)
-			option="git"
+			option="${option_git}"
 		;;
 
 		-s|--shell)
-			option="shell"
+			option="${option_shell}"
 		;;
 
 		-d|--adb)
-			option="adb"
+			option="${option_adb}"
 		;;
 
 		-e|--geany)
-			option="geany"
+			option="${option_geany}"
 		;;
 
 		-a|--all)
-			option="all"
+			option="${option_all}"
 		;;
 
 		-h|--help)
@@ -150,25 +159,44 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+label_setting_up="Setting up"
+directory_bin="${HOME}/.local/bin"
+directory_termux="${HOME}/.termux"
+directory_geany="${HOME}/.config/geany"
+url_termux="get.trmx.app"
+url_terminal="get.trmnl.me"
+url_android="${url_terminal}/android"
+directory_storage_desktop="/media/internal"
+directory_storage_android="/storage/emulated/0"
+directory_storage_prefix="${PREFIX}/media/internal"
+directory_git="Git"
+directory_terminal="${directory_storage_prefix}/${directory_git}/terminal"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 if [ -z "${option}" ]
 then
-	option="all"
+	option="${option_all}"
 fi
 
 # functions ────────────────────────────────────────────────────────────────────
 
 settings_intent () {
 
-	# reload termux settings
+	local action_reload
+	local package_termux
 
-	command_settings=()
+	local command_settings=()
+
+	action_reload="com.termux.app.reload_style"
+	package_termux="com.termux"
+
+	# reload termux settings
 
 	command_settings+=(am broadcast)
 	command_settings+=(--user 0)
-	command_settings+=(-a com.termux.app.reload_style)
-	command_settings+=(com.termux)
+	command_settings+=(-a "${action_reload}")
+	command_settings+=("${package_termux}")
 
 	frobulator.silence "${command_settings[@]}"
 }
@@ -193,9 +221,10 @@ list=()
 
 # termux
 
-if [ "${option}" = "termux" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${option_termux}" ] ||
+   [ "${option}" = "${option_all}" ]
 then
-	frobulator.inf "Setting up" "[ termux ]"
+	frobulator.inf "${label_setting_up}" "[ ${option_termux} ]"
 
 	list+=(
 		termux-colors
@@ -203,11 +232,11 @@ then
 		termux-properties
 	)
 
-	frobulator.download get.trmx.app "${HOME}"/.local/bin ${list[@]}
+	frobulator.download "${url_termux}" "${directory_bin}" ${list[@]}
 
-	frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-colors     colors.properties
-	frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-font       font.ttf
-	frobulator.link "${HOME}"/.local/bin "${HOME}"/.termux termux-properties termux.properties
+	frobulator.link "${directory_bin}" "${directory_termux}" termux-colors     colors.properties
+	frobulator.link "${directory_bin}" "${directory_termux}" termux-font       font.ttf
+	frobulator.link "${directory_bin}" "${directory_termux}" termux-properties termux.properties
 
 	settings_intent
 
@@ -216,31 +245,33 @@ fi
 
 # git
 
-if [ "${option}" = "git" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${option_git}" ] ||
+   [ "${option}" = "${option_all}" ]
 then
-	frobulator.inf "Setting up" "[ git ]"
+	frobulator.inf "${label_setting_up}" "[ ${option_git} ]"
 
 	if [ -z "${TERMUX_VERSION}" ]
 	then
-		storage=/media/internal
+		storage="${directory_storage_desktop}"
 	else
-		if [ -d "${PREFIX}"/media/internal ]
+		if [ -d "${directory_storage_prefix}" ]
 		then
-			storage="${PREFIX}"/media/internal
+			storage="${directory_storage_prefix}"
 		else
-			storage=/storage/emulated/0
+			storage="${directory_storage_android}"
 		fi
 	fi
 
-	frobulator.link "${storage}"/Git "${HOME}" git-configuration .gitconfig
-	frobulator.link "${storage}"/Git "${HOME}" git-credentials   .git-credentials
+	frobulator.link "${storage}/${directory_git}" "${HOME}" git-configuration .gitconfig
+	frobulator.link "${storage}/${directory_git}" "${HOME}" git-credentials   .git-credentials
 fi
 
 # shell
 
-if [ "${option}" = "shell" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${option_shell}" ] ||
+   [ "${option}" = "${option_all}" ]
 then
-	frobulator.inf "Setting up" "[ shell ]"
+	frobulator.inf "${label_setting_up}" "[ ${option_shell} ]"
 
 	list+=(
 		bash-aliases
@@ -251,24 +282,25 @@ then
 		bash-profile
 	)
 
-	frobulator.download get.trmnl.me "${HOME}"/.local/bin ${list[@]}
+	frobulator.download "${url_terminal}" "${directory_bin}" ${list[@]}
 
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-aliases       .bash_aliases
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bashrc
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-configuration .bash_configuration
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-functions     .bash_functions
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-login         .bash_login
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-logout        .bash_logout
-	frobulator.link "${HOME}"/.local/bin "${HOME}" bash-profile       .bash_profile
+	frobulator.link "${directory_bin}" "${HOME}" bash-aliases       .bash_aliases
+	frobulator.link "${directory_bin}" "${HOME}" bash-configuration .bashrc
+	frobulator.link "${directory_bin}" "${HOME}" bash-configuration .bash_configuration
+	frobulator.link "${directory_bin}" "${HOME}" bash-functions     .bash_functions
+	frobulator.link "${directory_bin}" "${HOME}" bash-login         .bash_login
+	frobulator.link "${directory_bin}" "${HOME}" bash-logout        .bash_logout
+	frobulator.link "${directory_bin}" "${HOME}" bash-profile       .bash_profile
 
 	list=()
 fi
 
 # adb
 
-if [ "${option}" = "adb" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${option_adb}" ] ||
+   [ "${option}" = "${option_all}" ]
 then
-	frobulator.inf "Setting up" "[ adb ]"
+	frobulator.inf "${label_setting_up}" "[ ${option_adb} ]"
 
 	list+=(
 		adb
@@ -278,21 +310,22 @@ then
 		make_f2fs
 	)
 
-	frobulator.download get.trmnl.me/android "${HOME}"/.local/bin ${list[@]}
+	frobulator.download "${url_android}" "${directory_bin}" ${list[@]}
 
 	list=()
 fi
 
 # geany
 
-if [ "${option}" = "geany" ] || [ "${option}" = "all" ]
+if [ "${option}" = "${option_geany}" ] ||
+   [ "${option}" = "${option_all}" ]
 then
-	frobulator.inf "Setting up" "[ geany ]"
+	frobulator.inf "${label_setting_up}" "[ ${option_geany} ]"
 
-	frobulator.directory "${HOME}"/.config/geany
+	frobulator.directory "${directory_geany}"
 
-	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-configuration geany.conf
-	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-keyboard      keybindings.conf
-	frobulator.link "${PREFIX}"/media/internal/Git/terminal "${HOME}"/.config/geany geany-toolbar       ui_toolbar.xml
+	frobulator.link "${directory_terminal}" "${directory_geany}" geany-configuration geany.conf
+	frobulator.link "${directory_terminal}" "${directory_geany}" geany-keyboard      keybindings.conf
+	frobulator.link "${directory_terminal}" "${directory_geany}" geany-toolbar       ui_toolbar.xml
 fi
 

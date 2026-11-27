@@ -114,6 +114,15 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+directory_media="/media"
+directory_leocad="leocad"
+directory_link="${HOME}/.config/LeoCAD Software"
+file_source="leocad.conf"
+file_target="LeoCAD.conf"
+pattern_lego='^lego$'
+pattern_media="${directory_media}/\([^/]*\)/\([^/]*\)"
+count_lines_first="1"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -145,7 +154,8 @@ matches=()
 
 for directory in ${list_directories[@]}
 do
-	match=$(ls /media 2> "${sink}" | grep -i "^${directory}$" | head -n 1)
+	pattern_directory="^${directory}$"
+	match="$(ls "${directory_media}" 2> "${sink}" | grep --ignore-case "${pattern_directory}" | head --lines="${count_lines_first}")"
 
 	if [ -n "$match" ]
 	then
@@ -155,20 +165,24 @@ done
 
 for directory in ${matches[@]}
 do
-	subdirectory=$(ls "/media/${directory}" 2> "${sink}" | grep -i "^lego$" | head -n 1)
+	subdirectory="$(ls "${directory_media}/${directory}" 2> "${sink}" | grep --ignore-case "${pattern_lego}" | head --lines="${count_lines_first}")"
+	directory_lego="${directory_media}/${directory}/${subdirectory}"
+	directory_source="${directory_lego}/${directory_leocad}"
+	file_source_path="${directory_source}/${file_source}"
+	expression_sed="s|${pattern_media}|${directory_lego}|g"
 
-	if [ -n "${subdirectory}" ] && [ -d "/media/${directory}/${subdirectory}" ]
+	if [ -n "${subdirectory}" ] && [ -d "${directory_lego}" ]
 	then
-		if [ -f "/media/${directory}/${subdirectory}/leocad/leocad.conf" ]
+		if [ -f "${file_source_path}" ]
 		then
 			frobulator.inf "Linking configuration"
 
-			frobulator.link "/media/${directory}/${subdirectory}/leocad" "${HOME}/.config/LeoCAD Software" leocad.conf LeoCAD.conf
+			frobulator.link "${directory_source}" "${directory_link}" "${file_source}" "${file_target}"
 
-			sed															\
-				-i														\
-				-e	"s|/media/\([^/]*\)/\([^/]*\)|/media/${directory}/${subdirectory}|g"	\
-																		"/media/${directory}/${subdirectory}/leocad/leocad.conf"
+			sed										\
+				--in-place							\
+				--expression="${expression_sed}"	\
+													"${file_source_path}"
 		fi
 	fi
 done

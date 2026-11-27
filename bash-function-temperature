@@ -15,73 +15,109 @@ temperature () {
 	local label
 	local degrees
 	local width_label
+	local directory_thermal
+	local pattern_zone
+	local file_type
+	local file_temperature
+	local name_acpitz
+	local name_package
+	local pattern_chipset
+	local pattern_wifi
+	local label_system
+	local label_chipset
+	local label_wifi
+	local label_package
+	local separator_fields
+	local format_line
+	local unit_temperature
+	local divisor_degrees
+	local padding_label
+
+	directory_thermal="/sys/class/thermal"
+	pattern_zone="thermal_zone*"
+	file_type="type"
+	file_temperature="temp"
+	name_acpitz="acpitz"
+	name_package="x86_pkg_temp"
+	pattern_chipset="pch_*"
+	pattern_wifi="iwlwifi_*"
+	label_system="System"
+	label_chipset="Chipset"
+	label_wifi="WiFi"
+	label_package="CPU"
+	separator_fields="|"
+	format_line='%-*s%s%s\n'
+	unit_temperature="°C"
+	divisor_degrees="1000"
+	padding_label="4"
 
 	# output starts one line below the command
 
 	echo
 
-	if [[ -d /sys/class/thermal ]]
+	if [ -d "${directory_thermal}" ]
 	then
 		count_acpitz=0
-		label_cpu=""
-		degrees_cpu=""
-		list_lines=()
 		length_label_longest=0
 
-		for directory_zone in /sys/class/thermal/thermal_zone*
-		do
-			label=$(cat "${directory_zone}"/type)
+		unset label_cpu degrees_cpu
 
-			if [ "${label}" = "acpitz" ]
+		list_lines=()
+
+		for directory_zone in "${directory_thermal}"/${pattern_zone}
+		do
+			label=$(cat "${directory_zone}/${file_type}")
+
+			if [ "${label}" = "${name_acpitz}" ]
 			then
 				count_acpitz=$(( count_acpitz + 1 ))
 
-				label="System ${count_acpitz}"
+				label="${label_system} ${count_acpitz}"
 
-			elif [[ "${label}" = pch_* ]]
+			elif [[ "${label}" = ${pattern_chipset} ]]
 			then
-				label="Chipset"
+				label="${label_chipset}"
 
-			elif [[ "${label}" = iwlwifi_* ]]
+			elif [[ "${label}" = ${pattern_wifi} ]]
 			then
-				label="WiFi"
+				label="${label_wifi}"
 
-			elif [ "${label}" = "x86_pkg_temp" ]
+			elif [ "${label}" = "${name_package}" ]
 			then
-				label="CPU"
+				label="${label_package}"
 
 			else
 				label="${label//_/ }"
 			fi
 
-			degrees=$(cat "${directory_zone}"/temp)
-			degrees=$(( degrees / 1000 ))
+			degrees=$(cat "${directory_zone}/${file_temperature}")
+			degrees=$(( degrees / divisor_degrees ))
 
 			if [ "${#label}" -gt "${length_label_longest}" ]
 			then
 				length_label_longest="${#label}"
 			fi
 
-			if [ "${label}" = "CPU" ]
+			if [ "${label}" = "${label_package}" ]
 			then
 				label_cpu="${label}"
 				degrees_cpu="${degrees}"
 			else
-				list_lines+=("${label}|${degrees}")
+				list_lines+=("${label}${separator_fields}${degrees}")
 			fi
 		done
 
-		width_label=$(( length_label_longest + 4 ))
+		width_label=$(( length_label_longest + padding_label ))
 
 		if [ -n "${label_cpu}" ]
 		then
-			printf "%-${width_label}s%s°C\n" "${label_cpu}:" "${degrees_cpu}"
+			printf "${format_line}" "${width_label}" "${label_cpu}:" "${degrees_cpu}" "${unit_temperature}"
 		fi
 
 		printf '%s\n' "${list_lines[@]}" | sort |
-		while IFS='|' read -r label degrees
+		while IFS="${separator_fields}" read -r label degrees
 		do
-			printf "%-${width_label}s%s°C\n" "${label}:" "${degrees}"
+			printf "${format_line}" "${width_label}" "${label}:" "${degrees}" "${unit_temperature}"
 		done
 
 		unset count_acpitz label_cpu degrees_cpu list_lines length_label_longest width_label

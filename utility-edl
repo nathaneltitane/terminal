@@ -129,6 +129,14 @@ service="ModemManager"
 
 url_source="https://github.com/bkerler/edl.git"
 
+package_modem="modemmanager"
+file_drivers="install-linux-edl-drivers.sh"
+file_requirements="requirements.txt"
+mode_drivers="a+rx"
+flags_compiler="-Wno-int-conversion"
+label_install="install"
+hint_process="[ ${process} ]"
+
 directory_base="${directory_base:-${HOME}/.local/share}"
 directory_edl="${directory_base}/${process}"
 
@@ -155,7 +163,7 @@ list=()
 
 frobulator.inf "Removing conflicting service" "[ ${service} ]"
 
-apt-get --assume-yes purge modemmanager > "${sink}" 2>&1
+apt-get --assume-yes purge "${package_modem}" > "${sink}" 2>&1
 
 frobulator.complete
 
@@ -199,19 +207,19 @@ frobulator.complete
 
 # usb drivers
 
-chmod a+rx install-linux-edl-drivers.sh
+chmod "${mode_drivers}" "${file_drivers}"
 
-frobulator.background "install" "[ drivers ]" -- frobulator.silence log "bash install-linux-edl-drivers.sh"
+frobulator.background "${label_install}" "[ drivers ]" -- frobulator.silence log "bash ${file_drivers}"
 
-frobulator.complete halt "Unable to install drivers" "[ ${process} ]"
+frobulator.complete halt "Unable to install drivers" "${hint_process}"
 
 frobulator.complete
 
 # python dependencies
 
-frobulator.background "install" "[ dependencies ]" -- frobulator.silence log "pip3 install -r requirements.txt --break-system-packages"
+frobulator.background "${label_install}" "[ dependencies ]" -- frobulator.silence log "pip3 install -r ${file_requirements} --break-system-packages"
 
-frobulator.complete halt "Unable to install dependencies" "[ ${process} ]"
+frobulator.complete halt "Unable to install dependencies" "${hint_process}"
 
 frobulator.complete
 
@@ -219,9 +227,9 @@ frobulator.complete
 
 # CFLAGS avoids a build failure against gcc 14 and newer
 
-export CFLAGS="-Wno-int-conversion"
+export CFLAGS="${flags_compiler}"
 
-frobulator.background "install" -- frobulator.silence log "pip3 install -U . --break-system-packages"
+frobulator.background "${label_install}" -- frobulator.silence log "pip3 install -U . --break-system-packages"
 
 status="${?}"
 
@@ -229,7 +237,7 @@ unset CFLAGS
 
 if [ "${status}" -ne 0 ]
 then
-	frobulator.err "Unable to install" "[ ${process} ]"
+	frobulator.err "Unable to install" "${hint_process}"
 
 	exit 1
 fi
@@ -254,9 +262,9 @@ command_path="$(command -v "${process}")"
 
 if [ -n "${command_path}" ]
 then
-	frobulator.scs "Verification success" "[ ${process} ]"
+	frobulator.scs "Verification success" "${hint_process}"
 else
-	frobulator.err "Verification failed" "[ ${process} ]"
+	frobulator.err "Verification failed" "${hint_process}"
 
 	exit 1
 fi

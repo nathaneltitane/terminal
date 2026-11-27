@@ -23,6 +23,13 @@ source "${frobulator}"
 
 version="2026-10-21"
 
+# variables ────────────────────────────────────────────────────────────────────
+
+option_install="install"
+directory_install="${HOME}"/.local/bin
+prefix_sudo="sudo "
+code_color_user="3"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 self="${BASH_SOURCE[0]}"
@@ -31,18 +38,16 @@ self="${BASH_SOURCE[0]}"
 
 # executed directly: install only
 
-if [[ "${self}" = "${0}" ]]
+if [ "${self}" = "${0}" ]
 then
 	script="$(basename -- "${self}")"
-
-	directory_install="${HOME}"/.local/bin
 
 	while (( $# ))
 	do
 		case "${1}"
 		in
 			-i|--install)
-				option="install"
+				option="${option_install}"
 			;;
 
 			-h|--help)
@@ -90,12 +95,12 @@ then
 
 	if [ -z "${option}" ]
 	then
-		option="install"
+		option="${option_install}"
 	fi
 
 	# install
 
-	if [ "${option}" = "install" ]
+	if [ "${option}" = "${option_install}" ]
 	then
 		# blank line - output separated from the shell prompt
 
@@ -122,32 +127,32 @@ fi
 
 # bash ─────────────────────────────────────────────────────────────────────────
 
-if [[ -f "${HOME}"/.bash_aliases ]]
+if [ -f "${HOME}"/.bash_aliases ]
 then
 	alias 'sa'='. "${HOME}"/.bash_aliases'
 fi
 
-if [[ -f "${HOME}"/.bash_funtions ]]
+if [ -f "${HOME}"/.bash_funtions ]
 then
 	alias 'sf'='. "${HOME}"/.bash_functions'
 fi
 
-if [[ -f "${HOME}"/.bashrc ]]
+if [ -f "${HOME}"/.bashrc ]
 then
 	alias 'sc'='. "${HOME}"/.bashrc'
 fi
 
-if [[ -f "${HOME}"/.bash_login ]]
+if [ -f "${HOME}"/.bash_login ]
 then
 	alias 'si'='. "${HOME}"/.bash_login'
 fi
 
-if [[ -f "${HOME}"/.bash_logout ]]
+if [ -f "${HOME}"/.bash_logout ]
 then
 	alias 'so'='. "${HOME}"/.bash_logout'
 fi
 
-if [[ -f "${HOME}"/.bash_profile ]]
+if [ -f "${HOME}"/.bash_profile ]
 then
 	alias 'sp'='. "${HOME}"/.bash_profile'
 fi
@@ -263,9 +268,9 @@ then
 
 	if [ -n "${command_sudo}" ]
 	then
-		prefix_apt_get="sudo "
+		prefix_apt_get="${prefix_sudo}"
 	else
-		prefix_apt_get=""
+		unset prefix_apt_get
 	fi
 
 	alias 'autoclean'="${prefix_apt_get}apt-get autoclean"
@@ -298,9 +303,9 @@ then
 
 	if [ -n "${command_sudo}" ]
 	then
-		prefix_apt_cache="sudo "
+		prefix_apt_cache="${prefix_sudo}"
 	else
-		prefix_apt_cache=""
+		unset prefix_apt_cache
 	fi
 
 	alias 'depend'="${prefix_apt_cache}apt-cache depends"
@@ -622,7 +627,7 @@ if [ -n "${command_sudo}" ] && [ -n "${command_tput}" ]
 then
 	# password prompt colors: user name in yellow - then back to normal
 
-	color_user="$(tput setaf 3)"
+	color_user="$(tput setaf "${code_color_user}")"
 	color_reset="$(tput sgr 0)"
 
 	# expand aliases after sudo

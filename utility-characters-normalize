@@ -143,11 +143,84 @@ count_renamed=0
 
 count_unchanged=0
 
+locale_setup="C.UTF-8"
+
+name_unnamed="unnamed"
+
+name_charmap_expected="UTF-8"
+
+character_space=" "
+
+character_dot="."
+
+separator_number="-"
+
+separator_space_double="  "
+
+depth_minimum=1
+
+depth_maximum=1
+
+declare -A map_characters=(
+	["【"]="["
+	["『"]="["
+	["「"]="["
+	["［"]="["
+	["】"]="]"
+	["』"]="]"
+	["」"]="]"
+	["］"]="]"
+	["（"]="("
+	["）"]=")"
+	["｛"]="{"
+	["｝"]="}"
+	["〈"]="<"
+	["《"]="<"
+	["〉"]=">"
+	["》"]=">"
+	["！"]="!"
+	["？"]="?"
+	["："]=":"
+	["；"]=";"
+	["，"]=","
+	["．"]="."
+	["％"]="%"
+	["＆"]="&"
+	["＋"]="+"
+	["＝"]="="
+	["＊"]="*"
+	["＃"]="#"
+	["＠"]="@"
+	["＄"]="$"
+	["＾"]="^"
+	["＿"]="_"
+	["｜"]="-"
+	["／"]="-"
+	["⧸"]="-"
+	["＼"]="-"
+	["～"]="~"
+	["〜"]="~"
+	["’"]="'"
+	["‘"]="'"
+	["“"]='"'
+	["”"]='"'
+	["＂"]='"'
+	["—"]="-"
+	["–"]="-"
+	["−"]="-"
+	["‐"]="-"
+	["―"]="-"
+	["…"]="..."
+	["・"]="-"
+	["･"]="-"
+	["　"]=" "
+)
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
-export LANG=C.UTF-8
+export LANG="${locale_setup}"
 
-export LC_ALL=C.UTF-8
+export LC_ALL="${locale_setup}"
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -157,184 +230,39 @@ name_normalize () {
 	local name_target=""
 	local character=""
 	local index=0
+	local character_mapped=""
 
 	for (( index = 0 ; index < ${#name_source} ; index ++ ))
 	do
 		character="${name_source:index:1}"
+		character_mapped="${map_characters[${character}]}"
 
-		if [ "${character}" = "【" ] ||
-		   [ "${character}" = "『" ] ||
-		   [ "${character}" = "「" ] ||
-		   [ "${character}" = "［" ]
+		if [ -n "${character_mapped}" ]
 		then
-			character="["
-
-		elif [ "${character}" = "】" ] ||
-		     [ "${character}" = "』" ] ||
-		     [ "${character}" = "」" ] ||
-		     [ "${character}" = "］" ]
-		then
-			character="]"
-
-		elif [ "${character}" = "（" ]
-		then
-			character="("
-
-		elif [ "${character}" = "）" ]
-		then
-			character=")"
-
-		elif [ "${character}" = "｛" ]
-		then
-			character="{"
-
-		elif [ "${character}" = "｝" ]
-		then
-			character="}"
-
-		elif [ "${character}" = "〈" ] ||
-		     [ "${character}" = "《"  ]
-		then
-			character="<"
-
-		elif [ "${character}" = "〉" ] ||
-		     [ "${character}" = "》"  ]
-		then
-			character=">"
-
-		elif [ "${character}" = "！" ]
-		then
-			character="!"
-
-		elif [ "${character}" = "？" ]
-		then
-			character="?"
-
-		elif [ "${character}" = "：" ]
-		then
-			character=":"
-
-		elif [ "${character}" = "；" ]
-		then
-			character=";"
-
-		elif [ "${character}" = "，" ]
-		then
-			character=","
-
-		elif [ "${character}" = "．" ]
-		then
-			character="."
-
-		elif [ "${character}" = "％" ]
-		then
-			character="%"
-
-		elif [ "${character}" = "＆" ]
-		then
-			character="&"
-
-		elif [ "${character}" = "＋" ]
-		then
-			character="+"
-
-		elif [ "${character}" = "＝" ]
-		then
-			character="="
-
-		elif [ "${character}" = "＊" ]
-		then
-			character="*"
-
-		elif [ "${character}" = "＃" ]
-		then
-			character="#"
-
-		elif [ "${character}" = "＠" ]
-		then
-			character="@"
-
-		elif [ "${character}" = "＄" ]
-		then
-			character="$"
-
-		elif [ "${character}" = "＾" ]
-		then
-			character="^"
-
-		elif [ "${character}" = "＿" ]
-		then
-			character="_"
-
-		elif [ "${character}" = "｜" ]
-		then
-			character="-"
-
-		elif [ "${character}" = "／" ] ||
-		     [ "${character}" = "⧸"  ] ||
-		     [ "${character}" = "＼" ]
-		then
-			character="-"
-
-		elif [ "${character}" = "～" ] ||
-		     [ "${character}" = "〜" ]
-		then
-			character="~"
-
-		elif [ "${character}" = "’" ] ||
-		     [ "${character}" = "‘" ]
-		then
-			character="'"
-
-		elif [ "${character}" = "“"  ] ||
-		     [ "${character}" = "”"  ] ||
-		     [ "${character}" = "＂" ]
-		then
-			character='"'
-
-		elif [ "${character}" = "—" ] ||
-		     [ "${character}" = "–" ] ||
-		     [ "${character}" = "−" ] ||
-		     [ "${character}" = "‐" ] ||
-		     [ "${character}" = "―" ]
-		then
-			character="-"
-
-		elif [ "${character}" = "…" ]
-		then
-			character="..."
-
-		elif [ "${character}" = "・" ] ||
-		     [ "${character}" = "･"  ]
-		then
-			character="-"
-
-		elif [ "${character}" = "　" ]
-		then
-			character=" "
+			character="${character_mapped}"
 		fi
 
 		name_target+="${character}"
 	done
 
-	while [[ "${name_target}" = *"  "* ]]
+	while [[ "${name_target}" = *"${separator_space_double}"* ]]
 	do
-		name_target="${name_target//  / }"
+		name_target="${name_target//"${separator_space_double}"/"${character_space}"}"
 	done
 
-	while [[ "${name_target}" = " "* ]]
+	while [[ "${name_target}" = "${character_space}"* ]]
 	do
-		name_target="${name_target# }"
+		name_target="${name_target#"${character_space}"}"
 	done
 
-	while [[ "${name_target}" = *" " ]]
+	while [[ "${name_target}" = *"${character_space}" ]]
 	do
-		name_target="${name_target% }"
+		name_target="${name_target%"${character_space}"}"
 	done
 
 	if [ -z "${name_target}" ]
 	then
-		name_target="unnamed"
+		name_target="${name_unnamed}"
 	fi
 
 	echo "${name_target}"
@@ -358,21 +286,21 @@ path_unique () {
 		return 0
 	fi
 
-	if [ -f "${path_source}" ] && [[ "${name_target}" = *.* ]]
+	if [ -f "${path_source}" ] && [[ "${name_target}" = *"${character_dot}"* ]]
 	then
-		name="${name_target%.*}"
-		extension=".${name_target##*.}"
+		name="${name_target%"${character_dot}"*}"
+		extension="${character_dot}${name_target##*"${character_dot}"}"
 	else
 		name="${name_target}"
 		extension=""
 	fi
 
-	while [ -e "${directory_target}/${name}-${number}${extension}" ]
+	while [ -e "${directory_target}/${name}${separator_number}${number}${extension}" ]
 	do
 		(( number ++ ))
 	done
 
-	echo "${directory_target}/${name}-${number}${extension}"
+	echo "${directory_target}/${name}${separator_number}${number}${extension}"
 }
 
 # update ───────────────────────────────────────────────────────────────────────
@@ -399,7 +327,7 @@ list=()
 
 name_charmap_locale="$(locale charmap 2> "${sink}")"
 
-if [ "${name_charmap_locale}" != "UTF-8" ]
+if [ "${name_charmap_locale}" != "${name_charmap_expected}" ]
 then
 	frobulator.err "UTF-8 locale unavailable"
 
@@ -414,7 +342,7 @@ while IFS= read -r -d '' path_source
 do
 	name_source="${path_source##*/}"
 
-	name_target=$(name_normalize "${name_source}")
+	name_target="$(name_normalize "${name_source}")"
 
 	path_target="${directory}/${name_target}"
 
@@ -425,7 +353,7 @@ do
 		continue
 	fi
 
-	path_target=$(path_unique "${path_source}" "${path_target}")
+	path_target="$(path_unique "${path_source}" "${path_target}")"
 
 	frobulator.inf "Renaming" "[ ${name_source} ]"
 	frobulator.inf "To" "[ ${path_target##*/} ]"
@@ -443,7 +371,7 @@ do
 
 	(( count_renamed ++ ))
 
-done < <(find "${directory}" -mindepth 1 -maxdepth 1 -print0)
+done < <(find "${directory}" -mindepth "${depth_minimum}" -maxdepth "${depth_maximum}" -print0)
 
 # result ───────────────────────────────────────────────────────────────────────
 

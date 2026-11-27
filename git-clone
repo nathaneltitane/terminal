@@ -124,21 +124,23 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+pattern_option="-*"
+url_github="https://github.com"
+name_user="nathaneltitane"
+
+depth_clone=1
+label_clone="clone"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # validate arguments
 
-if [[ "${name_project}" = -* ]]
+if [[ "${name_project}" = ${pattern_option} ]]
 then
 	frobulator.err "Missing argument for '--project'."
 
 	exit 1
 fi
-
-url_github="https://github.com"
-name_user="nathaneltitane"
-
-depth_clone=1
 
 # functions ────────────────────────────────────────────────────────────────────
 
@@ -180,18 +182,20 @@ fi
 
 for name_project in "${list_projects[@]}"
 do
-	if [[ -d "${name_project}" ]]
+	if [ -d "${name_project}" ]
 	then
 		frobulator.wrn "Project directory exists" "[ ${name_project} ]"
 
 		frobulator.delete "${name_project}"
 	fi
 
-	frobulator.background "clone" "[ ${name_project} ]" 						\
+	url_project="${url_github}/${name_user}/${name_project}"
+
+	frobulator.background "${label_clone}" "[ ${name_project} ]" 						\
 		-- git clone															\
 			--quiet																\
 			--depth "${depth_clone}"											\
-										"${url_github}"/"${name_user}"/"${name_project}"
+										"${url_project}"
 
 done
 

@@ -9,10 +9,13 @@ hex () {
 	local value_red
 	local value_green
 	local value_blue
+	local format_color
+
+	format_color='%02x%02x%02x\n'
 
 	# red green blue values - space separated - hexadecimal color code
 
 	read -r value_red value_green value_blue <<< "${*}"
 
-	printf '%02x%02x%02x\n' "${value_red}" "${value_green}" "${value_blue}"
+	printf "${format_color}" "${value_red}" "${value_green}" "${value_blue}"
 }

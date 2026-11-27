@@ -114,7 +114,18 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
-directory_library=$(pip show py-slvs | grep Location | cut -d ' ' -f 2)
+name_package="py-slvs"
+keyword_location="Location"
+delimiter_field=" "
+field_location="2"
+directory_printer="/media/internal/Printer/freecad"
+directory_configuration="${directory_printer}/configuration"
+directory_freecad="${HOME}/.config/FreeCAD"
+directory_macros="macros"
+file_conf_source="freecad.conf"
+file_conf_target="FreeCAD.conf"
+
+directory_library=$(pip show "${name_package}" | grep "${keyword_location}" | cut --delimiter="${delimiter_field}" --fields="${field_location}")
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -143,23 +154,23 @@ list+=(
 	user.cfg
 )
 
-if [ -d /media/internal/Printer/freecad/configuration ]
+if [ -d "${directory_configuration}" ]
 then
 	frobulator.inf "Linking configuration"
 
 	for configuration in ${list[@]}
 	do
-		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD	"${configuration}"
+		frobulator.link "${directory_configuration}" "${directory_freecad}" "${configuration}"
 
-		frobulator.link /media/internal/Printer/freecad/configuration "${HOME}"/.config/FreeCAD freecad.conf FreeCAD.conf
+		frobulator.link "${directory_configuration}" "${directory_freecad}" "${file_conf_source}" "${file_conf_target}"
 	done
 fi
 
 list=()
 
-if [ -d /media/internal/Printer/freecad/macros ]
+if [ -d "${directory_printer}/${directory_macros}" ]
 then
 	frobulator.inf "Linking macros"
 
-		frobulator.link /media/internal/Printer/freecad "${HOME}"/.config/FreeCAD macros
+	frobulator.link "${directory_printer}" "${directory_freecad}" "${directory_macros}"
 fi

@@ -12,5 +12,12 @@ font="${name_font}:size=${size_font}"
 
 lines=15
 prompt="OPEN FILE${separator}"
+depth_search=1
+type_search="f"
+format_name="%f\n"
+color_background_normal='#000000'
+color_foreground_normal='#FFFFFF'
+color_background_selected='#666666'
+color_foreground_selected='#000000'
 
-find "${HOME}" -maxdepth 1 -type f -printf "%f\n" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | xargs -r "${terminal}" -e "${command_file_manager}" --selectfile
+find "${HOME}" -maxdepth "${depth_search}" -type "${type_search}" -printf "${format_name}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background_normal}" -nf "${color_foreground_normal}" -sb "${color_background_selected}" -sf "${color_foreground_selected}" | xargs -r "${terminal}" -e "${command_file_manager}" --selectfile

@@ -6,21 +6,29 @@
 
 adb_set_environment () {
 
+	local name_command="adb"
+	local name_variable_fwmark="ANDROID_NO_USE_FWMARK"
+	local value_fwmark="1"
+	local name_variable_socket="ADB_SERVER_SOCKET"
+	local prefix_socket="localfilesystem:"
+	local directory_adb="${HOME}/.adb"
+	local file_socket="${directory_adb}/adb_server_socket"
 	local command_adb
 
 	# 'adb' path - empty if not installed
 
-	command_adb="$(command -v adb)"
+	command_adb="$(command -v "${name_command}")"
 
 	if [ -n "${command_adb}" ]
 	then
-		export ANDROID_NO_USE_FWMARK=1
+		export "${name_variable_fwmark}=${value_fwmark}"
 
-		if [ ! -d "${HOME}"/.adb ]
+		if [ ! -d "${directory_adb}" ]
 		then
-			mkdir -p "${HOME}"/.adb
+			mkdir --parents "${directory_adb}"
 		fi
 
-		export ADB_SERVER_SOCKET=localfilesystem:"${HOME}"/.adb/adb_server_socket
+		export "${name_variable_socket}=${prefix_socket}${file_socket}"
 	fi
+
 }

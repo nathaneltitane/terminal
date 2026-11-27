@@ -5,21 +5,40 @@ name_font="Monospace"
 size_font=10
 font="${name_font}:size=${size_font}"
 
+color_background="#000000"
+color_foreground="#FFFFFF"
+color_selected_background="#666666"
+color_selected_foreground="#000000"
+
 lines=30
 prompt="TYPE TO SEARCH - SELECT TO TERMINATE${separator}"
 
-selection="$(ps all | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000' | awk '{print $1" "$4}')"
+prompt_selection="SELECTION >>> "
+prompt_terminate="${separator}TERMINATE?"
+choices="NO\NYES"
+answer_yes="YES"
+signal_kill="-9"
 
-if [[ ! -z "${selection}" ]]
+# selected process line
+
+line_process="$(ps all | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selected_background}" -sf "${color_selected_foreground}")"
+
+# first and fourth columns
+
+read -r column_first column_second column_third column_fourth column_rest <<< "${line_process}"
+
+selection="${column_first} ${column_fourth}"
+
+if [ -n "${selection}" ]
 then
-	prompt="SELECTION >>> ${selection} // TERMINATE?"
+	prompt="${prompt_selection}${selection}${prompt_terminate}"
 
-    answer="$(echo -e "NO\NYES" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb '#000000' -nf '#FFFFFF' -sb '#666666' -sf '#000000')"
+	answer="$(echo -e "${choices}" | dmenu -i -l "${lines}" -p "${prompt}" -fn "${font}" -nb "${color_background}" -nf "${color_foreground}" -sb "${color_selected_background}" -sf "${color_selected_foreground}")"
 
-    if [[ "${answer}" == "YES" ]]
-    then
-        id_process_selection="$(awk '{print $1}' <<< "${selection}")"
+	if [ "${answer}" = "${answer_yes}" ]
+	then
+		read -r id_process_selection column_remaining <<< "${selection}"
 
-        kill -9 "${id_process_selection}"
-    fi
+		kill "${signal_kill}" "${id_process_selection}"
+	fi
 fi

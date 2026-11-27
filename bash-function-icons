@@ -10,6 +10,15 @@ icons () {
 	local directory_icons
 	local directory_theme
 	local name_theme
+	local file_index
+	local directory_user
+	local directory_prefix
+	local directory_system
+
+	file_index="index.theme"
+	directory_user="${HOME}/.icons"
+	directory_prefix="${PREFIX}/share/icons"
+	directory_system="/usr/share/icons"
 
 	# output starts one line below the command
 
@@ -18,9 +27,9 @@ icons () {
 	frobulator.require gtk-update-icon-cache
 
 	list_directories_icons=(
-		"${HOME}"/.icons
-		"${PREFIX}"/share/icons
-		/usr/share/icons
+		"${directory_user}"
+		"${directory_prefix}"
+		"${directory_system}"
 	)
 
 	for directory_icons in ${list_directories_icons[@]}
@@ -36,7 +45,7 @@ icons () {
 			do
 				name_theme="${directory_theme##*/}"
 
-				if [ -f "${directory_theme}"/index.theme ]
+				if [ -f "${directory_theme}/${file_index}" ]
 				then
 
 					gtk-update-icon-cache -f -q "${directory_theme}"

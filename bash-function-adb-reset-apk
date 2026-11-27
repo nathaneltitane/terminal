@@ -8,19 +8,29 @@ adb_reset_apk () {
 
 	local application
 	local activity
+	local component
+	local id_user
+	local format_component
 
 	adb_download
 
 	adb_set_environment
 
+	id_user="0"
+	format_component='%s/%s.%s'
+
 	application="${1}"
 	activity="${2}"
+
+	# activity component name
+
+	printf -v component "${format_component}" "${application}" "${application}" "${activity}"
 
 	adb "${device}" shell	\
 		pm clear "${application}"
 
 	adb "${device}" shell	\
 		am start			\
-			--user 0		\
-			-n "${application}"/"${application}"."${activity}"
+			--user "${id_user}"	\
+			-n "${component}"
 }

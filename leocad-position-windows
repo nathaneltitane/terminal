@@ -114,6 +114,31 @@ done
 
 # variables ────────────────────────────────────────────────────────────────────
 
+name_application="LeoCAD"
+separator_title=" — "
+title_main="New Model.ldr${separator_title}${name_application}"
+title_colors="Colors${separator_title}${name_application}"
+title_preview="Preview${separator_title}${name_application}"
+title_properties="Properties${separator_title}${name_application}"
+title_parts="Parts${separator_title}${name_application}"
+title_timeline="Timeline${separator_title}${name_application}"
+gravity_window="0"
+separator_geometry=","
+position_column_main="0000"
+position_column_side="1660"
+position_column_far="2110"
+position_row_top="0000"
+position_row_middle="0350"
+position_row_low="0720"
+width_main="1660"
+height_main="1080"
+width_side="0450"
+width_parts="0900"
+height_side_small="0350"
+height_properties="0370"
+height_parts="0360"
+height_timeline="0720"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # functions ────────────────────────────────────────────────────────────────────
@@ -140,26 +165,26 @@ list=()
 
 # main window
 
-wmctrl -r "New Model.ldr — LeoCAD" -e 0,0000,0000,1660,1080
+wmctrl -r "${title_main}" -e "${gravity_window}${separator_geometry}${position_column_main}${separator_geometry}${position_row_top}${separator_geometry}${width_main}${separator_geometry}${height_main}"
 
 # color palette
 
-wmctrl -r "Colors — LeoCAD"        -e 0,1660,0000,0450,0350
+wmctrl -r "${title_colors}" -e "${gravity_window}${separator_geometry}${position_column_side}${separator_geometry}${position_row_top}${separator_geometry}${width_side}${separator_geometry}${height_side_small}"
 
 # preview widget
 
-wmctrl -r "Preview — LeoCAD"       -e 0,1660,0000,0450,0350
+wmctrl -r "${title_preview}" -e "${gravity_window}${separator_geometry}${position_column_side}${separator_geometry}${position_row_top}${separator_geometry}${width_side}${separator_geometry}${height_side_small}"
 
 # properties widget
 
-wmctrl -r "Properties — LeoCAD"    -e 0,1660,0350,0450,0370
+wmctrl -r "${title_properties}" -e "${gravity_window}${separator_geometry}${position_column_side}${separator_geometry}${position_row_middle}${separator_geometry}${width_side}${separator_geometry}${height_properties}"
 
 # parts widget
 
-wmctrl -r "Parts — LeoCAD"         -e 0,1660,0720,0900,0360
+wmctrl -r "${title_parts}" -e "${gravity_window}${separator_geometry}${position_column_side}${separator_geometry}${position_row_low}${separator_geometry}${width_parts}${separator_geometry}${height_parts}"
 
 # parts ordering / timeline widget
 
-wmctrl -r "Timeline — LeoCAD"      -e 0,2110,0000,0450,0720
+wmctrl -r "${title_timeline}" -e "${gravity_window}${separator_geometry}${position_column_far}${separator_geometry}${position_row_top}${separator_geometry}${width_side}${separator_geometry}${height_timeline}"
 
 frobulator.scs "Done"

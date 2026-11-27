@@ -70,7 +70,7 @@ version="2026-10-04"
 # usage ────────────────────────────────────────────────────────────────────────
 
 list_keep=()
-prune=false
+prune="false"
 
 while (( $# ))
 do
@@ -101,7 +101,7 @@ do
 		;;
 
 		-p|--prune)
-			prune=true
+			prune="true"
 		;;
 
 		-h|--help)
@@ -164,11 +164,30 @@ done
 # variables ────────────────────────────────────────────────────────────────────
 
 directory_mount="/media"
+name_internal="internal"
+name_external="external"
+delay_interval_default="300"
+delay_debounce="2"
+code_timeout_minimum="128"
+state_running="true"
+package_inotify="inotify-tools"
+package_rsync="rsync"
+pattern_exclude_trash=".Trash-*"
+pattern_exclude_lost="lost+found"
+pattern_exclude_watch='(\.?Trash.*|lost\+found)'
+events_watch="modify,create,delete,move,attrib"
+file_watches_current="/proc/sys/fs/inotify/max_user_watches"
+property_watches="fs.inotify.max_user_watches"
+directory_sysctl="/etc/sysctl.d"
+file_sysctl="99-inotify.conf"
+count_watches_required="524288"
+directory_lock="${HOME}/.local/bin"
+name_lock="backup-internal-external-sync-lock"
 
-directory_source="${directory_source:-${directory_mount}/internal}"
+directory_source="${directory_source:-${directory_mount}/${name_internal}}"
 directory_destination_base="${directory_destination_base:-${directory_mount}/${USER}}"
-directory_destination="${directory_destination_base}/external"
-interval_periodic="${interval_periodic:-300}"
+directory_destination="${directory_destination_base}/${name_external}"
+interval_periodic="${interval_periodic:-${delay_interval_default}}"
 
 list_arguments_exclude_keep=()
 
@@ -179,18 +198,18 @@ done
 
 list_arguments_prune=()
 
-if [ "${prune}" = true ]
+if [ "${prune}" = "true" ]
 then
 	list_arguments_prune+=(--delete)
 fi
 
-file_lock_synchronize="${HOME}"/.local/bin/backup-internal-external-sync-lock
+file_lock_synchronize="${directory_lock}/${name_lock}"
 
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	inotify-tools
-	rsync
+	"${package_inotify}"
+	"${package_rsync}"
 )
 
 frobulator.require ${list[@]}
@@ -220,17 +239,15 @@ fi
 # raises the per-user watch limit so recursive monitoring of large trees
 # does not silently fail past the default (typically far too low)
 
-count_watches_required="524288"
-
-count_watches_current=$(cat /proc/sys/fs/inotify/max_user_watches)
+count_watches_current=$(cat "${file_watches_current}")
 
 if [ "${count_watches_current}" -lt "${count_watches_required}" ]
 then
 	frobulator.inf "Raising inotify watch limit" "[ ${count_watches_required} ]"
 
-	sysctl -w fs.inotify.max_user_watches="${count_watches_required}" > "${sink}"
+	sysctl -w "${property_watches}"="${count_watches_required}" > "${sink}"
 
-	frobulator.write write "fs.inotify.max_user_watches=${count_watches_required}" /etc/sysctl.d 99-inotify.conf
+	frobulator.write write "${property_watches}=${count_watches_required}" "${directory_sysctl}" "${file_sysctl}"
 
 	frobulator.complete
 fi
@@ -238,6 +255,8 @@ fi
 # mirror
 
 synchronize () {
+
+	local status_lock
 
 	exec 200> "${file_lock_synchronize}"
 
@@ -255,13 +274,13 @@ synchronize () {
 	echo "Mirror start"
 	echo
 
-	rsync									\
-		--archive							\
+	rsync										\
+		--archive								\
 		"${list_arguments_prune[@]}"			\
-		--exclude '.Trash-*'				\
-		--exclude 'lost+found'				\
+		--exclude "${pattern_exclude_trash}"	\
+		--exclude "${pattern_exclude_lost}"		\
 		"${list_arguments_exclude_keep[@]}"		\
-									"${directory_source}/" "${directory_destination}/"
+												"${directory_source}/" "${directory_destination}/"
 
 	frobulator.fail "Mirror failed"
 
@@ -276,7 +295,7 @@ synchronize () {
 synchronize
 
 (
-	while true
+	while [ "${state_running}" = "true" ]
 	do
 		sleep "${interval_periodic}"
 
@@ -284,24 +303,24 @@ synchronize
 	done
 ) &
 
-inotifywait																\
-	--monitor															\
-	--recursive															\
-	--event modify,create,delete,move,attrib							\
-	--exclude '(\.?Trash.*|lost\+found)'								\
-																		"${directory_source}" |
+inotifywait									\
+	--monitor								\
+	--recursive								\
+	--event "${events_watch}"				\
+	--exclude "${pattern_exclude_watch}"	\
+											"${directory_source}" |
 while read -r directory_event name_event file_event
 do
-	state_debounce_pending=true
+	state_debounce_pending="true"
 
-	while ${state_debounce_pending}
+	while [ "${state_debounce_pending}" = "true" ]
 	do
-		read -t 2 -r directory_event name_event file_event 2> "${sink}"
+		read -t "${delay_debounce}" -r directory_event name_event file_event 2> "${sink}"
 		status_read="${?}"
 
-		if [ "${status_read}" -ge 128 ] || [ "${status_read}" -eq 1 ]
+		if [ "${status_read}" -ge "${code_timeout_minimum}" ] || [ "${status_read}" -eq 1 ]
 		then
-			state_debounce_pending=false
+			state_debounce_pending="false"
 		fi
 	done
 

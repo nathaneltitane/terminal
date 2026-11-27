@@ -123,6 +123,13 @@ done
 # variables ────────────────────────────────────────────────────────────────────
 
 directory_blacklist="/etc/modprobe.d"
+suffix_blacklist="-blacklist.conf"
+prefix_blacklist="blacklist "
+pattern_watchdog='(wdt$|tco$|^softdog$|watchdog)'
+name_generic="watchdog"
+character_underscore="_"
+character_hyphen="-"
+label_rebuild="rebuild"
 
 # defaults ─────────────────────────────────────────────────────────────────────
 
@@ -137,7 +144,6 @@ directory_blacklist="/etc/modprobe.d"
 # requirements ─────────────────────────────────────────────────────────────────
 
 list=(
-	awk
 	grep
 	lsmod
 	update-initramfs
@@ -155,18 +161,23 @@ list=()
 
 if [ -z "${module}" ]
 then
-	module=$(
+	mapfile -t list_modules < <(lsmod)
 
-		lsmod |
-		awk '
-			tolower($1) ~ /(wdt$|tco$|^softdog$|watchdog)/ &&
-			tolower($1) != "watchdog" {
-				print $1
-				exit
-			}
-		'
+	for line_module in "${list_modules[@]}"
+	do
+		read -r name_loaded _ <<< "${line_module}"
 
-	)
+		name_lowercase="${name_loaded,,}"
+
+		if [[ "${name_lowercase}" =~ ${pattern_watchdog} ]] && [ "${name_lowercase}" != "${name_generic}" ]
+		then
+			module="${name_loaded}"
+
+			break
+		fi
+	done
+
+	unset list_modules
 fi
 
 frobulator.complete
@@ -182,9 +193,9 @@ fi
 
 label_module="${module,,}"
 
-label_module="${label_module//_/-}"
+label_module="${label_module//${character_underscore}/${character_hyphen}}"
 
-name_file_blacklist="${label_module}-blacklist.conf"
+name_file_blacklist="${label_module}${suffix_blacklist}"
 
 path_blacklist="${directory_blacklist}/${name_file_blacklist}"
 
@@ -196,7 +207,9 @@ frobulator.inf "Watchdog module" "[ ${label_module} ]"
 
 # existing module blacklist line - empty if not blacklisted yet
 
-line_blacklist="$(grep -F -x "blacklist ${module}" "${path_blacklist}" 2> "${sink}")"
+entry_blacklist="${prefix_blacklist}${module}"
+
+line_blacklist="$(grep --fixed-strings --line-regexp "${entry_blacklist}" "${path_blacklist}" 2> "${sink}")"
 
 if [ -n "${line_blacklist}" ]
 then
@@ -207,7 +220,7 @@ fi
 
 # blacklist module
 
-frobulator.write append "blacklist ${module}" "${directory_blacklist}" "${name_file_blacklist}"
+frobulator.write append "${entry_blacklist}" "${directory_blacklist}" "${name_file_blacklist}"
 
 frobulator.complete halt "Failed to write blacklist entry" "[ ${path_blacklist} ]"
 
@@ -217,7 +230,7 @@ frobulator.inf "Module blacklisted" "[ ${label_module} ]"
 
 # rebuild the initramfs
 
-frobulator.background rebuild "[ initramfs ]" -- frobulator.silence "update-initramfs -u"
+frobulator.background "${label_rebuild}" "[ initramfs ]" -- frobulator.silence "update-initramfs -u"
 
 frobulator.complete halt "Failed to rebuild initramfs."
 
