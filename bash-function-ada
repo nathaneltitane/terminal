@@ -712,6 +712,64 @@ ada_panel_update () {
 	local label
 	local index_label
 	local text_value
+	local path_ps="/api/ps"
+	local url_ps="${protocol_server}://${address_server}${path_ps}"
+	local separator_entry='{"name":"'
+	local pattern_size='"size":([0-9]+)'
+	local pattern_vram='"size_vram":([0-9]+)'
+	local name_unit="${name_service}"
+	local pattern_tokens='llama_kv_cache: size =|task\.n_tokens = |stop processing: n_tokens = '
+	local pattern_cache='llama_kv_cache: (size =|.*KV buffer size)'
+	local pattern_cache_size='size = ([0-9]+)[.0-9]* MiB \( *([0-9]+) cells'
+	local pattern_cache_buffer='^llama_kv_cache: +([^ ]+) KV buffer size = +([0-9]+)'
+	local pattern_count_tokens='n_tokens = ([0-9]+)'
+	local name_buffer_processor="CPU"
+	local count_lines_cache="8"
+	local factor_kibibyte="1024"
+	local factor_mebibyte="1048576"
+	local count_bar_rows="${height_panel}"
+	local glyph_memory="█"
+	local glyph_card="▓"
+	local glyph_cache_filled="▒"
+	local glyph_cache_reserved="▒"
+	local glyph_rest="░"
+	local color_memory="${lavender}"
+	local color_card=$'\e[38;5;80m'
+	local color_cache_filled=$'\e[38;5;183m'
+	local color_cache_reserved=$'\e[38;5;60m'
+	local color_rest=$'\e[38;5;237m'
+	local text_ps
+	local entry_ps
+	local name_entry
+	local count_model_size="0"
+	local count_model_vram="0"
+	local count_card_total="0"
+	local count_bytes_total
+	local count_cells
+	local count_weights_card
+	local count_weights_memory
+	local count_cache_filled
+	local count_cache_reserved
+	local count_tokens="0"
+	local line_log
+	local line_cache
+	local state_cache_size
+	local key_load
+	local index_bar_row
+	local index_bar_column
+	local index_cell
+	local index_segment
+	local index_segment_last
+	local line_bar
+	local count_sum
+	local segment_size
+
+	local list_ps=()
+	local list_cache=()
+	local list_segment_sizes=()
+	local list_segment_limits=()
+	local list_segment_glyphs=("${glyph_memory}" "${glyph_card}" "${glyph_cache_filled}" "${glyph_cache_reserved}" "${glyph_rest}")
+	local list_segment_colors=("${color_memory}" "${color_card}" "${color_cache_filled}" "${color_cache_reserved}" "${color_rest}")
 
 	local list_models=()
 	local list_memory=()
@@ -841,6 +899,183 @@ ada_panel_update () {
 	printf -v text_used "${format_tenths}" "$(( tenths_used / factor_tenths ))" "$(( tenths_used % factor_tenths ))"
 	printf -v text_total "${format_tenths}" "$(( tenths_total / factor_tenths ))" "$(( tenths_total % factor_tenths ))"
 
+	# memory bar - the model's share of system memory plus the card's own memory
+
+	if [ -n "${file_card_total}" ] && [ -r "${file_card_total}" ]
+	then
+		read -r count_card_total < "${file_card_total}"
+	fi
+
+	count_bytes_total=$(( count_memory_total * factor_kibibyte + count_card_total ))
+
+	if [ "${state_loaded}" = "true" ]
+	then
+		text_ps="$(curl --silent --max-time 1 "${url_ps}" 2> "${sink}")"
+
+		mapfile -t list_ps <<< "${text_ps//"${separator_entry}"/$'\n'}"
+
+		for entry_ps in "${list_ps[@]:index_row_first}"
+		do
+			name_entry="${entry_ps%%\"*}"
+
+			if [ "${name_entry}" = "${name_model}" ] || [ "${name_entry}" = "${name_model}${suffix_latest}" ]
+			then
+				if [[ "${entry_ps}" =~ ${pattern_size} ]]
+				then
+					count_model_size="${BASH_REMATCH[1]}"
+				fi
+
+				if [[ "${entry_ps}" =~ ${pattern_vram} ]]
+				then
+					count_model_vram="${BASH_REMATCH[1]}"
+				fi
+			fi
+		done
+	fi
+
+	# cache size and its card share - read again only when the model loads anew, newest log line first
+
+	key_load="${count_model_size} ${count_model_vram}"
+
+	if [ "${count_model_size}" -gt 0 ] && [ "${key_load}" != "${key_load_last}" ]
+	then
+		key_load_last="${key_load}"
+		count_cache_bytes="0"
+		count_cache_card="0"
+		count_cache_cells="0"
+		state_cache_size="false"
+
+		mapfile -t list_cache < <(journalctl --quiet --unit "${name_unit}" --output cat --no-pager --reverse --lines "${count_lines_cache}" --grep "${pattern_cache}" 2> "${sink}")
+
+		for line_cache in "${list_cache[@]}"
+		do
+			if [[ "${line_cache}" =~ ${pattern_cache_size} ]]
+			then
+				# the next size line belongs to an older load
+
+				if [ "${state_cache_size}" = "true" ]
+				then
+					break
+				fi
+
+				state_cache_size="true"
+				count_cache_bytes=$(( BASH_REMATCH[1] * factor_mebibyte ))
+				count_cache_cells="${BASH_REMATCH[2]}"
+
+			elif [ "${state_cache_size}" = "true" ] && [[ "${line_cache}" =~ ${pattern_cache_buffer} ]] && [ "${BASH_REMATCH[1]}" != "${name_buffer_processor}" ]
+			then
+				count_cache_card=$(( count_cache_card + BASH_REMATCH[2] * factor_mebibyte ))
+			fi
+		done
+
+		# a cache larger than the model is from another one
+
+		if [ "${count_cache_bytes}" -gt "${count_model_size}" ]
+		then
+			count_cache_bytes="0"
+			count_cache_card="0"
+		fi
+	fi
+
+	# tokens in the cache - none since the latest load
+
+	if [ "${count_model_size}" -gt 0 ] && [ "${count_cache_cells}" -gt 0 ]
+	then
+		line_log="$(journalctl --quiet --unit "${name_unit}" --output cat --no-pager --reverse --lines 1 --grep "${pattern_tokens}" 2> "${sink}")"
+
+		if [[ "${line_log}" != *"llama_kv_cache"* ]] && [[ "${line_log}" =~ ${pattern_count_tokens} ]]
+		then
+			count_tokens="${BASH_REMATCH[1]}"
+		fi
+
+		if [ "${count_tokens}" -gt "${count_cache_cells}" ]
+		then
+			count_tokens="${count_cache_cells}"
+		fi
+	fi
+
+	if [ "${count_model_size}" -eq 0 ]
+	then
+		count_cache_bytes="0"
+		count_cache_card="0"
+	fi
+
+	count_weights_card=$(( count_model_vram - count_cache_card ))
+
+	if [ "${count_weights_card}" -lt 0 ]
+	then
+		count_weights_card="0"
+	fi
+
+	count_weights_memory=$(( count_model_size - count_cache_bytes - count_weights_card ))
+
+	if [ "${count_weights_memory}" -lt 0 ]
+	then
+		count_weights_memory="0"
+	fi
+
+	count_cache_filled="0"
+
+	if [ "${count_cache_cells}" -gt 0 ]
+	then
+		count_cache_filled=$(( count_cache_bytes * count_tokens / count_cache_cells ))
+	fi
+
+	count_cache_reserved=$(( count_cache_bytes - count_cache_filled ))
+
+	list_segment_sizes=("${count_weights_memory}" "${count_weights_card}" "${count_cache_filled}" "${count_cache_reserved}")
+
+	# cell where each part ends, rounded to the nearest cell
+
+	count_cells=$(( count_bar_columns * count_bar_rows ))
+	count_sum="0"
+	list_segment_limits=()
+
+	for segment_size in "${list_segment_sizes[@]}"
+	do
+		count_sum=$(( count_sum + segment_size ))
+
+		if [ "${count_bytes_total}" -gt 0 ]
+		then
+			list_segment_limits+=("$(( ( count_sum * count_cells + count_bytes_total / 2 ) / count_bytes_total ))")
+		else
+			list_segment_limits+=("0")
+		fi
+	done
+
+	list_segment_limits+=("${count_cells}")
+
+	# rows from the bottom up, each row left to right
+
+	list_bar=()
+
+	for (( index_bar_row = 0 ; index_bar_row < count_bar_rows ; index_bar_row ++ ))
+	do
+		line_bar=""
+		index_segment_last=""
+
+		for (( index_bar_column = 0 ; index_bar_column < count_bar_columns ; index_bar_column ++ ))
+		do
+			index_cell=$(( ( count_bar_rows - 1 - index_bar_row ) * count_bar_columns + index_bar_column ))
+			index_segment="0"
+
+			while [ "${index_cell}" -ge "${list_segment_limits[index_segment]}" ]
+			do
+				(( index_segment ++ ))
+			done
+
+			if [ "${index_segment}" != "${index_segment_last}" ]
+			then
+				line_bar="${line_bar}${list_segment_colors[index_segment]}"
+				index_segment_last="${index_segment}"
+			fi
+
+			line_bar="${line_bar}${list_segment_glyphs[index_segment]}"
+		done
+
+		list_bar+=("${line_bar}${reset}")
+	done
+
 	# session time
 
 	printf -v epoch_now '%(%s)T' -1
@@ -944,6 +1179,13 @@ ada_panel_draw () {
 	local text_command
 	local text_description
 	local line_sheet
+	local width_bar_frames="4"
+	local width_bar_block="0"
+	local width_gap_bar="1"
+	local column_bar
+	local column_bar_text
+	local column_right="${count_columns}"
+	local state_bar="false"
 
 	local list_critter=()
 	local list_sheet=()
@@ -1049,7 +1291,23 @@ ada_panel_draw () {
 		fi
 	done
 
-	column_frame=$(( count_columns - width_panel_widest - width_frame_inner ))
+	# memory bar at the right edge, dropped before the panel shrinks
+
+	if [ "${#list_bar[@]}" -gt 0 ]
+	then
+		width_bar_block=$(( count_bar_columns + width_bar_frames ))
+	fi
+
+	column_bar=$(( count_columns - width_bar_block + 1 ))
+	column_bar_text=$(( column_bar + 2 ))
+
+	if [ "${width_bar_block}" -gt 0 ] && [ $(( column_bar - width_gap_bar - 1 - width_panel_widest - width_frame_inner )) -ge "${column_frame_minimum}" ]
+	then
+		state_bar="true"
+		column_right=$(( column_bar - width_gap_bar - 1 ))
+	fi
+
+	column_frame=$(( column_right - width_panel_widest - width_frame_inner ))
 
 	if [ "${column_frame}" -lt "${column_frame_minimum}" ]
 	then
@@ -1057,7 +1315,7 @@ ada_panel_draw () {
 	fi
 
 	column_text=$(( column_frame + 2 ))
-	width_text=$(( count_columns - column_frame - width_frame_inner ))
+	width_text=$(( column_right - column_frame - width_frame_inner ))
 
 	# cheatsheet left of the panel, only when both fit
 
@@ -1133,9 +1391,19 @@ ada_panel_draw () {
 		printf -v text_part "${format_cursor_position}%s%s%s${format_cursor_position}%s${format_cursor_position}%s%s%s" \
 			"${row_current}" "${column_frame}" "${lavender}" "${frame_left}" "${reset}" \
 			"${row_current}" "${column_text}" "${line_panel:0:width_text}" \
-			"${row_current}" "${count_columns}" "${lavender}" "${frame_right}" "${reset}"
+			"${row_current}" "${column_right}" "${lavender}" "${frame_right}" "${reset}"
 
 		text_output="${text_output}${text_part}"
+
+		if [ "${state_bar}" = "true" ]
+		then
+			printf -v text_part "${format_cursor_position}%s%s%s${format_cursor_position}%s${format_cursor_position}%s%s%s" \
+				"${row_current}" "${column_bar}" "${lavender}" "${frame_left}" "${reset}" \
+				"${row_current}" "${column_bar_text}" "${list_bar[index_line]}" \
+				"${row_current}" "${count_columns}" "${lavender}" "${frame_right}" "${reset}"
+
+			text_output="${text_output}${text_part}"
+		fi
 	done
 
 	printf -v text_part "${sequence_cursor_restore}"
@@ -1268,8 +1536,19 @@ ada_status_follow () {
 	local text_newlines
 	local count_rows_current
 	local count_columns_current
+	local directory_cards="/sys/class/drm"
+	local pattern_card="card*"
+	local name_file_card_total="device/mem_info_vram_total"
+	local directory_card
+	local file_card_total
+	local key_load_last
+	local count_cache_bytes="0"
+	local count_cache_card="0"
+	local count_cache_cells="0"
+	local count_bar_columns="22"
 
 	local list_panel=()
+	local list_bar=()
 	local list_version=()
 	local list_frames=("${list_ticker_llm_wait[@]}")
 	local list_pattern_mouth=(1 2 1 0 1 2 2 1 0 1 2 1 0 0 0 0 0)
@@ -1307,6 +1586,16 @@ ada_status_follow () {
 		if [ "${text_zone}" = "${name_zone_package}" ]
 		then
 			file_temperature_cpu="${directory_zone}/${name_file_temperature}"
+		fi
+	done
+
+	# graphics card memory - amd cards report it to the kernel
+
+	for directory_card in "${directory_cards}"/${pattern_card}
+	do
+		if [ -z "${file_card_total}" ] && [ -r "${directory_card}/${name_file_card_total}" ]
+		then
+			file_card_total="${directory_card}/${name_file_card_total}"
 		fi
 	done
 
