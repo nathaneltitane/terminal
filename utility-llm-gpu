@@ -322,6 +322,34 @@ frobulator.directory "$(dirname "${directory_models}")" "$(basename "${directory
 
 chown -R "${user_service}:${group_service}" "${directory_models}"
 
+# client settings directory - kept with the models so it survives a system reinstall/format
+
+directory_settings="${directory_models}/.${process}"
+
+if [ "${user_service}" != "${process}" ]
+then
+	frobulator.inf "Configuring settings directory" "[ ${directory_settings} ]"
+
+	# first run moves existing settings - stored settings win, home copy kept aside
+
+	if [ -d "${HOME}/.${process}" ] && [ ! -L "${HOME}/.${process}" ]
+	then
+		if [ ! -e "${directory_settings}" ]
+		then
+			mv "${HOME}/.${process}" "${directory_settings}"
+		else
+			mv "${HOME}/.${process}" "${HOME}/.${process}.backup-$(date +%Y%m%d-%H%M%S)"
+		fi
+	fi
+
+	frobulator.directory "${directory_models}" ".${process}"
+
+	frobulator.link "${directory_models}" "${HOME}" ".${process}"
+
+	chown -R "${user_service}:${group_service}" "${directory_settings}"
+	chown -h "${user_service}:${group_service}" "${HOME}/.${process}"
+fi
+
 # gpu permissions
 
 if [ -n "$(id -u "${user_service}" 2> "${sink}")" ]
@@ -379,6 +407,7 @@ frobulator.ntf inf "Offline local ${label} [ '${model}' ]" inf "Model name:     
 Model version:         ${version_model}
 Model size:            ${size_model}
 Model directory:       ${directory_models}
+Settings directory:    ${directory_settings}
 
 API:                   http://127.0.0.1:11434
 
