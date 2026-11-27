@@ -180,6 +180,17 @@ url_model="https://ollama.com/install.sh"
 directory="${directory:-/media/internal}"
 directory_models="${directory}/${label}/${process}"
 
+# service runs as models owner
+
+user_service="${USER}"
+
+if [ "${user_service}" = "root" ]
+then
+	user_service="${process}"
+fi
+
+group_service="$(id -gn "${user_service}" 2> "${sink}" || echo "${process}")"
+
 # defaults ─────────────────────────────────────────────────────────────────────
 
 # hades canyon nuc (nuc8i7hvk / nuc8i7hnk) ships radeon rx vega m gh/gl.
@@ -309,20 +320,20 @@ frobulator.inf "Configuring models directory" "[ ${directory_models} ]"
 
 frobulator.directory "$(dirname "${directory_models}")" "$(basename "${directory_models}")"
 
-chown -R "${process}:${process}" "${directory_models}"
+chown -R "${user_service}:${group_service}" "${directory_models}"
 
 # gpu permissions
 
-if [ -n "$(id -u "${process}" 2> "${sink}")" ]
+if [ -n "$(id -u "${user_service}" 2> "${sink}")" ]
 then
 	if [ -n "$(getent group render)" ]
 	then
-		usermod --append --groups render "${process}"
+		usermod --append --groups render "${user_service}"
 	fi
 
 	if [ -n "$(getent group video)" ]
 	then
-		usermod --append --groups video "${process}"
+		usermod --append --groups video "${user_service}"
 	fi
 fi
 
@@ -334,6 +345,8 @@ frobulator.directory /etc/systemd/system "${service}".d
 
 cat <<- FILE > /etc/systemd/system/"${service}".d/"${process}"-override.conf
 [Service]
+User=${user_service}
+Group=${group_service}
 Environment="OLLAMA_VULKAN=1"
 Environment="GGML_VK_VISIBLE_DEVICES=${index_device_vulkan}"
 Environment="OLLAMA_MODELS=${directory_models}"
