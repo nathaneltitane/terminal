@@ -15,6 +15,7 @@ ada () {
 	local name_assistant
 	local name_agent
 	local option_workspace
+	local path_agent
 	local name_parameter_threads
 	local keyword_parameter
 	local variable_models
@@ -314,6 +315,18 @@ ada () {
 	if [ -z "${name_model}" ]
 	then
 		frobulator.err "No model installed" "[ ${name_command} download <model> ]"
+
+		return 1
+	fi
+
+	if [ "${mode_run}" = "${mode_code}" ]
+	then
+		path_agent="$(type -P "${name_agent}")"
+	fi
+
+	if [ "${mode_run}" = "${mode_code}" ] && [ -z "${path_agent}" ]
+	then
+		frobulator.err "Coding agent not installed" "[ bash ada/install.sh ]"
 
 		return 1
 	fi
