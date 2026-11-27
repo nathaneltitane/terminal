@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# loaded by "${HOME}"/.local/bin/bash-functions
+
+# ollama ───────────────────────────────────────────────────────────────────────
+
+ollama () {
+
+	# readable names for the short commands
+
+	local -A list_names=(
+		[copy]="cp"
+		[details]="show"
+		[download]="pull"
+		[loaded]="ps"
+		[remove]="rm"
+		[unload]="stop"
+		[upload]="push"
+	)
+
+	local list_arguments=("${@}")
+
+	# first word swapped when it is a readable name
+
+	if [ -n "${1}" ] && [ -n "${list_names[${1}]}" ]
+	then
+		list_arguments[0]="${list_names[${1}]}"
+	fi
+
+	command ollama "${list_arguments[@]}"
+
+}
