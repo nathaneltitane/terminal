@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# loaded by "${HOME}"/.local/bin/bash-functions
+
+# ada ──────────────────────────────────────────────────────────────────────────
+
+ada () {
+
+	local path_command
+	local name_command
+	local name_model
+	local name_integration
+	local mode_run
+	local state_think
+	local text_details
+	local text_rest
+
+	local list_think=()
+
+	# set before the help text - it is named there
+
+	name_command="ollama"
+	name_integration="qwen"
+	mode_run="chat"
+	state_think="false"
+
+	while (( $# ))
+	do
+		case "${1}" in
+
+			-c|--code)
+				mode_run="code"
+			;;
+
+			-t|--think)
+				state_think="true"
+			;;
+
+			-h|--help)
+				cat <<- HELP
+
+				Usage: ada [option] [model]
+
+				Chat with a local ${name_command} model: the one already in memory,
+				else the newest installed one, or the model named.
+
+				Options:
+
+				-c, --code          Open the [c]oding assistant in this folder.
+
+				-t, --think         Let the model [t]hink before it answers.
+
+				-h, --help          Show this [h]elp message.
+
+				HELP
+
+				return 0
+			;;
+
+			*)
+				name_model="${1}"
+			;;
+
+		esac
+
+		shift
+	done
+
+	# ${name_command} command path - empty if not installed
+
+	path_command="$(command -v "${name_command}")"
+
+	if [ -z "${path_command}" ]
+	then
+		frobulator.err "Command not found" "[ ${name_command} ]"
+
+		return 1
+	fi
+
+	# model in memory first - newest installed one next
+
+	if [ -z "${name_model}" ]
+	then
+		read -r name_model text_rest < <("${path_command}" ps 2> "${sink}" | tail -n +2)
+	fi
+
+	if [ -z "${name_model}" ]
+	then
+		read -r name_model text_rest < <("${path_command}" list 2> "${sink}" | tail -n +2)
+	fi
+
+	if [ -z "${name_model}" ]
+	then
+		frobulator.err "No model installed" "[ ${name_command} download <model> ]"
+
+		return 1
+	fi
+
+	if [ "${mode_run}" = "code" ]
+	then
+		frobulator.inf "Opening coding assistant" "[ ${name_integration} // ${name_model} ]"
+
+		"${path_command}" launch "${name_integration}" --model "${name_model}"
+
+		return
+	fi
+
+	# thinking switch only for models that think
+
+	text_details="$("${path_command}" show "${name_model}" 2> "${sink}")"
+
+	if [[ "${text_details}" == *thinking* ]]
+	then
+		list_think=("--think=${state_think}")
+	fi
+
+	frobulator.inf "Chatting with model" "[ ${name_model} ]"
+
+	"${path_command}" run "${name_model}" "${list_think[@]}"
+
+}
+
+# tab completion ───────────────────────────────────────────────────────────────
+
+ada_complete () {
+
+	# line up to the cursor - model names hold colons that split bash words
+
+	local text_line="${COMP_LINE:0:COMP_POINT}"
+	local word_current="${text_line##* }"
+	local prefix_colon="${word_current%"${word_current##*:}"}"
+	local name_model
+	local text_rest
+
+	local list_models=()
+
+	local list_options=(
+		--code
+		--think
+		--help
+	)
+
+	COMPREPLY=()
+
+	if [ "${word_current:0:1}" = "-" ]
+	then
+		mapfile -t COMPREPLY < <(compgen -W "${list_options[*]}" -- "${word_current}")
+	else
+		while read -r name_model text_rest
+		do
+			list_models+=("${name_model}")
+		done < <(command ollama list 2> /dev/null | tail -n +2)
+
+		mapfile -t COMPREPLY < <(compgen -W "${list_models[*]}" -- "${word_current}")
+
+		# bash completes only the part after the last colon
+
+		COMPREPLY=("${COMPREPLY[@]#"${prefix_colon}"}")
+	fi
+
+}
+
+complete -F ada_complete ada

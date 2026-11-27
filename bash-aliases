@@ -710,24 +710,6 @@ fi
 
 unset command_lsblk
 
-# ai ───────────────────────────────────────────────────────────────────────────
-
-# 'ollama' path - empty if not installed
-
-command_ollama="$(command -v ollama)"
-
-if [ -n "${command_ollama}" ]
-then
-	name_model_ollama=$(ollama list | tail -n 1 | cut -d ' ' -f 1)
-
-	if [ -n "${name_model_ollama}" ]
-	then
-		alias 'ada'="ollama run ${name_model_ollama}"
-	fi
-fi
-
-unset command_ollama
-
 # dextop ───────────────────────────────────────────────────────────────────────
 
 if [ -n "${TERMUX_VERSION}" ]
