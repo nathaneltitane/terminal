@@ -16,6 +16,14 @@ ada () {
 	local name_agent
 	local option_workspace
 	local option_model
+	local variable_keep_alive
+	local keep_alive_agent_default
+	local pattern_keep_alive
+	local directory_agent_configuration
+	local file_agent_configuration
+	local text_agent_configuration
+	local text_keep_alive
+	local text_retention
 	local path_agent
 	local name_parameter_threads
 	local keyword_parameter
@@ -91,6 +99,11 @@ ada () {
 	name_agent="ada"
 	option_workspace="--workspace"
 	option_model="--model"
+	variable_keep_alive="OLLAMA_KEEP_ALIVE"
+	keep_alive_agent_default="-1"
+	pattern_keep_alive='"keep_alive"[[:space:]]*:[[:space:]]*"?([^",}[:space:]]+)'
+	directory_agent_configuration="${ADA_CONFIG_DIR:-${HOME}/.config/ada}"
+	file_agent_configuration="${directory_agent_configuration}/config.json"
 	name_parameter_threads="num_thread"
 	keyword_parameter="PARAMETER"
 	variable_models="OLLAMA_MODELS"
@@ -334,6 +347,40 @@ ada () {
 		return 1
 	fi
 
+	# retention from the settings that govern it - ada sends its own, ollama run uses the server's
+
+	if [ "${mode_run}" = "${mode_code}" ]
+	then
+		text_keep_alive="${keep_alive_agent_default}"
+
+		if [ -r "${file_agent_configuration}" ]
+		then
+			text_agent_configuration="$(< "${file_agent_configuration}")"
+
+			if [[ "${text_agent_configuration}" =~ ${pattern_keep_alive} ]]
+			then
+				text_keep_alive="${BASH_REMATCH[1]}"
+			fi
+		fi
+	else
+		text_environment="$(systemctl show "${name_service}" --property="${property_environment}" --value 2> "${sink}")"
+
+		read -r -a list_environment <<< "${text_environment}"
+
+		for entry_environment in "${list_environment[@]}"
+		do
+			if [[ "${entry_environment}" == "${variable_keep_alive}="* ]]
+			then
+				text_keep_alive="${entry_environment#*=}"
+			fi
+		done
+	fi
+
+	if [ -n "${text_keep_alive}" ]
+	then
+		text_retention="$(ada_retention_describe "${text_keep_alive}")"
+	fi
+
 	# thinking models only
 
 	text_details="$("${path_command}" show "${name_model}" 2> "${sink}")"
@@ -392,6 +439,93 @@ ada () {
 	printf "${sequence_scroll_reset}"
 
 	clear
+
+}
+
+# retention ────────────────────────────────────────────────────────────────────
+
+ada_retention_describe () {
+
+	# use to describe an ollama keep-alive value
+
+	local value_keep_alive="${1}"
+	local label_forever="kept forever"
+	local label_each="unloads after each answer"
+	local label_unloads="unloads"
+	local label_after="after use"
+	local pattern_negative="^-"
+	local pattern_seconds="^[0-9]+$"
+	local pattern_duration="^([0-9]+h)?([0-9]+m)?([0-9]+)?(\\.[0-9]+)?s?$"
+	local seconds_hour="3600"
+	local seconds_minute="60"
+	local count_hours="0"
+	local count_minutes="0"
+	local count_seconds="0"
+	local text_part
+	local text_duration=""
+
+	local -A list_units=(
+		[hour]="0"
+		[minute]="0"
+		[second]="0"
+	)
+
+	local list_order=(
+		hour
+		minute
+		second
+	)
+
+	if [[ "${value_keep_alive}" =~ ${pattern_negative} ]]
+	then
+		echo "${label_forever}"
+
+		return 0
+	fi
+
+	if [[ "${value_keep_alive}" =~ ${pattern_seconds} ]]
+	then
+		count_hours=$(( value_keep_alive / seconds_hour ))
+		count_minutes=$(( value_keep_alive % seconds_hour / seconds_minute ))
+		count_seconds=$(( value_keep_alive % seconds_minute ))
+
+	elif [[ "${value_keep_alive}" =~ ${pattern_duration} ]]
+	then
+		count_hours="${BASH_REMATCH[1]%h}"
+		count_minutes="${BASH_REMATCH[2]%m}"
+		count_seconds="${BASH_REMATCH[3]}"
+	else
+		# unknown format shown as given
+
+		echo "${label_unloads} ${value_keep_alive} ${label_after}"
+
+		return 0
+	fi
+
+	list_units=(
+		[hour]="$(( 10#${count_hours:-0} ))"
+		[minute]="$(( 10#${count_minutes:-0} ))"
+		[second]="$(( 10#${count_seconds:-0} ))"
+	)
+
+	for text_part in "${list_order[@]}"
+	do
+		if [ "${list_units[${text_part}]}" -eq 1 ]
+		then
+			text_duration="${text_duration} 1 ${text_part}"
+
+		elif [ "${list_units[${text_part}]}" -gt 1 ]
+		then
+			text_duration="${text_duration} ${list_units[${text_part}]} ${text_part}s"
+		fi
+	done
+
+	if [ -z "${text_duration}" ]
+	then
+		echo "${label_each}"
+	else
+		echo "${label_unloads}${text_duration} ${label_after}"
+	fi
 
 }
 
@@ -457,8 +591,11 @@ ada_panel_update () {
 	local label_load="load"
 	local label_memory_used="memory"
 	local label_unloads="unloads in"
-	local label_kept="kept loaded"
+	local label_forever="kept forever"
+	local label_loaded="loaded"
 	local label_unloaded="not loaded"
+	local label_server_down="server not answering"
+	local label_default="unloads 5 minutes after use (default)"
 	local name_processor="CPU"
 	local name_graphics="GPU"
 	local name_shared="${name_processor}/${name_graphics}"
@@ -488,8 +625,11 @@ ada_panel_update () {
 	local count_memory_total="0"
 	local count_memory_available="0"
 	local text_memory="${label_unloaded}"
-	local count_context="${label_unloaded}"
-	local text_until="${label_unloaded}"
+	local count_context
+	local text_until="${text_retention}"
+	local text_context
+	local text_models
+	local status_models
 	local line_model
 	local name_loaded
 	local text_identifier
@@ -536,8 +676,8 @@ ada_panel_update () {
 
 	local list_labels=(
 		"${label_model}"
-		"${label_memory}"
 		"${label_context}"
+		"${label_memory}"
 		"${label_processor}"
 		"${label_system}"
 		"${label_server}"
@@ -548,7 +688,17 @@ ada_panel_update () {
 
 	state_loaded="false"
 
-	mapfile -t list_models < <("${path_command}" ps 2> "${sink}")
+	text_models="$("${path_command}" ps 2> "${sink}")"
+
+	status_models="${?}"
+
+	mapfile -t list_models <<< "${text_models}"
+
+	if [ "${status_models}" -ne 0 ]
+	then
+		text_memory="${label_server_down}"
+		list_models=()
+	fi
 
 	for line_model in "${list_models[@]:index_row_first}"
 	do
@@ -572,21 +722,25 @@ ada_panel_update () {
 				share_graphics="${share_none}"
 			fi
 
-			text_memory="${count_size} ${unit_size}${separator_values}${share_processor} ${name_processor}${separator_values}${share_graphics} ${name_graphics}"
-			count_context="${count_context} ${label_tokens}"
+			text_memory="${label_loaded}${separator_values}${count_size} ${unit_size}${separator_values}${share_processor} ${name_processor}${separator_values}${share_graphics} ${name_graphics}"
+			text_context="${count_context} ${label_tokens}${separator_values}"
 
-			if [ "${text_rest}" = "${text_forever}" ]
+			# ollama ps only when no setting says
+
+			if [ -z "${text_retention}" ] && [ "${text_rest}" = "${text_forever}" ]
 			then
-				text_until="${label_kept}"
-			else
+				text_until="${label_forever}"
+
+			elif [ -z "${text_retention}" ]
+			then
 				text_until="${label_unloads} ${text_rest%"${suffix_until}"}"
 			fi
 		fi
 	done
 
-	if [ "${state_loaded}" = "false" ]
+	if [ -z "${text_until}" ]
 	then
-		count_context="${label_unloaded}"
+		text_until="${label_default}"
 	fi
 
 	# processor load since last update
@@ -657,12 +811,12 @@ ada_panel_update () {
 
 	list_values=(
 		"${text_architecture}${separator_values}${text_parameters}${separator_values}${text_quantization}"
+		"${text_context}${count_threads_model} ${label_threads}"
 		"${text_memory}"
-		"${count_context}${separator_values}${count_threads_model} ${label_threads}"
 		"${text_processor}"
 		"${text_used}${separator_memory}${text_total} ${unit_memory} ${label_memory_used}"
 		"${name_command} ${text_version}${separator_values}${address_server}"
-		"${time_start}${separator_values}${text_elapsed}${separator_values}${text_until}"
+		"${text_until}${separator_values}${time_start}${separator_values}${text_elapsed}"
 	)
 
 	# labels in one column
