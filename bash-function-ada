@@ -20,6 +20,7 @@ ada () {
 	local text_details
 	local text_stats
 	local count_rows
+	local text_line_details
 	local count_threads_model
 	local text_rest
 
@@ -192,22 +193,26 @@ ada () {
 	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" { print $3 " " $4 " // " $5 " " $6 " // " $7 " context" }')"
 	count_threads_model="$(awk '$1 == "num_thread" { print $2 }' <<< "${text_details}")"
 
-	# header pinned on top - chat scrolls below it
+	# model line pinned on top - details pinned on the bottom row - chat scrolls between them
 
 	count_rows="$(tput lines)"
+
+	text_line_details="$(frobulator.inf "Model details" "[ ${text_stats:-not loaded} // ${count_threads_model:-default} threads ]")"
 
 	clear
 
 	frobulator.inf "Chatting with model" "[ ${name_model} ]"
-	frobulator.inf "Model details" "[ ${text_stats:-not loaded} // ${count_threads_model:-default} threads ]"
 
-	printf '\e[3;%sr\e[3;1H' "${count_rows}"
+	# bottom row written without a newline - a newline there would scroll the screen
+
+	printf '\e[%s;1H%s' "${count_rows}" "${text_line_details}"
+	printf '\e[2;%sr\e[2;1H' "$(( count_rows - 1 ))"
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
 
 	# whole screen scrolls again
 
-	printf '\e[r\e[%s;1H' "${count_rows}"
+	printf '\e[r\e[%s;1H\n' "${count_rows}"
 
 }
 
