@@ -229,13 +229,22 @@ ada () {
 ada_status_text () {
 
 	# memory, processor / graphics split and context from the loaded list - threads given
+	# split shown by ollama as "89%/11% CPU/GPU", "100% CPU" or "100% GPU"
 
 	local path_command="${1}"
 	local name_model="${2}"
 	local count_threads="${3}"
 	local text_stats
 
-	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" { print $3 " " $4 " // " $5 " " $6 " // " $7 " context" }')"
+	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" {
+		split($5, list_shares, "/")
+
+		if ($6 == "CPU/GPU") { share_cpu = list_shares[1]; share_gpu = list_shares[2] }
+		else if ($6 == "GPU") { share_cpu = "0%"; share_gpu = list_shares[1] }
+		else { share_cpu = list_shares[1]; share_gpu = "0%" }
+
+		print $3 " " $4 " // " share_cpu " CPU // " share_gpu " GPU // " $7 " context"
+	}')"
 
 	echo "[ ${name_model} // ${text_stats:-not loaded} // ${count_threads} threads ]"
 
