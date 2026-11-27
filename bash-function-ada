@@ -18,6 +18,9 @@ ada () {
 	local directory_models
 	local file_settings
 	local text_details
+	local text_stats
+	local count_rows
+	local count_threads_model
 	local text_rest
 
 	local list_think=()
@@ -178,9 +181,33 @@ ada () {
 		list_think=("--think=${state_think}")
 	fi
 
+	# load first - memory split only known once loaded
+
+	frobulator.inf "Loading model" "[ ${name_model} ]"
+
+	curl -s "http://${OLLAMA_HOST:-127.0.0.1:11434}/api/generate" -d "{\"model\":\"${name_model}\"}" > "${sink}" 2>&1
+
+	# size, processor split and context from the loaded list - threads from the model settings
+
+	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" { print $3 " " $4 " // " $5 " " $6 " // " $7 " context" }')"
+	count_threads_model="$(awk '$1 == "num_thread" { print $2 }' <<< "${text_details}")"
+
+	# header pinned on top - chat scrolls below it
+
+	count_rows="$(tput lines)"
+
+	clear
+
 	frobulator.inf "Chatting with model" "[ ${name_model} ]"
+	frobulator.inf "Model details" "[ ${text_stats:-not loaded} // ${count_threads_model:-default} threads ]"
+
+	printf '\e[3;%sr\e[3;1H' "${count_rows}"
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
+
+	# whole screen scrolls again
+
+	printf '\e[r\e[%s;1H' "${count_rows}"
 
 }
 
