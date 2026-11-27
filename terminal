@@ -573,6 +573,7 @@ then
 		.modem
 		.router
 		.wifi
+		.config/kuprc
 	)
 
 	for directory_home in "${list_homes[@]}"
@@ -1006,6 +1007,10 @@ then
 					frobulator.link "${storage}" "${HOME}" "${item}"
 				fi
 			done
+
+			# kup backup plans
+
+			frobulator.link "${storage}" "${HOME}"/.config .backup kuprc
 		fi
 	done
 
