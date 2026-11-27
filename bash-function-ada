@@ -21,6 +21,8 @@ ada () {
 	local text_stats
 	local count_rows
 	local text_line_details
+	local text_monitor
+	local pid_frame
 	local count_threads_model
 	local text_rest
 
@@ -193,26 +195,88 @@ ada () {
 	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" { print $3 " " $4 " // " $5 " " $6 " // " $7 " context" }')"
 	count_threads_model="$(awk '$1 == "num_thread" { print $2 }' <<< "${text_details}")"
 
-	# model line pinned on top - details pinned on the bottom row - chat scrolls between them
+	# model line on top - details on the bottom row - an empty row inside each - chat scrolls between them
 
-	count_rows="$(tput lines)"
-
-	text_line_details="$(frobulator.inf "Model details" "[ ${text_stats:-not loaded} // ${count_threads_model:-default} threads ]")"
+	text_line_details="[ ${text_stats:-not loaded} // ${count_threads_model:-default} threads ]"
 
 	clear
 
-	frobulator.inf "Chatting with model" "[ ${name_model} ]"
+	ada_frame_draw "${name_model}" "${text_line_details}"
 
-	# bottom row written without a newline - a newline there would scroll the screen
+	printf '\e[3;1H'
 
-	printf '\e[%s;1H%s' "${count_rows}" "${text_line_details}"
-	printf '\e[2;%sr\e[2;1H' "$(( count_rows - 1 ))"
+	# frame follows terminal resizes - job notices off while it runs
+
+	text_monitor="${-}"
+
+	set +m
+
+	ada_frame_follow "${name_model}" "${text_line_details}" &
+	pid_frame="${!}"
+
+	disown "${pid_frame}"
+
+	[[ "${text_monitor}" == *m* ]] && set -m
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
 
-	# whole screen scrolls again
+	kill "${pid_frame}" 2> "${sink}"
+
+	# whole screen scrolls again - details line left above the prompt
+
+	count_rows="$(tput lines)"
 
 	printf '\e[r\e[%s;1H\n' "${count_rows}"
+
+}
+
+# frame ────────────────────────────────────────────────────────────────────────
+
+ada_frame_draw () {
+
+	# top and bottom rows drawn at the current size - cursor kept where the chat left it
+
+	local name_model="${1}"
+	local text_details="${2}"
+	local count_rows
+	local text_line_top
+	local text_line_bottom
+
+	frobulator.columns
+
+	count_rows="$(tput lines)"
+	text_line_top="$(frobulator.inf "Chatting with model" "[ ${name_model} ]")"
+	text_line_bottom="$(frobulator.inf "Model details" "${text_details}")"
+
+	# bottom row written without a newline - a newline there would scroll the screen
+
+	printf '\e7\e[1;1H\e[2K%s\e[2;1H\e[2K\e[%s;1H\e[2K\e[%s;1H\e[2K%s\e[3;%sr\e8' \
+		"${text_line_top}" "$(( count_rows - 1 ))" "${count_rows}" "${text_line_bottom}" "$(( count_rows - 2 ))"
+
+}
+
+ada_frame_follow () {
+
+	# redraw on every size change - stopped by ada when the chat ends
+
+	local size_last
+	local size_current
+
+	size_last="$(tput lines) $(tput cols)"
+
+	while true
+	do
+		sleep 0.5
+
+		size_current="$(tput lines) $(tput cols)"
+
+		if [ "${size_current}" != "${size_last}" ]
+		then
+			ada_frame_draw "${@}"
+
+			size_last="${size_current}"
+		fi
+	done
 
 }
 
