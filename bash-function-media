@@ -145,6 +145,15 @@ media () {
 		return 1
 	fi
 
+	# read link unsplit by shell
+
+	if [ -z "${source_media}" ]
+	then
+		frobulator.ipt "Link:"
+
+		frobulator.read -r source_media
+	fi
+
 	if [ -z "${source_media}" ]
 	then
 		frobulator.err "No source specified"
