@@ -1259,6 +1259,10 @@ ada_status_follow () {
 	local sequence_region_reset='\e[r'
 	local option_columns="cols"
 	local delay_nudge="0.15"
+	local delay_settle="0.25"
+	local size_settled
+	local size_nudged
+	local size_check
 	local text_newlines
 	local count_rows_current
 	local count_columns_current
@@ -1348,6 +1352,19 @@ ada_status_follow () {
 
 			if [ "${size_current}" != "${size_last}" ]
 			then
+				# a maximize or a drag resizes in steps - wait for the last one
+
+				size_settled=""
+
+				while [ "${size_settled}" != "${size_current}" ]
+				do
+					size_settled="${size_current}"
+
+					sleep "${delay_settle}"
+
+					size_current="$(stty size 2> "${sink}" < "${file_terminal}")"
+				done
+
 				size_last="${size_current}"
 				state_redraw="true"
 
@@ -1367,11 +1384,20 @@ ada_status_follow () {
 
 				count_columns_current="${size_current##* }"
 
+				size_nudged="${count_rows_current} $(( count_columns_current - 1 ))"
+
 				stty "${option_columns}" "$(( count_columns_current - 1 ))" < "${file_terminal}" 2> "${sink}"
 
 				sleep "${delay_nudge}"
 
-				stty "${option_columns}" "${count_columns_current}" < "${file_terminal}" 2> "${sink}"
+				# the width goes back only when the terminal did not resize meanwhile - a newer size is kept and redrawn on the next pass
+
+				size_check="$(stty size 2> "${sink}" < "${file_terminal}")"
+
+				if [ "${size_check}" = "${size_nudged}" ]
+				then
+					stty "${option_columns}" "${count_columns_current}" < "${file_terminal}" 2> "${sink}"
+				fi
 			fi
 		fi
 
