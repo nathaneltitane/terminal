@@ -65,7 +65,7 @@ frobulator.script
 
 # version ──────────────────────────────────────────────────────────────────────
 
-version="2026-10-04"
+version="2026-11-26"
 
 # usage ────────────────────────────────────────────────────────────────────────
 
@@ -339,6 +339,7 @@ Environment="GGML_VK_VISIBLE_DEVICES=${index_device_vulkan}"
 Environment="OLLAMA_MODELS=${directory_models}"
 Environment="OLLAMA_HOST=127.0.0.1:11434"
 Environment="OLLAMA_NO_CLOUD=true"
+Environment="OLLAMA_KEEP_ALIVE=-1"
 FILE
 
 # service
@@ -371,6 +372,8 @@ API:                   http://127.0.0.1:11434
 Run:                   'ollama run ${model} --think=false'
 
 Verify GPU offload:    'ollama ps'.
+
+Unload from memory:    'ollama stop ${model}'
 
 Note:
 
