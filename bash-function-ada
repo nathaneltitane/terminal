@@ -6,39 +6,138 @@
 
 ada () {
 
+	# values below reach the status functions too - bash locals are seen by the functions ada calls
+
 	local path_command
 	local name_command
+	local name_service
 	local name_model
 	local name_assistant
 	local name_integration
+	local name_parameter_threads
+	local keyword_parameter
+	local variable_models
+	local prefix_settings
+	local suffix_latest
+	local label_thinking
+	local label_threads_default
+	local option_think
+	local flag_monitor
+	local pattern_number
+	local property_environment
+	local property_pid
+	local separator_values
 	local mode_run
+	local mode_chat
+	local mode_code
 	local state_think
+	local state_monitor
+	local state_found
+	local status_assistant
+	local status_create
 	local count_threads
+	local count_threads_minimum
 	local count_threads_maximum
+	local count_threads_model
 	local directory_models
 	local file_settings
+	local file_terminal
+	local line_threads
+	local entry_environment
+	local index_setting
+	local index_row_first
+	local text_environment
 	local text_details
-	local text_monitor
-	local pid_status
-	local count_threads_model
+	local text_key
+	local text_value
 	local text_rest
+	local protocol_server
+	local address_default
+	local address_server
+	local path_generate
+	local url_generate
+	local format_payload
+	local payload_load
+	local delay_loading
+	local pid_status
+	local row_status
+	local row_gap
+	local row_chat
+	local column_first
+	local format_cursor_position
+	local format_scroll_region
+	local sequence_scroll_reset
+	local sequence_cursor_save
+	local sequence_cursor_restore
+	local sequence_line_clear
 
 	local list_think=()
+	local list_environment=()
+	local list_settings=()
+	local list_lines=()
 
 	# set before the help text - it is named there
 
 	name_command="ollama"
+	name_service="${name_command}"
 	name_assistant="ada"
 	name_integration="qwen"
-	mode_run="chat"
+	name_parameter_threads="num_thread"
+	keyword_parameter="PARAMETER"
+	variable_models="OLLAMA_MODELS"
+	prefix_settings="modelfile"
+	suffix_latest=":latest"
+	label_thinking="thinking"
+	label_threads_default="default"
+	option_think="--think"
+	flag_monitor="m"
+	pattern_number="^[0-9]+$"
+	property_environment="Environment"
+	property_pid="MainPID"
+	separator_values=" // "
+	mode_chat="chat"
+	mode_code="code"
+	mode_run="${mode_chat}"
 	state_think="false"
+	count_threads_minimum="1"
+	file_terminal="/dev/tty"
+	index_row_first="1"
+
+	# server address - ollama's own setting first
+
+	protocol_server="http"
+	address_default="127.0.0.1:11434"
+	address_server="${OLLAMA_HOST:-${address_default}}"
+	path_generate="/api/generate"
+	url_generate="${protocol_server}://${address_server}${path_generate}"
+	format_payload='{"model":"%s"}'
+
+	# loading line left on screen before the chat clears it - in seconds
+
+	delay_loading="1"
+
+	# screen rows - status line, empty row, chat scrolling below
+
+	row_status="1"
+	row_gap="2"
+	row_chat="3"
+	column_first="1"
+
+	# terminal sequences - positions filled in by printf - row then column
+
+	format_cursor_position='\e[%s;%sH'
+	format_scroll_region='\e[%s;%sr'
+	sequence_scroll_reset='\e[r'
+	sequence_cursor_save='\e7'
+	sequence_cursor_restore='\e8'
+	sequence_line_clear='\e[2K'
 
 	while (( $# ))
 	do
 		case "${1}" in
 
 			-c|--code)
-				mode_run="code"
+				mode_run="${mode_code}"
 			;;
 
 			-t|--think)
@@ -52,7 +151,7 @@ ada () {
 			;;
 
 			-h|--help)
-				cat <<- HELP
+				cat <<- EOF
 
 				Usage: ada [option] [-r threads] [model]
 
@@ -70,7 +169,7 @@ ada () {
 
 				-h, --help          Show this [h]elp message.
 
-				HELP
+				EOF
 
 				return 0
 			;;
@@ -101,17 +200,30 @@ ada () {
 	then
 		count_threads_maximum="$(nproc)"
 
-		if [[ ! "${count_threads}" =~ ^[0-9]+$ ]] || [ "${count_threads}" -lt 1 ] || [ "${count_threads}" -gt "${count_threads_maximum}" ]
+		if [[ ! "${count_threads}" =~ ${pattern_number} ]] ||
+		   [ "${count_threads}" -lt "${count_threads_minimum}" ] ||
+		   [ "${count_threads}" -gt "${count_threads_maximum}" ]
 		then
-			frobulator.err "Thread count must be 1 to ${count_threads_maximum}" "[ ${count_threads} ]"
+			frobulator.err "Thread count must be ${count_threads_minimum} to ${count_threads_maximum}" "[ ${count_threads} ]"
 
 			return 1
 		fi
 
-		# settings file kept with the models - folder read from the service
+		# settings file kept with the models - folder read from the service environment
 
-		directory_models="$(systemctl show "${name_command}" --property=Environment --value 2> "${sink}" | tr ' ' '\n' | grep '^OLLAMA_MODELS=' | cut -d '=' -f 2)"
-		file_settings="${directory_models}/modelfile-${name_assistant}"
+		text_environment="$(systemctl show "${name_service}" --property="${property_environment}" --value 2> "${sink}")"
+
+		read -r -a list_environment <<< "${text_environment}"
+
+		for entry_environment in "${list_environment[@]}"
+		do
+			if [[ "${entry_environment}" == "${variable_models}="* ]]
+			then
+				directory_models="${entry_environment#*=}"
+			fi
+		done
+
+		file_settings="${directory_models}/${prefix_settings}-${name_assistant}"
 
 		if [ -z "${directory_models}" ] || [ ! -f "${file_settings}" ]
 		then
@@ -120,14 +232,34 @@ ada () {
 			return 1
 		fi
 
-		if grep -q '^PARAMETER num_thread ' "${file_settings}"
+		# thread line replaced - added when missing
+
+		line_threads="${keyword_parameter} ${name_parameter_threads} ${count_threads}"
+		state_found="false"
+
+		mapfile -t list_settings < "${file_settings}"
+
+		for index_setting in "${!list_settings[@]}"
+		do
+			if [[ "${list_settings[index_setting]}" == "${keyword_parameter} ${name_parameter_threads} "* ]]
+			then
+				list_settings[index_setting]="${line_threads}"
+				state_found="true"
+			fi
+		done
+
+		if [ "${state_found}" = "false" ]
 		then
-			sed -i "s|^PARAMETER num_thread .*|PARAMETER num_thread ${count_threads}|" "${file_settings}"
-		else
-			echo "PARAMETER num_thread ${count_threads}" >> "${file_settings}"
+			list_settings+=("${line_threads}")
 		fi
 
-		if ! "${path_command}" create "${name_assistant}" -f "${file_settings}" > "${sink}" 2>&1
+		printf '%s\n' "${list_settings[@]}" > "${file_settings}"
+
+		"${path_command}" create "${name_assistant}" -f "${file_settings}" > "${sink}" 2>&1
+
+		status_create="${?}"
+
+		if [ "${status_create}" -ne 0 ]
 		then
 			frobulator.err "Unable to update model" "[ ${name_assistant} ]"
 
@@ -136,24 +268,35 @@ ada () {
 
 		"${path_command}" stop "${name_assistant}" > "${sink}" 2>&1
 
-		frobulator.scs "Processor threads set" "[ ${name_assistant} // ${count_threads} ]"
+		frobulator.scs "Processor threads set" "[ ${name_assistant}${separator_values}${count_threads} ]"
 	fi
 
 	# assistant model first - model in memory next - newest installed one last
 
-	if [ -z "${name_model}" ] && "${path_command}" show "${name_assistant}" > "${sink}" 2>&1
+	if [ -z "${name_model}" ]
 	then
-		name_model="${name_assistant}"
+		"${path_command}" show "${name_assistant}" > "${sink}" 2>&1
+
+		status_assistant="${?}"
+
+		if [ "${status_assistant}" -eq 0 ]
+		then
+			name_model="${name_assistant}"
+		fi
 	fi
 
 	if [ -z "${name_model}" ]
 	then
-		read -r name_model text_rest < <("${path_command}" ps 2> "${sink}" | tail -n +2)
+		mapfile -t list_lines < <("${path_command}" ps 2> "${sink}")
+
+		read -r name_model text_rest <<< "${list_lines[index_row_first]}"
 	fi
 
 	if [ -z "${name_model}" ]
 	then
-		read -r name_model text_rest < <("${path_command}" list 2> "${sink}" | tail -n +2)
+		mapfile -t list_lines < <("${path_command}" list 2> "${sink}")
+
+		read -r name_model text_rest <<< "${list_lines[index_row_first]}"
 	fi
 
 	if [ -z "${name_model}" ]
@@ -163,9 +306,9 @@ ada () {
 		return 1
 	fi
 
-	if [ "${mode_run}" = "code" ]
+	if [ "${mode_run}" = "${mode_code}" ]
 	then
-		frobulator.inf "Opening coding assistant" "[ ${name_integration} // ${name_model} ]"
+		frobulator.inf "Opening coding assistant" "[ ${name_integration}${separator_values}${name_model} ]"
 
 		"${path_command}" launch "${name_integration}" --model "${name_model}"
 
@@ -176,45 +319,56 @@ ada () {
 
 	text_details="$("${path_command}" show "${name_model}" 2> "${sink}")"
 
-	if [[ "${text_details}" == *thinking* ]]
+	if [[ "${text_details}" == *"${label_thinking}"* ]]
 	then
-		list_think=("--think=${state_think}")
+		list_think=("${option_think}=${state_think}")
 	fi
+
+	# threads from the model settings - fixed for the whole chat
+
+	count_threads_model="${label_threads_default}"
+
+	while read -r text_key text_value text_rest
+	do
+		if [ "${text_key}" = "${name_parameter_threads}" ]
+		then
+			count_threads_model="${text_value}"
+		fi
+	done <<< "${text_details}"
 
 	# load first - memory split only known once loaded
 
 	frobulator.inf "Loading model" "[ ${name_model} ]"
 
-	curl -s "http://${OLLAMA_HOST:-127.0.0.1:11434}/api/generate" -d "{\"model\":\"${name_model}\"}" > "${sink}" 2>&1
+	printf -v payload_load "${format_payload}" "${name_model}"
 
-	# loading line left readable before the screen is cleared
+	curl --silent "${url_generate}" --data "${payload_load}" > "${sink}" 2>&1
 
-	sleep 1
-
-	# threads from the model settings - fixed for the whole chat
-
-	count_threads_model="$(awk '$1 == "num_thread" { print $2 }' <<< "${text_details}")"
+	sleep "${delay_loading}"
 
 	# one status line on the top row - an empty row under it - chat scrolls below
 
 	clear
 
-	ada_status_draw "${path_command}" "${name_model}" "${count_threads_model:-default}"
+	ada_status_draw
 
-	printf '\e[3;1H'
+	printf "${format_cursor_position}" "${row_chat}" "${column_first}"
 
 	# status line kept current - redrawn only when its values or the terminal size change - job notices off while it runs
 
-	text_monitor="${-}"
+	state_monitor="${-}"
 
 	set +m
 
-	ada_status_follow "${path_command}" "${name_model}" "${count_threads_model:-default}" &
+	ada_status_follow &
 	pid_status="${!}"
 
 	disown "${pid_status}"
 
-	[[ "${text_monitor}" == *m* ]] && set -m
+	if [[ "${state_monitor}" == *"${flag_monitor}"* ]]
+	then
+		set -m
+	fi
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
 
@@ -222,7 +376,7 @@ ada () {
 
 	# whole screen scrolls again - cleared so the prompt starts on the top row
 
-	printf '\e[r'
+	printf "${sequence_scroll_reset}"
 
 	clear
 
@@ -232,41 +386,87 @@ ada () {
 
 ada_status_text () {
 
-	# memory, processor / graphics split and context from the loaded list - threads given
+	# memory, processor / graphics split and context from the loaded list - threads from the settings
 	# split shown by ollama as "89%/11% CPU/GPU", "100% CPU" or "100% GPU"
 
-	local path_command="${1}"
-	local name_model="${2}"
-	local count_threads="${3}"
-	local text_stats
+	local label_processor="CPU"
+	local label_graphics="GPU"
+	local label_shared="${label_processor}/${label_graphics}"
+	local label_context="context"
+	local label_threads="threads"
+	local label_unloaded="not loaded"
+	local share_none="0%"
+	local line_model
+	local name_loaded
+	local text_identifier
+	local count_size
+	local unit_size
+	local text_shares
+	local text_processors
+	local count_context
+	local text_rest
+	local share_processor
+	local share_graphics
+	local text_stats="${label_unloaded}"
 
-	text_stats="$("${path_command}" ps 2> "${sink}" | awk -v name="${name_model}" '$1 == name || $1 == name ":latest" {
-		split($5, list_shares, "/")
+	local list_models=()
 
-		if ($6 == "CPU/GPU") { share_cpu = list_shares[1]; share_gpu = list_shares[2] }
-		else if ($6 == "GPU") { share_cpu = "0%"; share_gpu = list_shares[1] }
-		else { share_cpu = list_shares[1]; share_gpu = "0%" }
+	mapfile -t list_models < <("${path_command}" ps 2> "${sink}")
 
-		print $3 " " $4 " // " share_cpu " CPU // " share_gpu " GPU // " $7 " context"
-	}')"
+	for line_model in "${list_models[@]:index_row_first}"
+	do
+		read -r name_loaded text_identifier count_size unit_size text_shares text_processors count_context text_rest <<< "${line_model}"
 
-	echo "[ ${name_model} // ${text_stats:-not loaded} // ${count_threads} threads ]"
+		if [ "${name_loaded}" = "${name_model}" ] || [ "${name_loaded}" = "${name_model}${suffix_latest}" ]
+		then
+			if [ "${text_processors}" = "${label_shared}" ]
+			then
+				share_processor="${text_shares%%/*}"
+				share_graphics="${text_shares##*/}"
+
+			elif [ "${text_processors}" = "${label_graphics}" ]
+			then
+				share_processor="${share_none}"
+				share_graphics="${text_shares}"
+			else
+				share_processor="${text_shares}"
+				share_graphics="${share_none}"
+			fi
+
+			text_stats="${count_size} ${unit_size}${separator_values}${share_processor} ${label_processor}${separator_values}${share_graphics} ${label_graphics}${separator_values}${count_context} ${label_context}"
+		fi
+	done
+
+	echo "[ ${name_model}${separator_values}${text_stats}${separator_values}${count_threads_model} ${label_threads} ]"
 
 }
 
 ada_status_draw () {
 
-	# top row only - scroll area set below the empty second row - cursor kept where the chat left it
+	# top row only - scroll area set below the empty row - cursor kept where the chat left it
 
+	local text_size
 	local count_rows
+	local text_status
 	local text_line
 
 	frobulator.columns
 
-	count_rows="$(tput lines)"
-	text_line="$(frobulator.llm "Chatting with model" "$(ada_status_text "${@}")")"
+	# rows and columns read from the terminal itself - works from the background too
 
-	printf '\e7\e[1;1H\e[2K%s\e[2;1H\e[2K\e[3;%sr\e8' "${text_line}" "${count_rows}"
+	text_size="$(stty size 2> "${sink}" < "${file_terminal}")"
+	count_rows="${text_size%% *}"
+	text_status="$(ada_status_text)"
+	text_line="$(frobulator.llm "Chatting with model" "${text_status}")"
+
+	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
+		"${row_status}" \
+		"${column_first}" \
+		"${text_line}" \
+		"${row_gap}" \
+		"${column_first}" \
+		"${row_chat}" \
+		"${count_rows}"
 
 }
 
@@ -274,18 +474,25 @@ ada_server_time () {
 
 	# processor time of the ollama server and its model runners - grows only while a model works
 
+	local directory_processes="/proc"
+	local name_file_stat="stat"
+	local name_file_children="children"
+	local name_directory_tasks="task"
+	local index_time_user="11"
+	local index_time_system="12"
 	local pid_server="${1}"
 	local pid_process
 	local file_children
+	local file_stat
 	local text_stat
-	local count_time=0
+	local count_time="0"
 
 	local list_fields=()
 	local list_processes=("${pid_server}")
 
 	# runners started by any server thread - the list has no closing newline so read reports failure
 
-	for file_children in /proc/"${pid_server}"/task/*/children
+	for file_children in "${directory_processes}/${pid_server}/${name_directory_tasks}"/*/"${name_file_children}"
 	do
 		read -r -a list_fields < "${file_children}" 2> "${sink}"
 
@@ -294,13 +501,18 @@ ada_server_time () {
 
 	for pid_process in "${list_processes[@]}"
 	do
-		read -r text_stat < /proc/"${pid_process}"/stat 2> "${sink}" || continue
+		file_stat="${directory_processes}/${pid_process}/${name_file_stat}"
 
-		# fields after the command name - user and system time at 12 and 13
+		if [ -r "${file_stat}" ]
+		then
+			read -r text_stat < "${file_stat}"
 
-		read -r -a list_fields <<< "${text_stat##*) }"
+			# fields after the command name - user and system time
 
-		count_time=$(( count_time + list_fields[11] + list_fields[12] ))
+			read -r -a list_fields <<< "${text_stat##*) }"
+
+			count_time=$(( count_time + list_fields[index_time_user] + list_fields[index_time_system] ))
+		fi
 	done
 
 	echo "${count_time}"
@@ -309,14 +521,24 @@ ada_server_time () {
 
 ada_status_follow () {
 
-	# marker animated every quarter second - wave while the model works - sliding bar while it waits
-	# terminal size checked every half second - status values every 2 seconds - whole line redrawn when they change
+	# marker animated every frame - wave while the model works - sliding bar while it waits
+	# terminal size checked every few frames - status values less often - whole line redrawn when they change
 
+	local delay_frame="0.25"
+	local count_frames_size="2"
+	local count_frames_status="8"
+	local count_time_working="2"
+	local format_marker="${sequence_cursor_save}${format_cursor_position}%s%s%s%s%s${sequence_cursor_restore}"
 	local pid_server
-	local count_ticks=0
-	local index_frame=0
+	local count_ticks="0"
+	local index_frame="0"
+	local index_current
+	local count_frames
+	local remainder_size
+	local remainder_status
 	local time_last
 	local time_current
+	local time_delta
 	local size_last
 	local size_current
 	local text_last
@@ -324,50 +546,67 @@ ada_status_follow () {
 
 	local list_frames=("${list_ticker_llm_wait[@]}")
 
-	pid_server="$(systemctl show "${1##*/}" --property=MainPID --value 2> "${sink}")"
-
+	pid_server="$(systemctl show "${name_service}" --property="${property_pid}" --value 2> "${sink}")"
 	time_last="$(ada_server_time "${pid_server}")"
-	size_last="$(tput lines) $(tput cols)"
-	text_last="$(ada_status_text "${@}")"
+	size_last="$(stty size 2> "${sink}" < "${file_terminal}")"
+	text_last="$(ada_status_text)"
 
 	while true
 	do
-		sleep 0.25
+		sleep "${delay_frame}"
 
 		(( count_ticks ++ ))
 
-		# more than a tenth of a processor in a quarter second - the model is working
+		# processor time grown past the threshold within one frame - the model is working
 
 		time_current="$(ada_server_time "${pid_server}")"
+		time_delta=$(( time_current - time_last ))
+		time_last="${time_current}"
 
-		if (( time_current - time_last > 2 ))
+		if [ "${time_delta}" -gt "${count_time_working}" ]
 		then
 			list_frames=("${list_ticker_llm_work[@]}")
 		else
 			list_frames=("${list_ticker_llm_wait[@]}")
 		fi
 
-		time_last="${time_current}"
+		remainder_size=$(( count_ticks % count_frames_size ))
+		remainder_status=$(( count_ticks % count_frames_status ))
 
-		if (( count_ticks % 2 == 0 ))
+		if [ "${remainder_size}" -eq 0 ]
 		then
-			size_current="$(tput lines) $(tput cols)"
-
-			if (( count_ticks % 8 == 0 ))
-			then
-				text_current="$(ada_status_text "${@}")"
-			fi
-
-			if [ "${size_current}" != "${size_last}" ] || [ "${text_current:-${text_last}}" != "${text_last}" ]
-			then
-				ada_status_draw "${@}"
-
-				size_last="${size_current}"
-				text_last="${text_current:-${text_last}}"
-			fi
+			size_current="$(stty size 2> "${sink}" < "${file_terminal}")"
 		fi
 
-		printf '\e7\e[1;1H%s%s%s%s%s\e8' "${lavender}" "${marker_brl}${marker_spc}" "${list_frames[index_frame ++ % ${#list_frames[@]}]}" "${marker_spc}${marker_brr}" "${reset}"
+		if [ "${remainder_status}" -eq 0 ]
+		then
+			text_current="$(ada_status_text)"
+		fi
+
+		if [ "${size_current:-${size_last}}" != "${size_last}" ] ||
+		   [ "${text_current:-${text_last}}" != "${text_last}" ]
+		then
+			ada_status_draw
+
+			size_last="${size_current:-${size_last}}"
+			text_last="${text_current:-${text_last}}"
+		fi
+
+		# next frame of the marker only - the rest of the line untouched
+
+		count_frames="${#list_frames[@]}"
+		index_current=$(( index_frame % count_frames ))
+
+		(( index_frame ++ ))
+
+		printf "${format_marker}" \
+			"${row_status}" \
+			"${column_first}" \
+			"${lavender}" \
+			"${marker_brl}${marker_spc}" \
+			"${list_frames[index_current]}" \
+			"${marker_spc}${marker_brr}" \
+			"${reset}"
 	done
 
 }
@@ -378,12 +617,17 @@ ada_complete () {
 
 	# line up to the cursor - model names hold colons that split bash words
 
+	local name_command="ollama"
+	local index_row_first="1"
+	local prefix_option="-"
 	local text_line="${COMP_LINE:0:COMP_POINT}"
 	local word_current="${text_line##* }"
 	local prefix_colon="${word_current%"${word_current##*:}"}"
+	local line_model
 	local name_model
 	local text_rest
 
+	local list_lines=()
 	local list_models=()
 
 	local list_options=(
@@ -395,14 +639,18 @@ ada_complete () {
 
 	COMPREPLY=()
 
-	if [ "${word_current:0:1}" = "-" ]
+	if [ "${word_current:0:${#prefix_option}}" = "${prefix_option}" ]
 	then
 		mapfile -t COMPREPLY < <(compgen -W "${list_options[*]}" -- "${word_current}")
 	else
-		while read -r name_model text_rest
+		mapfile -t list_lines < <(command "${name_command}" list 2> "${sink}")
+
+		for line_model in "${list_lines[@]:index_row_first}"
 		do
+			read -r name_model text_rest <<< "${line_model}"
+
 			list_models+=("${name_model}")
-		done < <(command ollama list 2> /dev/null | tail -n +2)
+		done
 
 		mapfile -t COMPREPLY < <(compgen -W "${list_models[*]}" -- "${word_current}")
 
