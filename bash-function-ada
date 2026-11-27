@@ -1260,6 +1260,8 @@ ada_status_follow () {
 	local option_columns="cols"
 	local delay_nudge="0.15"
 	local delay_settle="0.25"
+	local count_rows_question="3"
+	local row_input
 	local size_settled
 	local size_nudged
 	local size_check
@@ -1376,7 +1378,11 @@ ada_status_follow () {
 
 				text_newlines="${text_newlines// /$'\n'}"
 
-				printf "${sequence_cursor_save}${sequence_region_reset}${format_cursor_position}%s${sequence_cursor_restore}" "${count_rows_current}" "${column_first}" "${text_newlines}"
+				# the input line goes under the header, leaving room for the question lines above it - the terminal may have moved the cursor to the bottom
+
+				row_input=$(( row_chat + count_rows_question ))
+
+				printf "${sequence_region_reset}${format_cursor_position}%s${format_cursor_position}" "${count_rows_current}" "${column_first}" "${text_newlines}" "${row_input}" "${column_first}"
 
 				ada_status_draw
 
