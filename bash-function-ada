@@ -9,6 +9,7 @@ ada () {
 	local path_command
 	local name_command
 	local name_model
+	local name_assistant
 	local name_integration
 	local mode_run
 	local state_think
@@ -20,6 +21,7 @@ ada () {
 	# set before the help text - it is named there
 
 	name_command="ollama"
+	name_assistant="ada"
 	name_integration="qwen"
 	mode_run="chat"
 	state_think="false"
@@ -41,8 +43,8 @@ ada () {
 
 				Usage: ada [option] [model]
 
-				Chat with a local ${name_command} model: the one already in memory,
-				else the newest installed one, or the model named.
+				Chat with a local ${name_command} model: the ${name_assistant} model, else the one
+				already in memory, else the newest installed one, or the model named.
 
 				Options:
 
@@ -77,7 +79,12 @@ ada () {
 		return 1
 	fi
 
-	# model in memory first - newest installed one next
+	# assistant model first - model in memory next - newest installed one last
+
+	if [ -z "${name_model}" ] && "${path_command}" show "${name_assistant}" > "${sink}" 2>&1
+	then
+		name_model="${name_assistant}"
+	fi
 
 	if [ -z "${name_model}" ]
 	then

@@ -111,15 +111,15 @@ do
 			echo
 			echo -e "-m, --model            Specify [m]odel name."
 			echo
-			echo -e "                       [ qwen ] [ Default ]"
+			echo -e "                       [ qwen3-coder ] [ Default ]"
 			echo
 			echo -e "-e, --model-version    Specify mod[e]l version."
 			echo
-			echo -e "                       [ 3.6 ] [ Default ]"
+			echo -e "                       [ none ] [ Default ]"
 			echo
 			echo -e "-s, --size             Specify model [s]ize."
 			echo
-			echo -e "                       [ 27b ] [ Default ]"
+			echo -e "                       [ 30b ] [ Default ]"
 			echo
 			echo -e "-v, --vulkan-device    Specify [v]ulkan GPU device index."
 			echo
@@ -169,10 +169,16 @@ label="LLM"
 process="ollama"
 service="${process}.service"
 
-name_model="${name_model:-qwen}"
-version_model="${version_model:-3.5}"
-size_model="${size_model:-2b}"
+name_model="${name_model:-qwen3-coder}"
+version_model="${version_model-}"
+size_model="${size_model:-30b}"
 model="${name_model}${version_model}:${size_model}"
+
+# assistant model built on the pulled one - benchmarked fastest on 8 threads with the graphics chip on auto
+
+name_assistant="ada"
+count_threads="8"
+size_context="16384"
 url_model="https://ollama.com/install.sh"
 
 # path to a separate mount so models survive a system reinstall/format
@@ -403,15 +409,36 @@ ollama show "${model}" > "${sink}" 2>&1
 
 frobulator.complete halt "Local model verification failed" "[ ${model} ]"
 
+# assistant model - same weights, tuned options, kept in memory
+
+frobulator.inf "Creating assistant model" "[ ${name_assistant} // ${model} ]"
+
+file_model="$(mktemp)"
+
+cat <<- FILE > "${file_model}"
+FROM ${model}
+PARAMETER num_thread ${count_threads}
+PARAMETER num_ctx ${size_context}
+FILE
+
+frobulator.silence "ollama create ${name_assistant} -f ${file_model}"
+
+frobulator.complete halt "Unable to create assistant model" "[ ${name_assistant} ]"
+
+rm -f "${file_model}"
+
+curl -s http://127.0.0.1:11434/api/generate -d "{\"model\":\"${name_assistant}\"}" > "${sink}"
+
 frobulator.ntf inf "Offline local ${label} [ '${model}' ]" inf "Model name:            ${name_model}
 Model version:         ${version_model}
 Model size:            ${size_model}
+Assistant model:       ${name_assistant} [ ${count_threads} threads // ${size_context} context ]
 Model directory:       ${directory_models}
 Settings directory:    ${directory_settings}
 
 API:                   http://127.0.0.1:11434
 
-Run:                   'ollama run ${model} --think=false'
+Run:                   'ada' or 'ollama run ${name_assistant}'
 
 Verify GPU offload:    'ollama ps'.
 
