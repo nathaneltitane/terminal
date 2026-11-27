@@ -549,6 +549,10 @@ ada_status_draw () {
 	local count_columns
 	local text_line
 	local text_rule
+	local text_visible
+	local count_excess
+	local character_rule_pair="──"
+	local pattern_escape=$'\e''(\[[0-9;]*m|\(B)'
 
 	if [ "${state_loaded}" = "true" ] && [ "${mode_run}" = "${mode_code}" ]
 	then
@@ -567,6 +571,24 @@ ada_status_draw () {
 	count_rows="${text_size%% *}"
 	count_columns="${text_size##* }"
 	text_line="$(frobulator.llm "${label_status}" "[ ${name_model} ]")"
+
+	# frobulator never lays out under 80 columns - the rule gives up the difference
+
+	text_visible="${text_line}"
+
+	while [[ "${text_visible}" =~ ${pattern_escape} ]]
+	do
+		text_visible="${text_visible/"${BASH_REMATCH[0]}"/}"
+	done
+
+	count_excess=$(( ${#text_visible} - count_columns ))
+
+	while [ "${count_excess}" -gt 0 ] && [[ "${text_line}" == *"${character_rule_pair}"* ]]
+	do
+		text_line="${text_line/"${character_rule_pair}"/${character_rule}}"
+
+		(( count_excess -- ))
+	done
 
 	# rule between header and chat
 
@@ -882,7 +904,12 @@ ada_panel_draw () {
 	# use to draw the critter and panel
 
 	local width_critter="15"
-	local width_tab="4"
+	local width_gap_critter="1"
+	local padding_shrink="   "
+	local marker_cut="${marker_elp:-...}"
+	local width_cut
+	local padding_shrunk="  "
+	local count_shrink
 	local width_frame_inner="3"
 	local frame_top_left="⎡"
 	local frame_top_right="⎤"
@@ -891,7 +918,7 @@ ada_panel_draw () {
 	local frame_bottom_left="⎣"
 	local frame_bottom_right="⎦"
 	local count_columns="${size_last##* }"
-	local column_frame_minimum=$(( width_critter + width_tab + 1 ))
+	local column_frame_minimum=$(( width_critter + width_gap_critter + 1 ))
 	local index_last=$(( height_panel - 1 ))
 	local column_frame
 	local column_text
@@ -1072,6 +1099,27 @@ ada_panel_draw () {
 
 		line_panel="${list_panel[index_line]}"
 
+		# narrow terminal - padding before the value goes first
+
+		count_shrink=$(( ${#line_panel} - width_text ))
+
+		while [ "${count_shrink}" -gt 0 ] && [[ "${line_panel}" == *"${padding_shrink}"* ]]
+		do
+			line_panel="${line_panel/"${padding_shrink}"/${padding_shrunk}}"
+
+			(( count_shrink -- ))
+		done
+
+		# still too wide - cut the value and mark the cut
+
+		width_cut=$(( width_text - ${#marker_cut} ))
+
+		if [ "${#line_panel}" -gt "${width_text}" ] && [ "${width_cut}" -gt 0 ]
+		then
+			line_panel="${line_panel:0:width_cut}"
+			line_panel="${line_panel% }${marker_cut}"
+		fi
+
 		if [ "${column_sheet}" -ge "${column_frame_minimum}" ]
 		then
 			printf -v text_part "${format_cursor_position}%s%s%s${format_cursor_position}%s${format_cursor_position}%s%s%s" \
@@ -1208,7 +1256,12 @@ ada_status_follow () {
 	local stat_idle_last
 	local width_panel_widest="0"
 	local width_value_widest="0"
-	local sequence_screen_clear='\e[2J'
+	local sequence_region_reset='\e[r'
+	local option_columns="cols"
+	local delay_nudge="0.15"
+	local text_newlines
+	local count_rows_current
+	local count_columns_current
 
 	local list_panel=()
 	local list_version=()
@@ -1298,11 +1351,27 @@ ada_status_follow () {
 				size_last="${size_current}"
 				state_redraw="true"
 
-				# the terminal rewraps old header lines into the chat area
+				# the terminal rewraps old header lines into the chat area - the screen goes to history, nothing is erased
 
-				printf "${sequence_screen_clear}"
+				count_rows_current="${size_current%% *}"
+
+				printf -v text_newlines '%*s' "${count_rows_current}" ""
+
+				text_newlines="${text_newlines// /$'\n'}"
+
+				printf "${sequence_cursor_save}${sequence_region_reset}${format_cursor_position}%s${sequence_cursor_restore}" "${count_rows_current}" "${column_first}" "${text_newlines}"
 
 				ada_status_draw
+
+				# a one column nudge makes the foreground line editor repaint its input line - it ignores a resize signal without a size change
+
+				count_columns_current="${size_current##* }"
+
+				stty "${option_columns}" "$(( count_columns_current - 1 ))" < "${file_terminal}" 2> "${sink}"
+
+				sleep "${delay_nudge}"
+
+				stty "${option_columns}" "${count_columns_current}" < "${file_terminal}" 2> "${sink}"
 			fi
 		fi
 
