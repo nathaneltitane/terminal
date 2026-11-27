@@ -409,11 +409,11 @@ ollama show "${model}" > "${sink}" 2>&1
 
 frobulator.complete halt "Local model verification failed" "[ ${model} ]"
 
-# assistant model - same weights, tuned options, kept in memory
+# assistant model - same weights, tuned options, kept in memory - settings file kept with the models
 
 frobulator.inf "Creating assistant model" "[ ${name_assistant} // ${model} ]"
 
-file_model="$(mktemp)"
+file_model="${directory_models}/modelfile-${name_assistant}"
 
 cat <<- FILE > "${file_model}"
 FROM ${model}
@@ -424,8 +424,6 @@ FILE
 frobulator.silence "ollama create ${name_assistant} -f ${file_model}"
 
 frobulator.complete halt "Unable to create assistant model" "[ ${name_assistant} ]"
-
-rm -f "${file_model}"
 
 curl -s http://127.0.0.1:11434/api/generate -d "{\"model\":\"${name_assistant}\"}" > "${sink}"
 
