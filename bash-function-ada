@@ -13,7 +13,8 @@ ada () {
 	local name_service
 	local name_model
 	local name_assistant
-	local name_integration
+	local name_agent
+	local option_workspace
 	local name_parameter_threads
 	local keyword_parameter
 	local variable_models
@@ -85,7 +86,8 @@ ada () {
 	name_command="ollama"
 	name_service="${name_command}"
 	name_assistant="ada"
-	name_integration="qwen"
+	name_agent="ada"
+	option_workspace="--workspace"
 	name_parameter_threads="num_thread"
 	keyword_parameter="PARAMETER"
 	variable_models="OLLAMA_MODELS"
@@ -170,7 +172,7 @@ ada () {
 
 				Options:
 
-				-c, --code          Open the [c]oding assistant in this folder.
+				-c, --code          Open the [c]oding agent in this folder.
 
 				-t, --think         Let the model [t]hink before it answers.
 
@@ -318,9 +320,9 @@ ada () {
 
 	if [ "${mode_run}" = "${mode_code}" ]
 	then
-		frobulator.inf "Opening coding assistant" "[ ${name_integration}${separator_values}${name_model} ]"
+		frobulator.inf "Opening coding agent" "[ ${name_agent}${separator_values}${PWD} ]"
 
-		"${path_command}" launch "${name_integration}" --model "${name_model}"
+		command "${name_agent}" "${option_workspace}" "${PWD}"
 
 		return
 	fi
