@@ -76,6 +76,7 @@ ada () {
 	local row_gap
 	local row_panel
 	local row_gap_panel
+	local row_rule
 	local row_chat
 	local height_panel
 	local column_first
@@ -143,7 +144,8 @@ ada () {
 	row_gap="2"
 	row_panel="3"
 	height_panel="7"
-	row_gap_panel=$(( row_panel + height_panel ))
+	row_rule=$(( row_panel + height_panel ))
+	row_gap_panel=$(( row_rule + 1 ))
 	row_chat=$(( row_gap_panel + 1 ))
 	column_first="1"
 
@@ -539,9 +541,12 @@ ada_status_draw () {
 	local label_chatting="Chatting with model"
 	local label_coding="Coding with model"
 	local label_status="${label_loading}"
+	local character_rule="─"
 	local text_size
 	local count_rows
+	local count_columns
 	local text_line
+	local text_rule
 
 	if [ "${state_loaded}" = "true" ] && [ "${mode_run}" = "${mode_code}" ]
 	then
@@ -558,14 +563,26 @@ ada_status_draw () {
 
 	text_size="$(stty size 2> "${sink}" < "${file_terminal}")"
 	count_rows="${text_size%% *}"
+	count_columns="${text_size##* }"
 	text_line="$(frobulator.llm "${label_status}" "[ ${name_model} ]")"
 
-	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
+	# rule between header and chat
+
+	printf -v text_rule '%*s' "${count_columns}" ""
+
+	text_rule="${text_rule// /${character_rule}}"
+
+	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}%s%s%s${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
 		"${row_status}" \
 		"${column_first}" \
 		"${text_line}" \
 		"${row_gap}" \
 		"${column_first}" \
+		"${row_rule}" \
+		"${column_first}" \
+		"${lavender}" \
+		"${text_rule}" \
+		"${reset}" \
 		"${row_gap_panel}" \
 		"${column_first}" \
 		"${row_chat}" \
