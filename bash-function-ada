@@ -58,9 +58,15 @@ ada () {
 	local payload_load
 	local delay_loading
 	local pid_status
+	local epoch_start
+	local time_start
+	local format_time_start
 	local row_status
 	local row_gap
+	local row_panel
+	local row_gap_panel
 	local row_chat
+	local height_panel
 	local column_first
 	local format_cursor_position
 	local format_scroll_region
@@ -117,8 +123,15 @@ ada () {
 
 	row_status="1"
 	row_gap="2"
-	row_chat="3"
+	row_panel="3"
+	height_panel="7"
+	row_gap_panel=$(( row_panel + height_panel ))
+	row_chat=$(( row_gap_panel + 1 ))
 	column_first="1"
+
+	# session start
+
+	format_time_start="%H:%M"
 
 	# terminal sequences
 
@@ -333,17 +346,10 @@ ada () {
 		fi
 	done <<< "${text_details}"
 
-	# load model
+	# draw status and panel
 
-	frobulator.inf "Loading model" "[ ${name_model} ]"
-
-	printf -v payload_load "${format_payload}" "${name_model}"
-
-	curl --silent "${url_generate}" --data "${payload_load}" > "${sink}" 2>&1
-
-	sleep "${delay_loading}"
-
-	# draw status line
+	printf -v epoch_start '%(%s)T' -1
+	printf -v time_start "%(${format_time_start})T" -1
 
 	clear
 
@@ -354,6 +360,14 @@ ada () {
 	# follow status outside job table
 
 	pid_status="$(ada_status_follow > "${file_terminal}" 2> "${sink}" & echo "${!}")"
+
+	# load model
+
+	printf -v payload_load "${format_payload}" "${name_model}"
+
+	curl --silent "${url_generate}" --data "${payload_load}" > "${sink}" 2>&1
+
+	sleep "${delay_loading}"
 
 	"${path_command}" run "${name_model}" "${list_think[@]}"
 
@@ -369,17 +383,94 @@ ada () {
 
 # status line ──────────────────────────────────────────────────────────────────
 
-ada_status_text () {
+ada_status_draw () {
 
-	# use to build the status text
+	# use to draw the status line
 
-	local label_processor="CPU"
-	local label_graphics="GPU"
-	local label_shared="${label_processor}/${label_graphics}"
-	local label_context="context"
+	local label_loading="Loading model"
+	local label_chatting="Chatting with model"
+	local label_status="${label_loading}"
+	local text_size
+	local count_rows
+	local text_line
+
+	if [ "${state_loaded}" = "true" ]
+	then
+		label_status="${label_chatting}"
+	fi
+
+	frobulator.columns
+
+	# terminal size
+
+	text_size="$(stty size 2> "${sink}" < "${file_terminal}")"
+	count_rows="${text_size%% *}"
+	text_line="$(frobulator.llm "${label_status}" "[ ${name_model} ]")"
+
+	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
+		"${row_status}" \
+		"${column_first}" \
+		"${text_line}" \
+		"${row_gap}" \
+		"${column_first}" \
+		"${row_gap_panel}" \
+		"${column_first}" \
+		"${row_chat}" \
+		"${count_rows}"
+
+}
+
+# information panel ────────────────────────────────────────────────────────────
+
+ada_panel_update () {
+
+	# use to gather the panel values
+
+	local label_model="Model"
+	local label_memory="Memory"
+	local label_context="Context"
+	local label_processor="Processor"
+	local label_system="System"
+	local label_server="Server"
+	local label_session="Session"
+	local label_tokens="tokens"
 	local label_threads="threads"
+	local label_load="load"
+	local label_memory_used="memory"
+	local label_unloads="unloads in"
+	local label_kept="kept loaded"
 	local label_unloaded="not loaded"
+	local name_processor="CPU"
+	local name_graphics="GPU"
+	local name_shared="${name_processor}/${name_graphics}"
+	local text_forever="Forever"
+	local suffix_until=" from now"
 	local share_none="0%"
+	local unit_share="%"
+	local unit_temperature="°C"
+	local unit_memory="GB"
+	local separator_memory=" / "
+	local key_memory_total="MemTotal:"
+	local key_memory_available="MemAvailable:"
+	local file_processor_stat="/proc/stat"
+	local file_memory="/proc/meminfo"
+	local format_tenths="%d.%d"
+	local format_elapsed="%02d:%02d:%02d"
+	local format_label="%-*s%s"
+	local divisor_degrees="1000"
+	local divisor_memory="1048576"
+	local factor_tenths="10"
+	local factor_percent="100"
+	local seconds_hour="3600"
+	local seconds_minute="60"
+	local padding_label="2"
+	local width_label="0"
+	local share_load="0"
+	local count_memory_total="0"
+	local count_memory_available="0"
+	local text_memory="${label_unloaded}"
+	local count_context="${label_unloaded}"
+	local text_until="${label_unloaded}"
 	local line_model
 	local name_loaded
 	local text_identifier
@@ -387,13 +478,55 @@ ada_status_text () {
 	local unit_size
 	local text_shares
 	local text_processors
-	local count_context
 	local text_rest
 	local share_processor
 	local share_graphics
-	local text_stats="${label_unloaded}"
+	local name_stat
+	local count_user
+	local count_nice
+	local count_system
+	local count_idle
+	local count_wait
+	local count_interrupt
+	local count_interrupt_soft
+	local count_steal
+	local stat_total
+	local stat_idle
+	local delta_total
+	local delta_idle
+	local count_degrees
+	local text_processor
+	local line_memory
+	local key_memory
+	local value_memory
+	local count_memory_used
+	local tenths_used
+	local tenths_total
+	local text_used
+	local text_total
+	local epoch_now
+	local seconds_elapsed
+	local text_elapsed
+	local label
+	local index_label
 
 	local list_models=()
+	local list_memory=()
+	local list_values=()
+
+	local list_labels=(
+		"${label_model}"
+		"${label_memory}"
+		"${label_context}"
+		"${label_processor}"
+		"${label_system}"
+		"${label_server}"
+		"${label_session}"
+	)
+
+	# model memory and context
+
+	state_loaded="false"
 
 	mapfile -t list_models < <("${path_command}" ps 2> "${sink}")
 
@@ -403,12 +536,14 @@ ada_status_text () {
 
 		if [ "${name_loaded}" = "${name_model}" ] || [ "${name_loaded}" = "${name_model}${suffix_latest}" ]
 		then
-			if [ "${text_processors}" = "${label_shared}" ]
+			state_loaded="true"
+
+			if [ "${text_processors}" = "${name_shared}" ]
 			then
 				share_processor="${text_shares%%/*}"
 				share_graphics="${text_shares##*/}"
 
-			elif [ "${text_processors}" = "${label_graphics}" ]
+			elif [ "${text_processors}" = "${name_graphics}" ]
 			then
 				share_processor="${share_none}"
 				share_graphics="${text_shares}"
@@ -417,42 +552,231 @@ ada_status_text () {
 				share_graphics="${share_none}"
 			fi
 
-			text_stats="${count_size} ${unit_size}${separator_values}${share_processor} ${label_processor}${separator_values}${share_graphics} ${label_graphics}${separator_values}${count_context} ${label_context}"
+			text_memory="${count_size} ${unit_size}${separator_values}${share_processor} ${name_processor}${separator_values}${share_graphics} ${name_graphics}"
+			count_context="${count_context} ${label_tokens}"
+
+			if [ "${text_rest}" = "${text_forever}" ]
+			then
+				text_until="${label_kept}"
+			else
+				text_until="${label_unloads} ${text_rest%"${suffix_until}"}"
+			fi
 		fi
 	done
 
-	echo "[ ${name_model}${separator_values}${text_stats}${separator_values}${count_threads_model} ${label_threads} ]"
+	if [ "${state_loaded}" = "false" ]
+	then
+		count_context="${label_unloaded}"
+	fi
+
+	# processor load since last update
+
+	read -r name_stat count_user count_nice count_system count_idle count_wait count_interrupt count_interrupt_soft count_steal text_rest < "${file_processor_stat}"
+
+	stat_total=$(( count_user + count_nice + count_system + count_idle + count_wait + count_interrupt + count_interrupt_soft + count_steal ))
+	stat_idle=$(( count_idle + count_wait ))
+
+	if [ -n "${stat_total_last}" ]
+	then
+		delta_total=$(( stat_total - stat_total_last ))
+		delta_idle=$(( stat_idle - stat_idle_last ))
+
+		if [ "${delta_total}" -gt 0 ]
+		then
+			share_load=$(( ( delta_total - delta_idle ) * factor_percent / delta_total ))
+		fi
+	fi
+
+	stat_total_last="${stat_total}"
+	stat_idle_last="${stat_idle}"
+
+	text_processor="${share_load}${unit_share} ${label_load}"
+
+	if [ -n "${file_temperature_cpu}" ] && [ -r "${file_temperature_cpu}" ]
+	then
+		read -r count_degrees < "${file_temperature_cpu}"
+
+		text_processor="${text_processor}${separator_values}$(( count_degrees / divisor_degrees ))${unit_temperature}"
+	fi
+
+	# system memory
+
+	mapfile -t list_memory < "${file_memory}"
+
+	for line_memory in "${list_memory[@]}"
+	do
+		read -r key_memory value_memory text_rest <<< "${line_memory}"
+
+		if [ "${key_memory}" = "${key_memory_total}" ]
+		then
+			count_memory_total="${value_memory}"
+
+		elif [ "${key_memory}" = "${key_memory_available}" ]
+		then
+			count_memory_available="${value_memory}"
+		fi
+	done
+
+	count_memory_used=$(( count_memory_total - count_memory_available ))
+	tenths_used=$(( count_memory_used * factor_tenths / divisor_memory ))
+	tenths_total=$(( count_memory_total * factor_tenths / divisor_memory ))
+
+	printf -v text_used "${format_tenths}" "$(( tenths_used / factor_tenths ))" "$(( tenths_used % factor_tenths ))"
+	printf -v text_total "${format_tenths}" "$(( tenths_total / factor_tenths ))" "$(( tenths_total % factor_tenths ))"
+
+	# session time
+
+	printf -v epoch_now '%(%s)T' -1
+
+	seconds_elapsed=$(( epoch_now - epoch_start ))
+
+	printf -v text_elapsed "${format_elapsed}" \
+		"$(( seconds_elapsed / seconds_hour ))" \
+		"$(( seconds_elapsed % seconds_hour / seconds_minute ))" \
+		"$(( seconds_elapsed % seconds_minute ))"
+
+	list_values=(
+		"${text_architecture}${separator_values}${text_parameters}${separator_values}${text_quantization}"
+		"${text_memory}"
+		"${count_context}${separator_values}${count_threads_model} ${label_threads}"
+		"${text_processor}"
+		"${text_used}${separator_memory}${text_total} ${unit_memory} ${label_memory_used}"
+		"${name_command} ${text_version}${separator_values}${address_server}"
+		"${time_start}${separator_values}${text_elapsed}${separator_values}${text_until}"
+	)
+
+	# labels in one column
+
+	for label in "${list_labels[@]}"
+	do
+		if [ "${#label}" -gt "${width_label}" ]
+		then
+			width_label="${#label}"
+		fi
+	done
+
+	width_label=$(( width_label + padding_label ))
+
+	list_panel=()
+
+	for index_label in "${!list_labels[@]}"
+	do
+		printf -v line_model "${format_label}" "${width_label}" "${list_labels[index_label]}" "${list_values[index_label]}"
+
+		list_panel+=("${line_model}")
+	done
 
 }
 
-ada_status_draw () {
+ada_panel_draw () {
 
-	# use to draw the status line
+	# use to draw the critter and panel
 
-	local text_size
-	local count_rows
-	local text_status
-	local text_line
+	local width_critter="15"
+	local width_tab="4"
+	local width_frame_inner="3"
+	local frame_top_left="⎡"
+	local frame_top_right="⎤"
+	local frame_middle_left="⎢"
+	local frame_middle_right="⎥"
+	local frame_bottom_left="⎣"
+	local frame_bottom_right="⎦"
+	local count_columns="${size_last##* }"
+	local column_frame=$(( width_critter + width_tab + 1 ))
+	local column_text=$(( column_frame + 2 ))
+	local width_text=$(( count_columns - column_frame - width_frame_inner ))
+	local index_last=$(( height_panel - 1 ))
+	local index_line
+	local row_current
+	local frame_left
+	local frame_right
+	local line_panel
+	local text_part
+	local text_output
 
-	frobulator.columns
+	local list_critter=()
 
-	# terminal size
+	local list_mouth=(
+		' ██████████████'
+		' ██████▀▀██████'
+		' ██████  ██████'
+	)
 
-	text_size="$(stty size 2> "${sink}" < "${file_terminal}")"
-	count_rows="${text_size%% *}"
-	text_status="$(ada_status_text)"
-	text_line="$(frobulator.llm "Chatting with model" "${text_status}")"
+	local -A list_antenna=(
+		[up]='  ▀█▄      ▄█▀'
+		[wiggle]='  ▄█▀      ▀█▄'
+	)
 
-	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
-		"${row_status}" \
-		"${column_first}" \
-		"${text_line}" \
-		"${row_gap}" \
-		"${column_first}" \
-		"${row_chat}" \
-		"${count_rows}"
+	local -A list_eyes=(
+		[open]=' ███ ██████ ███'
+		[shut]=' ███▄██████▄███'
+	)
+
+	local -A list_legs=(
+		[stand]='   █ █    █ █'
+		[left]='  █ █    █ █'
+		[right]='    █ █    █ █'
+	)
+
+	list_critter=(
+		"${list_antenna[${state_antenna}]}"
+		'   ▄▄▄▄▄▄▄▄▄▄'
+		' ▄████████████▄'
+		"${list_eyes[${state_eyes}]}"
+		"${list_mouth[index_mouth]}"
+		' ██████████████'
+		"${list_legs[${state_legs}]}"
+	)
+
+	printf -v text_output "${sequence_cursor_save}"
+
+	for (( index_line = 0 ; index_line <= index_last ; index_line ++ ))
+	do
+		row_current=$(( row_panel + index_line ))
+
+		printf -v text_part "${format_cursor_position}${sequence_line_clear}%s%s%s" \
+			"${row_current}" "${column_first}" "${lavender}" "${list_critter[index_line]}" "${reset}"
+
+		text_output="${text_output}${text_part}"
+
+		if [ "${width_text}" -lt 1 ]
+		then
+			continue
+		fi
+
+		# bracket piece for the row
+
+		frame_left="${frame_middle_left}"
+		frame_right="${frame_middle_right}"
+
+		if [ "${index_line}" -eq 0 ]
+		then
+			frame_left="${frame_top_left}"
+			frame_right="${frame_top_right}"
+
+		elif [ "${index_line}" -eq "${index_last}" ]
+		then
+			frame_left="${frame_bottom_left}"
+			frame_right="${frame_bottom_right}"
+		fi
+
+		line_panel="${list_panel[index_line]}"
+
+		printf -v text_part "${format_cursor_position}%s%s%s${format_cursor_position}%s${format_cursor_position}%s%s%s" \
+			"${row_current}" "${column_frame}" "${lavender}" "${frame_left}" "${reset}" \
+			"${row_current}" "${column_text}" "${line_panel:0:width_text}" \
+			"${row_current}" "${count_columns}" "${lavender}" "${frame_right}" "${reset}"
+
+		text_output="${text_output}${text_part}"
+	done
+
+	printf -v text_part "${sequence_cursor_restore}"
+
+	printf '%s' "${text_output}${text_part}"
 
 }
+
+# server time ──────────────────────────────────────────────────────────────────
 
 ada_server_time () {
 
@@ -505,40 +829,126 @@ ada_server_time () {
 
 ada_status_follow () {
 
-	# use to animate and refresh the status line
+	# use to animate status and panel
 
 	local delay_frame="0.25"
 	local count_frames_size="2"
 	local count_frames_status="8"
 	local count_time_working="2"
+	local count_ticks_blink="20"
+	local count_ticks_antenna="48"
+	local tick_wiggle_last="2"
+	local key_architecture="architecture"
+	local key_parameters="parameters"
+	local key_quantization="quantization"
+	local directory_thermal="/sys/class/thermal"
+	local pattern_zone="thermal_zone*"
+	local name_file_type="type"
+	local name_file_temperature="temp"
+	local name_zone_package="x86_pkg_temp"
+	local option_version="--version"
 	local format_marker="${sequence_cursor_save}${format_cursor_position}%s%s%s%s%s${sequence_cursor_restore}"
-	local pid_server
+	local state_loaded="false"
+	local state_loaded_last="false"
+	local state_redraw
+	local state_antenna="up"
+	local state_eyes="open"
+	local state_legs="stand"
 	local count_ticks="0"
 	local index_frame="0"
+	local index_mouth="0"
+	local index_talk="0"
+	local pid_server
 	local index_current
 	local count_frames
+	local count_pattern
 	local remainder_size
 	local remainder_status
+	local remainder_step
+	local remainder_blink
+	local remainder_antenna
 	local time_last
 	local time_current
 	local time_delta
 	local size_last
 	local size_current
-	local text_last
-	local text_current
+	local key_critter
+	local key_critter_last
+	local key_detail
+	local value_detail
+	local rest_detail
+	local text_architecture
+	local text_parameters
+	local text_quantization
+	local text_version
+	local text_zone
+	local directory_zone
+	local file_temperature_cpu
+	local stat_total_last
+	local stat_idle_last
 
+	local list_panel=()
+	local list_version=()
 	local list_frames=("${list_ticker_llm_wait[@]}")
+	local list_pattern_mouth=(1 2 1 0 1 2 2 1 0 1 2 1 0 0 0 0 0)
+
+	# model details
+
+	while read -r key_detail value_detail rest_detail
+	do
+		if [ "${key_detail}" = "${key_architecture}" ] && [ -z "${text_architecture}" ]
+		then
+			text_architecture="${value_detail}"
+
+		elif [ "${key_detail}" = "${key_parameters}" ] && [ -z "${text_parameters}" ]
+		then
+			text_parameters="${value_detail}"
+
+		elif [ "${key_detail}" = "${key_quantization}" ] && [ -z "${text_quantization}" ]
+		then
+			text_quantization="${value_detail}"
+		fi
+	done <<< "${text_details}"
+
+	# server version
+
+	mapfile -t list_version < <("${path_command}" "${option_version}" 2> "${sink}")
+
+	text_version="${list_version[0]##* }"
+
+	# processor temperature sensor
+
+	for directory_zone in "${directory_thermal}"/${pattern_zone}
+	do
+		read -r text_zone < "${directory_zone}/${name_file_type}" 2> "${sink}"
+
+		if [ "${text_zone}" = "${name_zone_package}" ]
+		then
+			file_temperature_cpu="${directory_zone}/${name_file_temperature}"
+		fi
+	done
 
 	pid_server="$(systemctl show "${name_service}" --property="${property_pid}" --value 2> "${sink}")"
 	time_last="$(ada_server_time "${pid_server}")"
 	size_last="$(stty size 2> "${sink}" < "${file_terminal}")"
-	text_last="$(ada_status_text)"
+	count_pattern="${#list_pattern_mouth[@]}"
+
+	ada_panel_update
+
+	ada_status_draw
+
+	ada_panel_draw
+
+	state_loaded_last="${state_loaded}"
+	key_critter_last="${state_antenna} ${state_eyes} ${state_legs} ${index_mouth}"
 
 	while true
 	do
 		sleep "${delay_frame}"
 
 		(( count_ticks ++ ))
+
+		state_redraw="false"
 
 		# working when time grows
 
@@ -559,20 +969,85 @@ ada_status_follow () {
 		if [ "${remainder_size}" -eq 0 ]
 		then
 			size_current="$(stty size 2> "${sink}" < "${file_terminal}")"
+
+			if [ "${size_current}" != "${size_last}" ]
+			then
+				size_last="${size_current}"
+				state_redraw="true"
+
+				ada_status_draw
+			fi
 		fi
 
 		if [ "${remainder_status}" -eq 0 ]
 		then
-			text_current="$(ada_status_text)"
+			ada_panel_update
+
+			state_redraw="true"
+
+			if [ "${state_loaded}" != "${state_loaded_last}" ]
+			then
+				state_loaded_last="${state_loaded}"
+
+				ada_status_draw
+			fi
 		fi
 
-		if [ "${size_current:-${size_last}}" != "${size_last}" ] ||
-		   [ "${text_current:-${text_last}}" != "${text_last}" ]
-		then
-			ada_status_draw
+		# critter frame
 
-			size_last="${size_current:-${size_last}}"
-			text_last="${text_current:-${text_last}}"
+		state_antenna="up"
+		state_eyes="open"
+		state_legs="stand"
+		index_mouth="0"
+
+		if [ "${state_loaded}" != "true" ]
+		then
+			# walks while loading
+
+			remainder_step=$(( count_ticks % 2 ))
+
+			if [ "${remainder_step}" -eq 0 ]
+			then
+				state_legs="left"
+			else
+				state_legs="right"
+			fi
+
+		elif [ "${time_delta}" -gt "${count_time_working}" ]
+		then
+			# talks while answering
+
+			index_mouth="${list_pattern_mouth[index_talk % count_pattern]}"
+
+			(( index_talk ++ ))
+		else
+			# blinks and wiggles while waiting
+
+			remainder_blink=$(( count_ticks % count_ticks_blink ))
+			remainder_antenna=$(( count_ticks % count_ticks_antenna ))
+
+			if [ "${remainder_blink}" -eq 0 ]
+			then
+				state_eyes="shut"
+			fi
+
+			if [ "${remainder_antenna}" -eq 0 ] || [ "${remainder_antenna}" -eq "${tick_wiggle_last}" ]
+			then
+				state_antenna="wiggle"
+			fi
+		fi
+
+		key_critter="${state_antenna} ${state_eyes} ${state_legs} ${index_mouth}"
+
+		if [ "${key_critter}" != "${key_critter_last}" ]
+		then
+			key_critter_last="${key_critter}"
+			state_redraw="true"
+		fi
+
+		if [ "${state_redraw}" = "true" ]
+		then
+			ada_panel_draw
 		fi
 
 		# next marker frame
