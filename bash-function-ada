@@ -701,10 +701,11 @@ ada_panel_draw () {
 	local frame_bottom_left="⎣"
 	local frame_bottom_right="⎦"
 	local count_columns="${size_last##* }"
-	local column_frame=$(( width_critter + width_tab + 1 ))
-	local column_text=$(( column_frame + 2 ))
-	local width_text=$(( count_columns - column_frame - width_frame_inner ))
+	local column_frame_minimum=$(( width_critter + width_tab + 1 ))
 	local index_last=$(( height_panel - 1 ))
+	local column_frame
+	local column_text
+	local width_text
 	local index_line
 	local row_current
 	local frame_left
@@ -746,6 +747,26 @@ ada_panel_draw () {
 		' ██████████████'
 		"${list_legs[${state_legs}]}"
 	)
+
+	# right aligned, as wide as the widest line so far
+
+	for line_panel in "${list_panel[@]}"
+	do
+		if [ "${#line_panel}" -gt "${width_panel_widest}" ]
+		then
+			width_panel_widest="${#line_panel}"
+		fi
+	done
+
+	column_frame=$(( count_columns - width_panel_widest - width_frame_inner ))
+
+	if [ "${column_frame}" -lt "${column_frame_minimum}" ]
+	then
+		column_frame="${column_frame_minimum}"
+	fi
+
+	column_text=$(( column_frame + 2 ))
+	width_text=$(( count_columns - column_frame - width_frame_inner ))
 
 	printf -v text_output "${sequence_cursor_save}"
 
@@ -905,6 +926,8 @@ ada_status_follow () {
 	local file_temperature_cpu
 	local stat_total_last
 	local stat_idle_last
+	local width_panel_widest="0"
+	local sequence_screen_clear='\e[2J'
 
 	local list_panel=()
 	local list_version=()
@@ -993,6 +1016,10 @@ ada_status_follow () {
 			then
 				size_last="${size_current}"
 				state_redraw="true"
+
+				# the terminal rewraps old header lines into the chat area
+
+				printf "${sequence_screen_clear}"
 
 				ada_status_draw
 			fi
