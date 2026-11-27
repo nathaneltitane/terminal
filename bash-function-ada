@@ -15,6 +15,7 @@ ada () {
 	local name_assistant
 	local name_agent
 	local option_workspace
+	local option_model
 	local path_agent
 	local name_parameter_threads
 	local keyword_parameter
@@ -89,6 +90,7 @@ ada () {
 	name_assistant="ada"
 	name_agent="ada"
 	option_workspace="--workspace"
+	option_model="--model"
 	name_parameter_threads="num_thread"
 	keyword_parameter="PARAMETER"
 	variable_models="OLLAMA_MODELS"
@@ -173,7 +175,8 @@ ada () {
 
 				Options:
 
-				-c, --code          Open the [c]oding agent in this folder.
+				-c, --code          Open the [c]oding agent in this folder, under the same
+				                    header and with the same model.
 
 				-t, --think         Let the model [t]hink before it answers.
 
@@ -331,15 +334,6 @@ ada () {
 		return 1
 	fi
 
-	if [ "${mode_run}" = "${mode_code}" ]
-	then
-		frobulator.inf "Opening coding agent" "[ ${name_agent}${separator_values}${PWD} ]"
-
-		command "${name_agent}" "${option_workspace}" "${PWD}"
-
-		return
-	fi
-
 	# thinking models only
 
 	text_details="$("${path_command}" show "${name_model}" 2> "${sink}")"
@@ -376,15 +370,20 @@ ada () {
 
 	pid_status="$(ada_status_follow > "${file_terminal}" 2> "${sink}" & echo "${!}")"
 
-	# load model
+	# coding agent warms the model up itself
 
-	printf -v payload_load "${format_payload}" "${name_model}"
+	if [ "${mode_run}" = "${mode_code}" ]
+	then
+		command "${name_agent}" "${option_workspace}" "${PWD}" "${option_model}" "${name_model}"
+	else
+		printf -v payload_load "${format_payload}" "${name_model}"
 
-	curl --silent "${url_generate}" --data "${payload_load}" > "${sink}" 2>&1
+		curl --silent "${url_generate}" --data "${payload_load}" > "${sink}" 2>&1
 
-	sleep "${delay_loading}"
+		sleep "${delay_loading}"
 
-	"${path_command}" run "${name_model}" "${list_think[@]}"
+		"${path_command}" run "${name_model}" "${list_think[@]}"
+	fi
 
 	kill "${pid_status}" 2> "${sink}"
 
@@ -404,12 +403,17 @@ ada_status_draw () {
 
 	local label_loading="Loading model"
 	local label_chatting="Chatting with model"
+	local label_coding="Coding with model"
 	local label_status="${label_loading}"
 	local text_size
 	local count_rows
 	local text_line
 
-	if [ "${state_loaded}" = "true" ]
+	if [ "${state_loaded}" = "true" ] && [ "${mode_run}" = "${mode_code}" ]
+	then
+		label_status="${label_coding}"
+
+	elif [ "${state_loaded}" = "true" ]
 	then
 		label_status="${label_chatting}"
 	fi
