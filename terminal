@@ -1008,9 +1008,9 @@ then
 				fi
 			done
 
-			# kup backup plans
+			# kde backup plans
 
-			frobulator.link "${storage}" "${HOME}"/.config .backup kuprc
+			frobulator.link "${storage}"/Git/terminal "${HOME}"/.config kde-backup-configuration kuprc
 		fi
 	done
 

@@ -1,0 +1,21 @@
+[Kup settings]
+Backups enabled=true
+Number of backups=1
+
+[Plan/1]
+Check backups=true
+Description=Backup
+External device description=Samsung PSSD T7 Shield
+External drive UUID=4128-c9d8
+External partition number=1
+External partitions count=1
+External volume capacity=2000336715776
+External volume label=external
+Generate recovery info=true
+Paths excluded=/home/nathanel/.cache,/home/nathanel/.local/share/Trash,/home/nathanel/.local/share/baloo,/home/nathanel/.local/share/waydroid
+Paths included=/home/nathanel,/media/internal
+Schedule interval=12
+Schedule interval unit=1
+Schedule type=1
+Show hidden folders=true
+Usage limit=12

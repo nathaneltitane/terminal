@@ -219,7 +219,7 @@ file_device_index="${directory}/kde-connect-devices-list"
 file_commands_list="${directory}/kde-connect-commands-list"
 
 file_identity_certificate="${directory}/kde-connect-certificate.pem"
-file_identity_config="${directory}/kde-connect-config"
+file_identity_configuration="${directory}/kde-connect-configuration"
 
 file_identity_key="${file_identity_key:-${file_identity_key_default}}"
 
@@ -381,7 +381,7 @@ identity_backup () {
 
 	cp -f "${directory_kde_connect}/privateKey.pem" "${file_identity_key}" &&
 	cp -f "${directory_kde_connect}/certificate.pem" "${file_identity_certificate}" &&
-	cp -f "${directory_kde_connect}/config" "${file_identity_config}"
+	cp -f "${directory_kde_connect}/config" "${file_identity_configuration}"
 
 	if [ "${?}" -ne 0 ]
 	then
@@ -534,9 +534,9 @@ identity_restore () {
 		return 1
 	fi
 
-	if [ -f "${file_identity_config}" ]
+	if [ -f "${file_identity_configuration}" ]
 	then
-		cp -f "${file_identity_config}" "${directory_kde_connect}/config"
+		cp -f "${file_identity_configuration}" "${directory_kde_connect}/config"
 	fi
 
 	frobulator.permissions private "${directory_kde_connect}/privateKey.pem" "${directory_kde_connect}/certificate.pem" > "${sink}"
