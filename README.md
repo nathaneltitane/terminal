@@ -125,7 +125,7 @@ Kept: home directories, themes, the boot theme, drive mounts and every package.
 
 Terminal's scripts are written for [GNU Bash](https://www.gnu.org/software/bash/).
 
-Terminal is related to [Frobulator](https://github.com/nathaneltitane/frobulator), the shell scripting function library behind every Terminal script, and [Dextop](https://github.com/nathaneltitane/dextop), a Linux based workstation for Android that downloads its container images from Terminal.
+Terminal is related to [Frobulator](https://github.com/nathaneltitane/frobulator), the shell scripting function library behind every Terminal script, [Dextop](https://github.com/nathaneltitane/dextop), a Linux based workstation for Android that downloads its container images from Terminal, and [ADA](https://github.com/nathaneltitane/ada), the local coding agent that the ada shell function opens.
 
 ---
 
@@ -160,6 +160,8 @@ Linux is a registered trademark of Linus Torvalds. Android is a trademark of Goo
 [![GitHub Repo stars](https://img.shields.io/github/stars/nathaneltitane/nathaneltitane?style=for-the-badge&logo=gnubash&logoColor=ffffff&label=NATHANEL%20%2b%20TITANE)](https://github.com/nathaneltitane/nathaneltitane)
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/nathaneltitane/pewpewprints?style=for-the-badge&logo=gnubash&logoColor=ffffff&label=PEW%21%20PEW%21%20PRINTS)](https://github.com/nathaneltitane/pewpewprints)
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/nathaneltitane/ada?style=for-the-badge&logo=gnubash&logoColor=ffffff&label=ADA)](https://github.com/nathaneltitane/ada)
 
 ---
 
