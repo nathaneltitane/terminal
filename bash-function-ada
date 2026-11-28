@@ -1477,6 +1477,12 @@ ada_status_follow () {
 	local key_architecture="architecture"
 	local key_parameters="parameters"
 	local key_quantization="quantization"
+	local path_show="/api/show"
+	local url_show="${protocol_server}://${address_server}${path_show}"
+	local pattern_basename='"general\.basename":"([^"]+)"'
+	local pattern_size_label='"general\.size_label":"([^"]+)"'
+	local payload_show
+	local text_show
 	local directory_thermal="/sys/class/thermal"
 	local pattern_zone="thermal_zone*"
 	local name_file_type="type"
@@ -1570,6 +1576,22 @@ ada_status_follow () {
 			text_quantization="${value_detail}"
 		fi
 	done <<< "${text_details}"
+
+	# model name - the metadata names the model, the family stays when it doesn't
+
+	printf -v payload_show "${format_payload}" "${name_model}"
+
+	text_show="$(curl --silent --max-time 2 "${url_show}" --data "${payload_show}" 2> "${sink}")"
+
+	if [[ "${text_show}" =~ ${pattern_basename} ]]
+	then
+		text_architecture="${BASH_REMATCH[1]}"
+
+		if [[ "${text_show}" =~ ${pattern_size_label} ]]
+		then
+			text_parameters="${BASH_REMATCH[1]}"
+		fi
+	fi
 
 	# server version
 
