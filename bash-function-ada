@@ -117,7 +117,7 @@ ada () {
 	pattern_number="^[0-9]+$"
 	property_environment="Environment"
 	property_pid="MainPID"
-	separator_values=" // "
+	separator_values=" · "
 	mode_chat="chat"
 	mode_code="code"
 	mode_run="${mode_chat}"
