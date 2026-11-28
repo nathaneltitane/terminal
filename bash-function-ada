@@ -76,8 +76,6 @@ ada () {
 	local row_gap
 	local row_panel
 	local row_gap_panel
-	local row_rule
-	local row_gap_rule
 	local row_chat
 	local height_panel
 	local column_first
@@ -145,9 +143,7 @@ ada () {
 	row_gap="2"
 	row_panel="3"
 	height_panel="7"
-	row_gap_rule=$(( row_panel + height_panel ))
-	row_rule=$(( row_gap_rule + 1 ))
-	row_gap_panel=$(( row_rule + 1 ))
+	row_gap_panel=$(( row_panel + height_panel ))
 	row_chat=$(( row_gap_panel + 1 ))
 	column_first="1"
 
@@ -548,7 +544,6 @@ ada_status_draw () {
 	local count_rows
 	local count_columns
 	local text_line
-	local text_rule
 	local text_visible
 	local count_excess
 	local character_rule_pair="──"
@@ -590,25 +585,14 @@ ada_status_draw () {
 		(( count_excess -- ))
 	done
 
-	# rule between header and chat
+	# the session line under the panels divides header and chat
 
-	printf -v text_rule '%*s' "${count_columns}" ""
-
-	text_rule="${text_rule// /${character_rule}}"
-
-	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}%s%s%s${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
+	printf "${sequence_cursor_save}${format_cursor_position}${sequence_line_clear}%s${format_cursor_position}${sequence_line_clear}${format_cursor_position}${sequence_line_clear}${format_scroll_region}${sequence_cursor_restore}" \
 		"${row_status}" \
 		"${column_first}" \
 		"${text_line}" \
 		"${row_gap}" \
 		"${column_first}" \
-		"${row_gap_rule}" \
-		"${column_first}" \
-		"${row_rule}" \
-		"${column_first}" \
-		"${lavender}" \
-		"${text_rule}" \
-		"${reset}" \
 		"${row_gap_panel}" \
 		"${column_first}" \
 		"${row_chat}" \
